@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#375EAB" />
+
+		<title>{{.Title}}</title>
+		{{- range .Styles}}
+		<link rel="stylesheet" href="{{.}}" />
+		{{- end}}
+	</head>
+	<body>
+		<div class="topbar">
+			<div class="container">
+				<div class="top-heading">
+					<a href="/">Bahasa Pemrograman Go</a>
+				</div>
+				<div class="menu">
+					<a href="https://tour.golang-id.org" target="_blank">Tur</a>
+					<a href="/doc">Dokumentasi</a>
+				</div>
+			</div>
+		</div>
+
+		<div class="page">
+			<div class="container">
+				<h1>{{.Title}}</h1>
+				{{.Body}}
+			</div>
+			<!-- .container -->
+		</div>
+		<!-- #page -->
+
+		<div class="footer">
+			Halaman situs ini berlisensikan
+			<a href="https://creativecommons.org/licenses/by/3.0/"
+				>Creative Commons Attribution 3.0 </a
+			>, dan sumber kode berlisensikan <a href="/LICENSE">BSD</a>.
+			<br />
+		</div>
+	</body>
+</html>

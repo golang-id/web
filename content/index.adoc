@@ -1,0 +1,30 @@
+=  Selamat Datang
+:stylesheet: /assets/style.css
+:golang-id-milis: https://groups.google.com/forum/#!forum/golang-id
+:golang-id-berkontribusi: link:/berkontribusi.html
+
+Selamat datang di situs komunitas bahasa pemrograman Go Indonesia.
+
+Go adalah bahasa pemrograman sumber terbuka (_open source_) yang memudahkan
+membangun perangkat lunak yang handal, efisien, dan bersahaja.
+
+
+==  Dokumentasi
+
+Untuk mengetahui cara memasang bahasa Go di sistem operasi anda dan belajar
+lebih lanjut, silahkan buka halaman link:/doc[dokumentasi].
+
+
+==  Bantuan
+
+===  {golang-id-milis}[Milis Go Indonesia]
+
+Jika anda memiliki pertanyaan, atau ingin berbagi karya Go anda, atau ingin
+berdiskusi lebih lanjut tentang Go.
+
+
+==  {golang-id-berkontribusi}[Berkontribusi]
+
+Siapapun dapat berkontribusi dalam situs ini.
+Untuk melihat daftar kontribusi yang dapat dilakukan, silahkan kunjungi
+{golang-id-berkontribusi}[halaman ini].

@@ -1,0 +1,75 @@
+=  Berkontribusi
+:stylesheet: /assets/style.css
+:golangid-isu: https://github.com/golang-id/web/issues
+
+Halaman ini mendokumentasikan daftar pekerjaan yang dapat dilakukan untuk
+situs golang-id.org.  Ada tiga komponen utama yang diharapkan oleh situs ini
+sebagai komunitas Go Indonesia:
+
+1.  Menerjemahkan artikel dari bahasa Inggris ke Bahasa Indonesia.
+    Penerjemahan ini bertujuan untuk memudahkan pengguna baru dalam
+    beradaptasi dan menggunakan Go.
+
+2.  Mengumpulkan blog tentang Go yang ditulis oleh komunitas Go Indonesia.
+    setiap blog nantinya dapat diakses lewat
+    "https://golang-id.org/blog/YYYYMMDD_[judul]".
+
+3.  Mengumpulkan repositori Go yang ditulis oleh komunitas Go Indonesia.
+    Kumpulan repositori ini seperti
+    https://github.com/avelino/awesome-go[awesome-go] tapi khusus untuk
+    komunitas Go Indonesia.
+
+
+==  Daftar terjemahan
+
+Daftar artikel yang direkomendasikan untuk diterjemahkan, diurut berdasarkan
+bagian:
+
+*  Memasang Go
+
+** [ ] https://golang.org/doc/install/source => /doc/install/source/index.adoc
+
+** [ ] https://golang.org/doc/install/gccgo => /doc/install/gccgo/index.adoc
+
+*  Belajar Go
+
+** [ ] https://golang.org/doc/editors.html => /doc/editors.adoc
+
+** [ ] https://golang.org/doc/effective_go.html => /doc/effective_go.adoc
+
+** [ ] https://golang.org/doc/diagnostics.html => /doc/diagnostics.adoc
+
+** [ ] https://golang.org/doc/faq => golang-id.org/doc/faq/index.adoc
+
+** [ ] https://golang.org/wiki/* => golang-id.org/wiki/* Beberapa wiki artikel
+yang direkomendasikan adalah,
+
+*** [ ] https://github.com/golang/go/wiki/Modules => /wiki/Modules/index.adoc
+
+*** [ ] https://github.com/golang/go/wiki/IDEsAndTextEditorPlugins =>
+/wiki/IDEsAndTextEditorPlugins/index.adoc
+
+*  Referensi
+
+** [ ] https://golang.org/doc/cmd => /doc/cmd/index.adoc
+
+*** [ ] https://golang.org/doc/cmd/go => /doc/cmd/go/index.adoc
+
+** [ ] https://golang.org/ref/mem => /ref/mem/index.adoc
+
+
+==  Cara berkontribusi
+
+Alur kerja untuk berkontribusi dalam repositori ini, baik dalam bentuk kode,
+terjemahan, atau blog; sama dengan alur kerja pada proyek-proyek sumber
+terbuka lainnya, yaitu dengan cara membuat salinan repositori lewat Github,
+_commit_, dan buat _pull request_.
+
+Untuk menghindari redundansi dan konflik, misalnya dua orang menerjemahkan
+artikel yang sama, pastikan untuk melihat halaman {golangid-isu}[isu] terlebih
+dahulu, apabila tidak ada yang mengklaim untuk menterjemahkan artikel
+tersebut, buat isu baru dan nyatakan dalam isu tersebut artikel yang akan anda
+terjemahkan.
+
+// TODO: jelaskan kata yang sebaiknya tidak disadur; menjaga hyperlink, supaya
+// dapat diakses dengan cara mengganti url dari golang.org ke golang-id.org.

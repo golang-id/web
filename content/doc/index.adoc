@@ -1,0 +1,49 @@
+=  Dokumentasi
+:stylesheet: /assets/style.css
+:en-cmd-go: https://golang.org/cmd/go/
+
+Bahasa pemrograman Go adalah proyek _open source_ untuk menjadikan pemrograman
+lebih produktif.
+
+Go ekspresif, ringkas, bersih, dan efisien.
+Mekanisme konkurensinya mempermudah membuat program pada mesin-mesin yang
+terhubung dalam jaringan dan dengan multi- _core_, sementara sistem tipe Go
+yang baru membuat konstruksi program yang fleksible dan modular.
+Go mengkompilasi kode dengan cepat menjadi bahasa mesin, namun memiliki
+kenyamanan _garbage collection_ dan refleksi _run-time_ yang tangguh.
+Go adalah bahasa pemrograman dengan tipe statis namun berasa seperti bertipe
+dinamis.
+
+
+==  Memasang Go
+
+===  link:/doc/install[Memulai dari awal]
+
+Instruksi untuk mengunduh dan memasang _compiler_, peralatan, dan pustaka dari
+Go.
+
+[#learning]
+==  Belajar Go
+
+[#go_tour]
+===  https://tour.golang-id.org[Tur Bahasa Pemrograman Go]
+
+Pengenalan Go secara interaktif dalam tiga bagian.
+Bagian pertama membahas sintaks dasar dan struktur data;
+bagian kedua membahas _method_ dan _interface_;
+dan yang ketiga memperkenalkan konkurensi primitif dari Go.
+Setiap bagian berakhir dengan beberapa latihan supaya anda dapat mempraktikkan
+apa yang telah dipelajari.
+Anda bisa melakukan tur secara daring atau memasangnya di komputer anda:
+
+  $ go get github.com/golang-id/tour
+
+Perintah di atas akan membuat sebuah program bernama `tour` di dalam direktori
+`bin` di ruang-kerja anda.
+
+
+[#code]
+===  link:/doc/code.html[Cara menulis kode Go]
+
+Dokumen ini menjelaskan cara menggunakan program {en-cmd-go}[`go`] untuk
+mengambil, membuat, dan memasang paket-paket, program, dan menjalankan tes.

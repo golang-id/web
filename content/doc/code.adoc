@@ -1,0 +1,505 @@
+=  Cara menulis kode Go
+:stylesheet: /assets/style.css
+:en-go-tool: https://golang.org/cmd/go/
+:en-gopath: https://golang.org/cmd/go/#hdr-GOPATH_environment_variable
+
+[#Introduction]
+==  Pendahuluan
+
+Dokumen ini mendemonstrasikan cara membuat sebuah paket Go yang sederhana dan
+memperkenalkan perkakas dari perintah {en-go-tool}[`go`], cara standar
+untuk mengambil, membuat, dan memasang paket-paket dan program Go.
+
+Perkakas `go` membutuhkan anda untuk mengorganisir kode anda dengan cara
+tertentu.
+Mohon baca dokumen ini dengan seksama.
+Dokumen ini menjelaskan cara paling mudah untuk memulai instalasi Go anda.
+
+[#Organization]
+==  Organisasi kode
+
+[#Overview]
+===  Ikhtisar
+
+*  Pemrogram Go biasanya menyimpan semua kode Go dalam sebuah ruang-kerja
+   (_workspace_).
+*  Sebuah ruang-kerja memiliki banyak repositori dengan _version control_
+   (misalnya, yang dikelola oleh Git).
+*  Setiap repositori mengandung satu atau lebih paket.
+*  Setiap paket terdiri dari satu atau lebih berkas kode Go dalam sebuah
+   direktori.
+*  _Path_ ke sebuah direktori paket menentukan nama pada _import_.
+
+Ingatlah bahwa cara ini berbeda dengan lingkungan bahasa pemrograman lainnya
+yang mana setiap proyek memiliki ruang-kerja yang terpisah dan ruang-kerja
+tersebut biasanya terikat dengan sebuah repositori dan _version control_.
+
+
+[#Workspaces]
+===  Ruang-kerja
+
+Sebuah ruang-kerja yaitu hirarki direktori dengan dua sub-direktori di
+dalamnya,
+
+*  `src` menyimpan berkas kode Go, dan
+*  `bin` menyimpan program yang dapat dieksekusi.
+
+Perkakas `go` membuat dan memasang program ke direktori `bin`.
+
+Sub direktori dari `src` biasanya menyimpan beberapa repositori dengan
+_version control_ (seperti Git atau Mercurial) yang menyimpan pengembangan
+dari satu atau lebih sumber paket.
+
+Untuk memberikan gambaran bagaimana bentuk sebuah ruang-kerja, berikut
+contohnya,
+
+----
+bin/
+    hello                          # program yang dapat dieksekusi
+    outyet                         # program yang dapat dieksekusi
+src/
+    github.com/golang/example/
+        .git/                      # metadata repositori Git
+	hello/
+	    hello.go               # sumber program
+	outyet/
+	    main.go                # sumber program
+	    main_test.go           # sumber tes
+	stringutil/
+	    reverse.go             # sumber paket
+	    reverse_test.go        # sumber test
+    golang.org/x/image/
+        .git/                      # metadata repositori Git
+	bmp/
+	    reader.go              # sumber paket
+	    writer.go              # sumber paket
+    ... (dan repositori dan paket lainnya) ...
+----
+
+Hirarki di atas memperlihatkan sebuah ruang-kerja yang teridir dari dua
+repositori (`example` dan `image`).
+Repositori `example` memiliki dua program (`hello` dan `outyet`) dan sebuah
+pustaka (`stringutil`).
+Repositori `image` memiliki paket `bmp` dan
+https://godoc.org/golang.org/x/image[beberapa paket lainnya].
+
+Sebuah ruang-kerja pada umumnya memiliki banyak sumber repositori yang
+mengandung banyak paket dan program.
+Umumnya, pemrogram Go menyimpan _semua_ sumber kode Go dan dependensinya dalam
+sebuah ruang-kerja.
+
+Ingatlah bahwa _symbolic link_ sebaiknya *tidak* digunakan untuk berkas atau
+direktori di dalam ruang-kerja anda.
+
+Program dan pustaka dibuat dari beragam sumber paket.
+Kita akan bahas perbedaan dari keduanya <<PackageNames,nanti>>
+
+
+[#GOPATH]
+===  Variabel lingkungan `GOPATH`
+
+Variabel lingkungan `GOPATH` menentukan lokasi dari ruang-kerja anda.
+Standar lokasinya yaitu direktori bernama `go` di dalam _home_ direktori anda,
+seperti `$HOME/go` pada sistem Unix, `$home/go` pada sistem Plan 9, dan
+`%USERPROFILE%\go` (biasanya `C:\Users\NamaAnda\go`) pada sistem _Windows_.
+
+Jika anda ingin bekerja pada lokasi yang lain, anda perlu mengatur `GOPATH` ke
+lokasi direktori yang diinginkan.
+(Pengaturan yang umum lainnya yaitu men-set `GOPATH=$HOME`.)
+Ingatlah bahwa `GOPATH` tidak boleh sama dengan lokasi dari instalasi Go anda.
+
+Perintah `go env GOPATH` akan menampilkan nilai dari `GOPATH`;
+ia akan menampilkan lokasi standar jika variabel lingkungan tidak diset.
+
+Untuk kemudahan, tambahkan sub direktori `bin` dari ruang-kerja ke dalam
+variabel lingkungan `PATH` anda:
+
+----
+$ export PATH=$PATH:$(go env GOPATH)/bin
+----
+
+Skrip-skrip pada bagian selanjutnya dari dokumen ini menggunakan `$GOPATH`
+untuk lebih singkat.
+Supaya skrip dapat berjalan bila anda tidak menset `GOPATH`, anda bisa
+menggantinya dengan `$HOME/go` atau jalankan:
+
+----
+$ export GOPATH=$(go env GOPATH)
+----
+
+Untuk belajar lebih lanjut tentang variabel lingkungan `GOPATH`, lihat
+{en-GOPATH}[`'go help gopath'`].
+
+[#ImportPaths]
+===  _Import path_
+
+Sebuah _import path_ yaitu sebuah string yang mengidentifikasi dan membedakan
+sebuah paket.
+_import path_ dari sebuah paket berhubungan dengan lokasinya di dalam sebuah
+ruang-kerja atau dalam sebuah repositori (dijelaskan di bawah).
+
+Paket-paket dari pustaka standar menggunakan nama _import path_ yang pendek
+seperti `"fmt"` dan `"net/http"`.
+Untuk paket anda sendiri, sebisa mungkin pilihlah sebuah nama dasar _path_
+yang tidak konflik dengan paket standar atau pustaka eksternal lainnya.
+
+Jika anda menyimpan kode anda dalam sebuah repositori, maka anda harus
+menggunakan _root_ dari sumber repositori sebagai dasar _path_ anda.
+Misalnya, jika anda menggunakan akun Github pada `github.com/user`, maka
+itulah yang menjadi dasar _path_ anda.
+
+Ingatlah bahwa anda tidak perlu memuat kode anda ke sebuah repositori luar
+untuk dapat menggunakannya.
+Hanya saja, lebih baik biasakan untuk menyusun kode anda untuk berjaga-jaga
+kemungkinan dimuat di repositori luar nantinya.
+Pada praktiknya, anda bisa memilih nama _path_ apapun, selama ia unik dengan
+pustaka standar.
+
+Sebagai contoh dalam dokumen ini, kita akan menggunakan `github.com/user`
+sebagai dasar _path_.
+Buat direktori dalam ruang-kerja untuk menyimpan sumber kode:
+
+----
+$ mkdir -p $GOPATH/src/github.com/user
+----
+
+
+[#Command]
+===  Program pertama anda
+
+Untuk mengkompilasi dan menjalaman sebuah program sederhana, pertama pilih
+sebuah _path_ untuk paket (kita akan gunakan `github.com/user/hello`) dan
+membuat direktori paket di dalam ruang-kerja anda:
+
+----
+$ mkdir $GOPATH/src/github.com/user/hello
+----
+
+Selanjutnya, buat sebuah berkas bernama `hello.go` di dalam direktori
+tersebut, yang berisi kode Go berikut.
+
+----
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello, world.")
+}
+----
+
+Sekarang anda bisa membuat dan memasang program tersebut dengan perkakas `go`:
+
+----
+$ go install github.com/user/hello
+----
+
+Ingatlah bahwa anda bisa menjalankan program tersebut dimanapun dalam sistem
+anda.
+Perkakas go mencari sumber kode dengan melihat paket `github.com/user/hello`
+di dalam ruang-kerja yang dispesifikasikan oleh `GOPATH`.
+
+Anda bisa mengindahkan _path_ paket jika anda menjalankan `go install` dari
+dalam direktori paket:
+
+----
+$ cd $GOPATH/src/github.com/user/hello
+$ go install
+----
+
+Perintah tersebut membangun program `hello`, menghasilkan sebuah binari yang
+dapat dieksekusi.
+Ia kemudian memasang binari tersebut ke direktori `bin` di ruang-kerja sebagai
+`hello` (atau, pada Windwos, `hello.exe`).
+Pada contoh ini, binari tersebut akan dibuat di `$GOPATH/bin/hello`, atau sama
+dengan `$HOME/go/bin/hello`.
+
+Perkakas `go` akan menampilkan _error_ hanya bila terjadi kesalahan, jadi bila
+tidak ada _error_ yang ditampilkan, berarti perintah tersebut dieksekusi
+dengan sukses.
+
+Anda sekarang dapat menjalankan program tersebut dengan cara:
+
+----
+$ $GOPATH/bin/hello
+Hello, world.
+----
+
+Atau, bila anda telah menambahkan `$GOPATH/bin` ke dalam `PATH` anda, tinggal
+mengetikan nama program:
+
+----
+$ hello
+Hello, world.
+----
+
+Jika anda menggunakan sistem _source control_ (misalnya, Git), sekarang
+adalah saat yang bagus untuk menginisialisasi repositori, menambahkan berkas,
+dan melakukan _commit_ yang pertama.
+Sekali lagi, langkah ini adalah opsional: anda tidak perlu menggunakan _source
+control_ untuk menulis kode Go.
+
+----
+$ cd $GOPATH/src/github.com/user/hello
+$ git init
+Initialized empty Git repository in /home/user/work/src/github.com/user/hello/.git/
+$ git add hello.go
+$ git commit -m "commit pertama"
+[master (root-commit) 0b4507d] initial commit
+ 1 file changed, 1 insertion(+)
+  create mode 100644 hello.go
+----
+
+Memuat kode ke repositori luar sengaja diindahkan sebagai latihan bagi
+pembaca.
+
+[#Library]
+==  Pustaka pertama anda
+
+Sekarang, mari kita coba membuat sebuah pustaka dan menggunakannya dalam
+program `hello`.
+
+Langkah pertama yaitu memilih _path_ untuk paket (kita akan gunakan
+`github.com/user/stringutil`) dan membuat direktori paket:
+
+----
+$ mkdir $GOPATH/src/github.com/user/stringutil
+----
+
+Selanjutnya, buat sebuah berkas dengan nama `reverse.go` di dalam direktori
+tersebut yang berisi:
+
+----
+// Package stringutil berisi fungsi-fungsi untuk bekerja dengan strings.
+package stringutil
+
+// Reverse mengembalikan sebuah string yang dibalik dari kanan ke kiri.
+func Reverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
+}
+----
+
+Sekarang, tes paket tersebut apakah dapat dikompilasi dengan `go build`:
+
+----
+$ go build github.com/user/stringutil
+----
+
+Atau, jika anda sekarang berada dalam direktori sumber paket, tinggal:
+
+----
+$ go build
+----
+
+Perintah tersebut tidak akan membuat berkas apapun.
+Namun, ia akan menyimpan paket yang telah terkompilasi di dalam _cache_
+internal.
+
+Setelah memastikan paket `stringutil` dapat dibangun, ubahlah `hello.go` anda
+(yang ada di `$GOPATH/src/github.com/user/hello`) untuk menggunakan paket
+`stringutil`:
+
+----
+package main
+
+import (
+	"fmt"
+
+	"github.com/user/stringutil"
+)
+
+func main() {
+	fmt.Println(stringutil.Reverse("!oG ,olleH"))
+}
+----
+
+Pasang kembali program `hello`:
+
+----
+$ go install github.com/user/hello
+----
+
+Jalankan versi terbaru dari program tersebut, anda akan melihat pesan baru
+yang dibalik:
+
+----
+$ hello
+Hello, Go!
+----
+
+Setelah mengikuti langkah-langkah di atas, ruang-kerja anda akan seperti
+berikut:
+
+----
+bin/
+    hello                 # program yang dapat dieksekusi
+src/
+    github.com/user/
+        hello/
+            hello.go      # sumber program
+        stringutil/
+            reverse.go    # sumber paket
+----
+
+[#PackageNames]
+===  Nama paket
+
+Perintah pertama dalam sebuah sumber kode Go haruslah
+
+----
+package name
+----
+
+yang mana _name_ adalah nama untuk paket yang di- _import_.
+(Semua berkas di dalam sebuah paket harus menggunakan nama yang sama.)
+
+Konvensi dari Go yaitu nama paket adalah elemen terakhir dari _import path_:
+paket yang diimpor dengan `"crypto/rot13"` seharusnya bernamakan `rot13`.
+
+Semua program yang dapat dieksekusi harus menggunakan paket dengan nama
+`main`.
+
+Tidak ada keharusan bahwa nama paket harus unik di antara semua paket-paket
+dalam membuat sebuah program, hanya saja nama _import path_ haruslah unik.
+
+Lihatlah dokumen
+https://golang.org/doc/effective_go.html#names[Go yang efektif] untuk belajar
+lebih lanjut tentang konvensi penamaan pada Go.
+
+
+[#Testing]
+==  Pengujian
+
+Go memiliki _framework_ (kerangka) pengujian yang ringan, terdiri dari
+perintah `go test` dan paket `testing`.
+
+Pengujian dibuat dalam sebuah berkas yang berakhiran dengan `_test.go` yang
+berisi fungsi-fungsi bernama `TestXXX` dengan format `func TestXxx(t
+*testing.T)`.
+Kerangka tes menjalankan setiap fungsi `TestXXX` tersebut;
+Jika fungsi tes memanggil sebuah fungsi yang menyatakan kesalahan, seperti
+`t.Error` atau `t.Fail`, maka tes dianggap telah gagal.
+
+Tambahkan sebuah tes ke paket `stringutil` dengan membuat berkas
+`$GOPATH/src/github.com/user/stringutil/reverse_test.go` yang berisi kode Go
+berikut.
+
+----
+package stringutil
+
+import "testing"
+
+func TestReverse(t *testing.T) {
+	cases := []struct {
+		in, want string
+	}{
+		{"Hello, world", "dlrow ,olleH"},
+		{"Hello, 世界", "界世 ,olleH"},
+		{"", ""},
+	}
+	for _, c := range cases {
+		got := Reverse(c.in)
+		if got != c.want {
+			t.Errorf("Reverse(%q) == %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+----
+
+Kemudian jalankan tes dengan `go test`:
+
+----
+$ go test github.com/user/stringutil
+ok  	github.com/user/stringutil 0.165s
+----
+
+Seperti biasa, jika anda menjalankan perintah `go` dari dalam direktori paket,
+anda bisa mengindahkan _path_ dari paket:
+
+----
+$ go test
+ok  	github.com/user/stringutil 0.165s
+----
+
+Jalankan
+https://golang.org/cmd/go/#hdr-Test_packages[`go help test`]
+dan lihat
+https://golang.org/pkg/testing/[dokumentasi dari paket testing]
+untuk belajar lebih lanjut.
+
+
+[#remote]
+==  Paket luar
+
+Sebuah _import path_ mendeskripsikan bagaimana mendapatkan sumber kode dari
+paket menggunakan sebuah sistem kontrol revisi seperti Git atau Mercurial.
+Perkakas `go` menggunakan properti ini untuk secara otomatis mengambil paket
+dari repositori luar.
+Misalnya, contoh-contoh yang dijabarkan dalam dokumen ini juga tersimpan di
+dalam sebuah repositori Git pada
+https://github.com/golang/example[github.com/golang/example].
+Jika anda mengikutkan URL dari repositori pada _import path_, `go get` akan
+mengambil, membuat, dan memasangnya secara otomatis:
+
+----
+$ go get github.com/golang/example/hello
+$ $GOPATH/bin/hello
+Hello, Go examples!
+----
+
+Jika paket yang disebutkan tidak ada di dalam ruang-kerja, `go get` akan
+menyimpannya di dalam ruang-kerja pertama yang dispesifikan oleh `GOPATH`.
+(Jika paket sudah ada, `go get` akan melewatkan pengambilan dari luar dan
+berjalan seperti halnya `go install`.)
+
+Setelah menjalankan perintah `go get` di atas, direktori ruang-kerja anda akan
+berbentuk seperti berikut:
+
+----
+bin/
+    hello                           # program yang bisa dieksekusi
+src/
+    github.com/golang/example/
+	.git/                       # metadata repositori Git
+        hello/
+            hello.go                # sumber program
+        stringutil/
+            reverse.go              # sumber paket
+            reverse_test.go         # sumber tes
+    github.com/user/
+        hello/
+            hello.go                # sumber program
+        stringutil/
+            reverse.go              # sumber paket
+            reverse_test.go         # sumber test
+----
+
+Program `hello` yang disimpan di Github bergantung pada paket `stringutil`
+pada repositori yang sama.
+_import path_ di dalam berkas `hello.go` menggunakan konvensi yang sama,
+sehingga perintah `go get` dapat menemukan dan memasang paket dependensi.
+
+----
+import "github.com/golang/example/stringutil"
+----
+
+Konvensi ini adalah cara termudah untuk membuat paket Go anda dapat digunakan
+oleh orang lain.
+Halaman
+https://golang.org/wiki/Projects[Go Wiki] dan situs
+https://godoc.org/[godoc.org] menyediakan daftar proyek-proyek eksternal dari
+Go.
+
+Untuk informasi lebih lanjut tentang menggunakan repositori luar dengan
+perkakas `go`, lihatlah
+https://golang.org/cmd/go/#hdr-Remote_import_paths[`go help importpath`].
+
+
+[#next]
+==  Selanjutnya
+
+Ikuti https://tour.golang-id.org[Tur Bahasa Go] untuk belajar bahasa Go.
