@@ -1,6 +1,11 @@
-.PHONY: all generate build deploy
+.PHONY: clean all generate build deploy
 
 all: build
+
+clean:
+	go clean -i ./cmd/golangid
+	rm -f ./golangid
+	find ./content -name "*.html" -delete
 
 generate:
 	go generate
