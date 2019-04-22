@@ -1,0 +1,33 @@
+=  Plugin untuk editor dan IDE
+:stylesheet: /assets/style.css
+:en-wiki-ides: https://golang.org/wiki/IDEsAndTextEditorPlugins
+
+[#introduction]
+==  Pendahuluan
+
+Dokumen ini berisi daftar _plugin_ untuk _editor_ dan _IDE_ yang membuat
+pengembangan Go lebih produktif dan lancar.
+Daftar yang lebih lengkap ada di halaman {en-wiki-ides}[wiki].
+
+
+[#options]
+==  Opsi
+
+Ekosistem Go menyediakan beragam _plugin_ untuk _editor_ dan _IDE_, yang dapat
+meningkatkan penyuntingan, navigasi, pengujian, dan melakukan _debug_ dalam
+memprogram Go.
+
+*  https://github.com/fatih/vim-go[vim]: _plugin_ vim-go menyediakan dukungan
+   untuk bahasa pemrograman Go.
+*  https://marketplace.visualstudio.com/items?itemName=lukehoban.Go[Visual
+   Studio Code]: ekstensi Go ini menyediakan dukungan untuk bahasa
+   pemrograman Go.
+*  https://www.jetbrains.com/go[GoLand]: GoLand didistribusikan baik dalam
+   bentuk _IDE_ tersendiri atau sebagai _plugin_ untuk "Intellij IDEA
+   Ultimate".
+*  https://atom.io/packages/go-plus[Atom]: Go-Plus adalah paket Atom yang
+   menyediakan dukungan tambahan untuk Go.
+
+Ini hanyalah beberapa solusi paling umum; untuk
+{en-wiki-ides}[daftar _plugin_ dan _IDE_ yang lebih komprehensif] tersedia di
+halaman wiki.

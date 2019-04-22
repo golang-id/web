@@ -47,3 +47,10 @@ Perintah di atas akan membuat sebuah program bernama `tour` di dalam direktori
 
 Dokumen ini menjelaskan cara menggunakan program {en-cmd-go}[`go`] untuk
 mengambil, membuat, dan memasang paket-paket, program, dan menjalankan tes.
+
+
+[#editors]
+===  link:/doc/editors.html[Plugin untuk editor dan IDE]
+
+Dokumen yang berisi _plugin_ untuk _editor_ dan _IDE_ yang umum digunakan,
+yang mendukung Go.
