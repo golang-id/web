@@ -1,0 +1,3575 @@
+=  Efektif Go
+:stylesheet: /assets/style.css
+:sectanchors:
+:toc:
+:en-ref-spec: https://golang.org/ref/spec
+:en-cmd-go: https://golang.org/cmd/go/
+:en-cmd-go-show: https://golang.org/cmd/go/#hdr-Show_documentation_for_package_or_symbol
+:en-blog-concurrency: https://blog.golang.org/2013/01/concurrency-is-not-parallelism.html
+:id-tour: https://tour.golang-id.org
+:id-doc-code: link:/doc/code.html
+
+[#introduction]
+==  Pendahuluan
+
+Go adalah bahasa baru.
+Meskipun ia membawa gagasan dari bahasa-bahasa pemrograman yang sudah ada, ia
+memiliki beberapa properti yang tidak umum yang membuat program Go yang
+efektif berbeda karakternya dengan program yang ditulis dengan bahasa lain
+yang mirip.
+Saduran langsung dari sebuah program yang ditulis dengan C++ atau Java ke Go
+kemungkinan menghasilkan program yang kurang memuaskan.
+Di sisi lain, memikirkan solusi dari sebuah masalah dengan perspektif Go bisa
+menghasilkan program yang baik tapi sedikit berbeda.
+Dengan kata lain, untuk menulis Go dengan benar, sangat penting untuk memahami
+properti dan idiomnya.
+Perlu juga diketahui konvensi umum pemrograman dalam Go, seperti penamaan,
+pemformatan, konstruksi program, dan lainnya, sehingga program Go yang kita
+buat dapat dengan mudah dibaca oleh pemrogram Go yang lain.
+
+Dokumen ini memberikan beberapa petunjuk untuk menulis kode Go yang bersih dan
+idiomatis.
+Ia menggabungkan
+{en-ref-spec}[spesifikasi dari bahasa Go],
+{id-tour}[Tur bahasa Go], dan
+{id-doc-code}[Cara menulis kode Go],
+yang mana sebaiknya harus dibaca terlebih dahulu.
+
+
+[#examples]
+===  Contoh
+
+https://golang.org/src/[Sumber paket Go] bertujuan untuk menyediakan tidak
+hanya pustaka inti tapi juga sebagai contoh bagaimana menggunakan bahasa ini.
+Lebih lanjut lagi, banyak dari paket-paket tersebut memiliki contoh-contoh
+kode yang dapat dieksekusi yang dapat dijalankan secara langsung, seperti
+yang https://golang.org/pkg/strings/#example_Map[satu ini] (jika perlu, klik
+pada kata "Example" untuk membukanya).
+Jika ada pertanyaan tentang bagaimana menyelesaikan suatu masalah
+atau bagaimana mengimplementasikan sesuatu, dokumentasi ini, kode, dan
+contoh-contoh dalam pustaka dapat menyediakan jawaban, gagasan dan latar
+belakang yang cukup baik.
+
+
+[#formatting]
+==  Pemformatan
+
+Masalah pemformatan adalah yang paling kontroversial tapi juga yang paling
+tidak penting.
+Orang-orang dapat beradaptasi dengan gaya pemformatan yang berbeda-beda tapi
+lebih baik jika mereka tidak perlu memikirkannya, dan lebih sedikit waktu yang
+terpakai untuk membahasnya jika semua orang menganut gaya yang sama.
+Masalahnya adalah bagaimana mencapai Utopia ini tanpa memerlukan sebuah
+panduan preskriptif yang panjang.
+
+Dengan Go kita mengambil pendekatan yang tidak umum dan menyerahkan pada mesin
+masalah pemformatan ini.
+Program `gofmt` (juga tersedia lewat `go fmt`, yang beroperasi dalam level
+paket bukan dalam level berkas kode) membaca sebuah program Go dan
+mengeluarkan kode sumber dengan standar identasi, dengan tetap menjaga dan
+bila perlu memformat bagian komentar.
+Jika ingin mengetahui bagaimana cara menangani tata letak sebuah bagian
+kode, jalankan `gofmt`; jika keluarannya tampak tidak benar, atur ulang sumber
+kode (atau laporkan sebagai _bug_ dari `gofmt`).
+
+Sebagai contoh, tidak perlu menghabiskan waktu mensejajarkan bagian komentar
+pada _field_ dari sebuah `struct`.
+Gofmt akan melakukannya untuk kita.
+Dari deklarasi berikut,
+
+----
+type T struct {
+    name string // name of the object
+    value int // its value
+}
+----
+
+`gofmt` akan mensejajarkan kolom komentar:
+
+----
+type T struct {
+	name    string // name of the object
+	value   int    // its value
+}
+----
+
+Semua kode Go dalam paket standar telah diformat dengan `gofmt`.
+
+Berikut rincian pemformatan, secara ringkas:
+
+Identasi::
+  Kita menggunakan tab untuk identasi.
+  Gunakan spasi hanya bila diperlukan.
+Panjang baris::
+  Go tidak memiliki batas panjang baris.
+  Jika baris dirasakan terlalu panjang, potong dan identasikan dengan tab.
+Tanda kurung::
+  Go menggunakan lebih sedikit tanda kurung daripada C dan Java: sintaks
+  struktur kontrol (`if`, `for`, `switch`) tidak menggunakan tanda kurung.
+  Dan juga, hirarki operator lebih singkat dan lebih bersih, sehingga
++
+----
+	x<<8 + y<<16
+----
++
+makna hirarki operatornya seperti apa yang spasi tandakan, tidak seperti
+bahasa lainnya.
+
+
+[#commentary]
+==  Pemberian komentar
+
+Go menyediakan blok komentar dengan gaya C `/**/` dan baris komentar gaya C++
+`//`.
+Baris komentar lebih umum digunakan;
+blok komentar kebanyakan digunakan untuk mengomentari paket, namun terkadang
+berguna juga dalam sebuah ekspresi atau mengindahkan sejumlah blok kode yang
+banyak.
+
+Program -- dan _server_ web -- `godoc` memproses sumber kode Go untuk
+mengekstraksi dokumentasi dari paket.
+Komentar yang ada pada baris deklarasi paling atas, tanpa ada baris kosong,
+akan diekstrak bersama dengan deklarasinya sebagai teks yang menjelaskan item
+tersebut.
+Gaya dan sifat dari komentar tersebut menentukan kualitas dari dokumentasi
+yang dihasilkan oleh `godoc`.
+
+Setiap paket seharusnya memiliki komentar, atau blok komentar yang mendahului
+klausa dari paket tersebut.
+Untuk paket dengan banyak berkas, komentar untuk paket hanya perlu
+dideklarasikan sekali dalam satu berkas, di berkas manapun.
+Komentar tentang paket seharusnya memperkenalkan paket dan menyediakan
+informasi yang relevan untuk paket secara keseluruhan.
+Ia akan muncul pertama kali dalam halaman `godoc` dan diikuti oleh dokumentasi
+yang lebih rinci.
+
+----
+/*
+Package regexp implements a simple library for regular expressions.
+
+The syntax of the regular expressions accepted is:
+
+	regexp:
+		concatenation { '|' concatenation }
+	concatenation:
+		{ closure }
+	closure:
+		term [ '*' | '+' | '?' ]
+	term:
+		'^'
+		'$'
+		'.'
+		character
+		'[' [ '^' ] character-ranges ']'
+		'(' regexp ')'
+*/
+package regexp
+----
+
+Jika paketnya simpel, komentar dari paket dapat lebih singkat.
+
+----
+// Package path implements utility routines for
+// manipulating slash-separated filename paths.
+----
+
+Keluaran yang dibangkitkan dari komentar dokumentasi mungkin tidak
+direpresentasikan dengan huruf yang baku, jadi jangan bergantung pada
+penggunaan spasi untuk melakukan pensejajaran -- `godoc`, seperti `gofmt`,
+akan mengurus hal tersebut.
+Komentar diinterpretasikan sebagai teks biasa, sehingga HTML dan anotasi
+lainnya seperti +_ini_+ akan menghasilkan keluaran yang sama dan sebaiknya tidak
+digunakan.
+Salah satu pengaturan yang dimiliki oleh `godoc` yaitu menampilkan teks yang
+memiliki identasi dengan fonta baku, cocok untuk menampilkan potongan kode.
+Komentar https://golang.org/pkg/fmt/[paket `fmt`] menggunakan cara ini untuk
+memberikan efek yang bagus.
+
+Bergantung kepada konteks, `godoc` bisa saja tidak memformat komentar, jadi
+pastikan ia tampak bagus dari awal: gunakan tata tulis dan struktur kalimat
+yang benar, potong kalimat yang panjang, dan seterusnya.
+
+Di dalam sebuah paket, komentar apapun setelah deklarasi level paling atas
+berfungsi sebagai dokumentasi dari deklarasi tersebut.
+Setiap nama yang diekspor (diawali dengan huruf besar) dalam sumber kode
+sebaiknya memiliki dokumentasi.
+
+Komentar dokumentasi lebih baik bila dalam satu kalimat lengkap.
+Kalimat pertama sebaiknya berupa ikhtisar yang dimulai dengan nama yang
+dideklarasikan.
+
+----
+// Compile parses a regular expression and returns, if successful,
+// a Regexp that can be used to match against text.
+func Compile(str string) (*Regexp, error) {
+----
+
+Jika setiap komentar dokumentasi dimulai dengan nama item yang dideskripsikan,
+kita dapat menggunakan sub perintah
+{en-cmd-go-show}[`doc`]
+dari perkakas
+{en-cmd-go}[`go`]
+dan mengambil keluarannya dengan `grep`.
+Bayangkan misalnya kita lupa nama fungsi "Compile" tapi ingin mencari fungsi
+untuk mengurai _regular expression_, kita tinggal menjalankan perintah
+berikut,
+
+----
+$ go doc -all regexp | grep -i parse
+----
+
+Jika semua komentar dokumentasi paket dimulai dengan, "Fungsi ini ...", `grep`
+tidak akan dapat membantu kita mencari nama tersebut.
+Namun karena setiap komentar dokumentasi paket dimulai dengan nama, kita akan
+melihat keluaran seperti berikut,
+
+----
+$ go doc -all regexp | grep -i parse
+    Compile parses a regular expression and returns, if successful, a Regexp
+    MustCompile is like Compile but panics if the expression cannot be parsed.
+    parsed. It simplifies safe initialization of global variables holding
+$
+----
+
+Sintaks Go membolehkan pengelompokan deklarasi.
+Sebuah komentar dokumentasi dapat digunakan untuk memperkenalkan sekelompok
+konstan atau variabel.
+
+----
+// Error codes returned by failures to parse an expression.
+var (
+	ErrInternal      = errors.New("regexp: internal error")
+	ErrUnmatchedLpar = errors.New("regexp: unmatched '('")
+	ErrUnmatchedRpar = errors.New("regexp: unmatched ')'")
+	...
+)
+----
+
+Pengelompokan juga bisa mengindikasikan hubungan antara item, seperti
+sekelompok variabel yang dilindungi oleh sebuah _mutex_.
+
+----
+var (
+	countLock   sync.Mutex
+	inputCount  uint32
+	outputCount uint32
+	errorCount  uint32
+)
+----
+
+
+[#names]
+==  Penamaan
+
+Penamaan dalam Go sama pentingnya seperti pada bahasa lainnya.
+Mereka bahkan memiliki pengaruh semantik: keterbukaan sebuah nama di luar
+paket tersebut ditentukan oleh apakah karakter pertamanya menggunakan huruf
+besar.
+Oleh karena itu, cukup bermanfaat bila menghabiskan sedikit waktu untuk
+membaca tentang konvensi penamaan dalam program Go.
+
+
+[#package-names]
+===  Nama paket
+
+Saat sebuah paket diimpor, nama paket menjadi pengakses dari isinya.
+Setelah
+
+----
+import "bytes"
+----
+
+paket yang mengimpor dapat mengakses `bytes.Buffer`.
+Sangatlah membantu bila semua penggunaan paket memakai nama yang sama untuk
+mengacu pada isinya, hal ini menyiratkan bahwa nama paket haruslah bagus:
+singkat, padat, dan evokatif.
+Secara konvensi, nama paket menggunakan huruf kecil, dengan satu kata;
+tidak perlu garis bawah atau mixedCaps.
+Dan jangan khawatir dengan penamaan yang bentrok.
+Bila ada nama paket yang bentrok, paket yang mengimpor dapat memilih nama yang
+berbeda untuk digunakan secara lokal.
+Pada kasus apapun, kesalahan biasanya jarang terjadi karena nama berkas pada
+saat impor menentukan paket yang akan digunakan.
+
+Konvensi lainnya yaitu nama paket adalah nama dasar dari direktori sumbernya;
+paket dalam `src/encoding/base64` diimpor sebagai `"encoding/base64"` namun
+memiliki nama `base64` bukan `encoding_base64` dan bukan juga
+`encodingBase64`.
+
+Pengimpor dari sebuah paket akan menggunakan nama tersebut untuk mengacu pada
+isi paket, jadi nama-nama yang diekspor di dalam paket dapat mengacu pada
+fakta tersebut untuk mencegah kegagapan.
+Misalnya, tipe `reader` dengan `buffer` dalam paket `bufio` disebut dengan
+`Reader` bukan `BufReader`, karena pengguna melihatnya sebagai `bufio.Reader`,
+yang mana namanya lebih bersih dan singkat.
+Lebih lanjut, karena entitas yang diimpor selalu diacu oleh nama paket,
+`bufio.Reader` tidak bentrok dengan `io.Reader`.
+Hal yang sama, fungsi yang membuat instansi baru dari `ring.Ring` -- yang mana
+merupakan definisi dari sebuah konstruktor dalam Go -- biasanya dipanggil
+dengan `NewRing`, tapi karena `Ring` satu-satunya tipe yang diekspor oleh
+paket tersebut, dan karena paket sudah bernamakan `ring`, maka ia cukup
+dipanggil `New` saja, yang oleh pengguna paket dilihat sebagai `ring.New`.
+Gunakan struktur paket yang baik untuk membantu memilih nama yang bagus.
+
+Salah satu contoh lainnya adalah `once.Do`;
+`once.Do(setup)` lebih mudah dibaca dan tidak lebih baik dari menulis
+`once.DoOrWaitUntilDone(setup)`.
+Nama yang panjang belum tentu membuatnya lebih gampang dibaca.
+Sebuah komentar dokumentasi dapat membantu dan lebih bernilai daripada nama
+yang panjang.
+
+
+[#getters]
+===  _Getters_
+
+Go tidak menyediakan dukungan otomatis untuk fungsi _getter_ dan _setter_.
+Tidak ada yang salah dengan menyediakan fungsi tersebut, terkadang malah lebih
+pantas, namun secara idiomatis tidak perlu menambahkan `Get` pada nama
+_getter_.
+Jika kita memiliki sebuah _field_ bernama `owner` (huruf kecil, tidak
+diekspor),
+_method getter_ sebaiknya dipanggil `Owner` (huruf besar, diekspor), bukan
+`GetOwner`.
+Penggunaan huruf besar untuk nama yang diekspor membantu membedakan antara
+_field_ dengan _method_.
+Fungsi _setter_, jika diperlukan, biasanya dipanggil dengan `SetOwner`.
+Kedua penamaan tersebut secara praktiknya lebih bagus dibaca:
+
+----
+owner := obj.Owner()
+if owner != user {
+	obj.SetOwner(user)
+}
+----
+
+
+[#interface-names]
+===  Penamaan _interface_
+
+Secara konvensi, _interface_ dengan satu _method_ dinamakan dengan nama
+_method_ plus akhiran -er atau modifikasi yang mirip dengan pembentukan kata
+benda bersifat agen: `Reader`, `Writer`, `Formatter`, `CloseNotifier`, dll.
+
+Ada sejumlah penamaan seperti itu dan akan lebih produktif bila menghargainya
+dan nama fungsi yang dikandungnya.
+`Read`, `Write`, `Close`, `Flush`, `String` dan seterusnya memiliki penanda
+dan makna kanonis.
+Untuk menghindari kekeliruan, jangan namakan _method_ dengan nama
+tersebut kecuali ia memiliki penanda dan makna yang sama.
+Sebaliknya, jika tipe mengimplementasikan sebuah _method_ yang memiliki
+makna yang sama pada _method_ dengan tipe yang umum, berikan nama dan
+penanda yang sama;
+beri nama _method_ untuk mengubah sebuah tipe ke string dengan `String` bukan
+`ToString`.
+
+
+[#mixed-caps]
+===  _MixedCaps_
+
+Terakhir, konvensi dalam Go yaitu menggunakan MixedCaps atau mixedCaps untuk
+penamaan dengan beberapa kata bukan dengan garis bawah.
+
+
+[#semicolons]
+==  Titik koma (`;`)
+
+Seperti bahasa C, gramatika formal dari Go menggunakan titik koma untuk
+menandakan akhir dari perintah, tapi tidak seperti bahasa C, tanda titik koma
+tersebut tidak muncul dalam sumber kode.
+Sebagai gantinya, _lexer_ (program yang membaca sumber kode Go) menggunakan
+aturan sederhana dengan menambahkan titik koma secara otomatis pada saat
+memindai sumber kode, sehingga teks input dari sumber kode bebas dari tanda
+titik koma.
+
+Aturannya adalah sebagai berikut.
+Jika token terakhir sebelum baris baru adalah sebuah pengidentifikasi
+(termasuk kata seperti `int` dan `float64`), atau token harfiah seperti angka
+atau konstan _string_, atau salah satu dari token berikut
+
+----
+break continue fallthrough return ++ -- ) }
+----
+
+maka _lexer_ akan menambahkan titik koma setelah token.
+Hal ini bisa disimpulkan menjadi, "jika baris baru muncul setelah sebuah token
+yang dapat mengakhiri sebuah perintah, tambahkan titik koma".
+
+Sebuah titik koma juga dapat diindahkan sebelum tanda kurung tutup kurawal,
+sehingga perintah seperti berikut
+
+----
+go func() { for { dst <- <-src } }()
+----
+
+tidak memerlukan titik koma.
+Program Go yang idiomatis hanya memerlukan titik koma pada klausa pengulangan
+`for`, untuk memisahkan antara elemen inisialisasi, kondisi, dan kontinuasi.
+
+Salah satu konsekuensi dari aturan penambahan titik koma ini adalah kita tidak
+bisa menempatkan kurung kurawal buka dari struktur kontrol (`if`, `for`,
+`switch`, atau `select`) pada baris selanjutnya.
+Jika melakukan hal ini, sebuah titik koma akan disisipkan sebelum tanda
+kurung kurawal, yang mana bisa menyebabkan efek yang tidak diiinginkan.
+Tulislah kode tersebut dengan cara seperti berikut
+
+----
+if i < f() {
+	g()
+}
+----
+
+bukan seperti ini
+
+----
+if i < f()  // salah!
+{           // salah!
+	g()
+}
+----
+
+
+[#control-structures]
+==  Struktur kontrol
+
+Struktur kontrol dari Go berkaitan dengan bahasa C namun berbeda dalam
+hal-hal tertentu.
+Tidak ada pengulangan `do` atau `while`, hanya `for`;
+`switch` yang lebih fleksibel;
+`if` dan `switch` bisa menggunakan perintah inisialisasi seperti halnya pada
+`for`;
+perintah `break` dan `continue` memiliki label identifikasi yang opsional;
+dan ada beberapa kontrol struktur baru termasuk `switch` pada tipe dan
+komunikasi _multiplexer_, `select`.
+Sintaksnya juga sedikit berbeda: tidak ada tanda kurung dan bagian badan dari
+kontrol harus selalu dibatasi oleh kurung kurawal.
+
+
+[#if]
+===  If
+
+Dalam Go `if` yang sederhana itu bentuknya seperti ini:
+
+----
+if x > 0 {
+	return y
+}
+----
+
+Wajibnya kurung kurawal mendorong penulisan perintah `if` menjadi beberapa
+baris.
+Gaya penulisan seperti ini sangat bagus, khususnya bila bagian badan kondisi
+memiliki perintah kontrol seperti `return` atau `break`.
+
+Secara `if` dan `switch` dapat melakukan perintah inisialisasi,  maka sangat
+umum melihatnya digunakan untuk mendeklarasikan lokal variabel.
+
+----
+if err := file.Chmod(0664); err != nil {
+	log.Print(err)
+	return err
+}
+----
+
+Dalam pustaka Go, akan ditemukan bila perintah `if` tidak mengalir ke perintah
+selanjutnya--yakni, badan dari kondisi berakhir dengan `break`,
+`continue`, `goto`, atau `return`--kondisi `else` yang tidak berguna
+dihilangkan.
+
+----
+f, err := os.Open(name)
+if err != nil {
+	return err
+}
+codeUsing(f)
+----
+
+Ini adalah sebuah contoh situasi umum yang mana kode harus menjaga seurutan
+kondisi eror.
+Kode akan mudah dibaca jika kontrol yang sukses terus mengalir ke bawah,
+mengeliminasi kasus-kasus yang eror saat mereka muncul.
+Karena kasus yang eror condong berakhir dengan perintah `return`, maka kode
+tidak memerlukan perintah `else`
+
+----
+f, err := os.Open(name)
+if err != nil {
+	return err
+}
+d, err := f.Stat()
+if err != nil {
+	f.Close()
+	return err
+}
+codeUsing(f, d)
+----
+
+[#redeclaration]
+===  Deklarasi dan penempatan ulang
+
+Contoh terakhir dari bagian sebelumnya memperlihatkan rincian dari bagaimana
+bentuk deklarasi singkat `:=` bekerja.
+Deklarasi yang memanggil `os.Open` berbunyi,
+
+----
+f, err := os.Open(name)
+----
+
+Perintah tersebut mendeklarasikan dua variabel, `f` dan `err`.
+Beberapa baris selanjutnya, panggilan ke `f.Stat` dibaca,
+
+----
+d, err := f.Stat()
+----
+
+yang tampak seperti ia mendeklarasikan `d` dan `err`.
+Perhatikan, `err` muncul dikedua perintah.
+Duplikasi seperti ini legal: `err` dideklarasikan oleh perintah pertama, tapi
+_digunakan kembali_ pada perintah kedua.
+Ini artinya panggilan ke `f.Stat` menggunakan variabel `err` yang sama yang
+dideklarasikan di atas, dan diberikan nilai yang baru.
+
+Dalam deklarasi sebuah variabel `v` dengan ":=" , variabel tersebut akan
+digunakan ulang walaupun telah dideklarasikan, selama:
+
+*  deklarasi tersebut berada dalam skop yang sama dengan deklarasi sebelumnya
+   dari `v` (jika `v` dideklarasikan di skop luarnya, deklarasi akan membuat
+   variabel yang baru §),
+*  nilai dalam inisialiasi dapat ditempatkan ke `v`, dan
+*  setidaknya ada satu variabel lain, yang baru, dalam deklarasi
+
+Properti yang tidak biasa seperti ini murni karena pragmatisme, membuat kita
+lebih mudah menggunakan nilai tunggal `err`, sebagai contohnya, dalam beberapa
+`if-else`.
+Anda akan sering melihat penggunaan seperti ini.
+
+§ Perlu diingat di sini, bahwa dalam Go, skop dari parameter fungsi dan nilai
+kembalian sama dengan badan fungsi, walaupun ia tampak secara leksikal berada
+di luar kurung kurawal yang menutup badan fungsi.
+
+[#for]
+===  For
+
+Pengulangan `for` pada Go mirip--tapi tidak sama--dengan C.
+Ia menggabungkan `for` dan `while` dan tidak ada `for-while`.
+Ada tiga bentuk pengulangan `for`, hanya satu yang menggunakan titik koma.
+
+----
+// Seperti "for" pada C
+for inisialisasi; kondisi; selanjutnya { }
+
+// Seperti "while" pada C
+for kondisi { }
+
+// Seperti "for(;;)" pada C
+for { }
+----
+
+Deklarasi singkat membuatnya mudah mendeklarasikan variabel index di dalam
+pengulangan.
+
+----
+sum := 0
+for i := 0; i < 10; i++ {
+	sum += i
+}
+----
+
+Jika melakukan pengulangan pada _array_, slice, string, atau map, atau
+membaca dari sebuah _channel_, sebuah klausa `range` dapat digunakan pada
+pengulangan.
+
+----
+for key, value := range oldMap {
+	newMap[key] = value
+}
+----
+
+Jika hanya membutuhkan item pertama dalam `range` (_key_ dari map atau
+indeks dari array/slice/string), hapus variabel kembalian kedua,
+
+----
+for key := range m {
+	if key.expired() {
+		delete(m, key)
+	}
+}
+----
+
+Jika hanya membutuhkan item kedua (nilainya), gunakan
+_pengidentifikasi kosong_, sebuah garis bawah, untuk mengindahkan yang
+pertama:
+
+----
+sum := 0
+for _, value := range array {
+	sum += value
+}
+----
+
+Pengidentifikasi kosong memiliki banyak kegunaan, seperti yang akan dijelaskan
+di bagian nanti.
+
+Untuk string, `range` bekerja lebih, memecah setiap kode poin dari Unicode
+dengan mengurai UTF-8.
+Pengkodean yang salah mengkonsumsi satu _byte_ dan menghasilkan _rune_
+pengganti U+FFFD.
+(Nama _rune_ adalah terminologi Go untuk sebuah kode poin Unicode tunggal.
+Lihat spesifikasi bahasa untuk lebih detilnya.)
+Pengulangan
+
+----
+for pos, char := range "日本\x80語" { // \x80 adalah sebuah pengkodean UTF-8 yang ilegal
+	fmt.Printf("karakter %#U dimulai pada posisi byte ke %d\n", char, pos)
+}
+----
+
+mencetak
+
+----
+karakter U+65E5 '日' dimulai pada posisi byte ke 0
+karakter U+672C '本' dimulai pada posisi byte ke 3
+karakter U+FFFD '�' dimulai pada posisi byte ke 6
+karakter U+8A9E '語' dimulai pada posisi byte ke 7
+----
+
+Terakhir, Go tidak memiliki operator koma dan perintah `++` dan `--` bukanlah
+sebuah ekspresi.
+Maka, jika ingin menggunakan beberapa variabel dalam sebuah `for`, kita
+harus menggunakan penempatan paralel (cara ini tidak membolehkan `++` dan
+`--`).
+
+----
+// Reverse a
+for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
+	a[i], a[j] = a[j], a[i]
+}
+----
+
+[#switch]
+===  Switch
+
+Kontrol `switch` pada Go lebih generik daripada C.
+Ekspresi `switch` pada Go tidak harus konstan maupun integer, bagian kondisi
+`case` dievaluasi dari atas ke bawah sampai ditemukan kondisi yang sesuai, dan
+jika ekspresi `switch` tidak memiliki ekspresi, ia akan memeriksa kondisi
+`case` yang bernilai `true`.
+Oleh karena itu, memungkinkan--dan idiomatis--untuk menulis kondisi
+`if-else-if-else` menggunakan `switch`.
+
+----
+func unhex(c byte) byte {
+	switch {
+	case '0' <= c && c <= '9':
+		return c - '0'
+	case 'a' <= c && c <= 'f':
+		return c - 'a' + 10
+	case 'A' <= c && c <= 'F':
+		return c - 'A' + 10
+	}
+	return 0
+}
+----
+
+Tidak seperti C, `case` pada Go tidak otomatis _jatuh_ ke bawah, namun
+kondisi `case` bisa lebih dari satu yang dipisahkan dengan koma,
+
+----
+func shouldEscape(c byte) bool {
+	switch c {
+	case ' ', '?', '&', '=', '#', '+', '%':
+		return true
+	}
+	return false
+}
+----
+
+Perintah `break` pada Go bisa digunakan untuk mengakhiri blok `switch`.
+Terkadang, perlu juga untuk keluar dari pengulangan, namun bukan dari
+`switch`, dan dalam Go hal ini bisa dilakukan dengan memberi label pada
+pengulangan dan "keluar" dari label tersebut.
+Contoh berikut memperlihatkan penggunaan kedua `break` tersebut.
+
+----
+Loop:
+	for n := 0; n < len(src); n += size {
+		switch {
+		case src[n] < sizeOne:
+			if validateOnly {
+				break // keluar dari switch, tapi tetap dalam pengulangan `for`
+			}
+			size = 1
+			update(src[n])
+
+		case src[n] < sizeTwo:
+			if n+1 >= len(src) {
+				err = errShortInput
+				break Loop // keluar dari `switch` dan pengulangan `for`
+			}
+			if validateOnly {
+				break // keluar dari switch, tapi tetap dalam pengulangan `for`
+			}
+			size = 2
+			update(src[n] + src[n+1]<&lt;shift)
+		}
+	}
+----
+
+Tentu saja, perintah `continue` juga dapat menggunakan label tapi hanya
+berlaku pada pengulangan.
+
+Untuk mengakhiri bagian ini, berikut fungsi yang membandingkan dua slice byte
+menggunakan dua perintah `switch`:
+
+----
+// Compare mengembalikan sebuah integer hasil pembandingan dari dua slice byte
+// secara leksikografi.
+// Hasilnya adalah 0 jika a == b, -1 jika a < b, dan +1 jika a > b .
+func Compare(a, b []byte) int {
+	for i := 0; i < len(a) && i < len(b); i++ {
+		switch {
+		case a[i] > b[i]:
+			return 1
+		case a[i] < b[i]:
+			return -1
+		}
+	}
+	switch {
+	case len(a) > len(b):
+		return 1
+	case len(a) < len(b):
+		return -1
+	}
+	return 0
+}
+----
+
+[#type_switch]
+===  Switch dengan tipe
+
+Perintah `switch` juga bisa digunakan untuk menemukan tipe dinamis dari sebuah
+variabel _interface_.
+_Tipe_ `switch` seperti ini menggunakan sintaks dengan kata kunci `type` dalam
+tanda kurung.
+Jika perintah `switch` mendeklarasikan sebuah variabel dalam ekspresinya,
+variabel tersebut akan memiliki tipe korespondensinya di setiap klausa.
+Termasuk idiomatis menggunakan nama yang sama dalam kasus ini, efeknya
+mendeklarasikan variabel baru dengan nama yang sama tapi dengan tipe yang
+berbeda di setiap `case`.
+
+----
+var t interface{}
+t = functionOfSomeType()
+switch t := t.(type) {
+default:
+	fmt.Printf("unexpected type %T\n", t)     // %T mencetak tipe dari `t`
+case bool:
+	fmt.Printf("boolean %t\n", t)             // t bertipe bool
+case int:
+	fmt.Printf("integer %d\n", t)             // t bertipe int
+case *bool:
+	fmt.Printf("pointer to boolean %t\n", *t) // t bertipe *bool
+case *int:
+	fmt.Printf("pointer to integer %d\n", *t) // t bertipe *int
+}
+----
+
+
+[#functions]
+==  Fungsi
+
+[#multiple-returns]
+===  Nilai kembalian multipel
+
+Salah satu fitur tidak umum dari Go yaitu fungsi dan _method_ dapat
+mengembalikan lebih dari satu nilai.
+Bentuk ini dapat digunakan untuk memperkaya beberapa idiom _ceroboh_ dalam
+program C: mengembalikan nilai eror, seperti -1 atau EOF, dan mengubah argumen
+yang dikirim lewat alamat dari variabel (atau dikenal juga dengan _pointer_).
+
+Pada C, eror dari fungsi `write` diketahui dari nilai negatif yang
+dikembalikan dengan kode eror tersimpan terpisah dalam sebuah lokasi yang
+_volatile_.
+Pada Go, `Write` dapat mengembalikan jumlah tertulis dan eror: "Kita berhasil
+menulis sejumlah byte tapi tidak semuanya karena perangkat telah penuh".
+Bentuk _method_ `Write` terhadap berkas dalam paket `os` yaitu:
+
+----
+func (file *File) Write(b []byte) (n int, err error)
+----
+
+dan seperti yang disebutkan dalam dokumentasi, fungsi tersebut mengembalikan
+jumlah byte tertulis dan nilai eror non `nil` bila `n != len(b)`.
+Bentuk seperti ini sangat umum pada Go;
+lihat bagian penanganan eror untuk melihat contoh lebih banyak.
+
+Pendekatan ini juga menghilangkan kebutuhan untuk mengirim _pointer_ sebagai
+nilai kembalian.
+Berikut sebuah fungsi sederhana untuk memindai sebuah angka dari slice byte,
+yang mengembalikan angka yang terpindai dan posisi selanjutnya.
+
+----
+func nextInt(b []byte, i int) (int, int) {
+	for ; i < len(b) && !isDigit(b[i]); i++ {
+	}
+	x := 0
+	for ; i < len(b) && isDigit(b[i]); i++ {
+		x = x*10 + int(b[i]) - '0'
+	}
+	return x, i
+}
+----
+
+Anda bisa menggunakan fungsi tersebut untuk memindai angka dari sebuah input
+slice `b` seperti berikut:
+
+----
+	for i := 0; i < len(b); {
+		x, i = nextInt(b, i)
+		fmt.Println(x)
+	}
+----
+
+[#named-results]
+===  Parameter kembalian bernama
+
+Parameter kembalian atau hasil dari sebuah fungsi dapat diberi nama dan
+dipakai seperti variabel, seperti halnya paramater pada fungsi.
+Bila diberi nama, ia diinisialisasi dengan nilai kosong dari tipenya saat
+fungsi dimulai;
+jika fungsi mengeksekusi perintah `return` tanpa argumen, nilai terakhir dari
+parameter kembalian digunakan sebagai nilai kembalian.
+
+Pemberian nama ini bukanlah sebuah keharusan namun dapat membuat kode lebih
+singkat dan jelas: nama kembalian sebagai dokumentasi.
+Jika kita beri nama kembalian pada fungsi `nextInt` maka akan memperjelas
+makna nilai `int` yang dikembalikan.
+
+----
+func nextInt(b []byte, pos int) (value, nextPos int) {
+----
+
+Karena kembalian bernama diinisialisasi dan terikat dengan perintah `return`,
+cara ini dapat digunakan untuk mempermudah sebagaimana juga memperjelas kode.
+Berikut versi dari `io.ReadFull` yang menggunakan cara ini dengan bagus:
+
+----
+func ReadFull(r Reader, buf []byte) (n int, err error) {
+	for len(buf) > 0 && err == nil {
+		var nr int
+		nr, err = r.Read(buf)
+		n += nr
+		buf = buf[nr:]
+	}
+	return
+}
+----
+
+[#defer]
+===  Penangguhan (_defer_)
+
+Perintah `defer` pada Go menangguhkan pemanggilan sebuah fungsi sampai fungsi
+yang mengeksekusi `defer` berakhir.
+Cara ini efektif untuk situasi yang harus menghapus alokasi atau sumber daya.
+Contoh umum dari penggunaan `defer` adalah membuka _mutex_ atau menutup
+berkas.
+
+----
+// Contents mengembalikan isi dari berkas sebagai string.
+func Contents(filename string) (string, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()  // f.Close akan dijalankan saat fungsi selesai.
+
+	var result []byte
+	buf := make([]byte, 100)
+	for {
+		n, err := f.Read(buf[0:])
+		result = append(result, buf[0:n]...) // append is discussed later.
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", err  // f akan ditutup saat fungsi berakhir di sini.
+		}
+	}
+	return string(result), nil // f akan ditutup saat fungsi berakhir di sini.
+}
+----
+
+Menangguhkan pemanggilan sebuah fungsi seperti `Close` memberikan dua
+kelebihan.
+Pertama, akan menjamin bahwa berkas tidak lupa ditutup kembali, sebuah
+kesalahan yang mudah terjadi jika kita mengubah fungsi untuk menambah sebuah
+perintah `return` di bagian manapun.
+Kedua, penutupan berkas berada dekat dengan pembukaan berkas, yang membuat
+kode lebih jelas daripada menempatkan penutupan di akhir fungsi.
+
+Argumen dari fungsi atau _method_ yang ditangguhkan dievaluasi saat perintah
+`defer` dieksekusi, bukan saat fungsi atau _method_ dieksekusi.
+Hal ini berarti sebuah perintah `defer` dapat dieksekusi berulang kali.
+Berikut contoh sederhana,
+
+----
+for i := 0; i < 5; i++ {
+	defer fmt.Printf("%d ", i)
+}
+----
+
+Fungsi yang ditangguhkan dieksekusi secara LIFO (Last In First Out--Terakhir
+Masuk Pertama Keluar), sehingga kode di atas akan mencetak `4 3 2 1 0` saat
+fungsi berakhir.
+Contoh penggunaan `defer` yang lain yaitu melacak eksekusi fungsi, seperti
+berikut:
+
+----
+func trace(s string)   { fmt.Println("masuk:", s) }
+func untrace(s string) { fmt.Println("keluar:", s) }
+
+// Gunakan seperti berikut:
+func a() {
+	trace("a")
+	defer untrace("a")
+	// do something....
+}
+----
+
+Karena argumen dari fungsi yang di- `defer` dievaluasi saat `defer`
+dieksekusi, kita dapat mengeksploitasinya lebih lanjut.
+Fungsi `trace` dapat mengatur argumen dari fungsi `untrace`.
+Contohnya:
+
+----
+func trace(s string) string {
+	fmt.Println("masuk:", s)
+	return s
+}
+
+func un(s string) {
+	fmt.Println("keluar:", s)
+}
+
+func a() {
+	defer un(trace("a"))
+	fmt.Println("in a")
+}
+
+func b() {
+	defer un(trace("b"))
+	fmt.Println("in b")
+	a()
+}
+
+func main() {
+	b()
+}
+----
+
+mencetak
+
+----
+entering: b
+in b
+entering: a
+in a
+leaving: a
+leaving: b
+----
+
+Bagi pemrogram yang terbiasa dengan manajemen sumber daya dalam bentuk blok
+kode dari bahasa pemrograman lain, `defer` mungkin tampak aneh, namun
+penerapannya datang dari fakta bahwa ia bukan berbasis-blok tapi
+berbasis-fungsi.
+Dalam bagian `panic` dan `recover` kita akan melihat contoh lain dari
+kemampuan `defer`.
+
+
+[#data]
+==  Data
+
+[#allocation_new]
+===   Alokasi dengan `new`
+
+Go memiliki dua fungsi bawaan, primitif untuk alokasi: `new` dan `make`.
+Kedua fungsi tersebut melakukan hal yang berbeda dan berlaku pada tipe yang
+berbeda, yang bisa membingungkan, tapi aturannya cukup sederhana.
+Mari kita telaah `new` terlebih dahulu.
+Fungsi `new` digunakan untuk mengalokasikan _memory_, tapi tidak seperti
+bahasa lain, ia tidak menginisialisasi _memory_, hanya mengosongkan saja.
+`new(T)` mengalokasikan penyimpanan kosong untuk item bertipe `T` dan
+mengembalikan alamatnya, sebuah nilai bertipe `*T`.
+Dalam terminologi Go, fungsi `new` mengembalikan sebuah pointer dari nilai
+kosong hasil alokasi dari tipe `T`.
+
+Secara _memory_ yang dikembalikan oleh `new` dikosongkan, maka sangatlah
+membantu merancang struktur data sehingga setiap nilai kosong dari tipe
+dapat digunakan tanpa perlu diinisialisasi.
+Hal ini berarti pengguna dari struktur data dapat membuatnya dengan `new` dan
+langsung menggunakannya.
+Sebagai contohnya, dokumentasi untuk `bytes.Buffer` berbunyi "nilai kosong
+dari `Buffer` adalah sebuah _buffer_ kosong yang siap digunakan."
+Hal yang sama, `sync.Mutex` tidak memiliki eksplisit konstruktor atau _method_
+`Init`.
+Namun, nilai kosong dari `sync.Mutex` didefinisikan sebagai _mutex_ yang tidak
+terkunci.
+
+Properti dari nilai-kosong bekerja secara transitif.
+Perhatikan deklarasi tipe berikut.
+
+----
+type SyncedBuffer struct {
+	lock    sync.Mutex
+	buffer  bytes.Buffer
+}
+----
+
+Nilai dari tipe `SyncedBuffer` siap digunakan langsung setelah alokasi atau
+deklarasi.
+Pada contoh kode selanjutnya, `p` dan `v` dapat digunakan tanpa memerlukan
+pengaturan lebih lanjut.
+
+----
+p := new(SyncedBuffer)  // tipe *SyncedBuffer
+var v SyncedBuffer      // tipe  SyncedBuffer
+----
+
+[#composite_literals]
+===  Konstruktor dan inisialisasi komposit
+
+Terkadang nilai kosong tidak cukup dan inisialisasi dengan konstruktor
+diperlukan, seperti contoh berikut yang diambil dari paket `os`.
+
+----
+func NewFile(fd int, name string) *File {
+	if fd < 0 {
+		return nil
+	}
+	f := new(File)
+	f.fd = fd
+	f.name = name
+	f.dirinfo = nil
+	f.nepipe = 0
+	return f
+}
+----
+
+Kode di atas dapat disederhanakan menggunakan inisialisasi komposit, yaitu
+sebuah ekspresi yang membuat instansi baru dari tipe komposit setiap kali
+dievaluasi.
+
+----
+func NewFile(fd int, name string) *File {
+	if fd < 0 {
+		return nil
+	}
+	f := File{fd, name, nil, 0}
+	return &f
+}
+----
+
+Tidak seperti C, dalam Go kita dapat mengembalikan alamat dari variabel lokal;
+alokasi dari variabel bertahan setelah fungsi berakhir.
+Malah, mengambil alamat dari inisialisasi komposit akan mengalokasi instansi
+yang baru setiap kali dievaluasi, sehingga kita dapat menggabungkan dua baris
+terakhir.
+
+----
+	return &File{fd, name, nil, 0}
+----
+
+_Field_ dari inisialisasi komposit diset berurutan dan semuanya harus ada.
+Namun, dengan memberi label pada setiap elemen secara eksplisit dengan cara
+`field:nilai`, inisialisasi dapat dibentuk tanpa harus berurutan, dengan
+_field_ yang tidak dicantumkan akan diberi nilai kosong.
+Sehingga kita dapat tulis
+
+----
+	return &File{fd: fd, name: name}
+----
+
+Jika inisialisasi komposit tidak memiliki _field_ apapun, ia akan otomatis
+diinisialisasi dengan nilai kosong dari tipenya.
+Ekspresi `new(File)` dan `&File{}` adalah sama.
+
+Inisialisasi komposit juga berlaku pada array, slice, dan map, dengan label
+pada _field_ adalah indeks atau _key_ dari `map`.
+Pada contoh berikut, inisialisasi bekerja sesuai dengan nilai `Enone`, `Eio`,
+dan `Einval`, selama nilainya berbeda.
+
+----
+a := [...]string   {Enone: "no error", Eio: "Eio", Einval: "invalid argument"}
+s := []string      {Enone: "no error", Eio: "Eio", Einval: "invalid argument"}
+m := map[int]string{Enone: "no error", Eio: "Eio", Einval: "invalid argument"}
+----
+
+[#allocation_make]
+===  Alokasi dengan `make`
+
+Kembali ke alokasi.
+Fungsi bawaan `make(T, args)` memiliki fungsi yang berbeda dari `new(T)`.
+Ia hanya dapat digunakan pada _slice_, `map`, dan `channel`, yang
+mengembalikan inisialisasi (bukan nilai kosong) dari tipe `T` (bukan `*T`).
+Alasan dari perbedaan ini adalah ketiga tipe tersebut merepresentasikan
+referensi ke struktur data yang harus diinisialisasi sebelum digunakan.
+Sebuah slice, sebagai contohnya, adalah sebuah struktur data yang memiliki
+tiga _field_ internal (yang tidak diekspor), yang terdiri dari sebuah
+_pointer_ ke data (sebuah _array_), panjang, dan kapasitas;
+dan sebelum item-item tersebut diinisialisasi, maka _slice_ bernilai `nil`.
+Untuk _slice_, `map`, dan `channel`, `make` menginisialisasi struktur data
+internal mereka dan menyiapkan nilainya.
+Misalnya,
+
+----
+make([]int, 10, 100)
+----
+
+mengalokasikan sebuah _array_ 100 buah `int` dan membuat sebuah struktur
+_slice_ dengan panjang 10 dan kapasitas 100, yang menunjuk ke elemen pertama
+dari 10 elemen dari _array_.
+(Saat membuat _slice_, kapasitasnya bisa diindahkan; lihat bagian tentang
+_slice_ untuk informasi lebih lanjut.)
+Kebalikannya, `new([]int)` mengembalikan sebuah _pointer_ ke struktur _slice_
+yang baru dialokasikan dan dikosongkan, yaitu, sebuah _pointer_ ke sebuah
+_slice_ bernilai `nil`.
+
+Contoh berikut mengilustrasikan perbedaan antara `new` dan `make`.
+
+----
+var p *[]int = new([]int)       // alokasi struktur slice; *p == nil; jarang digunakan
+var v  []int = make([]int, 100) // slice v sekarang mengacu ke array dari 100 int
+
+// Lebih kompleks lagi:
+var p *[]int = new([]int)
+*p = make([]int, 100, 100)
+
+// Idiomatis:
+v := make([]int, 100)
+----
+
+Ingatlah bahwa `make` hanya berlaku untuk `map`, _slice_, dan `channel` dan
+tidak mengembalikan sebuah _pointer_.
+Untuk mendapatkan pointer, alokasikan dengan `new` atau ambil alamat dari
+variabel secara langsung.
+
+
+[#arrays]
+===  _Array_
+
+_Array_ berguna saat merancang susunan _memory_ yang lebih rinci dan terkadang
+membantu menghindari alokasi _memory_, tapi pada umumnya ia adalah elemen
+pembentuk dari _slice_, yang akan kita bahas di bagian berikutnya.
+Untuk membantu memahami bagian selanjutnya, berikut beberapa penjelasan
+tentang _array_.
+
+Ada tiga perbedaan utama untuk _array_ antara Go dan C.
+Dalam Go,
+
+*  _Array_ adalah nilai.  Memberikan sebuah _array_ ke _array_ lainnya
+   menyalin semua elemennya.
+*  Jika mengirim sebuah _array_ ke sebuah fungsi, fungsi akan menerima salinan
+   dari _array_, bukan _pointer_ dari _array_.
+*  Ukuran dari _array_ adalah bagian dari tipe.  Tipe dari `[10]int` dan
+   `[20]int` adalah berbeda.
+
+Properti "array adalah nilai" terkadang bisa berguna namun cukup memakan
+sumber daya;
+jika ingin perilaku dan efisiensi seperti C, kita bisa mengirim pointer
+ke _array_.
+
+----
+func Sum(a *[3]float64) (sum float64) {
+	for _, v := range *a {
+		sum += v
+	}
+	return
+}
+
+array := [...]float64{7.0, 8.5, 9.1}
+x := Sum(&array)  // Note the explicit address-of operator
+----
+
+Namun gaya kode seperti ini (_pointer_ ke sebuah _array_ pada argumen dari
+fungsi) tidak idiomatis pada Go.
+Lebih baik gunakan _slice_.
+
+
+[#slices]
+===  _Slice_
+
+_Slice_ membungkus _array_ untuk memberikan sebuah antar muka yang lebih umum,
+kuat, dan mudah dari data yang berurutan.
+Kecuali untuk item-item dengan dimensi yang jelas seperti matriks, umumnya
+pemrograman _array_ dalam Go menggunakan _slice_ bukan _array_.
+
+_Slice_ menyimpan referensi dari _array_ yang menjadi dasarnya, dan jika
+menempatkan sebuah _slice_ ke _slice_ yang lainnya, keduanya akan mengacu pada
+_array_ yang sama.
+Jika sebuah fungsi menerima argumen berupa _slice_, perubahan yang dilakukan
+terhadap elemen dari _slice_ akan dapat dilihat oleh yang memanggil fungsi,
+analoginya sama dengan mengirim _pointer_ ke _array_ di dalamnya.
+Oleh karena itu, sebuah fungsi `Read` dapat menerima argumen _slice_ bukan
+_pointer_ dan sebuah hitungan;
+panjang dari _slice_ menentukan batas atas dari berapa banyak data yang akan
+dibaca.
+Berikut _method_ `Read` dari tipe `File` dalam packet `os`:
+
+----
+func (f *File) Read(buf []byte) (n int, err error)
+----
+
+_Method_ tersebut mengembalikan jumlah _byte_ yang dibaca dan sebuah nilai
+eror.
+Untuk membaca 32 byte pertama ke dalam sebuah _buffer_ `buf`, potong
+_buffer_ tersebut.
+
+----
+	n, err := f.Read(buf[0:32])
+----
+
+Pemotongan seperti di atas umum dan efisien.
+Bahkan, lupakan efisiensi untuk sementara, potongan kode berikut juga membaca
+32 byte pertama ke dalam _buffer_.
+
+----
+	var n int
+	var err error
+	for i := 0; i < 32; i++ {
+		nbytes, e := f.Read(buf[i:i+1])  // Read one byte.
+		n += nbytes
+		if nbytes == 0 || e != nil {
+			err = e
+			break
+		}
+	}
+----
+
+Panjang dari sebuah _slice_ bisa diubah selama ia masih selaras dengan limit
+dari _array_ yang dikandungnya.
+Kapasitas dari _slice_, dapat diakses dengan fungsi bawaan `cap`, menandakan
+panjang maksimum dari _slice_.
+Berikut fungsi untuk menambahkan data ke sebuah _slice_.
+Jika data melebihi kapasitas, maka _slice_ tersebut akan direalokasikan.
+Dan hasil dari alokasi baru akan dikembalikan.
+Fungsi berikut memberitahu bahwa `len` dan `cap` bisa digunakan pada _slice_
+yang `nil`, dan nilai kembaliannya adalah `0`.
+
+----
+func Append(slice, data []byte) []byte {
+	l := len(slice)
+	if l + len(data) > cap(slice) {  // reallocate
+		// Gandakan alokasi dari yang dibutuhan, untuk pertumbuhan
+		// kedepannya.
+		newSlice := make([]byte, (l+len(data))*2)
+		// Fungsi `copy` adalah bawaan dan dapat digunakan untuk slice
+		// bertipe apapun.
+		copy(newSlice, slice)
+		slice = newSlice
+	}
+	slice = slice[0:l+len(data)]
+	copy(slice[l:], data)
+	return slice
+}
+----
+
+Kita harus mengembalikan _slice_ sesudahnya karena, walaupun `Append` dapat
+memodifikasi elemen dari slice, slice itu sendiri (struktur data yang
+menyimpan _pointer_, panjang, dan kapasitas) dikirim secara nilai.
+
+Fungsi penambahan terhadap slice ini sangat berguna, ia juga dapat digantikan
+dengan fungsi bawaan `append`.
+Untuk memahami rancangan fungsi di atas, kita membutuhkan sedikit informasi
+tambahan, jadi kita akan kembali ke fungsi tersebut nanti.
+
+
+[#maps]
+===  Slice dua dimensi
+
+Array dan slice pada Go berdimensi tunggal.
+Untuk membuat array atau slice dua dimensi (2D), definisikan array-dari-array
+atau slice-dari-slice, seperti berikut:
+
+----
+type Transform [3][3]float64  // Array 3x3 bertipe float64
+type LinesOfText [][]byte     // Slice dari slice bertipe byte.
+----
+
+Karena slice memiliki variabel panjang, maka memungkinkan setiap bagian dalam
+slice memiliki panjang yang berbeda.
+Situasi tersebut sangat umum, seperti pada contoh `LinesOfText`: setiap baris
+memiliki panjangnya sendiri-sendiri.
+
+----
+text := LinesOfText{
+	[]byte("Now is the time"),
+	[]byte("for all good gophers"),
+	[]byte("to bring some fun to the party."),
+}
+----
+
+Terkadang perlu juga mengalokasikan slice 2D, situasi seperti ini bisa
+digunakan saat memindai barisan _pixel_, misalnya.
+Ada dua cara untuk menyelesaikan masalah ini.
+Salah satunya yaitu dengan mengalokasikan setiap slice tersendiri;
+cara lainnya yaitu dengan mengalokasikan sebuah array yang menunjuk ke setiap
+slice.
+Yang mana yang mau digunakan bergantung kepada aplikasi yang dibuat.
+Jika slice bisa bertambah atau berkurang, maka mereka harus dialokasikan
+tersendiri untuk menghindari menimpa baris selanjutnya;
+jika tidak, akan lebih efisien mengkonstruksi objek dengan alokasi tunggal.
+Sebagai referensi, berikut bentuk dari kedua cara tersebut.
+Pertama, dengan cara alokasi tersendiri,
+
+----
+// Alokasikan slice paling atas.
+picture := make([][]uint8, YSize) // Satu baris per unit dari y.
+
+// Lakukan pengulangan ke setiap baris, alokasikan slice untuk setiap baris.
+for i := range picture {
+	picture[i] = make([]uint8, XSize)
+}
+----
+
+Dan cara dengan alokasi tunggal, dipotong menjadi baris,
+
+----
+// Alokasikan slice paling atas, seperti sebelumnya.
+picture := make([][]uint8, YSize) // One row per unit of y.
+
+// Alokasikan sejumlah besar slice untuk menampung semua pixel.
+pixels := make([]uint8, XSize*YSize) // Bertipe []uint8 walaupun picture adalah [][]uint8.
+
+// Lakukan pengulangan ke setiap baris, memotong setiap baris dari depan slice
+// pixel yang tersisa.
+for i := range picture {
+	picture[i], pixels = pixels[:XSize], pixels[XSize:]
+}
+----
+
+[#maps]
+===  _Map_
+
+Map adalah struktur data bawaan yang mudah dan kuat yang mengasosiasikan
+sebuah tipe (kunci) dengan nilai tipe lainnya (elemen atau nilai).
+Kunci dari map bisa bertipe apa saja selama operator ekualitas (`==`) berlaku,
+seperti integer, _float_ dan bilangan komples, string, pointer, interface
+(selama tipe dinamis mendukung ekualitas), `struct` dan `array`.
+Slice tidak bisa dipakai sebagai kunci dari map, karena sifat ekualitas tidak
+terdefinisi pada slice.
+Seperti slice, map menyimpan referensi ke struktur data di dalamnya.
+Jika mengirim sebuah map ke sebuah fungsi yang mengubah isi dari map,
+perubahan tersebut akan dapat dilihat oleh yang memanggil fungsi.
+
+Map dapat dibuat menggunakan sintaks inisialisasi komposit dengan pasangan
+kunci-nilai yang dipisahkan oleh titik dua, sehingga sangat mudah membuat map
+dengan inisialisasi.
+
+----
+var timeZone = map[string]int{
+	"UTC":  0*60*60,
+	"EST": -5*60*60,
+	"CST": -6*60*60,
+	"MST": -7*60*60,
+	"PST": -8*60*60,
+}
+----
+
+Menset dan mengambil nilai map secara sintaks mirip dengan array dan slice
+kecuali indeksnya tidak harus sebuah integer.
+
+----
+offset := timeZone["EST"]
+----
+
+Bila kunci dari map tidak ada, ia akan mengembalikan nilai kosong dari tipe
+nilai dari map.
+Misalnya, jika map berisi integer, mengambil nilai dari kunci yang tidak ada
+akan mengembalikan `0`.
+Sebuah pengelompokan dapat diimplementasikan dengan map yang nilainya bertipe
+`bool`.
+Set nilai map dengan `true` untuk menyimpan sebuah nilai ke dalam kelompok,
+dan kemudian periksa dengan pengindeksan biasa.
+
+----
+attended := map[string]bool{
+    "Ann": true,
+    "Joe": true,
+    ...
+}
+
+if attended[person] { // akan bernilai false jika person tidak ada dalam map
+    fmt.Println(person, "sedang rapat")
+}
+----
+
+Terkadang perlu membedakan antara nilai yang tidak ada dengan nilai kosong.
+Apakah ada isi untuk "UTC" atau ia `0` karena tidak ada di dalam map sama
+sekali?
+Anda bisa membedakan ini dengan cara kembalian multipel.
+
+----
+var seconds int
+var ok bool
+seconds, ok = timeZone[tz]
+----
+
+Untuk alasan khusus cara ini disebut dengan idiom "comma ok".
+Pada contoh berikut, jika `tz` ada, nilai `seconds` akan di set dan `ok` akan
+bernilai `true`;
+jika tidak, `seconds` akan di set dengan `0` dan `ok` akan bernilai `false`.
+Berikut fungsi yang mengimplementasikannya dengan laporan kesalahan:
+
+----
+func offset(tz string) int {
+    if seconds, ok := timeZone[tz]; ok {
+        return seconds
+    }
+    log.Println("zona waktu tidak dikenal:", tz)
+    return 0
+}
+----
+
+Untuk menguji keberadaan sebuah nilai dalam map tanpa perlu tahu nilai
+sebenarnya, kita bisa menggunakan identifikasi kosong (`_`) di variabel tempat
+nilai disimpan.
+
+----
+_, present := timeZone[tz]
+----
+
+Untuk menghapus sebuah isi map, gunakan fungsi bawaan `delete`, yang
+argumennya adalah map dan kunci yang akan dihapus.
+Cara ini aman bahkan bila kunci tidak ada dalam map.
+
+----
+delete(timeZone, "PDT")  // Now on Standard Time
+----
+
+
+[#printing]
+===  Pencetakan
+
+Pencetakan berformat dalam Go menggunakan gaya yang mirip dengan `printf` pada
+C tapi lebih kaya dengan format dan lebih generik.
+Fungsi pencetakan ada dalam paket `fmt`: `fmt.Printf`, `fmt.Fprintf`,
+`fmt.Sprintf`, dan seterusnya.
+Fungsi string (`Sprintf` dll.) mengembalikan sebuah string bukan mengisi
+_buffer_ pada argumen.
+
+Anda tidak perlu menyediakan string yang berformat.
+Untuk setiap `Printf`, `Fprintf`, dan `Sprintf` ada pasangan fungsi lain,
+yaitu `Print` dan `Println`.
+Fungsi tersebut tidak menerima string berformat melainkan membangkitkan format
+standar untuk setiap argumennya.
+Versi dari `Println` menyisipkan sebuah spasi antara argumen dan menambahkan
+baris baru di akhir, sementara versi `Print` hanya menyisipkan spasi jika
+argumen dikedua sisi adalah string.
+Dalam contoh berikut setiap baris perintah menghasilkan keluaran yang sama.
+
+----
+fmt.Printf("Hello %d\n", 23)
+fmt.Fprint(os.Stdout, "Hello ", 23, "\n")
+fmt.Println("Hello", 23)
+fmt.Println(fmt.Sprint("Hello ", 23))
+----
+
+Fungsi berformat `fmt.Fprint` dan teman-temannya menerima objek apapun yang
+mengimplementasikan `interface` `io.Writer`;
+Contoh yang paling awam yaitu variabel `os.Stdout` dan `os.Stderr`.
+
+Dari sini kita mulai menyimpang dari C.
+Pertama, format numerik seperti `%d` tidak menerima tanda ukuran atau tanda
+_signed_ atau _unsigned_;
+namun, fungsi dari pencetakan akan menggunakan tipe dari argumen untuk
+menentukan properti tersebut.
+
+----
+var x uint64 = 1<<64 - 1
+fmt.Printf("%d %x; %d %x\n", x, x, int64(x), int64(x))
+----
+
+mencetak
+
+----
+18446744073709551615 ffffffffffffffff; -1 -1
+----
+
+Jika hanya menginginkan konversi standar, seperti desimal untuk integer,
+kita bisa menggunakan format keseluruhan `%v` (untuk "value");
+hasilnya persis seperti yang `Print` dan `Println` akan keluarkan.
+Lebih lanjut, format tersebut dapat mencetak nilai apapun, bahkan array,
+slice, struct, dan map.
+Berikut perintah pencetakan untuk map zona waktu yang didefinisikan pada
+bagian sebelumnya.
+
+----
+fmt.Printf("%v\n", timeZone)  // atau bisa fmt.Println(timeZone)
+----
+
+yang mengeluarkan
+
+----
+map[CST:-21600 PST:-28800 EST:-18000 UTC:0 MST:-25200]
+----
+
+Untuk map, kuncinya akan dicetak tidak berurutan.
+Pada `struct`, format `%+v` mencetak nama _field_, dan untuk nilai apapun
+format `%#v` akan mencetak nilai dengan sintaks Go.
+
+----
+type T struct {
+	a int
+	b float64
+	c string
+}
+t := &T{ 7, -2.35, "abc\tdef" }
+fmt.Printf("%v\n", t)
+fmt.Printf("%+v\n", t)
+fmt.Printf("%#v\n", t)
+fmt.Printf("%#v\n", timeZone)
+----
+
+mencetak
+
+----
+&{7 -2.35 abc   def}
+&{a:7 b:-2.35 c:abc     def}
+&main.T{a:7, b:-2.35, c:"abc\tdef"}
+map[string]int{"CST":-21600, "PST":-28800, "EST":-18000, "UTC":0, "MST":-25200}
+----
+
+(Perhatikan tanda "&".)
+Format dengan tanda kutip ganda juga tersedia lewat `%q` saat digunakan pada
+tipe string atau `[]byte`.
+Format `%#q` akan menggunakan kutip terbalik "`" jika memungkinkan.
+(Format `%q` juga berlaku untuk integer dan rune, menghasilkan konstanta
+`rune` dengan tanda kutip tunggal.)
+Selain itu, format `%x` dapat digunakan juga untuk string, array dari byte,
+dan slice dari byte, sebagaimana juga integer, menghasilkan string dengan
+heksadesimal, dan bila sebuah spasi ditambahkan dalam format (`% x`) ia akan
+mencetak spasi antara byte.
+
+Format berguna lainnya yaitu `%T`, yang mencetak tipe dari sebuah nilai.
+
+----
+fmt.Printf("%T\n", timeZone)
+----
+
+mencetak
+
+----
+map[string]int
+----
+
+Jika ingin mengontrol format untuk sebuah tipe kostum, cukup dengan
+mendefinisikan sebuah _method_ `String() string` pada tipe tersebut.
+Untuk tipe sederhana `type T` berikut, bentuknya seperti ini.
+
+----
+func (t *T) String() string {
+	return fmt.Sprintf("%d/%g/%q", t.a, t.b, t.c)
+}
+fmt.Printf("%v\n", t)
+----
+
+yang mencetak dengan format
+
+----
+7/-2.35/"abc\tdef"
+----
+
+Jika ingin mencetak nilai dari tipe `T` atau _pointer_ ke `T`, maka
+_receiver_ dari `String` haruslah nilai dari tipe;
+contoh di atas menggunakan _pointer_ karena ia lebih efisien dan idiomatis
+untuk tipe dengan `struct`.
+Lihat bagian di bawah tentang
+<<pointers_vs_values, pointer dan nilai>>
+untuk informasi lebih lanjut.
+
+_Method_ `String` bisa memanggil `Sprintf` karena fungsi pencetakan secara
+penuh berdiri sendiri dan bisa dibungkus dengan cara tersebut.
+Ada hal penting yang harus dipahami mengenai pendekatan ini: jangan membuat
+_method_ `String` dengan memanggil `Sprintf` yang mana akan mengulang _method_
+`String` terus menerus.
+Hal ini bisa terjadi jika pemanggilan `Sprintf` mencoba mencetak langsung
+_receiver_ sebagai sebuah string, yang mana akan memanggil _method_ itu
+kembali.
+Hal ini umum dan kesalahan yang mudah terjadi, seperti yang diperlihatkan pada
+contoh berikut.
+
+----
+type MyString string
+
+func (m MyString) String() string {
+	return fmt.Sprintf("MyString=%s", m) // Eror: akan berulang selamanya.
+}
+----
+
+Perbaikannya cukup mudah: konversi argumen ke tipe dasar string, yang tidak
+memiliki _method_ `String`.
+
+----
+type MyString string
+func (m MyString) String() string {
+	return fmt.Sprintf("MyString=%s", string(m)) // OK: note conversion.
+}
+----
+
+Pada bagian <<initialization,inisialisasi>> kita akan melihat teknik lain
+untuk menghindari rekursi ini.
+
+Teknik pencetakan lainnya yaitu dengan mengirim argumen dari fungsi pencetakan
+langsung ke fungsi lain.
+Fungsi `Printf` menggunakan tipe `...interface{}` pada argumen terakhirnya
+untuk dapat menerima beragam jumlah parameter (dari berbagai tipe) yang dapat
+muncul setelah format.
+
+----
+func Printf(format string, v ...interface{}) (n int, err error) {
+----
+
+Dalam fungsi `Printf`, `v` berlaku seperti sebuah varibel bertipe
+`[]interface{}` namun bila dikirim ke fungsi _variadic_ lainnya, ia bersifat
+sama seperti daftar argumen biasa.
+Berikut implementasi dari fungsi `log.Println` yang kita gunakan di atas.
+Ia mengirim argumennya langsung ke `fmt.Sprintln` untuk melakukan pemformatan.
+
+----
+// Println prints to the standard logger in the manner of fmt.Println.
+func Println(v ...interface{}) {
+	std.Output(2, fmt.Sprintln(v...))  // Output takes parameters (int, string)
+}
+----
+
+Kita menulis `...` setelah `v` pada pemanggilan ke `Sprintln` untuk memberi
+tahu _compiler_ memperlakukan `v` sebagai daftar argumen;
+kalau tidak ia akan mengirim `v` sebagai sebuah slice.
+
+Ada lebih banyak lagi mengenai pencetakan dari yang sudah kita bahas di sini.
+Lihat dokumentasi `godoc` pada paket `fmt` untuk lebih detilnya.
+
+Sebuah parameter `...` bisa spesifik pada tipe tertentu, misalnya `...int`
+pada fungsi `Min` yang memilih bilang terendah dari sejumlah bilangan integer:
+
+----
+func Min(a ...int) int {
+	min := int(^uint(0) >> 1)  // largest int
+	for _, i := range a {
+		if i < min {
+			min = i
+		}
+	}
+	return min
+}
+----
+
+
+[#append]
+===  _Append_
+
+Sekarang kita memiliki pengetahuan yang diperlukan untuk menjelaskan rancangan
+dari fungsi bawaan `append`.
+Fungsi `append` berbeda dari fungsi bentukan `Append` di atas.
+Secara skematis, bentuknya seperti berikut:
+
+----
+func append(slice []T, elements ...T) []T
+----
+
+yang mana `T` adalah penampung dari tipe apapun.
+Anda tidak bisa menulis sebuah fungsi dalam Go yang mana tipe `T` ditentukan
+oleh yang memanggil.
+Itulah kenapa `append` adalah bawaan: ia butuh dukungan dari _compiler_.
+
+Yang `append` lakukan adalah menambahkan elemen-elemen pada akhir dari sebuah
+slice dan mengembalikan hasilnya.
+Hasilnya perlu dikembalikan karena, seperti pada fungsi bentukan `Append`,
+_array_ yang dikandung oleh slice kemungkinan berubah.
+Contoh sederhana berikut
+
+----
+x := []int{1,2,3}
+x = append(x, 4, 5, 6)
+fmt.Println(x)
+----
+
+mencetak `[1 2 3 4 5 6]`.
+Jadi `append` bekerja mirip seperti `Printf`, mengoleksi beragam jumlah
+argumen.
+
+Namun bagaimana bila kita ingin menambahkan slice ke sebuah slice?
+Mudah: gunakan `...` pada saat pemanggilan, seperti yang kita lakukan pada
+`Output` sebelumnya.
+Potongan kode berikut menghasilkan keluaran yang sama dengan yang di atas.
+
+----
+x := []int{1,2,3}
+y := []int{4,5,6}
+x = append(x, y...)
+fmt.Println(x)
+----
+
+Tanpa `...`, kode tersebut tidak akan bisa di- _compile_ karena tipenya salah;
+`y` bukan bertipe `int`.
+
+
+[#initialization]
+==  Inisialisasi
+
+Walaupun tampak tidak berbeda dengan inisialisasi dalam C atau C++,
+inisialisasi pada Go lebih kuat.
+Struktur yang kompleks dapat dibangun lewat inisialisasi dan permasalahan
+urutan dari objek yang diinisialisasi, bahkan untuk paket-paket yang berbeda,
+ditangani dengan benar.
+
+
+[#constants]
+===  Konstan
+
+Konstan pada Go dibuat pada waktu di- _compile_ (bahkan saat didefinisikan
+sebagai lokal konstan dalam fungsi), dan hanya berlaku untuk bilangan,
+karakter (`rune`), string, atau boolean.
+Karena batasan dari _compile-time_ tersebut, ekspresi yang mendefinisikan
+mereka haruslah ekspresi konstan, yang dapat di evaluasi oleh _compiler_.
+Misalnya, `1<<3` adalah ekspresi konstan, sementara `math.Sin(math.Pi/4)`
+bukan konstan karena pemanggilan fungsi `math.Sin` harus terjadi pada saat
+program berjalan.
+
+Pada Go, konstan enumerasi dibuat menggunakan operator `iota` (disebut juga
+dengan _enumerator_).
+Secara `iota` merupakan bagian dari ekspresi dan ekspresi secara implisit bisa
+diulang, maka sangat mudah untuk membuat sekumpulan nilai intrinsik.
+
+----
+type ByteSize float64
+
+const (
+	_           = iota // indahkan nilai pertama (0) dengan memberikannya
+	                   // pada pengidentifikasi kosong
+	KB ByteSize = 1 << (10 * iota)
+	MB
+	GB
+	TB
+	PB
+	EB
+	ZB
+	YB
+)
+----
+
+Adanya _method_ seperti `String` yang bisa ditambahkan ke tipe kostum apapun
+membuatnya memungkinan bagi nilai yang beragam untuk memformat dirinya
+sendiri untuk pencetakan.
+Meskipun akan sering melihatnya hanya digunakan pada `struct`, teknik ini
+juga berguna untuk tipe skalar seperti tipe _floating-point_ seperti
+`ByteSize`.
+
+----
+func (b ByteSize) String() string {
+	switch {
+	case b >= YB:
+		return fmt.Sprintf("%.2fYB", b/YB)
+	case b >= ZB:
+		return fmt.Sprintf("%.2fZB", b/ZB)
+	case b >= EB:
+		return fmt.Sprintf("%.2fEB", b/EB)
+	case b >= PB:
+		return fmt.Sprintf("%.2fPB", b/PB)
+	case b >= TB:
+		return fmt.Sprintf("%.2fTB", b/TB)
+	case b >= GB:
+		return fmt.Sprintf("%.2fGB", b/GB)
+	case b >= MB:
+		return fmt.Sprintf("%.2fMB", b/MB)
+	case b >= KB:
+		return fmt.Sprintf("%.2fKB", b/KB)
+	}
+	return fmt.Sprintf("%.2fB", b)
+}
+----
+
+Ekspresi `YB` mencetak `1.00YB`, sementara `ByteSize(1e13)` mencetak `9.09TB`.
+
+Penggunaan `Sprintf` untuk mengimplementasikan _method_ `String` pada
+`ByteSize` adalah aman (menghindari rekursif tanpa henti) bukan karena
+konversi itu sendiri namun karena `Sprintf` dengan `%f`, yang mana bukan
+format dari sebuah string: `Sprintf` hanya akan memanggil _method_ `String`
+saat ia menginginkan sebuah string, dan `%f` menginginkan nilai
+_floating-point_.
+
+
+[#variables]
+===  Variabel
+
+Variabel bisa diinisialisasi seperti konstan namun penginisialisasinya bisa
+sebuah ekspresi generik yang dieksekusi saat program berjalan.
+
+----
+var (
+	home   = os.Getenv("HOME")
+	user   = os.Getenv("USER")
+	gopath = os.Getenv("GOPATH")
+)
+----
+
+
+[#init]
+===  Fungsi `init`
+
+Terakhir, setiap berkas sumber kode bisa mendefinisikan fungsi `init` -nya
+sendiri untuk mempersiapkan apapun yang dibutuhkan.
+(Sebenarnya, setiap berkas bisa memiliki lebih dari satu fungsi `init`.)
+Fungsi `init` dipanggil setelah semua deklarasi variabel dalam paket tersebut
+telah dievaluasi, dan setelah semua paket yang diimpor telah diinisialisasi.
+
+Selain membuat inisialisasi yang tidak dapat diekspresikan sebagai deklarasi,
+penggunaan umum dari fungsi `init` adalah untuk memverifikasi atau memperbaiki
+keadaan dari program sebelum eksekusi sebenarnya dimulai.
+
+----
+func init() {
+	if user == "" {
+		log.Fatal("$USER not set")
+	}
+	if home == "" {
+		home = "/home/" + user
+	}
+	if gopath == "" {
+		gopath = home + "/go"
+	}
+	// gopath may be overridden by --gopath flag on command line.
+	flag.StringVar(&gopath, "gopath", gopath, "override default GOPATH")
+}
+----
+
+
+[#methods]
+==  _Method_
+
+[#pointers_vs_values]
+===  Pointer dan Nilai
+
+Seperti yang kita lihat pada `ByteSize`, _method_ dapat didefinisikan untuk
+tipe apapun (kecuali _pointer_ atau _interface_);
+_receiver_ -nya tidak harus sebuah `struct`.
+
+Pada diskusi mengenai slice di atas, kita menulis sebuah fungsi `Append`.
+Kita bisa mendefinisikannya sebagai sebuah _method_ dari slice.
+Untuk itu, pertama kita mendeklarasikan sebuah tipe bernama yang akan
+ditambahkan dengan _method_, dan menjadikan _receiver_ -nya sebagai nilai dari
+tipe tersebut.
+
+----
+type ByteSlice []byte
+
+func (slice ByteSlice) Append(data []byte) []byte {
+	// Badan fungsi sama dengan fungsi Append yang didefinisikan di atas.
+}
+----
+
+Yang dimaksud dengan _receiver_ dari contoh di atas yaitu `slice ByteSlice`.
+Pada contoh tersebut _receiver_ -nya berbentuk _receiver_ dengan nilai, atau
+singkatnya, _receiver_ nilai.
+
+Cara ini masih membutuhkan _method_ untuk mengembalikan slice yang diperbarui.
+Kita bisa menghilangkan nilai kembalian dengan mendefinisikan ulang _method_
+tersebut dengan menggunakan _pointer_ pada `ByteSlice` sebagai _receiver_
+-nya, sehingga _method_ dapat menimpa slice.
+
+----
+func (p *ByteSlice) Append(data []byte) {
+	slice := *p
+	// Badan fungsi seperti sebelunya, tanpa kembalian.
+	...
+	*p = slice
+}
+----
+
+Jika kita mengubah fungsi `Append` tersebut seperti standar _method_ `Write`,
+seperti berikut,
+
+----
+func (p *ByteSlice) Write(data []byte) (n int, err error) {
+	slice := *p
+	// .
+	*p = slice
+	...
+	return len(data), nil
+}
+----
+
+maka tipe `*ByteSlice` memenuhi `interface` standar `io.Writer`.
+Misalnya, kita dapat mencetak ke dalam `ByteSlice`.
+
+----
+	var b ByteSlice
+	fmt.Fprintf(&b, "This hour has %d days\n", 7)
+----
+
+Kita mengirim alamat dari sebuah `ByteSlice` karena hanya `*ByteSlice` yang
+memenuhi `io.Writer`.
+Aturan tentang _pointer_ atau nilai untuk _receiver_ yaitu _receiver_
+nilai dapat memanggil _method_ yang dideklarasikan dengan _pointer_ dan nilai,
+tapi _receiver_ _pointer_ hanya dapat memanggil _method_ yang dideklarasikan
+sebagai _pointer_.
+
+Aturan ini ada karena _method_ dengan _pointer_ dapat mengubahi _receiver_;
+memanggil _method_ dengan nilai akan menyebabkani _method_ tersebut menerima
+salinan dari nilai, sehingga perubahan apapun akan diindahkan.
+Oleh karena itu, bahasa Go tidak membolehkan kesalahan ini.
+Ada sebuah pengecualian.
+Saat nilai dapat diambil alamatnya, bahasa Go akan mengurus pemanggilan
+_method_ dengan pointer dengan menyisipkan operator alamat secara otomatis.
+Dalam contoh di atas, variabel `b` dapat diambil alamatnya, sehingga kita
+dapat memanggil _method_ `Write` -nya dengan `b.Write`.
+_Compiler_ akan mengubahnya menjadi `(&b).Write`.
+
+Selain itu, gagasan menggunakan `Write` terhadap sebuah byte slice adalah
+pusat dari implementasi `bytes.Buffer`.
+
+
+[#interfaces_and_types]
+==  _Interface_ dan tipe lainnya
+
+[#interfaces]
+===  _Interface_
+
+Dalam Go, _interface_ menyediakan sebuah cara untuk menentukan perilaku dari
+sebuah objek: "jika sesuatu dapat melakukan _ini_, maka ia dapat digunakan di
+_sini_."
+Kita telah melihat beberapa contohnya; pencetakan kostum yang
+diimplementasikan dengan _method_ `String`, `Fprintf` yang dapat membangkitkan
+keluaran apapun dengan _method_ `Write`.
+_Interface_ dengan satu atau dua _method_ sangat umum dalam kode Go, dan
+biasanya diberikan nama yang diturunkan dari nama _method_ -nya, seperti
+`io.Writer` untuk sesuatu yang mengimplementasikan `Write`.
+
+Sebuah tipe dapat mengimplementasikan banyak _interface_.
+Misalnya, sebuah koleksi dapat diurutkan oleh fungsi-fungsi dalam paket
+`sort` jika ia mengimplementasikan `sort.Interface`, yang terdiri dari
+`Len()`, `Less(i, j int) bool`, dan `Swap(i, j int)`, dan ia juga bisa
+memiliki sebuah fungsi pencetakan tersendiri.
+Pada contoh berikut `Sequence` memenuhi kedua _interface_ tersebut.
+
+----
+type Sequence []int
+
+// Method-method yang dibutuhkan oleh sort.Interface.
+func (s Sequence) Len() int {
+	return len(s)
+}
+func (s Sequence) Less(i, j int) bool {
+	return s[i] < s[j]
+}
+func (s Sequence) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+// Copy mengembalikan salinan dari Sequence.
+func (s Sequence) Copy() Sequence {
+	copy := make(Sequence, 0, len(s))
+	return append(copy, s...)
+}
+
+// String mengembalikan elemen yang diurutkan sebelum dicetak.
+func (s Sequence) String() string {
+	s = s.Copy() // Buat salinan; jangan menimpa receiver.
+	sort.Sort(s)
+	str := "["
+	for i, elem := range s { // Pengulangan ini O(N²); akan kita perbaiki nanti.
+		if i > 0 {
+			str += " "
+		}
+		str += fmt.Sprint(elem)
+	}
+	return str + "]"
+}
+----
+
+[#conversion]
+===  Konversi
+
+_Method_ `String` pada tipe kostum `Sequence` di atas membuat ulang fungsi
+`Sprint` yang dapat bekerja pada slice.
+(Ia juga memiliki kompleksitas O(N²), yang mana sangat lambat.)
+Kita dapat mengurangi kode tersebut (dan mempercepatnya) jika kita
+mengonversi `Sequence` menjadi `[]int` sebelum memanggil `Sprint`.
+
+----
+func (s Sequence) String() string {
+	s = s.Copy()
+	sort.Sort(s)
+	return fmt.Sprint([]int(s))
+}
+----
+
+_Method_ di atas adalah contoh lain dari teknik konversi untuk dapat memanggil
+`Sprintf` dengan aman dari sebuah _method_ `String`.
+Karena kedua tipe (`Sequence` dan `[]int`) adalah sama (jika kita indahkan
+nama tipe), maka boleh mengonversi antara mereka.
+Konversi tidak membuat nilai baru, ia berperilaku seperti nilai yang ada
+memiliki tipe baru.
+(Ada beberapa konversi legal lainnya, seperti dari integer ke bilangan
+_float_, namun membuat nilai baru).
+
+Adalah sebuah idiom dalam program Go untuk mengonversi tipe dari sebuah
+ekspresi untuk mengakses sekumpulan _method_ yang berbeda.
+Sebagai contoh, kita dapat menggunakan tipe `sort.IntSlice` untuk mengurangi
+contoh kode menjadi:
+
+----
+type Sequence []int
+
+// String untuk pencetakan - urutkan elemen-elemen sebelum dicetak.
+func (s Sequence) String() string {
+	s = s.Copy()
+	sort.IntSlice(s).Sort()
+	return fmt.Sprint([]int(s))
+}
+----
+
+Sekarang, daripada membuat `Sequence` mengimplementasikan beberapa _interface_
+(pengurutan dan pencetakan), kita menggunakan kemampuan sebuah item data untuk
+dikonversi ke beragam tipe (`Sequence`, `sort.IntSlice`, dan `[]int`),
+tiap-tiapnya melakukan bagian kerjanya sendiri.
+Hal seperti ini jarang biasanya dalam dunia nyata namun efektif.
+
+
+[#interface_conversions]
+===  Konversi interface dan pernyataan tipe
+
+<<type_switch,Switch dengan tipe>> adalah sebuah bentuk dari konversi: ia
+mengambil sebuah _interface_ dan, untuk setiap `case` pada `switch`, mencoba
+mengonversinya ke tipe di dalam `case` tersebut.
+Jika sebuah _interface_ adalah string, kita ingin nilai string sebenarnya,
+namun bila ia memiliki _method_ `String` kita ingin nilai dari pemanggilan
+_method_ `String()`.
+
+----
+type Stringer interface {
+	String() string
+}
+
+var value interface{} // Value provided by caller.
+switch str := value.(type) {
+case string:
+	return str
+case Stringer:
+	return str.String()
+}
+----
+
+`case` yang pertama mencari nilai string sebenarnya;
+`case` yang kedua mengonversi _interface_ ke dalam _interface_ yang lain.
+Adalah hal yang biasa menggabungkan tipe seperti di atas.
+
+Bagaimana jika hanya satu tipe yang kita inginkan?
+Jika kita tahu bahwa nilai dari _interface_ benar-benar string dan kita hanya
+ingin mengekstraksinya?
+Hal ini dapat dilakukan dengan `switch` bertipe dengan satu `case`, cara
+lainnya yaitu dengan pernyataan tipe langsung.
+Pernyataan tipe langsung menerima sebuah nilai _interface_ dan mengekstrak
+sebuah nilai dari tipe eksplisitnya.
+Sintaksnya diturunkan dari klausa pembukaan dari `switch` bertipe, tapi dengan
+tipe eksplisit bukan dengan kata kunci `type`:
+
+----
+value.(typeName)
+----
+
+dan hasilnya adalah nilai baru bertipe statis `typeName`.
+Tipe tersebut haruslah tipe nyata yang dipegang oleh _interface_, atau sebuah
+tipe _interface_ yang nilainya dapat dikonversi.
+
+----
+str := value.(string)
+----
+
+Namun bila nilainya bukanlah sebuah `string`, program akan eror.
+Untuk mengatasi ini, gunakan idiom "koma, ok" untuk menguji, secara aman,
+apakah nilainya adalah sebuah string:
+
+----
+str, ok := value.(string)
+if ok {
+	fmt.Printf("nilai string dari value: %q\n", str)
+} else {
+	fmt.Printf("value bukanlah sebuah string\n")
+}
+----
+
+Jika pernyataan tipe gagal, `str` akan tetap ada dan bertipe string, namun
+nilainya akan kosong (sebuah `string` kosong).
+
+Sebagai ilustrasi dari kemampuan dari pernyataan tipe langsung, berikut sebuah
+perintah `if-else` yang sama dengan `switch` bertipe seperti contoh pada
+bagian awal.
+
+----
+if str, ok := value.(string); ok {
+	return str
+} else if str, ok := value.(Stringer); ok {
+	return str.String()
+}
+----
+
+[#generality]
+===  Generalisasi
+
+Jika sebuah tipe ada hanya untuk mengimplementasikan sebuah _interface_ dan
+tidak akan memiliki _method_ yang diekspor (selain dari _method_ pada
+_interface_) maka tidak perlu mengekspor tipe tersebut.
+Mengekspor _interface_ saja memperjelas bahwa nilainya tidak memiliki makna
+selain yang dideskripsikan dalam _interface_.
+Ia juga mengurangi perlunya mengulang dokumentasi untuk setiap instansi dari
+_method_.
+
+Dalam kasus seperti ini, konstruktor sebaiknya mengembalikan sebuah nilai
+_interface_ bukan mengimplementasikan tipe.
+Sebagai contohnya, dalam pustaka `crc32.NewIEEE` dan `adler32.New`
+mengembalikan _interface_ dengan tipe `hash.Hash32`.
+Mengganti sebuah algoritma dari CRC-32 ke Adler-32 dalam sebuah program Go
+membutuhkan hanya perubahan dari pemanggilan konstruksi;
+sisa kode selebihnya tidak terpengaruh dengan perubahan algoritma.
+
+Pendekatan yang sama membuat algoritma _cipher_ dalam berbagai paket `crypto`
+menjadi terpisah dari blok _cipher_ yang mengikatnya.
+_Interface_ `Block` dalam paket `crypto/cipher` menentukan perilaku dari
+sebuah blok _cipher_, yang menyediakan enkripsi dari sebuah blok data.
+Kemudian, secara analogi dengan paket `bufio`, paket `cipher` yang
+mengimplementasikan _interface_ ini dapat digunakan untuk membangun aliran
+_cipher_, direpresentasikan oleh _interface_ `Stream`, tanpa perlu tahu
+rincian dari blok enkripsinya.
+
+_Interface_ dari `crypto/cipher` berbentuk seperti berikut:
+
+----
+type Block interface {
+	BlockSize() int
+	Encrypt(src, dst []byte)
+	Decrypt(src, dst []byte)
+}
+
+type Stream interface {
+	XORKeyStream(dst, src []byte)
+}
+----
+
+Berikut definisi dari aliran _counter mode_ (CTR), yang mengubah blok _cipher_
+menjadi aliran _cipher_;
+perhatikan bahwa detil dari blok _cipher_ diabstraksikan:
+
+----
+// NewCTR returns a Stream that encrypts/decrypts using the given Block in
+// counter mode. The length of iv must be the same as the Block's block size.
+func NewCTR(block Block, iv []byte) Stream
+----
+
+`NewCTR` tidak hanya berlaku untuk algoritma enkripsi dan sumber data tertentu
+namun untuk semua implementasi dari _interface_ `Block` dan `Stream`.
+Karena ia mengembalikan nilai _interface_, mengganti enkripsi `CTR` dengan
+mode enkripsi lainnya menjadi perubahan dilokal saja.
+Pemanggilan dari konstruksi haruslah diubah, namun karena kode yang
+disekelilingnya harus memperlakukan kembalian sebagai sebuah `Stream`, maka
+perubahannya tidak terlalu banyak terlihat.
+
+[#interface_methods]
+===  _Interface_ dan _method_
+
+Secara semua tipe kostum dapat memiliki _method_, maka hampir semuanya
+memenuhi sebuah _interface_.
+Salah satu contohnya adalah dalam paket `http`, yang mendefinisikan
+_interface_ `Handler`.
+Objek apapun yang mengimplementasikan `Handler` dapat melayani permintaan
+HTTP.
+
+----
+type Handler interface {
+    ServeHTTP(ResponseWriter, *Request)
+}
+----
+
+`ResponseWriter` itu sendiri adalah sebuah _interface_ yang menyediakan akses
+terhadap _method_ yang diperlukan untuk mengembalikan respon kepada klien
+(HTTP).
+_Method-method_ tersebut termasuk standar `Write`, jadi `http.ResponseWriter`
+bisa digunakan dimanapun `io.Writer` dapat digunakan.
+`Request` adalah sebuah `struct` yang berisi representasi hasil penguraian
+permintaan HTTP dari klien.
+
+Untuk lebih jelas, mari kita indahkan POST dan asumsikan permintaan HTTP
+selalu GET;
+penyederhanaan ini tidak mempengaruhi bagaimana _handler_ disiapkan.
+Berikut implementasi lengkap dari sebuah _handler_ untuk menghitung jumlah
+sebuah halaman dikunjungi.
+
+----
+// Simple counter server.
+type Counter struct {
+	n int
+}
+
+func (ctr *Counter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	ctr.n++
+	fmt.Fprintf(w, "counter = %d\n", ctr.n)
+}
+----
+
+(Perhatikan bagaimana `Fprintf` dapat mencetak ke `http.ResponseWriter`.)
+Sebagai referensi, berikut cara menyambungkan sebuah _server_ terhadap sebuah
+URL.
+
+----
+import "net/http"
+...
+ctr := new(Counter)
+http.Handle("/counter", ctr)
+----
+
+Tapi kenapa `Counter` itu adalah sebuah `struct`?
+Sebuah integer saja sebenarnya sudah cukup.
+(_receiver_ haruslah _pointer_ supaya penambahan dapat dilihat oleh
+pemanggilnya.)
+
+----
+// Simpler counter server.
+type Counter int
+
+func (ctr *Counter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+    *ctr++
+    fmt.Fprintf(w, "counter = %d\n", *ctr)
+}
+----
+
+Bagaimana bila program memiliki sebuah keadaan internal yang perlu
+diberitahu bila sebuah halaman telah dikunjungi?
+Sambungkan sebuah `channel` ke halaman _web_ tersebut.
+
+----
+// Chan adalah sebuah channel yang mengirim notifikasi setiap kali halaman
+// dikunjungi.  (channel bisa diberi _buffer_.)
+type Chan chan *http.Request
+
+func (ch Chan) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	ch <- req
+	fmt.Fprint(w, "notifikasi terkirim")
+}
+----
+
+Terakhir, katakanlah kita ingin menampilkan semua argumen yang digunakan saat
+menjalankan program _server_ dalam halaman yang diakses lewat URL `/args`.
+Cukup mudah untuk menulis sebuah fungsi yang mencetak argumen tersebut.
+
+----
+func ArgServer() {
+	fmt.Println(os.Args)
+}
+----
+
+Terus bagaimana cara mengubahnya menjadi sebuah server HTTP?
+Kita bisa buat `ArgServer` sebuah _method_ dari tipe yang nilainya kita
+indahkan, namun ada cara yang lebih bersih.
+Karena kita dapat mendefinisikan sebuah _method_ untuk semua tipe kecuali
+_pointer_ dan _interface_, maka kita dapat menulis sebuah _method_ untuk
+sebuah fungsi.
+Paket `http` memiliki contoh kode seperti ini:
+
+----
+// The HandlerFunc type is an adapter to allow the use of
+// ordinary functions as HTTP handlers.  If f is a function
+// with the appropriate signature, HandlerFunc(f) is a
+// Handler object that calls f.
+type HandlerFunc func(ResponseWriter, *Request)
+
+// ServeHTTP calls f(w, req).
+func (f HandlerFunc) ServeHTTP(w ResponseWriter, req *Request) {
+    f(w, req)
+}
+----
+
+`HandlerFunc` adalah sebuah tipe dengan sebuah _method_, `ServerHTTP`,
+sehingga nilai dari tipe tersebut dapat melayani permintaan HTTP.
+Lihat implementasi dari _method_ tersebut: _receiver_ -nya adalah sebuah
+fungsi, `f`, dan _method_ -nya memanggil `f` kembali.
+Hal ini tampak ganjil tapi tidak ada bedanya dengan, katakanlah, _receiver_
+-nya adalah sebuah `channel` dan _method_ mengirim ke `channel` tersebut.
+
+Untuk membuat `ArgServer` menjadi sebuah _server_ HTTP, pertama kita ubah
+supaya memiliki penanda yang sesuai.
+
+----
+// Argument server.
+func ArgServer(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintln(w, os.Args)
+}
+----
+
+`ArgServer` sekarang memiliki penanda yang sama dengan `HandlerFunc`, sehingga
+ia bisa dikonversi ke tipe tersebut untuk mengakses _method_ -nya, seperti
+saat kita mengonversi `Sequence` ke `IntSlice` untuk mengakses
+`IntSlice.Sort`.
+Kode untuk mengatur semua ini cukup ringkas:
+
+----
+http.Handle("/args", http.HandlerFunc(ArgServer))
+----
+
+Saat seseorang mengunjungi halaman `/args`, _handler_ yang terpasang pada
+halaman tersebut memiliki nilai `ArgServer` dan bertipe `HandlerFunc`.
+_Server_ HTTP akan memanggil _method_ `ServeHTTP` dalam tipe tersebut, dengan
+`ArgServer` sebagai _receiver_ -nya, yang mana akan memanggil `ArgServer`
+(lewat `f(w, req)` di dalam `HandlerFunc.ServeHTTP`).
+Argumen dari program nanti akan ditampilkan.
+
+Dalam bagian ini kita telah membuat sebuah _server_ HTTP dari sebuah `struct`,
+sebuah integer, sebuah `channel`, dan sebuah fungsi, semua itu karena
+_interface_ hanyalah sekumpulan _method_, yang dapat didefinisikan untuk
+(hampir) semua tipe.
+
+
+[#blank]
+==  Pengidentifikasi kosong
+
+Kita telah membaca tentang pengidentifikasi kosong beberapa kali, dalam
+konteks
+<<for,pengulangan `for range`>>
+dan
+<<maps,map>>.
+Pengidentifikasi kosong dapat diset atau dideklarasikan dengan nilai dan tipe
+apapun, dengan nilai yang diabaikan tanpa mempengaruhi kode.
+Ia seperti menulis ke berkas `/dev/null` pada sistem operasi turunan Unix:
+ia merepresentasikan nilai yang hanya dapat dibaca saja yang digunakan sebagai
+penampung untuk variabel yang dibutuhkan tapi nilai sebenarnya tidak relevan.
+Ada lebih banyak penggunaan pengidentifikasi kosong dari yang telah kita lihat
+sebelumnya.
+
+[#blank_assign]
+===   Pengidentifikasi kosong pada penempatan multi
+
+Penggunaan pengidentifikasi kosong dalam sebuah pengulangan `for range` adalah
+kasus khusus dari situasi umum: penempatan multipel.
+
+Jika sebuah penempatan membutuhkan nilai yang banyak pada bagian kiri, namun
+satu dari nilai tersebut tidak akan digunakan pada program, pengidentifikasi
+kosong pada bagian kiri penempatan mengabaikan perlunya membuat sebuah
+variabel dan memperjelas bahwa nilai tersebut diabaikan.
+Misalnya, saat memanggil sebuah fungsi yang mengembalikan nilai dan eror,
+namun hanya eror yang diperlukan, gunakan pengidentifikasi kosong untuk
+mengindahkan nilai yang tidak penting.
+
+----
+if _, err := os.Stat(path); os.IsNotExist(err) {
+	fmt.Printf("%s does not exist\n", path)
+}
+----
+
+Terkadang kita akan melihat kode yang mengabaikan nilai eror;
+hal ini adalah cara yang tidak bagus.
+Selalu periksa kembalian eror;
+mereka ada karena alasan tertentu.
+
+----
+// Buruk! Program akan eror jika path tidak ada.
+fi, _ := os.Stat(path)
+if fi.IsDir() {
+	fmt.Printf("%s is a directory\n", path)
+}
+----
+
+[#blank_unused]
+===  Variabel dan impor yang tidak dipakai
+
+Go akan eror saat mengimpor paket atau mendeklarasikan variabel yang tidak
+dipakai.
+Impor yang tidak dipakai akan mengembungkan program dan memperlambat
+kompilasi, sementara variabel yang diinisialisasi tapi tidak dipakai
+setidaknya memboroskan komputasi dan bisa saja mengindikasikan sebuah _bug_
+yang besar.
+Saat sebuah program dalam keadaan aktif dikembangkan, variabel dan impor yang
+tidak dipakai terkadang muncul dan ia terkadang bisa menjengkelkan untuk
+menghapusnya hanya supaya kompilasi dapat berjalan, namun dibutuhkan lagi
+nanti.
+Pengidentifikasi kosong menyediakan solusi untuk masalah ini.
+
+Program setengah-jadi berikut memiliki dua impor tidak dipakai (`fmt` dan
+`io`) dan sebuah variabel tak dipakai (`fd`), sehingga ia tidak bisa
+dikompilasi, namun cukup bagus untuk melihat jika kode sejauh ini benar.
+
+----
+package main
+
+import (
+	"fmt"
+	"io"
+	"log"
+	"os"
+)
+
+func main() {
+	fd, err := os.Open("test.go")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// TODO: gunakan fd.
+}
+----
+
+Untuk melenyapkan komplain tentang impor tak terpakai, gunakan
+pengidentifikasi kosong untuk mengacu ke simbol dari paket yang diimpor.
+Cara yang sama, penempatan pada variabel tak terpakai `fd` ke pengidentifikasi
+kosong akan melenyapkan eror dari variabel tak terpakai.
+Versi program berikut dapat di- _compile_.
+
+----
+package main
+
+import (
+	"fmt"
+	"io"
+	"log"
+	"os"
+)
+
+var _ = fmt.Printf // For debugging; delete when done.
+var _ io.Reader    // For debugging; delete when done.
+
+func main() {
+	fd, err := os.Open("test.go")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// TODO: use fd.
+	_ = fd
+}
+----
+
+Secara konvensinya, deklarasi global untuk melenyapkan eror pada impor
+sebaiknya setelah deklarasi `import` dan diberi komentar, supaya mudah dicari
+dan sebagai pengingat untuk dibersihkan nantinya.
+
+
+[#blank_import]
+===  Impor sebagai efek samping
+
+Impor yang tak terpakai seperti `fmt` atau `io` pada contoh sebelumnya
+seharusnya digunakan lagi kembali atau dihapus: penempatan kosong
+mengindikasikan kode sedang dikerjakan.
+Namun terkadang berguna mengimpor paket hanya untuk efek sampingnya, tanpa ada
+penggunaan eksplisit.
+Sebagai contohnya, dalam fungsi `init`, paket `net/http/pprof` meregistrasi
+beberapa _handler_ untuk HTTP yang menyediakan informasi untuk melakukan
+_debug_.
+Ia memiliki API yang diekspor, namun kebanyakan klien hanya memerlukan
+registrasi _handler_ dan akses ke data lewat halaman _web_.
+Untuk mengimpor paket hanya untuk efek sampingnya, ubah nama paket menjadi
+pengidentifikasi kosong:
+
+----
+import _ "net/http/pprof"
+----
+
+Bentuk `import` seperti ini memperjelas bahwa paket diimpor untuk efek
+sampingnya, karena tidak ada penggunaan langsung dari paket tersebut: dalam
+berkas ini, ia tidak memiliki sebuah nama.
+(Jika memiliki nama, dan kita tidak menggunakannya, maka _compiler_ akan
+menolak program saat di- _compile_.)
+
+
+[#blank_implements]
+===  Pemeriksaan _interface_
+//{{{
+Seperti yang telah kita lihat dalam diskusi tentang
+<<interfaces_and_types,interface>> di atas,
+sebuah tipe tidak perlu secara eksplisit mendeklarasikan bahwa ia
+mengimplementasikan sebuah _interface_.
+Sebuah tipe dikatakan implementasi dari _interface_ bila ia
+mengimplementasikan semua _method_ dari _interface_.
+Pada praktiknya, konversi dari _interface_ adalah statis dan oleh karena itu
+diperiksa saat program di- _compile_.
+Sebagai contohnya, mengirim `*os.File` ke sebuah fungsi yang mengharapkan
+`io.Reader` tidak akan bisa di- _compile_ kecuali bila `*os.File`
+mengimplementasikan _interface_ dari `io.Reader`.
+
+Beberapa pemeriksaan _interface_ terjadi pada saat program berjalan.
+Salah satu contohnya yaitu dalam paket `encoding/json`, yang mendefinisikan
+sebuah _interface_ `Marshaler`.
+Saat _encoder_ dari JSON menerima sebuah nilai yang mengimplementasikan
+_interface_ tersebut, _encoder_ memanggil _method_ untuk melakukan konversi
+untuk mengubahnya ke JSON bukan dengan melakukan konversi biasa.
+_encoder_ memeriksa properti tersebut saat program berjalan dengan
+pengecekan tipe seperti:
+
+----
+m, ok := val.(json.Marshaler)
+----
+
+Jika perlu untuk memeriksa apakah sebuah tipe mengimplementasikan sebuah
+_interface_, tanpa perlu menggunakan _interface_ itu sendiri, mungkin sebagai
+bagian dari pemeriksaan eror, gunakan pengidentifikasi kosong untuk
+mengabaikan nilai yang ditempatkan dari tipe:
+
+----
+if _, ok := val.(json.Marshaler); ok {
+	fmt.Printf("nilai %v dari tipe %T mengimplementasikan json.Marshaler\n", val, val)
+}
+----
+
+Salah satu situasi seperti ini bisa muncul adalah saat diperlukannya jaminan
+pada paket yang mengimplementasikan tipe bahwa ia benar-benar memenuhi
+_interface_.
+Jika sebuah tipe--sebagai contoh, `json.RawMessage`--membutuhkan sebuah
+representasi kostum dari JSON, ia seharusnya mengimplementasikan
+`json.Marshaler`, tapi tidak ada konversi statis yang dapat menyebabkan
+_compiler_ untuk dapat memverifikasi hal ini secara otomatis.
+Jika tipe secara tidak sengaja gagal memenuhi _interface_, _encoder_ JSON
+tetap bekerja, namun tidak akan menggunakan implementasi kostum.
+Untuk menjamin supaya implementasinya benar, sebuah deklarasi global
+menggunakan pengidentifikasi kosong dapat digunakan dalam paket:
+
+----
+var _ json.Marshaler = (*RawMessage)(nil)
+----
+
+Dalam deklarasi ini, penempatan mengikutkan sebuah konversi dari `*RawMessage`
+ke `Marshaler` mengharuskan `*RawMessage` mengimplementasikan `Marshaler`, dan
+properti tersebut akan diperiksa saat program dikompilasi.
+Jika _interface_ dari `json.Marshaler` berubah, paket ini tidak akan bisa
+di- _compile_ lagi dan sebagai pemberitahuan bahwa ia perlu diperbarui.
+
+Adanya pengidentifikasi kosong dalam konstruksi di atas mengindikasikan bahwa
+deklarasi hanya ada untuk pemeriksaan tipe, bukan untuk membuat sebuah
+variabel.
+Namun, jangan lakukan hal ini untuk setiap tipe yang memenuhi sebuah
+_interface_.
+Secara konvensi, deklarasi seperti itu hanya digunakan bila tidak ada konversi
+statis yang ada dalam kode, yang mana biasanya jarang terjadi.
+//}}}
+
+[#embedding]
+==  Penanaman (_embedding_)
+//{{{
+Go tidak menyediakan notasi sub-class, tapi memiliki kemampuan untuk
+"meminjam" sebuah implementasi dengan menanamkan tipe dalam sebuah `struct`
+atau `interface`.
+
+Penanaman dalam _interface_ cukup mudah.
+Kita telah melihat _interface_ dari `io.Reader` dan `io.Writer` sebelumnya;
+berikut definisi mereka.
+
+----
+type Reader interface {
+	Read(p []byte) (n int, err error)
+}
+
+type Writer interface {
+	Write(p []byte) (n int, err error)
+}
+----
+
+Paket `io` juga mengekspor beberapa _interface_ lain yang menspesifikasikan
+objek yang dapat mengimplementasikan beberapa dari _method_ tersebut.
+Misalnya, ada `io.ReadWriter`, sebuah _interface_ yang berisi `Read` dan
+`Write`.
+Kita dapat menspesifikasikan `io.ReadWriter` dengan mendaftarkan kedua
+_method_ secara eksplisit, tapi lebih mudah bila menanamkan kedua _interface_
+untuk membentuk sebuah _interface_ baru, seperti:
+
+----
+// ReadWriter adalah interface yang menggabungkan interface Reader dan Writer.
+type ReadWriter interface {
+	Reader
+	Writer
+}
+----
+
+_Interface_ tersebut mengatakan: Sebuah `ReadWriter` dapat melakukan apa yang
+`Reader` lakukan dan apa yang `Writer` lakukan;
+ia adalah gabungan dari _interface_ yang ditanam (yang mana harus berupa
+kumpulan _disjoint_ dari _method_).
+Hanya _interface_ yang dapat ditanam ke dalam _interface_.
+
+Hal yang sama berlaku juga kepada `struct`, namun dengan implikasi lebih
+lanjut.
+Paket `bufio` memiliki dua tipe `struct`, `bufio.Reader` dan `bufio.Writer`,
+setiapnya mengimplementasikan _interface_ dari paket `io`.
+Dan `bufio` juga mengimplementasikan _reader_ / _writer_ dengan _buffer_,
+dengan menggabungkan sebuah _reader_ dan sebuah _writer_ ke dalam sebuah
+`struct` menggunakan penanaman: ia mendaftarkan tipe-tipe tersebut ke dalam
+`struct` tanpa memberi nama pada bagian _field_ -nya.
+
+----
+// ReadWriter menyimpan pointer ke sebuah Reader dan sebuah Writer.
+// Ia mengimplementasikan io.ReadWriter.
+type ReadWriter struct {
+	*Reader  // *bufio.Reader
+	*Writer  // *bufio.Writer
+}
+----
+
+Elemen yang tertanam adalah pointer ke `struct` dan tentu saja harus
+diinisialisasi supaya menunjuk ke `struct` yang valid sebelum dapat digunakan.
+`struct` `ReadWriter` dapat ditulis dengan cara
+
+----
+type ReadWriter struct {
+	reader *Reader
+	writer *Writer
+}
+----
+
+namun untuk mempromosikan _method_ dari _field_ dan supaya memenuhi
+_interface_ `io`, kita juga perlu menyediakan _method_ penerus, seperti
+berikut:
+
+----
+func (rw *ReadWriter) Read(p []byte) (n int, err error) {
+	return rw.reader.Read(p)
+}
+----
+
+Dengan menanam `struct` tersebut secara langsung, kita menghindari kode di
+atas.
+_Method_ dari tipe yang ditanam juga ikut dibawa, artinya `bufio.ReadWriter`
+tidak hanya memiliki _method_ dari `bufio.Reader` dan `bufio.Writer`, ia juga
+memenuhi ketiga _interface_: `io.Reader`, `io.Writer`, dan `io.ReadWriter`.
+
+Ada sebuah hal penting yang mana penanaman berbeda dari sub-class.
+Saat kita menanam sebuah tipe, _method_ dari tipe tersebut menjadi _method_
+dari tipe di luarnya, namun saat dipanggil, _receiver_ dari _method_ adalah
+tipe di dalamnya, bukan tipe yang di luarnya.
+Dalam contoh berikut, saat _method_ `Read` dari `bufio.ReadWriter` dipanggil,
+ia memiliki efek yang sama seperti meneruskan _method_ seperti yang ditulis di
+atas;
+bagian _receiver_ adalah _field_ `reader` dari `ReadWriter`, bukan
+`ReadWriter` itu sendiri.
+
+Penanaman bisa menyederhanakan kode.
+Contoh berikut memperlihatkan _field_ yang ditanam bersama dengan _field_ yang
+biasa, yang memiliki nama.
+
+----
+type Job struct {
+	Command string
+	*log.Logger
+}
+----
+
+Tipe `Job` sekarang memiliki `Print`, `Printf`, dan `Println` dan _method_
+lainnya yang diturunkan dari `*log.Logger`.
+Kita bisa saja memberikan nama pada _field_ `Logger`, namun untuk hal ini
+tidak diperlukan.
+Dan setelah diinisialisasi, kita dapat melakukan _log_ dengan `Job`:
+
+----
+job.Println("starting now...")
+----
+
+`Logger` adalah _field_ biasa dari `struct Job`, jadi kita bisa inisialisasi
+dengan cara biasa di dalam pembangun dari `Job`, seperti berikut,
+
+----
+func NewJob(command string, logger *log.Logger) *Job {
+	return &Job{command, logger}
+}
+----
+
+atau dengan komposit,
+
+----
+job := &Job{command, log.New(os.Stderr, "Job: ", log.Ldate)}
+----
+
+Jika kita butuh untuk mengacu ke _field_ yang ditanam secara langsung, nama
+tipe dari _field_, tanpa nama paket, dapat digunakan sebagai nama
+_field_, seperti pada _method_ `Read` dari `struct ReadWriter` kita.
+Dalam contoh di atas, untuk mengakses `*log.Logger` dari sebuah variabel `Job`
+bernama `job`, kita bisa tulis dengan `job.Logger`, yang mana sangat berguna
+jika kita ingin mengubah _method_ dari `Logger`.
+
+----
+func (job *Job) Printf(format string, args ...interface{}) {
+	job.Logger.Printf("%q: %s", job.Command, fmt.Sprintf(format, args...))
+}
+----
+
+Menanam tipe menimbulkan sebuah permasalahan konflik pada nama, namun beberapa
+aturan untuk mengatasi masalah ini cukup sederhana.
+Pertama, sebuah _field_ atau _method_ `X` menyembunyikan item `X` lainnya di
+dalam sub-tipe.
+Jika `log.Logger` memiliki sebuah _field_ atau _method_ bernama `Command`,
+_field_ `Command` dari `Job` akan mendominasinya.
+
+Kedua, jika nama yang sama ada pada tingkat yang sama, ia biasanya akan eror;
+adalah sebuah kesalahan untuk menanam `log.Logger` jika `struct Job` itu
+sendiri berisi _field_ atau _method_ lainnya bernama Logger.
+Jika nama yang duplikat tidak pernah disebut dalam program selain dari
+definisi dari tipe, ia tidak akan bermasalah.
+Kualifikasi seperti ini menyediakan sebuah proteksi terhadap perubahan dari
+tipe yang ditanam dari luar;
+tidak ada masalah jika sebuah _field_ yang ditambahkan konflik dengan _field_
+lain di dalam sub-tipe lainnya jika _field_ tersebut tidak pernah digunakan.
+//}}}
+
+[#concurrency]
+==  Konkurensi
+
+[#sharing]
+===  Berbagi dengan berkomunikasi
+//{{{
+Pemrograman konkuren adalah topik yang luas dan bagian ini khusus untuk
+menjelaskan cara melakukan pemrograman konkuren hanya untuk Go.
+
+Pemrograman konkuren pada bahasa pemrograman lain menjadi susah dengan
+peliknya kebutuhan untuk mengimplementasikan akses yang benar untuk variabel
+yang dibagi.
+Go menyarankan pendekatan yang berbeda yang mana nilai yang dibagi dikirim
+lewat `channel` dan, tidak pernah dibagi dengan eksekusi _thread_ yang lain.
+Hanya ada satu _goroutine_ yang memiliki akses terhadap nilai dalam satu
+waktu.
+Konflik pada data tidak bakal terjadi, secara sengaja.
+Untuk mendorong cara berpikir seperti ini kita menyederhanakannya menjadi
+sebuah slogan:
+
+____
+Jangan berkomunikasi dengan berbagi memory; namun, bagilah memory dengan
+berkomunikasi.
+____
+
+Pendekatan ini bisa berlebihan.
+Penghitungan referensi lebih baik dilakukan dengan menggunakan _mutex_ dalam
+sebuah variabel integer, misalnya.
+Namun dalam pendekatan yang lebih tinggi, menggunakan `channel` untuk
+mengontrol akses membuatnya lebih mudah untuk menulis program yang benar dan
+jelas.
+
+Salah satu cara untuk berpikir dengan model seperti ini yaitu dengan
+membayangkan program dalam satu _thread_ yang berjalan dalam satu CPU.
+Ia tidak memerlukan sinkronisasi primitif.
+Sekarang coba jalankan instansi yang sama; ia juga tidak membutuhkan
+sinkronisasi.
+Sekarang buat mereka berkomunikasi;
+jika komunikasi adalah sebuah sinkronisasi, maka tidak perlu ada lagi
+sinkronisasi yang lain.
+_Pipeline_ pada Unix, sebagai contohnya, cocok dengan model ini.
+Pendekatan konkurensi pada Go berasal dari
+_Communicating Sequential Processes_ (CSP) pada Hoare, ia juga bisa dilihat
+sebagai generalisasi tipe _pipe_ pada Unix.
+//}}}
+
+[#goroutines]
+===  _Goroutine_
+//{{{
+Dinamakan _goroutine_ karena istilah yang ada seperti _thread_, _coroutine_,
+proses, dan lainnya, membawa konotasi yang tidak akurat.
+Sebuah _goroutine_ memiliki model sederhana: ia adalah sebuah fungsi yang
+dieksekusi secara bersamaan dengan _goroutine_ lainnya dalam ruang alamat yang
+sama.
+Goroutine ringan, membutuhkan tidak lebih dari alokasi dari ruang _stack_.
+Dan _stack_ -nya dimulai dari ukuran yang kecil, sehingga ia cukup murah, dan
+berkembang dengan mengalokasikan (dan melepaskan) penyimpanan pada _heap_
+seperlunya.
+
+Goroutine disebar ke berbagai _thread_ pada sistem operasi, sehingga bila
+salah satu dari mereka diblok, seperti menunggu untuk masukan/keluaran, yang
+lainnya akan tetap berjalan.
+Rancangan dari goroutine menyembunyikan kompleksitas dari pembuatan dan
+manajemen _thread_.
+
+Untuk menggunakan goroutine, awali pemanggilan fungsi atau _method_ dengan
+kata kunci `go`.
+Saat fungsi atau _method_ selesai, goroutine akan berhenti dengan sendirinya.
+(Efeknya mirip dengan notasi `&` pada Unix _shell_ untuk menjalankan sebuah
+perintah secara terpisah.)
+
+----
+go list.Sort()  // jalankan list.Sort secara bersamaan; tidak perlu ditunggu.
+----
+
+Sebuah fungsi anonim dapat juga dipanggil dengan goroutine.
+
+----
+func Announce(message string, delay time.Duration) {
+    go func() {
+        time.Sleep(delay)
+        fmt.Println(message)
+    }()  // Perhatikan tanda kurung - fungsi harus dipanggil.
+}
+----
+
+Dalam Go, fungsi anonim adalah sebuah _closure_: implementasi harus memastikan
+variabel yang diacu oleh fungsi tersebut bertahan selama mereka aktif.
+
+Contoh di atas tidak terlalu praktis karena fungsi tidak memiliki cara untuk
+memberi sinyal pada saat berhenti.
+Untuk itu, kita membutuhkan `channel`.
+//}}}
+
+[#channels]
+===  _Channel_
+//{{{
+Seperti `map`, `channel` dialokasikan dengan `make`, dan nilai kembaliannya
+adalah referensi ke struktur data internalnya.
+Jika sebuah parameter integer diberikan, ia akan menset ukuran _buffer_ dari
+`channel`.
+Nilai bakunya adalah nol, untuk `channel` tanpa _buffer_ dan bersifat
+sinkron.
+
+----
+ci := make(chan int)            // integer channel tanpa buffer
+cj := make(chan int, 0)         // integer channel tanpa buffer
+cs := make(chan *os.File, 100)  // File pointer channel dengan buffer
+----
+
+`channel` tanpa _buffer_ menggabungkan komunikasi (pertukaran sebuah nilai)
+dengan sinkronisasi--menjamin dua buah kalkulasi (goroutine) berada dalam
+status yang tetap.
+
+Ada banyak idiom menarik dari penggunaan `channel`.
+Berikut salah satunya.
+Dalam bagian sebelumnya kita melakukan pengurutan dengan proses yang
+dijalankan terpisah, di belakang.
+Sebuah `channel` membolehkan peluncuran goroutine untuk menunggu pengurutan
+selesai.
+
+----
+c := make(chan int)  // Allocate a channel.
+// Mulai pengurutan dalam goroutine; saat selesai, beri sinyal ke channel.
+go func() {
+    list.Sort()
+    c <- 1  // Kirimkan sebuah sinyal; nilainya bisa apapun.
+}()
+doSomethingForAWhile()
+<-c   // Tunggu list.Sort selesai; indahkan nilai yang diterima.
+----
+
+Penerima selalu diblok sampai ada data yang diterima.
+Jika `channel` tanpa _buffer_, maka pengirim diblok sampai penerima
+menerima nilainya.
+Jika `channel` memiliki _buffer_, pengirim diblok hanya sampai nilai telah
+disalin ke _buffer_;
+jika _buffer_ -nya penuh, berarti menunggu sampai penerima setidaknya telah
+menerima sebuah nilai.
+
+`channel` dengan buffer dapat digunakan untuk
+https://id.wikipedia.org/wiki/Semafor_(pemrograman)[semafor],
+misalnya untuk membatasi hasil keluaran.
+Pada contoh berikut, permintaan yang masuk dikirim ke sebuah _handle_, yang
+mengirim sebuah nilai ke `channel`, memproses permintaan, dan kemudian
+menerima sebuah nilai dari `channel` untuk menyiapkan semafor bagi konsumer
+selanjutnya.
+Kapasitas dari buffer pada `channel` membatasi jumlah pemanggilan proses
+secara bersamaan.
+
+----
+var sem = make(chan int, MaxOutstanding)
+
+func handle(r *Request) {
+	sem <- 1    // Tunggu antrian yang aktif kosong.
+	process(r)  // proses bisa jadi butuh waktu lama.
+	<-sem       // Selesai; siapkan permintaan selanjutnya untuk diproses.
+}
+
+func Serve(queue chan *Request) {
+	for {
+		req := <-queue
+		go handle(req)  // Jangan tunggu handle selesai.
+	}
+}
+----
+
+Saat sejumlah _handler_ diproses sebanyak `MaxOutstanding`, _handler_
+selanjutnya akan diblok, sampai salah satu _handler_ selesai.
+
+Kode diatas memiliki sebuah masalah: fungsi `Serve` membuat sebuah goroutine
+untuk setiap permintaan yang masuk, walaupun dibatasi oleh jumlah
+`MaxOutstanding` yang dapat berjalan bersamaan.
+Akibatnya, program dapat mengkonsumsi sumber daya tanpa batas jika permintaan
+datang terlalu cepat.
+Kita dapat mengatasi ini dengan mengubah `Serve` membatasi pembuatan dari
+goroutine.
+Berikut solusinya, namun ia memiliki _bug_ yang akan kita perbaiki lagi nanti:
+
+----
+func Serve(queue chan *Request) {
+	for req := range queue {
+		sem <- 1
+		go func() {
+			process(req) // Ada bug; lihat penjelasan di bawah.
+			<-sem
+		}()
+	}
+}
+----
+
+_Bug_ -nya ada dalam pengulangan `for`, variabel lokal `req` pada pengulangan
+digunakan pada setiap iterasi, sehingga variabel `req` dibagi dengan setiap
+goroutine.
+Hal seperti ini bukanlah yang kita inginkan.
+Kita harus memastikan bahwa `req` adalah unik untuk setiap goroutine.
+Berikut salah satu cara untuk melakukannya, dengan mengirim nilai dari `req`
+sebagai argumen dari _closure_ dalam goroutine:
+
+----
+func Serve(queue chan *Request) {
+	for req := range queue {
+		sem <- 1
+		go func(req *Request) {
+			process(req)
+			<-sem
+		}(req)
+	}
+}
+----
+
+Bandingkan versi ini dengan sebelumnya untuk melihat perbedaan bagaimana
+_closure_ dideklarasikan dan dijalankan.
+Solusi lainnya adalah dengan membuat variabel baru dengan nama yang sama,
+seperti pada contoh berikut:
+
+----
+func Serve(queue chan *Request) {
+	for req := range queue {
+		req := req // Buat instansi baru dari req untuk goroutine.
+		sem <- 1
+		go func() {
+			process(req)
+			<-sem
+		}()
+	}
+}
+----
+
+Tampak ganjil saat menulis
+
+----
+req := req
+----
+
+namun hal seperti ini legal dan idiomatis dalam Go.
+Kita mendapatkan versi variabel yang baru dengan nama yang sama, yang dengan
+sengaja menutup variabel pada pengulangan secara lokal namun unik untuk setiap
+goroutine.
+
+Kembali lagi ke permasalahan tentang membuat server tadi, pendekatan lain
+untuk mengatur sumber daya yaitu dengan menjalankan sejumlah goroutine
+terhadap _handler_ yang semuanya membaca dari `channel` permintaan.
+Jumlah goroutine membatasi jumlah dari pemanggilan proses secara bersamaan.
+Fungsi `Serve` berikut menerima sebuah `channel` yang mana memberitahunya
+untuk berhenti;
+setelah meluncurkan goroutine, ia akan berhenti menerima dari `channel`
+tersebut.
+
+----
+func handle(queue chan *Request) {
+	for r := range queue {
+		process(r)
+	}
+}
+
+func Serve(clientRequests chan *Request, quit chan bool) {
+	// Jalankan sejumlah goroutine untuk handlers
+	for i := 0; i < MaxOutstanding; i++ {
+		go handle(clientRequests)
+	}
+	<-quit  // Tunggu sampai diberitahu untuk keluar.
+}
+----
+//}}}
+
+[#chan_of_chan]
+===  Channel dari channel
+//{{{
+Salah satu properti penting dari Go yaitu sebuah `channel` adalah nilai yang
+bisa dialokasikan dan dikirim seperti nilai lainnya.
+Penggunaan umum dari properti ini yaitu untuk mengimplementasikan
+_demultiplexing_ yang paralel dan aman.
+
+Pada contoh sebelumnya, _handle_ menangani permintaan tapi kita tidak
+mendefinisikan tipe yang ditanganinya.
+Jika tipe tersebut mengikutkan sebuah `channel` untuk mengirim balasan,
+setiap klien memiliki jalurnya sendiri untuk mengirim balasan.
+Berikut definisi skematis dari tipe `Request`.
+
+----
+type Request struct {
+	args        []int
+	f           func([]int) int
+	resultChan  chan int
+}
+----
+
+Klien menyediakan sebuah fungsi dan argumennya, berikut dengan sebuah
+`channel` di dalam objek permintaan yang akan menerima balasan.
+
+----
+func sum(a []int) (s int) {
+	for _, v := range a {
+		s += v
+	}
+	return
+}
+
+request := &Request{[]int{3, 4, 5}, sum, make(chan int)}
+// Kirim permintaan
+clientRequests <- request
+// Tunggu balasannya.
+fmt.Printf("jawaban: %d\n", <-request.resultChan)
+----
+
+Di sisi server, hanya fungsi penanganannya yang berubah.
+
+----
+func handle(queue chan *Request) {
+	for req := range queue {
+		req.resultChan <- req.f(req.args)
+	}
+}
+----
+
+Tentu saja banyak yang harus dilakukan untuk membuatnya lebih realistis, namun
+kode di atas adalah sebuah kerangka untuk sistem RPC dengan batasan, paralel,
+tanpa diblok;
+tanpa adanya penggunaan sebuah mutex.
+//}}}
+
+[#parallel]
+===  Paralelisasi
+//{{{
+Penerapan lainnya dari gagasan di atas yaitu untuk memparalelkan kalkulasi
+diantara _core_ pada multipel CPU.
+Jika kalkulasi dapat dipecah menjadi bagian-bagian yang dapat dieksekusi
+secara independen, maka ia dapat diparalelkan, dengan sebuah `channel` untuk
+memberi sinyal saat bagian tersebut selesai.
+
+Katakanlah kita memiliki sebuah operasi yang mahal untuk dilakukan pada
+sejumlah besar item, dan nilai dari operasi dari setiap item adalah
+independen, seperti pada contoh berikut.
+
+----
+type Vector []float64
+
+// Lakukan operasi pada v[i], v[i+1] ... sampai v[n-1].
+func (v Vector) DoSome(i, n int, u Vector, c chan int) {
+	for ; i < n; i++ {
+		v[i] += u.Op(v[i])
+	}
+	c <- 1	// beri sinyal bahwa bagian ini selesai.
+}
+----
+
+Kita luncurkan setiap bagian secara independen di dalam sebuah pengulangan,
+satu per CPU.
+Mereka dapat selesai tanpa berurutan;
+kita cukup hitung sinyal yang selesai dengan menguras `channel` setelah
+meluncurkan semua goroutine.
+
+----
+const numCPU = 4 // jumlah core pada CPU
+
+func (v Vector) DoAll(u Vector) {
+	c := make(chan int, numCPU)  // Opsi pembufferan
+	for i := 0; i < numCPU; i++ {
+		go v.DoSome(i*len(v)/numCPU, (i+1)*len(v)/numCPU, u, c)
+	}
+	// Drain the channel.
+	for i := 0; i < numCPU; i++ {
+		<-c	// tunggu untuk satu pekerjaan selesai.
+	}
+	// Semua pekerjaan telah selesai.
+}
+----
+
+Daripada menggunakan sebuah nilai konstan untuk `numCPU`, kita dapat
+menanyakan pada _runtime_ nilai yang sesuai dengan sistem kita.
+Fungsi
+https://golang.org/pkg/runtime#NumCPU[runtime.NumCPU]
+mengembalikan jumlah _core_ CPU pada mesin, jadi kita bisa tulis
+
+----
+var numCPU = runtime.NumCPU()
+----
+
+Ada juga fungsi
+https://golang.org/pkg/runtime#GOMAXPROCS[runtime.GOMAXPROCS],
+yang melaporkan (atau menset) jumlah _core_ yang dispesifikasikan oleh
+pengguna untuk membatasi jumlah _core_ yang dapat berjalan secara bersamaan
+dalam sebuah program Go.
+Nilai bawaannya yaitu nilai dari `runtime.NumCPU` namun dapat ditimpa dengan
+menset variabel lingkungan dengan nama yang sama `GOMAXPROCS` atau dengan
+memanggil fungsi tersebut dengan nilai positif.
+Memanggilnya dengan nilai nol akan mengembalikan nilai yang dikandungnya.
+Oleh karena itu, untuk menghargai permintaan sumber dari pengguna, kita
+sebaiknya menulis
+
+----
+var numCPU = runtime.GOMAXPROCS(0)
+----
+
+Pastikan tidak bingung dengan gagasan dari konkurensi (membentuk sebuah
+program untuk mengeksekusi komponen-komponen secara independen) dan
+paralelisme (mengeksekusi kalkulasi dengan paralel untuk efisiensi multipel
+CPU.)
+Walaupun fitur konkurensi dari Go dapat mempermudah membentuk komputasi secara
+paralel, Go adalah bahasa yang konkuren, bukan paralel, dan tidak semua
+permasalahan paralelisasi cocok dengan model Go.
+Untuk diskusi mengenai perbedaan dari keduanya, lihat pembicaraan dalam
+{en-blog-concurrency}[blog berikut].
+//}}}
+
+[#leaky_buffer]
+===  _Buffer_ yang lepas
+//{{{
+Perkakas dari pemrograman konkuren dapat membuat pemrograman non-konkuren
+mudah diekspresikan.
+Berikut sebuah contoh yang diabstraksikan dari paket RPC.
+Pengulangan pada klien goroutine menerima data dari beberapa sumber, bisa dari
+jaringan.
+Untuk menghindari alokasi dan pelepasan _buffer_, ia menyimpannya dalam sebuah
+daftar _buffer_, dan menggunakan `channel` dengan _buffer_ untuk
+merepresentasikannya.  Jika `channel` kosong, sebuah _buffer_ baru
+dialokasikan.
+Saat pesan _buffer_ siap digunakan, ia dikirim ke server lewat `serverChan`.
+
+----
+var freeList = make(chan *Buffer, 100)
+var serverChan = make(chan *Buffer)
+
+func client() {
+	for {
+		var b *Buffer
+		// Ambil sebuah buffer jika ada; alokasikan bila tidak ada.
+		select {
+		case b = <-freeList:
+			// Dapata satu buffer;
+		default:
+			// Tidak ada buffer yang lepas, alokasikan yang baru.
+			b = new(Buffer)
+		}
+		load(b) // Baca pesan selanjutnya dari jaringan.
+		serverChan <- b // Kirim ke server.
+	}
+}
+----
+
+Pengulangan pada server menerima setiap pesan dari klien, memprosesnya, dan
+mengembalikan _buffer_ lewat daftar _buffer_.
+
+----
+func server() {
+	for {
+		b := <-serverChan // Wait for work.
+		process(b)
+		// Gunakan buffer jika ada ruang yang tersisa.
+		select {
+		case freeList <- b:
+			// Buffer ada dalam daftar.
+		default:
+			// Daftar buffer penuh, lanjutkan.
+		}
+	}
+}
+----
+
+Klien mencoba mengambil sebuah _buffer_ dari `freeList`;
+jika tidak ada, ia akan mengalokasikan yang baru.
+Server menaruh `b` kembali ke `freeList` kecuali bila daftar _buffer_ telah
+penuh, maka _buffer_ `b` akan dibebaskan untuk diklaim oleh
+_garbage collector_ .
+(Klausa `default` pada perintah `switch` dieksekusi bila tidak ada `case` yang
+siap atau bernilai `true`, artinya perintah `select` tidak akan pernah
+diblok.)
+Implementasi seperti ini membangun sebuah daftar penampung yang lepas hanya
+dengan beberapa baris kode, yang bergantung pada `channel` dengan _buffer_ dan
+_garbage collector_.
+//}}}
+
+[#errors]
+==  _Error_
+//{{{
+Fungsi atau _method_ dari sebuah pustaka terkadang harus mengembalikan sebuah
+indikasi eror ke pemanggilnya.
+Seperti yang telah disebut sebelumnya, kembalian multi nilai pada Go
+mempermudah mengembalikan sebuah nilai kembalian biasa bersama dengan
+nilai eror.
+Penggunaan fitur ini sangat baik untuk menyediakan informasi lebih rinci dari
+eror.
+Misalnya, `os.Open` tidak saja mengembalikan _pointer_ `nil` bila gagal, ia
+juga mengembalikan sebuah nilai eror yang menjelaskan apa yang terjadi.
+
+Secara konvensi, sebuah eror bertipe `error`, sebuah _interface_ bawaan.
+
+----
+type error interface {
+	Error() string
+}
+----
+
+Penulis pustaka bebas mengimplementasikan _interface_ ini dengan model yang
+lebih kaya dibelakangnya, membuatnya memungkinkan untuk melihat pesan eror dan
+menyediakan semacam konteks.
+Seperti yang disebutkan sebelumnya, bersamaan dengan nilai kembalian normal
+`*os.File`, `os.Open` juga mengembalikan nilai `error`.
+Jika sebuah berkas dibuka dengan sukses, `error` akan bernilai `nil`, namun
+bila ada masalah, ia akan berisi `os.PathError`:
+
+----
+// PathError mencatat sebuah eror dan operasi beserta berkas path yang
+// menyebabkannya.
+type PathError struct {
+	Op string    // "open", "unlink", dll.
+	Path string  // Berkas yang menyebabkan eror.
+	Err error    // Nilai eror yang dikembalikan oleh pemanggilan ke sistem.
+}
+
+func (e *PathError) Error() string {
+	return e.Op + " " + e.Path + ": " + e.Err.Error()
+}
+----
+
+Pesan eror dari `PathError` bentuknya seperti berikut:
+
+----
+open /etc/passwx: no such file or directory
+----
+
+Eror seperti di atas, yang mengikutkan nama berkas yang bermasalah, operasi,
+dan sistem eror yang mentrigger, berguna bila dicetak dari pemanggilnya;
+ia lebih informatif daripada "no such file or directory".
+
+Bila memungkinan, pesan eror sebaiknya mengidentifikasi asal muasalnya,
+seperti dengan memberikan awalan nama operasi atau paket yang membangkitkan
+eror.
+Misalnya, dalam paket `image`, representasi pesan dari eror saat _decoding_
+yang disebabkan oleh format yang tidak dikenal adalah "image: unknown format".
+
+Pemanggil fungsi yang peduli dengan rincian eror yang sebenarnya dapat
+menggunakan sebuah `switch` bertipe atau konversi tipe untuk mencari nilai
+spesifik dari eror dan mengekstrak rinciannya.
+Untuk `PathErrors` hal ini bisa dengan memeriksa _field_ internal `Err` untuk
+dapat memulihkan dari kesalahan.
+
+----
+for try := 0; try < 2; try++ {
+	file, err = os.Create(filename)
+	if err == nil {
+		return
+	}
+	if e, ok := err.(*os.PathError); ok && e.Err == syscall.ENOSPC {
+		deleteTempFiles()  // Recover some space.
+		continue
+	}
+	return
+}
+----
+
+Perintah `if` kedua adalah
+<<interface_conversions,konversi tipe>>.
+Jika gagal, `ok` akan bernilai `false`, dan `e` akan `nil`.
+Jika sukses, `ok` bernilai `true`, artinya eror `err` bertipe `*os.PathError`,
+dan begitu juga dengan `e`, yang dapat kita periksa informasi erornya lebih
+lanjut.
+//}}}
+
+[#panic]
+===   _Panic_
+//{{{
+Cara yang umum untuk melaporkan sebuah eror ke pemanggilnya adalah dengan
+mengembalikan sebuah `error` sebagai nilai kembalian tambahan.
+_Method_ `Read` adalah salah satu contohnya;
+ia mengembalikan jumlah byte dan `error`.
+Namun bagaimana jika eror tidak bisa ditangani?
+Terkadang program sebaiknya tidak dilanjutkan (dipaksa berhenti saat itu
+juga).
+
+Untuk tujuan ini, ada fungsi bawaan `panic` yang efeknya membuat sebuah eror
+_run-time_ yang akan menghentikan program (namun lihat juga seksi berikutnya).
+Fungsi `panic` menerima sebuah argumen bertipe apapun--biasanya
+`string`--untuk dicetak saat program mati.
+Cara ini untuk mengindikasikan bahwa sesuatu yang tidak diharapkan terjadi,
+seperti keluar dari pengulangan tanpa batas.
+
+----
+// Implementasi akar pangkat tiga menggunakan metoda Newton.
+func CubeRoot(x float64) float64 {
+	z := x/3   // Arbitrary initial value
+	for i := 0; i < 1e6; i++ {
+		prevz := z
+		z -= (z*z*z-x) / (3*z*z)
+		if veryClose(z, prevz) {
+			return z
+		}
+	}
+	// Sejuta iterasi belum selesai; kemungkinan ada yang salah.
+	panic(fmt.Sprintf("CubeRoot(%g) did not converge", x))
+}
+----
+
+Kode di atas hanyalah contoh namun fungsi-fungsi dalam sebuah pustaka
+seharusnya tidak menggunakan `panic`.
+Jika kesalahan dapat ditutupi atau diperbaiki, akan lebih baik untuk
+dilanjutkan daripada menghentikan seluruh program.
+Salah satu contohnya yaitu saat inisialisasi: jika sebuah pustaka tidak
+dapat menset dirinya sendiri, maka masuk akal untuk `panic`.
+
+----
+var user = os.Getenv("USER")
+
+func init() {
+	if user == "" {
+		panic("no value for $USER")
+	}
+}
+----
+//}}}
+
+[#recover]
+===  _Recover_
+//{{{
+Saat `panic` dipanggil, misalnya karena adanya kesalahan akses indeks pada
+slice atau kegagalan saat melakukan konversi tipe, Go _runtime_ langsung
+menyetop eksekusi dari fungsi dan mulai memutar ulang _stack_ dari goroutine,
+dan menjalankan fungsi-fungsi yang ditunda dengan `defer` disaat bersamaan.
+Jika proses pemutaran ulang mencapai tingkat paling atas dari _stack_
+goroutine, program akan mati.
+Namun, memungkinan menggunakan fungsi bawaan `recover` untuk mengambil kontrol
+dari goroutine dan mengulangi eksekusi secara normal.
+
+Pemanggilan `recover` menyetop pemutaran ulang dan mengembalikan argumen yang
+dikirim saat pemanggilan `panic`.
+Secara kode yang berjalan selama proses pemutaran ulang adalah fungsi-fungsi
+yang di- `defer`, `recover` hanya berguna dalam fungsi yang di- `defer`.
+
+Salah satu penerapan dari `recover` yaitu menutup goroutine yang gagal di
+dalam sebuah server tanpa menghentikan goroutine lain yang sedang dieksekusi.
+
+----
+func server(workChan <-chan *Work) {
+	for work := range workChan {
+		go safelyDo(work)
+	}
+}
+
+func safelyDo(work *Work) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("work failed:", err)
+		}
+	}()
+	do(work)
+}
+----
+
+Pada contoh ini, jika `do(work)` ternyata `panic`, kembaliannya akan dicatat
+dan goroutine akan keluar dengan bersih tanpa mengganggu yang lainnya.
+Tidak perlu melakukan hal lain dalam _closure_ yang di- `defer`;
+memanggil `recover` akan menangani kondisi tersebut sepenuhnya.
+
+Karena `recover` selalu mengembalikan `nil` kecuali dipanggil langsung dari
+fungsi yang di- `defer`, kode yang di- `defer` dapat memanggil fungsi pustaka
+yang di dalamnya juga menggunakan `panic` dan `recover` tanpa gagal.
+Sebagai contoh, fungsi `defer` pada `safelyDo` bisa saja memanggil fungsi
+pencatatan `log.Println` sebelum memanggil `recover`, dan kode pencatatan
+tersebut akan berjalan tanpa dipengaruhi oleh keadaan yang `panic`.
+
+Dengan pola pemulihan seperti ini, fungsi `do` (dan apapun yang dipanggilnya)
+dapat keluar dari situasi yang buruk dengan bersih dengan memanggil `panic`.
+Kita dapat menggunakan pola ini untuk menyederhanakan penanganan eror dalam
+sebuah perangkat lunak yang kompleks.
+Mari kita lihat versi ideal dari sebuah paket `regexp`, yang melaporkan
+eror penguraian dengan memanggil `panic` dengan tipe eror lokal.
+Berikut definisi dari `Error`, sebuah _method_ `error`, dan fungsi `Compile`.
+
+----
+// Error adalah tipe dari sebuah eror penguraian; ia memenuhi interface error.
+type Error string
+
+func (e Error) Error() string {
+	return string(e)
+}
+
+// error adalah sebuah method dari *Regexp yang melaporkan eror penguraian
+// lewat panic.
+func (regexp *Regexp) error(err string) {
+	panic(Error(err))
+}
+
+// Compile mengembalikan sebuah representasi dari regular expression yang
+// telah diurai.
+func Compile(str string) (regexp *Regexp, err error) {
+	regexp = new(Regexp)
+
+	// doParse akan panic bila ada eror saat penguaraian.
+	defer func() {
+		if e := recover(); e != nil {
+			regexp = nil	// Bersihkan nilai kembalian.
+			err = e.(Error) // Akan panic walaupun bukan eror penguraian.
+		}
+	}()
+
+	return regexp.doParse(str), nil
+}
+----
+
+jika `doParse` panik, blok pemulihan akan menset nilai kembalian menjadi
+`nil`--fungsi yang di- `defer` dapat mengubah nilai kembalian bernama.
+Ia kemudian akan memeriksa, pada saat penempatan ke `err`, bahwa
+permasalahannya adalah eror penguraian dengan mengkonversi ke tipe `Error`
+lokal.
+Jika konversi tipe gagal `err = e.(Error)`, menyebabkan eror _run-time_ yang
+melanjutkan pemutaran ulang _stack_.
+Pemeriksaan ini artinya jika sesuatu yang tidak diharapkan terjadi, seperti
+pengaksesan indeks di luar batas, kode tersebut akan tetap panik walaupun kita
+menggunakan `panic` dan `recover` untuk menangani eror pada saat penguraian.
+
+Dengan adanya penanganan eror, _method_ `error` (karena ia adalah sebuah
+_method_ yang terikat ke sebuah tipe, maka ia dibolehkan memiliki nama yang
+sama dengan tipe `error` bawaan) mempermudah melaporkan eror penguraian tanpa
+khawatir pada proses pemutaran ulang pada _stack_:
+
+----
+if pos == 0 {
+	re.error("'*' illegal at start of expression")
+}
+----
+
+Pola seperti ini sebaiknya digunakan hanya dalam sebuah paket.
+`Parse` mengubah pemanggilan internal `panic` -nya menjadi nilai `error`;
+ia tidak mengekspos panik ke klien.
+Hal tersebut adalah sebuah aturan yang bagus untuk diikuti.
+
+Idiom dari re- `panic` ini mengubah nilai `panic` jika eror sebenarnya
+terjadi.
+Namun, kedua kesalahan yang asli dan baru akan tetap tercatat dalam laporan
+_crash_, sehingga akar penyebab dari permasalahan akan tetap dapat dilihat.
+Maka pendekatan sederhana dari re- `panic` biasanya cukup efisien--ia
+sebenarnya sebuah _crash_--tapi jika kita hanya ingin menampilkan nilai
+aslinya, kita dapat menulis sedikit kode tambahan untuk memfilter permasalahan
+yang tidak terduga dan mengulang `panic` dengan nilai `error` aslinya.
+Hal ini merupakan latihan bagi pembaca.
+//}}}
+
+[#web_server]
+==  Sebuah server web
+//{{{
+Mari kita tutup dokumentasi ini dengan membuat sebuah program web server.
+Web server kita ini sebenarnya adalah sejenis server web yang memanggil
+layanan di web server lainnya, yaitu layanan grafik dari Google.
+Google menyediakan sebuah layanan di `chart.apis.google.com` yang melakukan
+pemformatan secara otomatis dari data yang dikirim menjadi sebuah grafik atau
+bagan.
+Layanan tersebut tidak mudah digunakan, karena kita harus menaruh data ke
+dalam sebuah URL dalam bentuk HTTP _query_.
+Program kita ini menyediakan sebuah antar muka dari layanan tersebut dengan
+menyediakan sebuah form data: berikan sebuah teks, web server kita akan akan
+memanggil layanan grafik Google untuk menghasilkan sebuah
+https://id.wikipedia.org/wiki/Kode_QR[kode QR], hasil dari enkode teks
+tersebut.
+Kode QR tersebut dapat dipindai dengan kamera ponsel pintar kita dan
+diinterpretasikan sebagai sebuah URL, mengurangi pengetikan ulang URL ke dalam
+_keyboard_ telepon yang kecil.
+
+Berikut kode dari program web server kita.  Diikuti oleh penjelasan
+setelahnya.
+
+----
+package main
+
+import (
+	"flag"
+	"html/template"
+	"log"
+	"net/http"
+)
+
+var addr = flag.String("addr", ":1718", "http service address") // Q=17, R=18
+
+var templ = template.Must(template.New("qr").Parse(templateStr))
+
+func main() {
+	flag.Parse()
+	http.Handle("/", http.HandlerFunc(QR))
+	err := http.ListenAndServe(*addr, nil)
+	if err != nil {
+		log.Fatal("ListenAndServe:", err)
+	}
+}
+
+func QR(w http.ResponseWriter, req *http.Request) {
+	templ.Execute(w, req.FormValue("s"))
+}
+
+const templateStr = `
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;QR Link Generator&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+{{if .}}
+&lt;img src="http://chart.apis.google.com/chart?chs=300x300&cht=qr&choe=UTF-8&chl={{.}}" /&gt;
+&lt;br&gt;
+{{.}}
+&lt;br&gt;
+&lt;br&gt;
+{{end}}
+&lt;form action="/" name=f method="GET"&gt;&lt;input maxLength=1024 size=70
+name=s value="" title="Text to QR Encode"&gt;&lt;input type=submit
+value="Show QR" name=qr&gt;
+&lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+`
+----
+
+Bagian kode pada fungsi `main` seharusnya cukup mudah diikuti.
+Sebuah _flag_ mengatur _port_ standar dari HTTP bagi server kita, yaitu
+`1718`.
+Variabel _template_ `templ` adalah bagian yang menarik dari kode ini.
+Ia membangun sebuah _template_ HTML yang akan dieksekusi oleh server kita
+untuk ditampilkan dalam halaman.
+
+Fungsi `main` mengurai _flag_ dan, menggunakan mekanisme seperti yang telah
+kita diskusikan sebelumnya, mengikat fungsi `QR` ke _path_ `/` dari server
+kita.
+Kemudian `http.ListenAndServe` dipanggil untuk memulai server;
+yang akan memblok fungsi sampai server selesai berjalan.
+
+Fungsi `QR` menerima permintaan, yang terdiri dari sebuah form data, dan
+mengeksekusi template dengan input berupa nilai form bernama `s`.
+
+Paket `html/template` sangat berguna;
+program ini hanya menyentuh bagian luar dari kemampuannya.
+Intinya, _template_ menulis ulang sebuah teks HTML dengan mengganti elemen
+yang diturunkan dari item data yang dikirim ke `templ.Execute`, dalam kasus
+ini nilai dari `form`.
+Di dalam teks _template_ (`templateStr`), bagian dengan tanda kurung kurawal
+ganda menandakan sebuah aksi.
+Bagian dari `{{if .}}` sampai dengan `{{end}}` dieksekusi hanya jika nilai
+dari item data yang sekarang, disebut `.` (titik), tidak kosong.
+Jika stringnya kosong, bagian kode template ini disembunyikan.
+
+Bagian kedua dari `{{.}}` menyatakan untuk menampilkan data yang
+direpresentasikan oleh nilai `.` ke dalam template--string dari _query_--pada
+halaman web.
+Paket HTML template secara otomatis menyediakan pembersihan data inputnya
+sendiri sehingga teks aman untuk ditampilkan.
+
+Sisa dari teks _template_ yaitu elemen HTML untuk ditampilkan saat halaman
+dimuat.
+Jika penjelasan ini terlalu cepat, lihat
+https://golang.org/pkg/html/template/[dokumentasi]
+untuk paket `template` untuk penjelasan yang lebih lengkap.
+
+Untuk mencoba kode di atas, simpanlah ke dalam sebuah berkas berekstensi `.go`
+dalam sebuah
+link:/doc/code.html#Workspaces[ruang kerja] dan jalankan,
+
+----
+	$ go run .
+----
+
+kemudian buka peramban web pada halaman `http://127.0.0.1:1718`.
+
+Dan dengan ini kita memiliki sebuah web server yang berguna, dengan sejumlah
+baris kode ditambah teks HTML.
+Go sangat ampuh untuk membuat banyak hal terjadi dalam beberapa baris kode.
+//}}}

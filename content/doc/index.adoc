@@ -54,3 +54,13 @@ mengambil, membuat, dan memasang paket-paket, program, dan menjalankan tes.
 
 Dokumen yang berisi _plugin_ untuk _editor_ dan _IDE_ yang umum digunakan,
 yang mendukung Go.
+
+
+[#effective_go]
+===  link:/doc/effective_go.html[Efektif Go]
+
+Dokumen yang memberikan petunjuk untuk menulis kode Go yang bersih
+dan idiomatis.
+Sebuah tulisan yang harus dibaca bagi yang baru memprogram Go.
+Dokumen ini menggabungkan spesifikasi bahasa dan tur, yang mana keduanya
+sebaiknya dibaca terlebih dahulu.

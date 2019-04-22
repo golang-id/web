@@ -367,8 +367,8 @@ Tidak ada keharusan bahwa nama paket harus unik di antara semua paket-paket
 dalam membuat sebuah program, hanya saja nama _import path_ haruslah unik.
 
 Lihatlah dokumen
-https://golang.org/doc/effective_go.html#names[Go yang efektif] untuk belajar
-lebih lanjut tentang konvensi penamaan pada Go.
+link:/doc/effective_go.html#names[Efektif Go]
+untuk belajar lebih lanjut tentang konvensi penamaan pada Go.
 
 
 [#Testing]
