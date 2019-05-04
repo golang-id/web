@@ -154,3 +154,32 @@ dd {
 	font-size: 0.875rem;
 	margin: 2.5rem 0;
 }
+
+/** Custom classes for asciidoc */
+#toctitle {
+	display: none;
+}
+#toc {
+	width: 800px;
+	font-size: 14px;
+	max-height: 800px;
+	-webkit-column-count: 2;
+	-moz-column-count: 2;
+	column-count: 2;
+}
+#toc li {
+	list-style: none;
+}
+#toc ul .sectlevel1 {
+	padding: 0px;
+	margin: 4px;
+}
+#toc ul .sectlevel2 {
+	margin: 4px;
+}
+
+@media screen and (max-width: 992px) {
+	#toc {
+		all: unset;
+	}
+}
