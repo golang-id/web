@@ -64,3 +64,10 @@ dan idiomatis.
 Sebuah tulisan yang harus dibaca bagi yang baru memprogram Go.
 Dokumen ini menggabungkan spesifikasi bahasa dan tur, yang mana keduanya
 sebaiknya dibaca terlebih dahulu.
+
+
+[#diagnostics]
+===  link:/doc/diagnostics.html[Diagnostik]
+
+Dokumen yang berisi ringkasan perkakas dan metodologi untuk mendiagnosis
+permasalahan dalam program.

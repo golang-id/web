@@ -33,8 +33,6 @@ bagian:
 
 *  Belajar Go
 
-** https://golang.org/doc/diagnostics.html => /doc/diagnostics.adoc
-
 ** https://golang.org/doc/faq => /doc/faq/index.adoc
 
 *  Wiki
@@ -42,6 +40,11 @@ bagian:
 ** https://github.com/golang/go/wiki/Modules => /wiki/Modules/index.adoc
 
 ** https://github.com/golang/go/wiki/IDEsAndTextEditorPlugins => /wiki/IDEsAndTextEditorPlugins/index.adoc
+
+*  Blog
+
+**  https://blog.golang.org/profiling-go-programs =>
+/blog/profiling-go-programs/index.adoc
 
 *  Referensi
 

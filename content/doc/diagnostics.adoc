@@ -1,0 +1,451 @@
+=  Diagnostik
+:stylesheet: /assets/style.css
+:toc:
+:link-google-pprof: https://github.com/google/pprof/blob/master/doc/README.md
+:blog-profiling-go-programs: https://blog.golang.org/profiling-go-programs
+
+[.level4]
+Dokumentasi ini ditujukan bagi pemrogram tingkat lanjut yang memiliki
+pengetahuan tentang bagaimana sebuah proses berjalan di tingkat CPU dan antar
+jaringan.
+
+
+==  Pendahuluan
+//{{{
+Ekosistem Go menyediakan sejumlah _Application Programming Interface_ (API,
+atau
+https://id.wikipedia.org/wiki/Antarmuka_pemrograman_aplikasi[antarmuka
+pemrograman aplikasi])
+dan perkakas untuk mendiagnosis permasalahan logika dan performansi dalam
+program.
+Halaman dokumentasi ini memberi ringkasan perkakas yang ada dan membantu
+pengguna untuk memilih yang sesuai dengan permasalahannya.
+
+Solusi dari diagnostik dapat dikategorikan ke dalam kelompok berikut:
+
+*  *_Profiling_*: Perkakas _profiling_ menganalisis kompleksitas dan biaya
+   dari program seperti penggunaan _memory_ dan fungsi yang sering
+   dipanggil untuk mengidentifikasi bagian yang paling memakan sumber daya
+   (siklus CPU atau _memory_).
+*  *_Tracing_*: _Tracing_ adalah salah satu cara untuk menganalisis latensi
+   selama berlangsungnya sebuah pemanggilan (fungsi).
+   _Tracing_ menyediakan ringkasan berapa banyak latensi dari setiap komponen
+   berkontribusi terhadap semua latensi dalam sistem.
+   _Tracing_ dapat dilakukan pada lebih dari satu proses.
+*  *_Debugging_*: _Debugging_ digunakan untuk menghentikan program dan
+   memeriksa eksekusinya.
+   Kondisi dan alur dari program dapat diverifikasi dengan cara _debugging_.
+*  *Statistik dan _event_ _runtime_*: Kumpulan dan analisis dari statistik dan
+   _event_ menyediakan ringkasan yang lebih umum dari program.
+   Naik atau turunnya grafik dapat membantu mengidentifikasi perubahan
+   dalam kecepatan pemrosesan, penggunaan sumber daya, dan performansi.
+
+Catatan: Beberapa perkakas diagnostik bisa saling mengganggu satu dengan yang
+lainnya.
+Sebagai contohnya, _profiling_ pada penggunaan _memory_ bisa mengubah
+_profiling_ pada CPU dan _profiling_ pada goroutine berpengaruh pada _tracing_
+latensi.
+Gunakan perkakas tersebut secara terisolasi (misalnya, satu per satu) untuk
+mendapatkan informasi yang lebih tepat.
+//}}}
+
+[#profiling]
+==  _Profiling_
+//{{{
+
+_Profiling_ berguna untuk mengidentifikasi bagian kode yang sering dipanggil
+dan yang paling memakan sumber daya.
+_Runtime_ menyediakan
+https://golang.org/pkg/runtime/pprof/[data profiling]
+dalam format yang dapat dibaca oleh
+{link-google-pprof}[perkakas visualisasi `pprof`].
+Data _profiling_ dapat dikumpulkan selama melakukan pengujian lewat `go test`
+atau dari _endpoint_ yang disediakan oleh paket `net/http/pprof`.
+Pengguna harus mengumpulkan data _profiling_ terlebih dahulu dan selanjutnya
+baru menggunakan perkakas `pprof` untuk menyaring dan membuat visualisasi dari
+jalur kode yang paling tinggi.
+
+Profil yang disediakan oleh paket
+https://golang.org/pkg/runtime/pprof/[runtime/pprof]:
+
+*  *cpu*: Profil CPU menentukan bagian dari program yang paling banyak
+   menghabiskan waktu eksekusi (bukan pada saat menunggu masukan atau
+   keluaran, atau saat _tertidur_).
+*  *heap*: Profil _heap_ memberikan laporan sampel dari alokasi _memory_;
+   digunakan untuk memonitor penggunaan _memory_ yang sekarang dengan
+   sebelumnya, dan untuk memeriksa adanya kebocoran _memory_.
+*  *threadcreate*: Profil _thread_ melaporkan bagian dari program
+   yang menyebabkan terbuatnya sebuah _thread_ baru pada sistem operasi.
+*  *goroutine*: Profile _goroutine_ melaporkan jejak _stack_ dari semua
+   _goroutine_.
+*  *block*: Profil _block_ memperlihatkan bagian mana dari goroutine yang
+   terkunci menunggu sinkronisasi primitif (termasuk `channel`).
+   Profil _block_ tidak diaktifkan secara bawaan; gunakan
+   `runtime.SetBlockProfileRate` untuk mengaktifkannya.
+*  *mutex*:  Profil _mutex_ melaporkan ketidakcocokan penguncian.
+   Saat CPU dirasa tidak sepenuhnya digunakan karena adanya ketidakcocokan
+   _mutex_, gunakan profil ini.
+   Profil _mutex_ tidak diaktifkan secara bawaan, lihat
+   `runtime.SetMutexProfileFraction` untuk mengaktifkannya.
+
+*Apakah ada jenis profil lain yang dapat digunakan dalam program Go?*
+
+Pada Linux,
+https://perf.wiki.kernel.org/index.php/Tutorial[perkakas perf]
+dapat digunakan untuk melakukan _profiling_ program Go.
+Perkakas `perf` dapat memprofil dan mengulang kode cgo/SWIG dan kernel,
+sehingga dapat berguna untuk mengetahui lambatnya performansi sampai ke
+tingkat _kernel_.
+Pada macOS,
+https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/[perkakas
+Instruments]
+dapat digunakan untuk melakukan _profiling_ program Go.
+
+*Bisakah memprofil program di tahap production?*
+
+Ya.
+Melakukan _profiling_ program dalam sistem _production_ adalah aman, namun
+mengaktifkannya (misalnya, profil CPU) menambah biaya.
+Kita akan melihat adanya penurunan performansi.
+Biaya dari performansi ini dapat dihitung dengan mengukur batas atas dari
+profil sebelum mengaktifkannya dalam tahap _production_.
+
+_profiling_ bisa dilakukan secara periodik terhadap program-program
+di _production_.
+Terutama dalam sistem yang memiliki banyak replika proses, memilih
+sebuah replika secara acak secara periodik adalah salah satu opsi yang aman.
+Pilih sebuah program dalam _production_ sistem, lakukan _profiling_ selama X
+detik untuk setiap Y detik dan simpan hasilnya untuk visualisasi dan analisis;
+kemudian ulangi secara periodik.
+Hasilnya bisa secara manual atau otomatis ditinjau untuk menemukan adanya
+masalah.
+Kumpulan profil bisa saling mengganggu satu sama lain, jadi direkomendasikan
+untuk mengumpulkan hanya satu jenis profil pada satu waktu.
+
+*Apakah cara terbaik untuk memvisualisasikan data profiling?*
+
+Go menyediakan visualisasi dalam bentuk teks, grafik, dan
+http://valgrind.org/docs/manual/cl-manual.html[callgrind] dari data profil
+menggunakan
+{link-google-pprof}[`go tool pprof`].
+Bacalah
+{blog-profiling-go-programs}[_Profiling Go programs_]
+untuk melihat bagaimana cara melakukannya.
+
+.Daftar fungsi yang paling sering dipanggil dalam format teks
+image::/assets/pprof-text.png[Daftar fungsi yang paling sering dipanggil dalam
+format teks,800]
+
+[.center]
+.Daftar fungsi yang paling sering dipanggil dalam bentuk grafik
+image::/assets/pprof-dot.png[Daftar fungsi yang paling sering dipanggil dalam
+format grafik,800]
+
+Format _weblist_ menampilkan bagian paling mahal dari sumber kode baris per
+baris dalam sebuah halaman HTML.
+Dalam contoh berikut, 530ms dihabiskan oleh `runtime.concatstrings` dan biaya
+dari setiap baris kode ditampilkan dalam daftar tersebut.
+
+[.center]
+.Daftar fungsi yang paling sering dipanggil dengan format weblist
+image::/assets/pprof-weblist.png[Daftar fungsi yang paling sering dipanggil
+dalam format weblist,800]
+
+Cara lain untuk memvisualisasikan data profil yaitu dengan
+http://www.brendangregg.com/flamegraphs.html[grafik flame].
+Grafik _flame_ bisa digunakan dengan berpindah-pindah dari satu _path_ ke
+_path_ yang lain, untuk melihat bagian kode tertentu lebih rinci.
+Program `pprof` mendukung grafik _flame_ ini.
+
+[.center]
+.Grafik flame menampilkan visualisasi untuk mencari kode yang paling mahal
+image::/assets/flame.png[Grafik flame,800]
+
+*Apakah terbatas hanya menggunakan profil bawaan?*
+
+Kita dapat membuat profil kostumnya sendiri lewat `pprof.Profile` dan
+menggunakan perkakas yang sudah ada untuk memeriksanya.
+
+*Bisakah mengubah path dan port handler dari profiler (/debug/pprof/...)?*
+
+Ya.
+Paket `net/http/pprof` meregistrasi handler-nya ke variabel global `mux` yang
+ada pada `net/http`, tapi juga bisa diregister dengan menggunakan handler yang
+diekspor pada paket tersebut.
+
+Sebagai contohnya, kode berikut akan melayani `pprof.Profile` pada port
+`:7777` pada _path_ "/custom_debug_path/profile":
+
+----
+package main
+
+import (
+	"log"
+	"net/http"
+	"net/http/pprof"
+)
+
+func main() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/custom_debug_path/profile", pprof.Profile)
+	log.Fatal(http.ListenAndServe(":7777", mux))
+}
+----
+//}}}
+
+[#tracing]
+==  _Tracing_ (pelacakan)
+//{{{
+
+_Tracing_ adalah salah satu cara untuk menganalisis latensi lewat rangkaian
+pemanggilan fungsi dalam sebuah rantai siklus.
+Go menyediakan paket
+https://godoc.org/golang.org/x/net/trace[golang.org/x/net/trace]
+sebagai _backend tracing_ yang minimalis dan menyediakan pustaka instrumentasi
+dengan _dashboard_ yang sederhana.
+Go juga menyediakan pelacak eksekusi untuk melacak _event_ saat program
+berjalan.
+
+_Tracing_ digunakan untuk:
+
+*  Mengukur dan menganalisis latensi aplikasi dalam proses.
+*  Mengukur biaya dari pemanggilan fungsi tertentu dalam sebuah rantaian
+   pemanggilan.
+*  Mencari tahu penggunaan dan performasi yang bisa ditingkatkan.
+   Lambatnya pemrosesan terkadang tidak terlihat tanpa adanya data hasil
+   dari _tracing_.
+
+Dalam sistem _monolitik_, cukup mudah untuk mengumpulkan data diagnostik dari
+blok-blok pembangun program.
+Semua modul berada dalam satu proses dan memiliki sumber daya yang sama untuk
+melaporkan pencatatan, eror, dan informasi diagnostik lainnya.
+Saat sistem berkembang lebih dari satu proses dan mulai terdistribusi,
+maka akan lebih sulit untuk mengikuti sebuah pemanggilan server web dari
+_front-end_ sampai _back-end_ sampai respon dikembalikan lagi ke
+_user_.
+Disinilah _tracing_ terdistribusi memainkan peran penting untuk mengukur dan
+menganalisis sistem di tahap _production_.
+
+_Tracing_ terdistribusi adalah salah satu cara mengukur program untuk
+menganalisis latensi dari sebuah siklus permintaan (masukan) dari pengguna.
+Saat sistem telah terdistribusi dan perkakas _profiling_ dan _debugging_ yang
+konvensional tidak bisa menganalisisnya, maka perkakas _tracing_ yang
+terdistribusi bisa digunakan untuk menganalisis performansi dari permintaan
+pengguna dan _Remote Procedure Call_ (RPC).
+
+_Tracing_ terdistribusi digunakan untuk:
+
+*  Mengukur dan melakukan _profiling_ latensi aplikasi dalam sistem yang besar.
+*  Melacak semua RPC dalam satu siklus permintaan dari pengguna dan melihat
+   isu-isu integrasi yang hanya terjadi pada tahap _production_.
+*  Mencari tahu peningkatan performansi yang bisa diterapkan pada sistem.
+   Umumnya proses yang lambat tidak terlihat sebelum data _tracing_
+   dikumpulkan.
+
+Ekosistem Go menyediakan berbagai pustaka untuk melakukan _tracing_
+terdistribusi per sistem dan _back-end_ yang berdiri sendiri.
+
+*Apakah ada cara otomatis menangkap pemanggilan fungsi dan melakukan pelacakan?*
+
+Go tidak menyediakan cara otomatis menghentikan setiap pemanggilan fungsi dan
+membuat rentang pelacakan.
+Masih diperlukan pengaturan kode secara manual untuk membuat, menghentikan,
+dan memberi rentang anotasi.
+
+*Bagaiamana cara memperluas pelacakan sampai ke dalam pustaka Go?*
+
+Kita bisa memperluas identifikasi dan tag pelacakan menggunakan
+https://golang.org/pkg/context#Context[context.Context].
+Belum ada representasi umum atau kunci pelacakan kanonis dari _header_
+pelacakan.
+Setiap penyedia perkakas _tracing_ bertanggung jawab menyediakan peralatan
+untuk memperluas ke dalam pustaka Go.
+
+*Apa saja event dari pustaka bawaan atau runtime yang bisa diikutkan selama pelacakan?*
+
+Pustaka bawaan dan _runtime_ memiliki beberapa API untuk memberi notifikasi
+pada tingkat paling rendah dari _event_ internal.
+Sebagai contohnya,
+https://golang.org/pkg/net/http/httptrace#ClientTrace[httptrace.ClientTrace]
+menyediakan API untuk menelusuri _event_ paling bawah dalam sebuah siklus
+dari _request_ ke luar.
+Proses untuk mendapatkan _event runtime_ paling bawah dari pelacak eksekusi
+_runtime_ yang membolehkan pengguna menentukan dan menyimpan _event_ -nya
+sendiri masih dalam tahap pengembangan.
+//}}}
+
+[#debugging]
+==  _Debugging_
+//{{{
+
+_Debugging_ adalah proses untuk mengidentifikasi kenapa program berjalan tidak
+sesuai yang diinginkan.
+Perkakas untuk _debugging_ disebut dengan _debugger_.
+_Debugger_ digunakan untuk memahami alur eksekusi program dan keadaan
+sekarang dari program.
+Ada beberapa cara dalam melakukan _debugging_;
+bagian ini hanya fokus dengan menambatkan _debugger_ ke program dan kepada
+berkas _core dump_.
+
+Pengguna Go umumnya menggunakan _debugger_ berikut:
+
+*  https://github.com/derekparker/delve[Delve]: Delve adalah _debugger_ yang
+   mendukung konsep _runtime_ dan tipe bawaan.
+   Delve adalah _debugger_ yang kaya dengan fitur dan terpercaya.
+
+*  https://golang.org/doc/gdb[GDB]: GDB menyediakan dukungan Go lewat
+   _compiler_ Go bawaan dan `gccgo`.
+   Manajemen _stack_, _thread_, dan _runtime_ memiliki aspek yang berbeda jauh
+   dari model eksekusi yang diharapkan oleh GDB yang terkadang membingungkan
+   _debugger_, bahkan pada program yang di- _compile_ dengan `gccgo`.
+   Walaupun GDB dapat dilakukan untuk men- _debug_ program Go, ia tidak ideal
+   dan bisa membingungkan.
+
+*Seberapa bagus debugger bekerja dengan program Go?*
+
+_Compiler_ `gc` melakukan pengoptimalan seperti _inlining_ fungsi dan
+registrasi variabel.
+Pengoptimalan ini terkadang membuat proses _debugging_ menjadi sukar.
+Upaya untuk meningkatkan kualitas informasi DWARF yang dihasilkan untuk
+program yang dioptimalkan sedang dikembangkan saat ini.
+Sampai peningkatan tersebut siap digunakan, direkomendasikan menon-aktifkan
+pengoptimalan saat membangun kode yang akan di- _debug_.
+Perintah berikut membuat paket yang tidak optimal:
+
+----
+$ go build -gcflags=all="-N -l"
+----
+
+Sebagai bagian dari peningkatan, Go 1.10 memperkenalkan opsi baru
+`-dwarflocationlists`.
+Opsi tersebut membuat _compiler_ menambah daftar lokasi yang dapat membantu
+_debugger_ bekerja pada program yang dioptimalkan.
+Perintah berikut membuat paket yang optimal tapi dengan daftar lokasi DWARF:
+
+----
+$ go build -gcflags="-dwarflocationlists=true"
+----
+
+*Antarmuka debugger mana yang dianjurkan?*
+
+Walaupun `delve` dan `gdb` menyediakan Command Line Interface (CLI, antarmuka
+baris perintah), kebanyakan integrasi _editor_ dan IDE menyediakan antarmuka
+_debugging_ yang spesifik.
+
+*Apakah memungkinkan melakukan debugging setelah program Go mati?*
+
+Berkas _core dump_ yaitu berkas yang berisi _memory_ dari proses yang berjalan
+dan statusnya.
+Berkas ini khusus digunakan untuk _debugging_ setelah program mati dan untuk
+memahami keadaannya saat program berjalan.
+Dua kasus ini membuat _debugging_ pada _core dump_ menjadi diagnostik yang
+bagus untuk program yang _crash_ dan untuk menganalisis servis di
+_production_.
+Untuk mendapatkan berkas ini dari sebuah program dan menggunakan `delve` atau
+`gdb` untuk _debugging_, lihat halaman wiki
+https://golang.org/wiki/CoreDumpDebugging[debugging core dump] untuk panduan
+langkah demi langkah.
+//}}}
+
+[#runtime]
+==  Statistik dan _event_ runtime
+//{{{
+
+_Runtime_ menyediakan statistik dan pelaporan dari _event_ internal untuk
+mendiagnosis performansi dan permasalahan pada tingkat _runtime_.
+
+Kita dapat memonitor statistik tersebut untuk memahami lebih lanjut tentang
+kesehatan dan performansi dari program.
+Beberapa statistik dan status yang sering dimonitor:
+
+*  https://golang.org/pkg/runtime/#ReadMemStats[runtime.ReadMemStats]
+   melaporkan grafik yang berkaitan dengan alokasi pada _heap_ dan
+   _garbage collection_.
+   Statistik _memory_ berguna untuk memonitor berapa banyak _memory_ yang
+   proses konsumsi, apakah proses menggunakan _memory_ dengan benar, dan untuk
+   menangkap adanya kebocoran _memory_.
+
+*  https://golang.org/pkg/runtime/debug/#ReadGCStats[debug.ReadGCStats]
+   memberikan statistik dari _garbage collection_ (GC).
+   Sangat berguna untuk melihat berapa banyak sumber daya yang digunakan saat
+   terjadi GC.
+   Ia juga melaporkan waktu terjadinya GC dan persentil dari lamanya GC.
+
+*  https://golang.org/pkg/runtime/debug/#Stack[debug.Stack] mengembalikan
+   _stack_ yang ada sekarang.
+   Pelacakan _stack_ bermanfaat untuk melihat berapa banyak goroutine yang
+   sedang berjalan, melihat apa yang goroutine lakukan, dan melihat apakah ada
+   yang terkunci atau tidak.
+
+*  https://golang.org/pkg/runtime/debug/#WriteHeapDump[debug.WriteHeapDump]
+   menghentikan eksekusi semua goroutine dan menulis isi _heap_ ke dalam
+   berkas.
+   Isi _heap_ adalah potret dari _memory_ yang digunakan proses pada waktu
+   tertentu.
+   Ia berisi alokasi objek seperti goroutine, finalisasi, dan lainnya.
+
+*  https://golang.org/pkg/runtime#NumGoroutine[runtime.NumGoroutine]
+   mengembalikan jumlah goroutine.
+   Nilai ini dimonitor untuk melihat apakah goroutine benar digunakan, atau
+   mendeteksi adanya kebocoran _goroutine_.
+//}}}
+
+[#execution-tracer]
+===  Pelacak eksekusi
+//{{{
+Go memiliki pelacak eksekusi _runtime_ untuk menangkap sejumlah _event_
+pada _runtime_.
+_Scheduling_, _syscall_, _garbage collection_, ukuran _heap_, dan _event_
+lainnya dikumpulkan oleh _runtime_ dan dapat divisualisasikan dengan perkakas
+`go tool trace`.
+Anda bisa membedah sebaiknya apa penggunaan CPU, dan apakah _networking_ atau
+_syscall_ yang menyebabkan terkunci goroutine.
+
+Pelacakan berguna untuk:
+
+*  Memahami bagaimana goroutine dieksekusi.
+*  Memahami beberapa _event_ runtime inti, seperti GC.
+*  Mengidentifikasi buruknya eksekusi
+
+Pelacakan tidak bagus untuk mengidentifikasi bagian-bagian seperti
+menganalisis penggunaan _memory_ atau CPU yang terlalu banyak atau terlalu
+tinggi.
+Gunakan, perkakas _profiling_ terlebih dahulu untuk mencari bagian tersebut.
+
+image::/assets/tracer-lock.png[Contoh pelacakan goroutine,800]
+
+Pada gambar di atas, visualisasi dari `go tool trace` memperlihatkan eksekusi
+mula-mula berjalan benar, dan kemudian mulai serial.
+Ia memberitahu bahwa kemungkinan ada penguncian pada sumber daya yang dibagi
+yang menyebabkan pemampatan.
+
+Lihat
+https://golang.org/cmd/trace/[go tool trace]
+untuk mengumpulkan dan menganalisis pelacakan _runtime_.
+//}}}
+
+[#godebug]
+===  GODEBUG
+//{{{
+
+_Runtime_ juga mengeluarkan _event_ dan informasi tertentu bila variabel
+lingkungan
+https://golang.org/pkg/runtime/#hdr-Environment_Variables[GODEBUG] diset.
+
+*  `GODEBUG=gctrace=1` mencetak _even_ dari _garbage collector_, menghitung
+   penggunaan _memory_ dan lama berjalannya GC.
+
+*  `GODEBUG=schedtrace=X` mencetak penskedulan _event_ setiap X milidetik.
+
+Variabel lingkungan `GODEBUG` juga bisa digunakan untuk menonaktifkan
+penggunaan ekstensi instruksi pada pustaka bawaan dan _runtime_.
+
+*  `GODEBUG=cpu.all=off` menonaktifkan penggunaan semua ekstensi instruksi
+   yang opsional.
+
+*  `GODEBUG=cpu.extension=off` menonaktifkan penggunaan instruksi dari
+   "extension" yang ditentukan.
+   "extension" adalah nama dengan huruf kecil dari ekstensi instruksi seperti
+   _sse41_ atau _avx_.
+
+//}}}
