@@ -71,3 +71,8 @@ sebaiknya dibaca terlebih dahulu.
 
 Dokumen yang berisi ringkasan perkakas dan metodologi untuk mendiagnosis
 permasalahan dalam program.
+
+[#faq]
+===  link:/doc/faq/index.html[Tanya jawab]
+
+Dokumen ini berisi jawaban dari pertanyaan yang sering diajukan tentang Go.

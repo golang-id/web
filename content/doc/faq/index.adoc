@@ -1,0 +1,721 @@
+=  Tanya Jawab
+:stylesheet: /assets/style.css
+:toc:
+:talks-go-at-google: https://talks.golang.org/2012/splash.article
+
+[#Origins]
+==  Asal mula
+
+[#What_is_the_purpose_of_the_project]
+===  Apakah tujuan dari proyek ini?
+//{{{
+
+Pada saat Go lahir, dunia pemrograman berbeda dari sekarang.
+Perangkat lunak di industri biasanya ditulis dengan C++ atau Java, Github
+belum ada, kebanyakan komputer belum multi prosesor, dan selain Visual
+Studio dan Eclipse hanya ada beberapa IDE atau perkakas pembantu lainnya yang
+tersedia, dan tidak semuanya gratis di Internet.
+
+Sementara itu, kami telah frustasi dengan kompleksnya kebutuhan bahasa yang
+kita gunakan untuk mengembangkan perangkat lunak _server_.
+Komputer telah menjadi begitu cepat semenjak bahasa seperti C, C++, dan Java
+pertama kali dikembangkan tapi pemrograman itu sendiri tidak berkembang begitu
+banyak.
+Dan juga, jelas bahwa multi prosesor akan menjadi universal tapi kebanyakan
+bahasa menyediakan sedikit dukungan untuk dapat memprogramnya secara efisien
+dan aman.
+
+Kami memutuskan untuk berpikir tentang isu-isu mayor apa saja yang akan
+mendominasi pembangunan perangkat lunak pada beberapa tahun ke depan saat
+teknologi berkembang, dan bagaimana sebuah bahasa baru bisa membantu
+mengatasinya.
+Misalnya, munculnya CPU dengan multi _core_ bisa menjadi alasan bahwa sebuah
+bahasa sebaiknya menyediakan dukungan utama untuk konkurensi dan paralelisme.
+Dan untuk membuat manajemen sumber daya mudah dikerjakan dalam sebuah program
+yang konkuren, _garbage collection_, atau setidaknya suatu model manajemen
+_memory_ yang otomatis dan aman setidaknya dibutuhkan.
+
+Pertimbangan-pertimbangan ini mengarah ke
+https://commandcenter.blogspot.com/2017/09/go-ten-years-and-climbing.html[beberapa
+diskusi lanjutan]
+yang menyebabkan lahirnya Go, pertama sebagai kumpulan ide dan keinginan,
+kemudian sebagai sebuah bahasa.
+Tujuan secara keseluruhan yaitu supaya Go lebih membantu pemrogram dengan
+menyediakan perkakas, mengotomasi pekerjaan-pekerjaan biasa seperti
+pemformatan, dan menghapus permasalahan saat bekerja dalam basis kode yang
+besar.
+
+Deskripsi yang lebih luas dari tujuan dibuatnya Go dan bagaimana ia dicapai,
+atau setidaknya bagaimana ia dikembangkan, tersedia dalam artikel
+{talks-go-at-google}[Go di Google: Rancangan Bahasa dalam Melayani Rekayasa
+Perangkat Lunak (Inggris)].
+
+//}}}
+
+[#history]
+===  Bagaimana sejarah proyek ini?
+//{{{
+
+Robert Griesemer, Rob Pike, dan Ken Thompson mulai membuat sketsa beberapa
+sasaran dari sebuah bahasa baru di sebuah papan tulis pada 21 September, 2007.
+Dalam beberapa hari, sasaran-sasaran tersebut terkumpul menjadi sebuah rencana
+untuk melakukan sesuatu dan gambaran bagaimana bentuknya nanti.
+Perancangan dilanjutkan paruh waktu, paralel dengan pekerjaan lainnya.
+Pada Januari 2008, Ken mulai bekerja menulis sebuah _compiler_ untuk
+mengeksplorasi ide tersebut;
+_compiler_ tersebut menghasilkan kode C.
+Pada pertengahan tahun, bahasa tersebut menjadi proyek penuh dan telah siap
+untuk dicoba sebagai sebuah _compiler_.
+Pada Mei 2008, Ian Taylor secara independen mulai membuat antar muka untuk Go
+pada GCC menggunakan spesifikasi draf yang ada.
+Russ Cox bergabung pada akhir 2008 dan membantu mendorong bahasa dan
+pustakanya dari prototipe menjadi realitas.
+
+Go menjadi proyek sumber terbuka pada 10 November 2009.
+Orang-orang yang tak terhitung banyaknya dari komunitas telah
+mengkontribusikan ide, diskusi, dan kode mereka.
+
+Sekarang ada jutaan pemrogram Go--gopher--diseluruh dunia, dan akan bertambah
+setiap hari.
+Kesuksesan Go telah melampau ekspektasi kita.
+
+//}}}
+
+[#gopher]
+===  Apakah asal mula dari maskot gopher?
+//{{{
+
+Maskot dan logo dirancang oleh
+https://reneefrench.blogspot.com/[Renée French],
+yang juga merancang
+https://9p.io/plan9/glenda.html[Glenda],
+kelincinya Plan 9.
+https://blog.golang.org/gopher[Sebuah blog]
+tentang gopher menjelaskan bagaimana ia diturunkan dari rancangan bajunya
+https://wfmu.org/[WFMU]
+yang ia buat beberapa tahun lalu.
+Logo dan maskot berlisensikan
+https://creativecommons.org/licenses/by/3.0/[Creative Commons Attribution
+3.0].
+
+Gopher memiliki
+https://golang.org/doc/gopher/modelsheet.jpg[lembar model]
+yang mengilustrasikan karakteristiknya dan bagaimana merepresentasikannya
+dengan benar.
+Lembar model tersebut pertama kali diperlihatkan dalam sebuah
+https://www.youtube.com/watch?v=4rw_B4yY69k[presentasi]
+oleh Renée pada Gophercon 2016.
+Maskot tersebut memiliki fitur unik;
+ia adalah _gopher_ -nya Go, bukan hanya _gopher_ yang dulu.
+
+//}}}
+
+[#go_or_golang]
+===  Apakah bahasanya disebut Go atau Golang?
+//{{{
+
+Bahasanya disebut Go.
+Orang-orang menyebutnya "golang" karena situsnya bernama "golang.org", bukan
+"go.org", yang mana tidak tersedia saat itu.
+Banyak yang menggunakan nama golang, dan cukup berguna sebagai sebuah label.
+Misalnya, tag pada Twitter untuk bahasa Go adalah "#golang".
+Nama dari bahasa itu sendiri adalah Go saja.
+
+Sebagai catatan: Walaupun
+https://blog.golang.org/go-brand[logo resmi]
+menggunakan dua huruf besar, nama bahasa tetap ditulis Go, bukan GO.
+
+//}}}
+
+[#creating_a_new_language]
+===  Kenapa membuat sebuah bahasa baru?
+//{{{
+
+Go lahir dari frustasi terhadap bahasa dan lingkungan pekerjaan yang kita
+lakukan di Google.
+Pemrograman menjadi semakin sukar dan salah satu yang harus disalahkan yaitu
+pilihan dari bahasa.
+Seseorang harus memilih salah satu dari kompilasi yang efisien, eksekusi yang
+efisien, atau mudah diprogram;
+ketiganya tidak tersedia dalam bahasa-bahasa pemrograman yang terkenal.
+Para pemrogram memilih kemudahan daripada keamanan dan efisiensi, dengan
+pindah ke bahasa bertipe dinamis seperti Python dan JavaScript daripada C++
+atau Java.
+
+Yang sadar hal ini tidak kita saja.
+Setelah beberapa tahun sunyinya bahasa pemrograman, Go adalah salah satu dari
+beberapa bahasa baru--Rust, Elixir, Swift, dan lebih banyak lagi--yang telah
+membuat pengembangan bahasa pemrograman menjadi bidang yang aktif, hampir
+terkenal lagi.
+
+Go menyelesaikan masalah-masalah tersebut dengan mencoba menggabungkan
+kemudahan pemrograman dari bahasa yang diinterpretasi, bertipe dinamis dengan
+efisiensi dan keamanan dari bahasa bertipe statis dan dikompilasi.
+Ia juga berusaha lebih moderen, dengan dukungan komputasi jaringan dan multi-
+_core_.
+Terakhir, bekerja dengan Go memang ditujukan supaya _cepat_: ia seharusnya
+butuh beberapa detik untuk membuat sebuah program yang besar dalam sebuah
+komputer.
+Untuk mencapai sasaran tersebut dibutuhkan penanganan sejumlah isu lingustik:
+sebuah sistem tipe yang ekspresif namun ringan;
+konkurensi dan _garbage collection_;
+spesifikasi dependensi yang kokoh; dan lainnya.
+Hal ini tidak bisa diatasi dengan mudah oleh pustaka-pustaka atau perkakas
+yang ada;
+sebuah bahasa baru dibutuhkan.
+
+Artikel
+{talks-go-at-google}[Go di Google (bahasa Inggris)]
+mendiskusikan latar belakang dan motivasi dibalik rancangan bahasa Go, dan
+juga menyediakan rincian lebih lanjut tentang banyak jawaban-jawaban yang ada
+dalam dokumen Tanya-Jawab ini.
+
+//}}}
+
+[#ancestors]
+===  Apa saja leluhur-leluhur Go?
+//{{{
+
+Go umumnya berada dalam keluarga dari C (sintaks dasarnya), dengan masukan
+yang cukup signifikan dari Pascal/Modula/Oberon (deklarasi, paket), ditambah
+beberapa ide dari bahasa yang diinspirasi oleh CSP-nya Tony Hoare, seperti
+Newsqueak dan Limbo (konkurensi).
+Namun, Go adalah bahasa baru secara keseluruhan.
+Dalam segala hal bahasa Go dirancang dengan memikirkan tentang apa yang
+pemrogram lakukan dan bagaimana melakukan pemrograman, setidaknya pemrograman
+yang kami lakukan, lebih efektif, yang berarti lebih menyenangkan.
+
+//}}}
+
+[#principles]
+===  Apa saja prinsip panduan dalam rancangan?
+//{{{
+
+Saat Go dirancang, Java dan C++ adalah bahasa yang paling umum digunakan untuk
+membuat program _server_, setidaknya di Google.
+Kami merasakan bahwa bahasa tersebut membutuhkan terlalu banyak pencatatan dan
+repetisi.
+Beberapa pemrogram pindah ke bahasa yang lebih dinamis seperti Python, dengan
+mengorbankan efisiensi dan keamanan tipe.
+Kami merasakan bahwa adalah memungkinkan untuk memiliki efisiensi, keamanan,
+dan _kecairan_ dalam sebuah bahasa.
+
+Go mencoba mengurangi jumlah pengetikan dan tipe data.
+Selama perancangannya, kita mencoba mengurangi kekusutan dan kompleksitas.
+Tidak ada deklarasi penerus dan tidak ada berkas-berkas _header_;
+semuanya dideklarasikan cukup sekali saja.
+Inisialiasi dibuat ekspresif, otomatis, dan mudah digunakan.
+Sintaksnya bersih dan ringan dengan kata kunci.
+_Kegagapan_ (`foo.Foo* myFoo = new(foo.Foo)) dikurangi dengan tipe turunan
+sederhana menggunakan konstruksi `:=` deklarasi-dan-inisialisasi.
+Dan yang paling radikal, tidak ada tipe hirarki: tipe hanyalah tipe, mereka
+tidak perlu memberitahukan keterkaitannya (dengan tipe lain).
+Penyederhanaan ini membuat Go menjadi ekspresif dan tetap mudah dibaca
+tanpa mengorbankan kecanggihan.
+
+Prinsip utama lainnya yaitu menjaga konsepnya tetap ortogonal.
+_Method_ dapat diimplementasikan untuk semua tipe;
+_struct_ merepresentasikan data, sementara _interface_ merepresentasikan
+abstraksi; dan seterusnya.
+Sifat ortogonal ini membuatnya mudah untuk memahami apa yang terjadi saat
+beberapa hal digabungkan.
+
+//}}}
+
+[#Usage]
+==  Penggunaan
+
+[#internal_usage]
+===  Apakah Google menggunakan Go secara internal?
+//{{{
+
+Ya.
+Go digunakan secara luas dalam _production_ di Google.
+Salah satu contoh sederhana yaitu _server_ dibalik
+https://golang.org/[golang.org].
+Ia adalah _server_ dokumentasi dari
+https://golang.org/cmd/godoc[godoc]
+yang berjalan dalam sebuah konfigurasi _production_ di
+https://developers.google.com/appengine/[Google App Engine].
+
+Contoh yang lebih signifikan yaitu _server_ unduh Google,
+`dl.google.com`, yang melayani pengunduhan program Chrome dan berbagai paket
+seperti dari `apt-get`.
+
+Go bukan satu-satunya bahasa yang digunakan di Google, jauh dari itu, tapi ia
+merupakan bahasa penting untuk sejumlah wilayah termasuk
+https://talks.golang.org/2013/go-sreops.slide[Site Reliability engineering
+(SRE)]
+dan pemrosesan data berukuran besar.
+
+//}}}
+
+[#external_usage]
+===  Perusahaan apa saja yang menggunakan Go?
+//{{{
+
+Penggunaan Go meningkat diseluruh dunia, khususnya, tapi bukan berarti secara
+ekslusif, dalam ruang komputasi _cloud_.
+Beberapa proyek infrastruktur _cloud_ besar yang ditulis dengan Go adalah
+Docker dan Kubernetes, namun masih banyak yang lainnya.
+
+Tidak hanya pada _cloud_ saja.
+https://github.com/golang/go/wiki/GoUsers[Halaman pengguna]
+pada Go Wiki, yang cukup sering diperbarui, berisi daftar dari beberapa
+perusahaan yang menggunakan Go.
+
+Go Wiki juga memiliki halaman tentang
+https://github.com/golang/go/wiki/SuccessStories[cerita-cerita sukses]
+perusahaan dan proyek yang menggunakan Go.
+
+//}}}
+
+[#Do_Go_programs_link_with_Cpp_programs]
+===  Apakah program Go dapat dikaitkan dengan program C/C++?
+//{{{
+
+C dan Go bisa saja digunakan dalam ruang _memory_ yang sama, namun hal ini
+bukanlah suatu hal yang cocok secara alamiah dan membutuhkan antar muka
+perangkat lunak yang spesial.
+Menghubungkan C dengan kode Go berarti mengorbankan keamanan _memory_
+dan properti manajemen _stack_ yang Go sediakan.
+Terkadang perlu menggunakan pustaka C untuk menyelesaikan sebuah masalah,
+namun melakukan hal tersebut selalu menimbulkan risiko yang mana tidak akan
+muncul bila menggunakan kode Go yang murni, jadi lakukanlah dengan hati-hati.
+
+Jika anda benar butuh menggunakan C dengan Go, cara melakukannya bergantung
+kepada implementasi _compiler_ Go.
+Ada tiga implementasi _compiler_ Go yang didukung secara resmi.
+Diantaranya `gc`, _compiler_ bawaan, `gccgo` yang menggunakan GCC, dan
+`gollvm` yang kurang stabil, yang menggunakan infrasruktur LLVM.
+
+`gc` menggunakan konvensi pemanggilan dan _linker_ yang berbeda  dari C dan
+oleh karena itu tidak bisa dipanggil langsung dari program C, atau sebaliknya.
+Program
+https://golang.org/cmd/cgo/[cgo]
+menyediakan mekanisme untuk sebuah "antarmuka fungsi asing"
+(_foreign function interface_) untuk membolehkan pemanggilan pustaka C secara
+aman dalam kode Go.
+SWIG memperluas kapabilitas ini ke pustaka C++.
+
+Kita juga bisa menggunakan `cgo` dan SWIG dengan `gccgo` dan `gollvm`.  Secara
+mereka menggunakan API tradisional, ia juga memungkinkan, namun dengan sangat
+hati-hati, untuk mengaitkan kode dari _compiler_ tersebut secara langsung
+dengan program C atau C++ yang di- _compile_ dengan GCC/LLVM.
+Namun, melakukan hal tersebut secara aman membutuhkan pemahaman konvensi
+pemanggilan dari semua bahasa, dan juga perhatian terhadap batas
+_stack_ saat memanggil C atau C++ dari Go.
+
+//}}}
+
+[#ide]
+===  IDE apa saja yang mendukung Go?
+//{{{
+
+Proyek Go tidak menyediakan kostum IDE, namun bahasa dan pustakanya telah
+dirancang untuk membuatnya mudah untuk menganalisis sumber kode.
+Akibatnya, banyak _editor_ dan IDE terkenal yang mendukung Go, baik secara
+langsung atau lewat sebuah _plugin_.
+
+Daftar IDE dan _editor_ yang mendukung Go diantaranya Emacs, Vim, VSCode,
+Atom, Eclipse, Sublime, IntelliJ (lewat kostum varian bernama Goland), dan
+lebih banyak lagi.
+
+//}}}
+
+[#protocol]
+===  Apakah Go mendukung protokol _buffers_?
+//{{{
+
+Proyek sumber terbuka lain menyediakan plugin _compiler_ dan pustaka yang
+dibutuhkan.
+Ia tersedia di
+https://github.com/golang/protobuf[github.com/golang/protobuf].
+
+//}}}
+
+[#Can_I_translate_the_Go_home_page]
+===  Bolehkah saya menerjemahkan situs Go ke bahasa lain?
+//{{{
+
+Tentu saja.
+Kami mendorong pengembang untuk membuat situs Bahasa Go dengan bahasanya
+sendiri.
+Namun, bila anda ingin menambahkan logo atau _brand_ Google ke situs anda
+(yang mana tidak ada dalam situs
+https://golang.org/[golang.org]),
+anda harus patuh pada aturan di
+https://www.google.com/permissions/guidelines.html.
+
+//}}}
+
+==  Perancangan
+
+[#runtime]
+===  Apakah Go memiliki sebuah _runtime_?
+//{{{
+
+Go memiliki sejumlah pustaka yang luas, yang disebut _runtime_, yang merupakan
+bagian dari setiap program Go.
+Pustaka _runtime_ mengimplementasikan _garbage collection_, konkurensi,
+manajemen _stack_, dan fitur penting lainnya dari bahasa Go.
+Walaupun lebih terpusat pada bahasa itu sendiri, _runtime_ pada Go analoginya
+sama dengan `libc`, pustaka bahasa `C`.
+
+Harus juga dipahami, bahwa _runtime_ Go tidak mengikutkan mesin virtual,
+seperti yang disediakan oleh _runtime_ Java.
+Program Go di- _compile_ diawal menjadi kode mesin (atau JavaScript atau
+WebAssembly, untuk beberapa implementasi varian).
+Oleh karena itu, walaupun istilah tersebut seringkali digunakan untuk
+mendeskripsikan lingkungan virtual di mana program Go berjalan, dalam dunia Go
+"runtime" adalah nama yang diberikan ke pustaka yang menyediakan
+layanan-layanan penting dari bahasa.
+
+//}}}
+
+[#unicode_identifiers]
+===  Ada apa dengan pengidentifikasi Unicode?
+//{{{
+
+Saat merancang Go, kami memastikan bahwa ia tidak harus berpusat pada ASCII,
+yang artinya memperluas ruang pengidentifikasi dari batas-batas 7-bit ASCII.
+Aturan Go--karakter pengidentifikasi haruslah huruf atau angka yang
+didefinisikan oleh Unicode--sangat mudah dipahami dan diimplementasikan namun
+memiliki batasan.
+Misalnya, kombinasi karakter tidak dibolehkan, seperti pada bahasa Devanagari.
+
+Aturan ini menyebabkan konsekuensi lainnya.
+Karena pengidentifikasi yang diekspor harus diawali dengan huruf besar,
+pengidentifikasi yang dibuat dari karakter pada bahasa-bahasa tertentu bisa
+saja, secara definisi, tidak diekspor.
+Untuk saat sekarang, satu-satunya solusi yaitu menggunakan awalan seperti
+`X日本語`, yang mana kurang memuaskan.
+
+Sejak dari versi awal, kami telah mempertimbangkan bagaimana cara terbaik
+memperluas ruang pengidentifikasi untuk mengakomodasi pemrogram yang
+menggunakan bahasa ibunya.
+Hal-hal apa saja yang harus dilakukan saat ini masih menjadi topik diskusi
+yang aktif, dan versi selanjutnya dari bahasa Go bisa saja lebih terbuka dalam
+definisi dari pengidentifikasi.
+Misalnya, ia mungkin mengadopsi
+http://unicode.org/reports/tr31/[rekomendasi] untuk pengidentifikasi dari
+organisasi Unicode.
+Apapun yang terjadi, ia harus kompatibel dan menjaga (atau mungkin
+mengembangkan) bagaimana huruf menentukan visibilitas dari pengidentifikasi,
+yang mana merupakan fitur favorit dari Go.
+
+Untuk saat ini, kita memiliki aturan sederhana yang dapat dikembangkan nanti
+di masa depan, tanpa mengganggu program, salah satunya untuk menghindari _bug_
+yang bisa saja muncul dari aturan yang menggunakan pengidentifikasi yang
+ambigu.
+
+//}}}
+
+[#Why_doesnt_Go_have_feature_X]
+===  Kenapa Go tidak memiliki fitur _X_?
+//{{{
+
+Setiap bahasa memiliki fitur-fitur baru yang mengindahkan fitur kesukaan orang
+lain.
+Go dirancang demi kenyamanan pemrograman, kecepatan _compile_, konsep
+ortogonal, dan kebutuhan untuk mendukung fitur seperti konkurensi dan
+_garbage collection_.
+Fitur kesukaan anda bisa saja tidak ada karena tidak cocok, karena ia
+mempengaruhi kecepatan _compile_ atau memperumit rancangan, atau karena ia
+akan membuat model sistem fundamentalnya menjadi terlalu sukar.
+
+Jika anda merasa terganggu dengan tidak adanya fitur _X_ pada Go, mohon
+maafkan kami dan cobalah fitur-fitur yang Go miliki.
+Anda bisa saja menemukan mereka cukup memenuhi, dengan cara tertentu, dari
+ketidakadaannya fitur _X_.
+
+//}}}
+
+[#generics]
+===  Kenapa Go tidak memiliki tipe generik?
+//{{{
+
+Tipe generik mungkin akan ditambahkan pada suatu waktu.
+Kami tidak merasakan urgensi dari fitur tersebut, walaupun kami paham beberapa
+programmer butuh itu.
+
+Go ditujukan sebagai bahasa untuk menulis program _server_ yang mudah untuk
+dipelihara sepanjang waktu.
+(Lihat
+https://talks.golang.org/2012/splash.article[artikel]
+berikut untuk latar belakang lebih lanjut.)
+Rancangannya berkonsentrasi pada hal-hal seperti mudah di- _scale_, mudah
+dibaca, dan konkurensi.
+Pemrograman _polymorphic_ tampak tidak terlalu penting untuk sasaran bahasa Go
+pada saat itu, sehingga sengaja ditinggalkan demi kesederhanaan.
+
+Bahasa Go sekarang lebih matang, sehingga ada ruang untuk mempertimbangkan
+sebuah bentuk pemrograman generik.
+Namun, ada beberapa yang keberatan.
+
+Generik sebenarnya baik tapi harus dibayar dengan kompleksitas pada sistem
+tipe dan _runtime_.
+Kami belum menemukan rancangan yang memberikan nilai yang sebanding dengan
+kompleksitasnya, namun kita terus memikirkan hal tersebut.
+Untuk sementara, tipe bawaan Go `map` dan `slice`, ditambah dengan `interface`
+kosong untuk membentuk sebuah penampung (dengan konversi eksplisit) artinya
+pada banyak kasus dimungkinkan untuk menulis kode seperti pada pemrograman
+generik, walau sedikit kurang mulus.
+
+Topik generik ini tetap dibuka.
+Untuk melihat percobaan yang gagal merancang solusi generik yang bagus pada
+Go, lihat
+https://golang.org/issue/15292[proposal ini].
+
+//}}}
+
+[#exceptions]
+===  Kenapa Go tidak memiliki eksepsi (_exception_)?
+//{{{
+
+Kami percaya bahwa mengikutkan eksepsi pada sebuah struktur kontrol, seperti
+idiom `try-catch-finally`, menghasilkan kode yang kusut.
+Ia juga mendorong pemrogram untuk terlalu banyak melabeli eror yang biasa,
+seperti gagal membuka berkas, sebagai sebuah eksepsi.
+
+Go menggunakan pendekatan yang berbeda.
+Untuk penanganan eror biasa, kembalian dengan multi nilai pada Go membuatnya
+mudah untuk melaporkan kesalahan tanpa membebani nilai kembalian.
+https://golang.org/doc/articles/error_handling.html[Tipe error kanonis
+digabungkan dengan fitur Go lainnya],
+membuat penanganan eror mudah namun cukup berbeda dengan bahasa lainnya.
+
+Go juga memiliki beberapa fungsi bawaan untuk memberi sinyal dan pemulihan
+dari kondisi yang benar-benar eksepsi.
+Mekanisme pemulihan dieksekusi sebagai bagian dari fungsi, yang cukup untuk
+menangani _bencana_ dan tidak membutuhkan struktur kontrol tambahan dan,
+bila digunakan dengan baik, bisa menghasilkan sebuah kode penanganan eror yang
+bersih.
+
+Lihat artikel
+https://golang.org/doc/articles/defer_panic_recover.html[Defer Panic dan
+Recover (bahasa Inggris)]
+untuk lebih rinci.
+Blog tentang
+https://blog.golang.org/errors-are-values[Eror adalah nilai (bahasa Inggris)]
+menjelaskan salah satu pendekatan untuk menangani eror dengan bersih pada Go
+dengan mendemonstrasikan bahwa, secara eror hanyalah nilai, fitur-fitur yang
+ada dapat digunakan untuk menangani eror.
+
+//}}}
+
+[#assertions]
+===  Kenapa Go tidak memiliki fungsi _assert_?
+//{{{
+
+Go tidak menyediakan fungsi untuk _assert_.
+Memang fungsi tersebut cukup masuk akal, tapi berdasarkan pengalaman kami
+pemrogram menggunakannya sebagai pembantu untuk menghindari berpikir
+tentang penanganan dan pelaporan eror yang lebih baik.
+Penanganan eror yang baik artinya _server_ seharusnya terus beroperasi bukan
+berhenti setelah eror yang non fatal terjadi.
+Pelaporan error yang baik artinya eror jelas dan langsung keintinya,
+menghindari pemrogram dari menginterpretasikan hasil _crash_ dari program yang
+besar.
+Eror yang presisi sangat penting bila pemrogram melihat eror yang tidak lazim
+dalam program mereka.
+
+Kami paham bahwa hal ini adalah sesuatu yang sering diperdebatkan.
+Ada banyak hal dalam pustaka dan bahasa Go yang berbeda dengan praktik
+modern, alasannya sederhana, karena kami merasa terkadang pantas mencoba
+pendekatan yang berbeda.
+
+//}}}
+
+[#csp]
+===  Kenapa membuat konkurensi berdasarkan ide dari CSP?
+//{{{
+
+Pemrograman multi _threading_ dan konkurensi selama ini memiliki reputasi
+sebagai sesuatu yang rumit.
+Kami percaya hal ini disebabkan karena rancangan yang kompleks seperti
+https://en.wikipedia.org/wiki/POSIX_Threads[pthreads]
+dan sebagian karena terlalu menekankan rincian level-bawah seperti _mutex_,
+variabel kondisi, dan pembatasan _memory_.
+Antarmuka yang lebih tinggi membuat kode lebih sederhana, walaupun tetap masih
+ada _mutex_ dan lainnya di belakangnya.
+
+Salah satu model yang paling sukses dalam mendukung linguistik tingkat-tinggi
+untuk konkurensi datang dari _Communicating Sequential Process_, atau CSP,
+dari Hoare.
+Occam dan Erlang adalah dua dari bahasa terkenal yang mengimplementasikan CSP.
+Konkurensi primitif dari Go diturunkan dari bagian pohon keluarga yang berbeda
+(dari Occam dan Erlang) yang kontribusi utamanya yaitu _channel_ sebagai
+objek kelas satu.
+Pengalaman dengan bahasa-bahasa sebelumnya telah memperlihatkan bahwa model
+CSP sesuai dengan kerangka bahasa pemrograman prosedural.
+
+//}}}
+
+[#goroutines]
+===  Kenapa goroutine bukannya _thread_?
+//{{{
+
+Goroutine adalah bagian yang membuat konkurensi mudah digunakan.
+Idenya, yang mana telah ada sebelumnya, adalah dengan melakukan multipleks
+saat mengeksekusi fungsi secara independen--coroutine--ke dalam kumpulan
+_thread_.
+Saat sebuah coroutine diblok, seperti saat melakukan pemanggilan ke sistem,
+_runtime_ secara otomatis memindahkan coroutine yang lain dalam _thread_ yang
+sama ke _thread_ yang berbeda yang dapat berjalan sehingga ia tidak ikut
+terblok.
+Programmer tidak melihat hal ini, itu intinya.
+Hasilnya, yang kita sebut goroutine, bisa sangat murah: mereka memiliki
+sedikit pengeluaran tambahan selain _memory_ untuk _stack_, yaitu beberapa
+kilobyte.
+
+Untuk membuat supaya _stack_ -nya kecil, _runtime_ Go menggunakan _stack_ yang
+terbatas dan bisa berubah ukuran.
+Goroutine yang baru dibuat diberikan beberapa kilobyte, yang biasanya cukup.
+Bila tidak, _runtime_ memperbesar (atau mengecilkan) _memory_ untuk menyimpan
+_stack_ secara otomatis, membolehkan banyak goroutine untuk berjalan di dalam
+sejumlah _memory_ yang berukuran sedang.
+Ongkos pada CPU rata-rata sekitar tiga instruksi per pemanggilan fungsi.
+Cukup praktis untuk membuat ratusan ribu goroutine dalam ruang alamat yang
+sama.
+Jika goroutine adalah _thread_, sumber daya sistem akan habis dengan jumlah
+(_routine_) yang lebih sedikit.
+
+//}}}
+
+[#atomic_maps]
+===  Kenapa operasi map tidak _atomic_?
+//{{{
+
+Setelah diskusi yang lama diputuskan bahwa penggunaan umum dari _map_
+dari beberapa goroutine tidak membutuhkan akses yang aman, dan pada kasus
+yang membutuhkan akses yang aman, _map_ kemungkinan adalah bagian dari sebuah
+struktur data atau komputasi yang besar yang telah disinkronisasi.
+Oleh karena itu mengharuskan semua operasi _map_ menggunakan sebuah _mutex_
+akan memperlambat hampir semua program dan hanya mengamankan beberapa program
+saja.
+Hal ini bukanlah keputusan yang mudah, akan tetapi, akses terhadap _map_ yang
+tidak dikontrol dapat membuat program _crash_.
+
+Bahasa Go sendiri tidak menghalangi pembaruan pada _map_ yang _atomic_.
+Bila dibutuhkan, seperti saat menjalankan program yang tidak dipercaya,
+implementasi bisa saja saling mengunci akses map.
+
+Akses _map_ akan tidak aman bila pembaruan terjadi.
+Selama semua goroutine hanya membaca--melihat elemen dalam map, termasuk
+iterasi menggunakan pengulangan `for range`--dan tidak mengubah _map_ dengan
+menempatkan elemen baru atau menghapusnya, maka akan aman untuk mengakses
+mereka secara konkuran tanpa sinkronisasi.
+
+Untuk membantu penggunaan _map_ yang benar, beberapa implementasi bahasa
+memiliki pemeriksaan khusus yang secara otomatis melaporkan pada saat
+_runtime_ bila sebuah _map_ diubah secara tidak aman oleh eksekusi yang
+konkuren.
+
+//}}}
+
+[#language_changes]
+===  Apakah anda akan menerima perubahan bahasa dari saya?
+//{{{
+
+Orang terkadang menyarankan perbaikan terhadap
+bahasa
+--
+https://groups.google.com/group/golang-nuts[milis]
+banyak berisi sejarah diskusi ini--namun sangat sedikit dari perubahan
+tersebut yang diterima.
+
+Walaupun Go adalah proyek sumber terbuka, bahasa dan pustakanya dilindungi
+oleh
+https://golang.org/doc/go1compat.html[perjanjian kompatibilitas]
+yang mencegah perubahan yang dapat membuat program tidak dapat di- _compile_,
+setidaknya pada tingkat sumber kode (program mungkin harus di _compile_ ulang
+sewaktu-waktu).
+Jika proposal anda melanggar spesifikasi Go 1 kita tidak dapat menerima ide
+anda, terlepas dari kelebihannya.
+Rilis mayor selanjutnya dari Go bisa saja tidak kompatibel dengan Go 1, namun
+diskusi tentang topik tersebut baru saja dimulai dan satu hal yang pasti:
+hanya ada sedikit ketaksesuaian yang diperkenalkan dalam proses tersebut.
+Lebih lanjut lagi, perjanjian kompatibilitas mendorong kita untuk menyediakan
+sebuah cara otomatis kedepannya supaya program-program yang lama dapat
+beradaptasi jika situasi tersebut muncul.
+
+Bahkan jika proposal anda kompatibel dengan spesifikasi Go 1, ia mungkin tidak
+sesuai dengan jiwa dari sasaran rancangan Go.
+Artikel
+{talks-go-at-google}[Go di Google]
+menjelaskan asal mula Go dan motivasi dibalik rancangannya.
+
+//}}}
+
+[#types]
+==  Tipe
+
+[#Is_Go_an_object-oriented_language]
+===  Apakah Go bahasa berorientasi-objek?
+//{{{
+
+Ya dan tidak.
+Walaupun Go memiliki tipe dan _method_ dan membolehkan pemrograman bergaya
+orientasi-objek, Go tidak memiliki hirarki tipe.
+Konsep "interface" dalam Go menyediakan pendekatan berbeda yang kami percaya
+lebih mudah digunakan dan dalam beberapa hal lebih umum.
+Ada cara untuk menanam tipe ke dalam tipe lain untuk membentuk analogi yang
+sama--tapi tidak identik--dengan _subclass_.
+_Method_ dalam Go lebih umum daripada C++ atau Java: mereka dapat
+didefinisikan untuk data apapun, bahkan tipe bawaan seperti integer.
+_Method_ tidak hanya terbatas pada _struct_ (_class_).
+
+Selain itu, dengan tidak adanya hirarki tipe membuat "objek" dalam Go lebih
+ringan daripada bahasa seperti C++ atau Java.
+
+//}}}
+
+[#How_do_I_get_dynamic_dispatch_of_methods]
+===  Bagaimana cara mengirim _method_ secara dinamis?
+//{{{
+
+Satu-satunya cara untuk mengirim _method_ secara dinamis adalah lewat
+_interface_.
+_Method_ pada _struct_ atau tipe konkrit lainnya selalu dikonversi secara
+statis.
+
+//}}}
+
+[#inheritance]
+===  Kenapa tidak ada tipe turunan?
+//{{{
+
+Pemrograman berorientasi-objek, setidaknya pada bahasa-bahasa yang terkenal,
+selalu mendiskusikan hubungan antara tipe, hubungan yang sering kali bisa
+diturunkan secara otomatis.
+Go mengambil pendekatan berbeda.
+
+Pemrogram tidak perlu mendeklarasikan bahwa dua tipe saling berelasi,
+melainkan dalam Go sebuah tipe otomatis memenuhi _interface_ apapun yang
+menspesifikasikan sub bagian dari _method_ nya.
+Selain mengurangi pencatatan, pendekatan ini memiliki kelebihan.
+Tipe dapat memenuhi banyak _interface_, tanpa adanya kompleksitas dari
+multipel turunan tradisional.
+Interface bisa sangat ringan--sebuah _interface_ dengan satu atau bahkan tanpa
+_method_ dapat mengekspresikan konsep yang berguna.
+_Interface_ dapat ditambahkan setelah sebuah ide baru muncul atau untuk
+pengujian--tanpa mempengaruhi tipe asilnya.
+Karena tidak adanya relasi eksplisit antara tipe dan _interface_, maka tidak
+ada hirarki tipe yang harus diatur atau didiskusikan.
+
+Ide ini bisa digunakan untuk membentuk sebuah analogi dari Unix _pipe_.
+Misalnya, lihat bagaimana `fmt.Fprintf` membolehkan pencetakan berformat ke
+keluaran apapun, tidak hanya berkas, atau bagaimana paket `bufio` dapat
+terpisah sepenuhnya dari berkas I/O, atau bagaimana paket `image`
+membangkitkan berkas gambar yang terkompres.
+Semua ide-ide ini datang dari sebuah _interface_ (`io.Writer`) yang
+merepresentasikan sebuah _method_ (`Write`).
+Dan kita baru hanya menyentuh bagian luar dari _interface_.
+_Interface_ pada Go memiliki pengaruh yang kuat tentang bagaimana sebuah
+program dibangun.
+
+Butuh beberapa waktu untuk terbiasa namun dengan model dependensi tipe seperti
+ini adalah salah satu hal yang produktif dari Go.
+
+//}}}
