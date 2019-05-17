@@ -1,0 +1,49 @@
+=  Wicara
+:stylesheet: /assets/style.css
+:toc:
+
+==  [GoJKT] Implementasi MapReduce
+
++++
+<iframe width="560" height="315"
+	src="https://www.youtube.com/embed/ugn922zxTck"
+	frameborder="0"
+	allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+	allowfullscreen>
+</iframe>
++++
+
+Video dari @imrenagi di _meetup_ GoJKT tentang implementasi kerangka
+_MapReduce_ dengan menggunakan bahasa Go.
+
+
+==  Pengenalan _Test Driven Development_ (TDD) Dengan Go (bagian 1)
+
++++
+<iframe
+	width="560"
+	height="315"
+	src="https://www.youtube.com/embed/spbUc-Cj5Mc"
+	frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+	allowfullscreen>
+</iframe>
++++
+
+Video ini membahas tentang pengenalan konsep TDD termasuk definisi dan siklus
+TDD.
+
+
+==  Pengenalan _Test Driven Development_ (TDD) Dengan Go (bagian 2)
+
++++
+<iframe width="560" height="315"
+	src="https://www.youtube.com/embed/c522zUTZoiQ"
+	frameborder="0"
+	allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+	allowfullscreen>
+</iframe>
++++
+
+Video ini mendemonstrasikan proses pengembangan aplikasi piranti lunak dengan
+menggunakan TDD.
+Kasus yang digunakan adalah implementasi struktur data tumpukan (_stack_).

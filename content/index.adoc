@@ -15,6 +15,12 @@ Untuk mengetahui cara memasang bahasa Go di sistem operasi anda dan belajar
 lebih lanjut, silahkan buka halaman link:/doc[dokumentasi].
 
 
+==  link:/wicara[Wicara]
+
+Halaman ini berisi _podcast_ dan video tentang Go yang dibawakan oleh
+komunitas Go Indonesia.
+
+
 ==  Bantuan
 
 ===  {golang-id-milis}[Milis Go Indonesia]
