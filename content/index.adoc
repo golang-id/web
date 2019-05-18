@@ -21,6 +21,20 @@ Halaman ini berisi _podcast_ dan video tentang Go yang dibawakan oleh
 komunitas Go Indonesia.
 
 
+==  Acara
+
+===  https://www.meetup.com/GoJakarta/[Jakarta,window=_blank]
+
+Bagi komunitas Go yang berdomisili di kota Jakarta dan sekitarnya, bisa ikuti
+dan pantau acara pertemuan komunitas Go Jakarta selanjutnya yang cukup rutin
+diadakan.
+
+===  https://www.meetup.com/GO-BDG/[Bandung]
+
+Bagi komunitas Go yang berdomisili di kota Bandung dan sekitarnya, bisa
+ikuti dan pantau acara pertemuan komunitas Go Bandung selanjutnya.
+
+
 ==  Bantuan
 
 ===  {golang-id-milis}[Milis Go Indonesia]
