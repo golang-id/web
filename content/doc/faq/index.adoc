@@ -1058,3 +1058,643 @@ Dalam Go lebih wajar untuk memiliki pemisahan yang jelas antara _interface_
 dan implementasinya.
 
 //}}}
+
+[#values]
+==  Nilai
+
+[#conversions]
+===  Kenapa Go tidak menyediakan konversi numerik implisit?
+//{{{
+
+Kenyamanan dari konversi otomatis antara tipe numerik dalam C lebih dirugikan
+oleh kebingungan yang disebabkannya.
+Kapan sebuah ekspresi menjadi _unsigned_?
+Berapa besar nilainya?
+Apakah nilainya _overflow_?
+Apakah hasilnya portabel, independen terhadap mesin dimana program dieksekusi?
+Ia juga memperuit _compiler_;
+"konversi aritmatika biasa" tidaklah mudah diimplementasikan dan tidak
+konsisten antara arsitektur (mesin).
+Dengan alasan portabilitas, kami memutuskan untuk membuat konversi lebih jelas
+dan lugas dengan biaya beberapa konversi eksplisit dalam kode.
+Definisi dari konstanta dalam Go--nilai presisi acak bebas dari notasi ukuran
+dan _signed_--memperbaiki banyak hal.
+
+Rincian yang berhubungan dengan ini adalah, tidak seperti C, `int` dan `int64`
+adalah tipe yang berbeda walaupun jika `int` bertipe 64-bit.
+Tipe `int` adalah generik;
+jika anda ingin tahu berapa bits dalam sebuah integer, Go menyarankan kita
+untuk eksplisit.
+
+//}}}
+
+[#constants]
+===  Bagaimana konstanta bekerja dalam Go?
+//{{{
+
+Walaupun Go ketat dalam konversi antara variabel dari tipe numerik yang
+berbeda, kontansta lebih fleksibel.
+Konstanta harfiah seperti `23`, `3.14159`, dan
+https://golang.org/pkg/math/#pkg-constants[math.Pi]
+menggunakan ruang yang sama, dengan presisi yang berubah dan tanpa _overflow_
+atau _underflow_.
+Misalnya, nilai `math.Pi` dispesifikasikan memakai 63 bit dalam sumber kode,
+dan ekspresi konstanta yang mengikutkan nilai tersebut menjaga presisi tetap
+sesuai dengan batas maksimum yang dapat disimpan dalam `float64`.
+Hanya pada saat konstanta atau ekspresi konstanta diberikan ke sebuah
+variabel--sebuah lokasi _memory_ dalam program--ia menjadi sebuah angka
+"komputer" dengan properti dan presisi nilai _float_.
+
+Secara mereka adalah angka, bukan nilai bertipe, konstanta dalam Go dapat
+digunakan lebih bebas daripada variabel, sehingga meringankan beberapa
+kecanggungan antar aturan-aturan konversi yang baku.
+Kita dapat menulis ekspresi berikut
+
+----
+sqrt2 := math.Sqrt(2)
+----
+
+tanpa ada keluhan dari _compiler_ karena angka `2` bisa dikonversi secara aman
+dan akurat ke `float64` untuk pemanggilan `math.Sqrt`.
+
+Sebuah blog berjudul
+https://blog.golang.org/constants[Konstanta (Inggris)]
+mengeksplorasi topik ini lebih rinci.
+
+//}}}
+
+[#builtin_maps]
+===  Kenapa map merupakan tipe bawaan?
+//{{{
+
+Dengan alasan yang sama seperti `string`: karena map adalah struktur data yang
+penting dan kuat sehingga dengan menyediakan implementasi yang istimewa dengan
+dukungan sintaktis membuat pemrograman lebih menyenangkan.
+Kami percaya implementasi map pada Go cukup kuat sehingga ia dapat digunakan
+untuk hampir semua kasus.
+Jika aplikasi tertentu lebih menguntungkan dari implementasi kostum, maka
+memungkinan untuk membuatnya namun tidak akan lebih nyaman secara sintaks;
+hal ini pengorbanan masuk akal.
+
+//}}}
+
+[#map_keys]
+===  Kenapa map tidak membolehkan slice sebagai key?
+//{{{
+
+Pencarian key pada map membutuhkan operator ekualitas, yang mana tidak
+diimplementasikan pada slice.
+Slice tidak memiliki ekualitas karena ekualitas tidak terdefinisi dengan baik
+pada tipe tersebut;
+ada beberapa pertimbangan yang mengikutkan perbandingan _shallow_ dan _deep_,
+perbandingan pointer vs. nilai, bagaimana berurusan dengan tipe rekursif, dan
+lainnya.
+Kami mungkin akan menelaah kembali isu ini--dan mengimplementasikan ekualitas
+pada slice tidak akan merubah program yang sudah ada--namun tanpa adanya ide
+yang jelas tentang apa itu ekualitas pada slice, maka lebih mudah untuk
+mengindahkannya untuk saat sekarang.
+
+Pada Go 1, tidak seperti rilis sebelumnya, ekualitas didefinisikan untuk
+`struct` dan _array_, sehingga tipe tersebut dapat digunakan sebagai key dari
+map.
+Slice masih belum memiliki definisi tentang ekualitas.
+
+//}}}
+
+[#references]
+===  Kenapa map, slice, dan channel menggunakan referensi sementara array dengan nilai?
+//{{{
+
+Sejarah mengenai topik ini cukup panjang.
+Pada awalnya, map dan channel secara sintaks adalah pointer dan memungkinan
+untuk mendeklarasikan atau menggunakan instansi yang bukan pointer (pada map
+dan channel).
+Dan juga, kami agak susah dengan mendefinisikan bagaimana _array_ seharusnya
+bekerja dalam Go.
+Akhirnya kami memutuskan bahwa pemisahan yang baku antara pointer dan nilai
+membuat bahasa sulit untuk digunakan.
+Mengubah tipe tersebut untuk bersifat referensi terhadap asosiasi, struktur
+data berbagi, mengatasi masalah tersebut.
+Perubahan ini menambah kompleksitas yang disesalkan pada bahasa namun memiliki
+efek yang besar pada kebergunaan:  Go menjadi lebih produktif, bahasa yang
+nyaman saat dikenalkan ke dunia luar.
+
+//}}}
+
+[#Writing_Code]
+==  Menulis Kode
+
+[#How_are_libraries_documented]
+===  Bagaimana pustaka didokumentasikan?
+//{{{
+
+Sebuah program, `godoc`, ditulis dengan Go, mengekstrak dokumentasi paket dari
+sumber kode dan membuatnya dapat dibukan dalam sebuah halaman web dengan
+tautan ke deklarasi, berkas, dan lainnya.
+Salah satu instansinya berjalan di
+https://golang.org/pkg/[golang.org/pkg].
+Pada kenyataannya, `godoc` mengimplementasikan keseluruhan situs
+https://golang.org/[golang.org].
+
+Instansi dari `godoc` bisa dikonfigurasi untuk menyediakan analisis interaktif
+yang kaya dari simbol dalam program;
+rinciannya ada dalam daftar
+https://golang.org/lib/godoc/analysis/help.html[berikut].
+
+Untuk mengakses dokumentasi dari baris perintah, perkakas
+https://golang.org/pkg/cmd/go/[go]
+memiliki sub-perintah
+https://golang.org/pkg/cmd/go/#hdr-Show_documentation_for_package_or_symbol[doc]
+yang menyediakan antarmuka tekstual dari informasi yang sama.
+
+//}}}
+
+[#Is_there_a_Go_programming_style_guide]
+===  Apakah ada panduan gaya pemrograman Go?
+//{{{
+
+Tidak ada aturan gaya yang eksplisit, meskipun ada beberapa "Gaya Go" yang
+cukup dikenal.
+
+Go telah menetapkan konvensi untuk membantu melakukan penamaan, susunan, dan
+pengorganisasian berkas.
+Dokumentasi
+link:/doc/effective_go.html[Efektif Go]
+memiliki beberapa saran mengenai topik ini.
+Lebih lanjut, program `gofmt` bertujuan untuk mencetak sumber kode dengan
+aturan-aturan yang baku;
+ia menggantikan aturan tertulis yang memboleh interpretasi.
+Semua kode Go dalam repositori, dan hampir mayoritas dalam dunia _open
+source_, telah dijalankan lewat `gofmt`.
+
+Dokumen berjudul
+https://golang.org/s/comments[Komentar Pemeriksaan Kode Go]
+berisi kumpulan esai ringkas tentang rincian idiom dari Go yang terkadang
+luput oleh para pemrogram.
+Dokumen tersebut adalah referensi yang membantu bagi yang ingin memeriksa kode
+untuk proyek Go.
+
+//}}}
+
+[#How_do_I_submit_patches_to_the_Go_libraries]
+===  Bagaimana cara mengirim _patch_ untuk pustaka Go?
+//{{{
+
+Sumber pustaka ada di dalam direktori `src` dari repositori.
+Jika anda ingin membuat perubahan yang signifikan, mohon diskusikan terlebih
+dahulu di milis sebelum memulai.
+
+Lihat dokumentasi
+https://golang.org/doc/contribute.html[Berkontribusi pada proyek Go]
+untuk informasi lebih lanjut.
+
+//}}}
+
+[#git_https]
+===  Kenapa "go get" menggunakan HTTPS saat menyalin repositori?
+//{{{
+
+Perusahaan terkadang hanya membolehkan trafik TCP keluar pada port standar 80
+(HTTP) dan 443 (HTTPS), dan memblok trafik lainnya, termasuk port 9418 pada
+TCP (git) dan port TCP 22 (SSH).
+Bila menggunakan HTTPS, `git` mengharuskan validasi sertifikat, menyediakan
+perlindungan terhadap _man in the middle_, penyadapan, dan perusakan.
+Perintah `go get` oleh karena itu menggunakan HTTPS untuk keamanan.
+
+`Git` bisa dikonfigurasi untuk melakukan otentikasi lewat HTTP atau
+menggunakan SSH.
+Untuk otentikasi lewat HTTP, kita bisa menambahkan baris berikut dalam berkas
+`$HOME/.netrc` yang akan dibaca oleh `git`:
+
+----
+machine github.com login _USERNAME_ password _APIKEY_
+----
+
+Untuk akun Github, kata kunci (_password_) bisa berupa
+https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/[token
+akses personal].
+
+`Git` juga bisa dikonfigurasi menggunakan SSH bukan HTTPS untuk URL yang cocok
+dengan prefiks tertentu.
+Misalnya, untuk menggunakan SSH untuk semua akses ke Github, tambahkan baris
+berikut ke `~/.gitconfig`:
+
+----
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+----
+
+//}}}
+
+[#get_version]
+===  Bagaimana cara mengatur versi paket menggunakan "go get"?
+//{{{
+
+Sejak awal proyek, Go tidak memiliki konsep versi paket, namun hal ini
+berubah.
+_Versioning_ (paket dengan versi) adalah sebuah kompleksitas yang signifikan,
+terutama dalam basis kode yang besar, dan butuh waktu yang cukup lama untuk
+mengembangkan sebuah pendekatan yang bekerja dalam skala yang cukup besar
+untuk beragam situasi yang cocok bagi semua pengguna Go.
+
+Rilis Go 1.11 menyediakan dukungan eksperimental untuk paket dengan versi
+terhadap perintah `go`, dalam bentuk modul.
+Untuk informasi lebih lanjut, lihat
+https://golang.org/doc/go1.11#modules[catatan rilis Go 1.11]
+dan
+https://golang.org/cmd/go#hdr-Modules__module_versions__and_more[dokumentasi
+perintah go].
+
+Bagaimanapun teknologi manajemen paketnya, "go get" dan perkakas Go lainnya
+menyediakan isolasi paket dengan path import yang berbeda.
+Misalnya, pustaka standar `html/template` dan `text/template` hidup
+berdampingan walaupun keduanya adalah "paket untuk template".
+Hal ini mengarah pada beberapa anjuran untuk penulis paket dan pengguna paket.
+
+Paket yang ditujukan untuk digunakan secara umum sebaiknya mencoba untuk
+menjaga kompatibilitas selama berkembang.
+https://golang.org/doc/go1compat.html[pedoman kompatibilitas Go 1] adalah
+sebuah referensi yang baik: jangan menghapus nama-nama yang diekspor,
+menganjurkan komposit dengan tag, dan lainnya.
+Jika fungsionalitas berbeda dibutuhkan, tambahkan nama baru bukan dengan
+mengubah nama yang sudah ada.
+Jika perubahan besar benar-benar tidak dapat dielakan, buatlah paket baru
+dengan path impor yang baru.
+
+Jika menggunakan paket luar dan khawatir ia akan berubah secara tidak terduga,
+namun belum menggunakan Go module, solusi termudah yaitu menyalinnya ke dalam
+repositori anda.
+Pendekatan ini digunakan oleh Google secara internal dan didukung oleh
+perkakas `go` lewat sebuah teknik yang disebut "vendoring".
+Hal ini mengikutkan penyimpanan semua salinan dependensi dibawah path import
+yang mengidentifikasi mereka sebagai salinan lokal.
+Lihat
+https://golang.org/s/go15vendor[dokumen rancangan] untuk lebih rinci.
+
+//}}}
+
+[#Pointers]
+==  Pointer dan Alokasi
+
+[#pass_by_value]
+===  Kapan parameter fungsi dikirim dengan nilai?
+//{{{
+
+Semua parameter pada fungsi dikirim dengan nilai pada Go.
+Fungsi selalu menerima salinan dari apa yang dikirim.
+Misalnya, mengirim nilai `int` ke sebuah fungsi membuat salinan dari `int`,
+dan mengirim nilai pointer membuat salinan dari pointer, tapi tidak menyalin
+data yang diacu.
+(Lihat
+<<methods_on_values_or_pointers, bagian selanjutnya>>
+untuk diskusi bagaimana hal ini mempengaruhi penerima _method_.)
+
+Nilai map dan slice memiliki perilaku yang sama dengan pointer: mereka adalah
+struktur data yang mengandung pointer ke bagian dalam data map dan slice.
+Mengirim sebuah nilai map atau slice tidak akan menyalin data yang diacunya.
+Mengirim nilai _interface_ membuat salinan dari apa yang disimpan dalam nilai
+_interface_.
+Jika nilai _interface_ menyimpan sebuah struct, mengirim nilai _interface_
+akan membuat salinan dari struct.
+Jika _interface_ menyimpan pointer, mengirim nilai _interface_ berarti membuat
+salinan dari pointer, namun sekali lagi tidak membuat salinan dari data yang
+diacu.
+
+Ingatlah bahwa diskusi ini lebih kepada semantik dari operasi.
+Implementasi sebenarnya bisa saja memiliki optimisasi untuk menghindari
+penyalinan selama optimisasi tersebut tidak merubah semantik.
+
+//}}}
+
+[#pointer_to_interface]
+===  Kapan sebaiknya menggunakan pointer ke interface?
+//{{{
+
+Hampir tidak pernah.
+Pointer ke nilai _interface_ muncul hanya pada situasi yang rumit dan unik
+yang mengikutkan penyembunyian tipe nilai _interface_ untuk evaluasi yang
+ditunda.
+
+Kesalahan yang sering terjadi yaitu mengirim pointer ke sebuah nilai
+_interface_ terhadap fungsi yang mengharapkan sebuah _interface_.
+_compiler_ akan melaporkan kesalahan ini, namun situasi ini terkadang juga
+membingungkan, karena terkadang
+https://golang.org/doc/faq#different_method_sets[pointer diperlukan untuk
+memenuhi sebuah interface].
+Intinya adalah pointer ke tipe kongkret akan memenuhi sebuah _interface_,
+namun pointer ke sebuah _interface_ tidak akan pernah memenuhi _interface_.
+
+Misalnya deklarasi variabel berikut,
+
+----
+var w io.Writer
+----
+
+Fungsi pencetakan `fmt.Fprintf` menerima argumen pertama yang memenuhi
+`io.Writer`--apapun yang mengimplementasikan method `Write`.
+Maka kita dapat menulis
+
+----
+fmt.Fprintf(w, "hello, world\n")
+----
+
+Jika kita mengirim alamat dari `w`, program tidak akan bisa di- _compile_.
+
+----
+fmt.Fprintf(&w, "hello, world\n") // Compile-time error.
+----
+
+Satu-satunya pengecualian yaitu nilai apapun, bahkan sebuah pointer ke
+_interface_, dapat ditempatkan ke sebuah variabel bertipe interface kosong
+(`interface{}`).
+Namun demikian, sudah pasti sebuah kesalahan bila nilainya adalah pointer ke
+_interface_;
+hasilnya bisa membingungkan.
+
+//}}}
+
+[#methods_on_values_or_pointers]
+===  Apakah method sebaiknya didefinisikan dengan nilai atau pointer?
+//{{{
+
+----
+func (s *MyStruct) pointerMethod() { } // method dengan pointer
+func (s MyStruct)  valueMethod()   { } // method dengan nilai
+----
+
+Bagi pemrogram yang tidak terbiasa dengan pointer, perbedaan antara kedua
+contoh di atas bisa membingungkan, tapi sebenarnya situasinya cukup sederhana.
+Saat mendefinisikan method pada sebuah tipe, penerima (`s` pada contoh di
+atas) berlaku  seperti sebuah argumen terhadap _method_.
+
+----
+func pointerMethod(s *MyStruct) { } // ilustrasi method dengan pointer
+func valueMethod(s MyStruct)   { }  // ilustrasi method dengan nilai
+----
+
+Apakah sebaiknya mendefinisikan penerima dalam bentuk nilai atau pointer
+adalah pertanyaan yang sama dengan apakah sebuah argumen dari fungsi sebaiknya
+dengan nilai atau pointer.
+Ada beberapa pertimbangan di sini.
+
+Pertama, dan yang paling penting, apakah method butuh mengubah penerimanya?
+Jika iya, si penerima _harus_ berupa pointer.
+(Slice dan map berlaku sebagai referensi, perilakunya sedikit berbeda,
+misalnya untuk mengubah panjang dari sebuah slice dalam sebuah method, si
+penerima harus berupa pointer.)
+Pada contoh di atas, jika `pointerMethod` mengubah _field_ dari `s`, pemanggil
+akan melihat perubahannya, namun `valueMethod` dipanggil dengan salinan dari
+argumen pemanggil (ini adalah definisi dari pengiriman dengan nilai), sehingga
+perubahan yang terjadi tidak terlihat bagi pemanggil.
+
+Penerima method pada Java selalu pointer, walaupun bentuk pointer-nya
+disamarkan (dan sekarang ada proposal untuk menambahkan penerima dengan nilai
+ke bahasa Java).
+Penerima dengan nilai-lah sebenarnya yang tidak umum di Go.
+
+Yang kedua yaitu pertimbangan efisiensi.
+Jika struktur data si penerima cukup besar, akan lebih efisien bila
+menggunakan pointer sebagai penerima.
+
+Selanjutnya yaitu konsistensi.
+Jika beberapa penerima method dari tipe harus berupa pointer, sisanya juga
+sebaiknya sama, sehingga kumpulan method dari tipe tersebut konsisten walau
+bagaimanapun tipe tersebut digunakan.
+Lihat bagian
+<<different_method_sets,kumpulan method>>
+untuk lebih rinci.
+
+Untuk tipe dasar, slice, dan `struct` yang kecil, penerima dengan nilai
+sangatlah murah, jadi bila semantik dari method membutuhkan pointer,
+penerima dengan nilai bisa efisien dan lebih jelas.
+
+//}}}
+
+[#new_and_make]
+===  Apakah perbedaan antara new dan make?
+//{{{
+
+Singkat kata: `new` mengalokasikan _memory_, sementara `make` menginisialisasi
+tipe slice, map, dan channel.
+
+Lihat
+link:/doc/effective_go.html#allocation_new[bagian terkait pada Efektif Go]
+untuk lebih rincinya.
+
+//}}}
+
+[#q_int_sizes]
+===  Berapakah ukuran `int` pada mesin 64-bit?
+//{{{
+
+Ukuran dari `int` dan `uint` spesifik pada implementasi namun ukurannya sama
+pada semua _platform_.
+Demi portabilitas, kode yang bergantung pada ukuran nilai tertentu sebaiknya
+menggunakan ukuran tipe yang eksplisit, seperti `int64`.
+Pada mesin 32-bit, _compiler_ menggunakan 32-bit integer secara bawaan,
+sementara pada mesin 64-bit, integer memiliki ukuran 64-bit.
+(Dalam sejara bahasa pemrograman, hal ini tidak selalu benar.)
+
+Di lain sisi, tipe skalar _floating point_ dan _complex_ selalu memiliki
+ukuran (tidak ada tipe dasar `float` atau `complex`), karena pemrogram
+seharusnya memperhatikan presisi saat menggunakan bilangan _floating point_.
+Tipe standar untuk konstanta _floating point_ (tanpa tipe) adalah `float64`.
+Maka `foo := 3.0` mendeklarasikan sebuah variabel `foo` bertipe `float64`.
+Untuk variabel bertipe `float32` yang diinisialisasi dengan konstanta, tipe
+variabel haruslah dispesifikasikan saat deklarasi:
+
+----
+var foo float32 = 3.0
+----
+
+Cara lain, yaitu mendeklarasikan kontanta tersebut menggunakan konversi tipe
+seperti berikut `foo := float32(3.0)`.
+
+//}}}
+
+[#stack_or_heap]
+===  Bagaimana mengetahui variabel dideklarasikan dalam _heap_ atau _stack_?
+//{{{
+
+Dari sisi penggunaan, anda tidak perlu tahu.
+Setiap variabel di Go akan disimpan selama ada yang mengacunya.
+Lokasi penyimpanan yang dipilih oleh implementasi tidak relevan dengan
+semantik dari bahasa.
+
+Lokasi penyimpanan memang berpengaruh pada efisiensi program.
+Bila memungkinkan, Go _compiler_ akan mengalokasikan variabel lokal dari fungsi
+dalam _stack frame_ dari fungsi tersebut.
+Namun, jika _compiler_ tidak dapat membuktikan bahwa variabel tersebut tidak
+diacu setelah fungsi selesai, maka _compiler_ akan mengalokasikan variabel
+dalam _heap_ (_garbage collected_) untuk menghindari adanya kesalahan pointer.
+Jika variabel lokal sangat besar, maka akan lebih masuk akal bila disimpan
+dalam _heap_ bukan dalam _stack_.
+
+Pada Go _compiler_ saat ini, jika sebuah variabel diambil alamatnya, variabel
+tersebut merupakan kandidat untuk alokasi dalam _heap_.
+Namun, analisis pelepasan (_analytic escape_) dasar mengenali beberapa kasus
+saat variabel seperti
+itu tidak akan hidup sampai fungsi selesai sehingga dapat disimpan dalam
+_stack_.
+
+//}}}
+
+[#Why_does_my_Go_process_use_so_much_virtual_memory]
+===  Kenapa proses Go menggunakan _virtual memory_ yang besar?
+//{{{
+
+Pengalokasi _memory_ pada Go memesan sejumlah besar wilayah _virtual memory_
+sebagai arena alokasi.
+_Virtual memory_ ini adalah lokal terhadap proses Go tertentu;
+pemesanan ini tidak menghilangkan _memory_ pada proses yang lain.
+
+Untuk mengetahui alokasi _memory_ sebenarnya dari sebuah proses Go, gunakan
+perintah `top` pada Unix dan perhatikan kolom `RES` (Linux) atau `RSIZE`
+(macOS).
+
+//}}}
+
+
+[#Concurrency]
+==  Konkurensi
+
+[#What_operations_are_atomic_What_about_mutexes]
+===  Operasi apa saja yang _atomic_? Bagaimana dengan _mutex_?
+//{{{
+
+Penjelasan dari operasi _atomic_ dalam Go dapat ditemukan dalam dokumen
+https://golang.org/ref/mem[Model Memory Go (Inggris)].
+
+Sinkronisasi level-bawah dan primitif _atomic_ tersedia dalam paket
+https://golang.org/pkg/sync[sync]
+dan
+https://golang.org/pkg/sync/atomic[sync/atomic].
+Paket-paket tersebut cukup bagus untuk pekerjaan sederhana seperti
+penghitungan referensi atau menjamin mutual eksklusi dalam skala kecil.
+
+Untuk operasi level-atas, seperti koordinasi antara server, teknik tingkat
+tinggi dapat membuat program lebih baik, dan Go mendukung pendekatan ini lewat
+goroutine dan channel.
+Misalnya, kita dapat menyusun program supaya hanya satu goroutine yang
+bertanggung jawab untuk suatu data tertentu.
+Pendekatan ini diringkas dalam
+https://www.youtube.com/watch?v=PAAkCSZUG1c[Pepatah Go].
+
+"Jangan berkomunikasi lewat pembagian _memory_. Namun, bagilah _memory_ lewat
+berkomunikasi"
+
+Lihat contoh kode
+https://golang.org/doc/codewalk/sharemem/[Berbagi Memory dengan berkomunikasi]
+dan
+https://blog.golang.org/2010/07/share-memory-by-communicating.html[artikel
+terkait]
+untuk diskusi lebih rinci mengenai konsep ini.
+
+Program besar yang konkuren biasanya menggunakan kedua metode ini.
+
+//}}}
+
+[#parallel_slow]
+===  Kenapa program tidak lebih cepat dengan CPU yang banyak?
+//{{{
+
+Apakah sebuah program berjalan lebih cepat dengan banyaknya CPU bergantung
+pada permasalahan yang ditanganinya.
+Bahasa Go menyediakan konkurensi primitif, seperti goroutine dan channel,
+namun konkurensi hanya mengaktifkan paralelisme saat permasalahan yang
+ditangani secara intrinsik benar paralel.
+Permasalahan yang secara intrinsik sekuensial tidak akan bisa dipercepat
+dengan menambahkan CPU, sementara kode yang bisa dipecah menjadi lebih kecil
+dapat dieksekusi secara paralel bisa jadi mempercepat program.
+
+Terkadang menambah CPU malah memperlambat program.
+Dalam praktiknya, program yang menghabiskan waktu lebih banyak untuk
+sinkronisasi dan berkomunikasi, daripada melakukan komputasi, bisa mengalami
+penurunan performansi saat menggunakan beberapa _thread_ OS.
+Hal ini disebabkan karena pengiriman data antara _thread_ mengikutkan
+perpindahan konteks (_context switching_), yang memiliki biaya yang
+signifikan, dan biaya tersebut dapat bertambah dengan menambah jumlah CPU.
+Misalnya,
+https://golang.org/ref/spec#An_example_package[contoh penyaringan bilangan
+prima]
+dalam spesifikasi Go tidak memiliki performansi paralelisme yang signifikan
+walaupun ia menjalankan banyak goroutine;
+menambah jumlah _thread_ (CPU) akan lebih memungkinkan memperlambatnya
+daripada mempercepatnya.
+
+Untuk rincian lanjut tentang topik ini lihatlah wicara yang berjudul
+https://blog.golang.org/2013/01/concurrency-is-not-parallelism.html[Konkurensi
+bukanlah Paralelisme (Inggris)].
+
+//}}}
+
+[#number_cpus]
+===  Bagaimana cara mengatur jumlah CPU?
+//{{{
+
+Jumlah CPU yang tersedia secara simultan yang mengeksekusi goroutine dikontrol
+oleh variabel lingkungan `GOMAXPROCS`, yang nilai bakunya adalah jumlah _core_
+CPU yang tersedia.
+Program yang berpotensi untuk dieksekusi paralel akan secara bawaan dieksekusi
+secara paralel pada mesin dengan multipel CPU.
+Untuk mengubah jumlah CPU yang digunakan, atur nilai variabel lingkungan atau
+gunakan
+https://golang.org/pkg/runtime/#GOMAXPROCS[fungsi]
+dengan nama yang sama dari paket runtime untuk mengatur supaya _runtime_
+menggunakan jumlah _thread_ yang berbeda.
+Mensetnya dengan `1` berarti mengindahkan kemungkinan paralelisme, memaksa
+setiap goroutine untuk dieksekusi secara bergantian.
+
+_runtime_ bisa mengalokasikan _thread_ lebih banyak daripada nilai
+`GOMAXPROCS` untuk melayani beberapa permintaan I/O yang tertunda.
+`GOMAXPROCS` hanya mempengaruhi berapa banyak goroutine yang dieksekusi secara
+bersamaan;
+bisa saja banyak yang diblok saat pemanggilan ke sistem dilakukan.
+
+Penjadwal goroutine pada Go tidak selalu bagus, walaupun dari waktu ke waktu
+mengalami perbaikan dan peningkatan.
+Di suatu saat, ia mungkin lebih mengoptimasi penggunaan _thread_ OS.
+Untuk saat sekarang, jika ada masalah performansi, menset `GOMAXPROCS` pada
+aplikasi mungkin cukup membantu.
+
+//}}}
+
+[#no_goroutine_id]
+===  Kenapa tidak ada ID untuk goroutine?
+//{{{
+
+Goroutine tidak memiliki nama; mereka hanyalah pekerja yang anonim.
+Mereka juga tidak membuka identifikasi unik, nama, atau struktur data ke
+pemrogramnya.
+Beberapa orang cukup terkejut dengan hal ini, mengharapkan perintah `go`
+mengembalikan sebuah item yang dapat digunakan untuk mengakses dan mengontrol
+goroutine.
+
+Alasan fundamental kenapa goroutine anonim adalah supaya bahasa Go sepenuhnya
+tersedia untuk kode pemrograman konkuren.
+Sebaliknya, pola penggunaan yang berkembang saat _thread_ dan goroutine
+memiliki nama dapat membatasi apa yang pustaka dasar dapat gunakan.
+
+Berikut ilustrasi dari beberapa permasalahan tersebut.
+Saat kita memberi nama sebuah goroutine dan membangun model disekitarnya, ia
+menjadi spesial, dan kita tergoda untuk mengasosiasikan semua komputasi
+terhadap goroutine tersebut, mengindahkan kemungkinan menggunakan multipel,
+atau bisa saja goroutine yang berbeda untuk pemrosesan.
+Jika paket `net/http` mengasosiasikan _state_ per permintaan dengan sebuah
+goroutine, maka klien tidak akan bisa menggunakan lebih banyak goroutine untuk
+melayani permintaan.
+
+Lebih lanjut, pengalaman kami dengan pustaka-pustaka seperti sistem grafis
+yang mengharuskan semua pemrosesan terjadi dalam "main thread" telah
+memperlihatkan bagaimana kaku dan terbatasnya pendekatan tersebut saat
+dikembangkan pada bahasa yang konkuren.
+Adanya _thread_ atau goroutine khusus memaksa pemrogram memutar-balikan
+program untuk menghindari _crash_ dan permasalahan lain yang disebabkan karena
+tidak sengaja beroperasi pada _thread_ yang salah.
+
+Untuk kasus-kasus dimana goroutine tertentu benar-benar spesial, bahasa Go
+menyediakan fitur seperti channel yang dapat digunakan dengan cara yang
+fleksibel.
+
+//}}}
+
