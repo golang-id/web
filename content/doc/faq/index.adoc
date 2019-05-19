@@ -677,7 +677,7 @@ ringan daripada bahasa seperti C++ atau Java.
 
 Satu-satunya cara untuk mengirim _method_ secara dinamis adalah lewat
 _interface_.
-_Method_ pada _struct_ atau tipe konkrit lainnya selalu dikonversi secara
+_Method_ pada _struct_ atau tipe konkret lainnya selalu dikonversi secara
 statis.
 
 //}}}
@@ -717,5 +717,344 @@ program dibangun.
 
 Butuh beberapa waktu untuk terbiasa namun dengan model dependensi tipe seperti
 ini adalah salah satu hal yang produktif dari Go.
+
+//}}}
+
+[#methods_on_basics]
+===  Kenapa `len` adalah sebuah fungsi bukan _method_?
+//{{{
+
+Kami memperdebatkan masalah ini namun kemudian memutuskan mengimplementasikan
+`len` dan teman-temannya sebagai fungsi karena dalam praktiknya tidak
+mempersulit masalah tentang tipe dasar _interface_.
+
+//}}}
+
+[#overloading]
+===  Kenapa Go tidak mendukung _overloading_ _method_ dan operator?
+//{{{
+
+Pengiriman _method_ menjadi sederhana jika ia tidak memerlukan pencocokan
+tipe.
+Pengalaman kami dengan bahasa-bahasa pemrograman lain menyimpulkan bahwa
+memiliki beragam _method_ dengan nama yang sama tapi dengan _signature_ yang
+berbeda terkadang berguna namun pada praktiknya bisa membingungkan dan rapuh.
+Pencocokan hanya dengan nama dan konsistensi pada tipe adalah keputusan
+penyederhanaan utama dalam sistem tipe Go.
+
+Perihal _overloading_ operator, sebenarnya lebih pada kenyamanan daripada
+kebutuhan yang absolut.
+Sekali lagi, hal-hal menjadi lebih sederhana tanpa adanya kebutuhan tersebut.
+
+//}}}
+
+[#implements_interface]
+===  Kenapa Go tidak memiliki deklarasi "implement"?
+//{{{
+
+Sebuah tipe memenuhi sebuah _interface_ dengan mengimplementasikan
+_method-method_ pada _interface_ tersebut, cukup itu saja.
+Properti ini membolehkan _interface_ didefinisikan dan digunakan tanpa
+harus mengubah kode yang ada.
+Ia membolehkan semacam
+https://en.wikipedia.org/wiki/Structural_type_system[penulisan struktural]
+yang mempromosikan pemisahan antara kebutuhan-kebutuhan dan meningkatkan
+penggunaan ulang pada kode, dan mempermudah membangun pola-pola yang
+muncul pada saat membangun kode.
+Semantik dari _interface_ adalah salah satu alasan utama dari kecepatan dan
+keringanan pada Go.
+
+Lihat pertanyaan tentang <<inheritance,turunan>> untuk informasi lebih rinci.
+
+//}}}
+
+[#guarantee_satisfies_interface]
+===  Bagaimana saya menjamin tipe memenuhi sebuah _interface_?
+//{{{
+
+Kita bisa menggunakan _compiler_ untuk memeriksa apakah tipe `T`
+mengimplementasikan _interface_ `I` dengan mencoba menempatkan nilai kosong
+dari `T` atau pointer ke `T`, sebagai berikut:
+
+----
+type T struct{}
+var _ I = T{}       // Memverifikasi bahwa T mengimplementasikan I.
+var _ I = (*T)(nil) // Memverifikasi bahwa *T mengimplementasikan I.
+----
+
+Jika `T` (atau `*T`) tidak mengimplementasikan `I`, kesalahan tersebut akan
+terdeteksi saat kode di- _compile_.
+
+Jika kita menginginkan pengguna dari _interface_ secara eksplisit
+mengimplementasikannya, kita bisa menambahkan sebuah _method_ dengan nama yang
+deskriptif.
+Sebagai contohnya:
+
+----
+type Fooer interface {
+	Foo()
+	ImplementsFooer()
+}
+----
+
+Sebuah tipe harus mengimplementasikan _method_ `ImplementsFooer` supaya bisa
+menjadi `Fooer`, dengan jelas mendokumentasikan fakta tersebut dan
+memunculkannya pada
+https://golang.org/cmd/go/#hdr-Show_documentation_for_package_or_symbol[go
+doc].
+
+----
+type Bar struct{}
+func (b Bar) ImplementsFooer() {}
+func (b Bar) Foo() {}
+----
+
+Umumnya kode tidak menggunakan batasan seperti itu, karena membatasi utilitas
+dari ide tentang _interface_.
+Terkadang, mereka diperlukan juga untuk mengatasi masalah ambigu di antara
+_interface_-_interface_ yang mirip.
+
+//}}}
+
+[#t_and_equal_interface]
+===  Kenapa tipe `T` tidak memenuhi _interface_ Equal?
+//{{{
+Anggaplah _interface_ sederhana berikut merepresentasikan sebuah objek yang
+dapat dibandingkan dengan nilai yang lain:
+
+----
+type Equaler interface {
+	Equal(Equaler) bool
+}
+----
+
+dan tipe `T` berikut:
+
+----
+type T int
+func (t T) Equal(u T) bool { return t == u } // tidak memenuhi Equaler
+----
+
+Tidak seperti sistem bertipe _polymorphic_, dalam Go, `T` tidak
+mengimplementasikan `Equaler`.
+Tipe dari argumen `T.Equal` adalah `T`, bukan tipe yang dibutuhkan oleh
+`Equaler`.
+
+Dalam Go, sistem tipe tidak mempromosikan argumen dari `Equal`;
+hal tersebut merupakan tanggung jawab dari pemrogram, seperti yang digambarkan
+oleh tipe `T2`, yang mengimplementasikan `Equaler`:
+
+----
+type T2 int
+func (t T2) Equal(u Equaler) bool { return t == u.(T2) }  // memenuhi Equaler
+----
+
+Walaupun hal ini tidak seperti sistem tipe lainnya, karena pada Go _semua_
+tipe yang memenuhi _Equaler_ dapat dikirim sebagai argumen ke `T2.Equal`, dan
+pada saat _runtime_ kita harus memeriksa bahwa argumen benar bertipe `T2`.
+Beberapa bahasa mengatur supaya hal tersebut terjamin pada saat di- _compile_.
+
+Contoh lain yang berhubungan:
+
+----
+type Opener interface {
+	Open() Reader
+}
+
+func (t T3) Open() *os.File
+----
+
+Dalam Go, `T3` tidak memenuhi `Opener`, walaupun dalam bahasa pemrogram lain
+ia bisa saja terpenuhi.
+
+Memang benar bahwa sistem tipe Go bekerja kurang bagi programmer pada
+kasus-kasus tersebut, tidak adanya sub-tipe membuat aturan tentang pemenuhan
+sebuah _interface_ sangat mudah ditulis: apakah nama fungsi dan
+argumen-argumennya sama dengan yang di _interface_?
+Aturan Go ini sangat mudah diimplementasikan secara efisien.
+Kami merasakan bahwa keuntungan ini mengimbangi kekurangan dari tipe otomatis.
+Bila Go suatu saat nanti mengadopsi sebuah bentuk penulisan _polymorphic_,
+kami mengharapkan ada suatu cara mengekspresikan ide dari contoh-contoh
+tersebut dan juga membuatnya supaya diperiksa secara statis.
+
+//}}}
+
+[#convert_slice_of_interface]
+===  Bisakah mengkonversi `[]T` ke `[]interface{}`?
+//{{{
+
+Tidak secara langsung.
+Hal ini tidak dibolehkan oleh spesifikasi bahasa karena kedua tipe tersebut
+tidak memiliki representasi yang sama dalam _memory_.
+Maka diperlukan penyalinan elemen secara tersendiri ke slice tujuan.
+Contoh berikut mengkonversi sebuah slice `int` ke slice `interface{}`:
+
+----
+t := []int{1, 2, 3, 4}
+s := make([]interface{}, len(t))
+for i, v := range t {
+	s[i] = v
+}
+----
+
+//}}}
+
+[#convert_slice_with_same_underlying_type]
+===  Bisakah mengkonversi `[]T1` ke `[]T2` jika `T1` dan `T2` memiliki tipe dasar yang sama?
+//{{{
+
+Baris terakhir dari contoh kode berikut tidak bisa di _compile_.
+
+----
+type T1 int
+type T2 int
+var t1 T1
+var x = T2(t1) // OK
+var st1 []T1
+var sx = ([]T2)(st1) // NOT OK
+----
+
+Dalam Go, tipe-tipe berkaitan dengan _method_, sehingga setiap tipe bernama
+memiliki sebuah (bisa kosong) kumpulan _method_.
+Aturan umumnya adalah anda bisa mengubah nama dari tipe yang dikonversi
+(sehingga bisa mengubah kumpulan _method_ nya) tapi kita tidak bisa mengubah
+nama (dan kumpulan _method_) dari elemen-elemen dari sebuah tipe komposit.
+Go mengharuskan kita mengkonversi tipe secara eksplisit.
+
+//}}}
+
+[#nil_error]
+===  Kenapa nilai error nil tidak sama dengan nil?
+//{{{
+
+Di balik layar, _interface_ diimplementasikan sebagai dua elemen, sebuah tipe
+`T` dan sebuah nilai `V`.
+`V` adalah nilai konkret seperti sebuah `int`, `struct` atau pointer, bukan
+_interface_, dan memiliki tipe `T`.
+Misalnya, jika kita menyimpan nilai `int` 3 ke dalam sebuah _interface_,
+kembalian dari _interface_ memiliki, secara semantik, (`T=int, V=3`).
+Nilai `V` dikenal juga dengan nilai _dinamis_ dari _interface_, secara
+variabel _interface_ tersebut bisa saja menyimpan nilai `V` yang berbeda (yang
+berkorespondensi dengan tipe `T`) selama berjalannya program.
+
+Sebuah _interface_ bernilai `nil` jika dan hanya `V` dan `T` tidak diset,
+(`T=nil, `V` tidak di set).
+Lebih rincinya, sebuah _interface_ `nil` selalu menyimpan tipe `nil`.
+Jika kita menyimpan pointer `nil` bertipe `*int` dalam sebuah nilai
+_interface_, maka tipe di dalamnya adalah `*int` berapapun nilai dari pointer
+tersebut: (`T=*int, V=nil`).
+Nilai _interface_ tersebut akan selalu non-nil walaupun nilai pointer `V`
+adalah `nil`.
+
+Situasi seperti ini bisa membingungkan, dan muncul bila nilai `nil` disimpan
+di dalam sebuah nilai _interface_ seperti dalam nilai kembalian `error`.
+
+----
+func returnsError() error {
+	var p *MyError = nil
+	if bad() {
+		p = ErrBad
+	}
+	return p // Akan selalu mengembalikan nilai error non-nil.
+}
+----
+
+Jika semua berjalan dengan baik, fungsi di atas mengembalikan `p` yang `nil`,
+jadi nilai kembalian adalah sebuah nilai _interface_ `error` yang menyimpan
+(`T=*MyError, V=nil`).
+Jika pemanggil fungsi membandingkan nilai kembalian `error` dengan `nil`, ia
+akan selalu bernilai `true` walaupun tidak ada eror yang terjadi.
+Untuk mengembalikan `nil error` yang benar ke pemanggil, fungsi tersebut harus
+mengembalikan `nil` secara eksplisit:
+
+----
+func returnsError() error {
+	if bad() {
+		return ErrBad
+	}
+	return nil
+}
+----
+
+Fungsi yang mengembalikan `error` sebaiknya selalu menggunakan tipe `error`
+dalam _signature_ -nya (seperti contoh di atas) bukan dengan tipe konkret
+seperti `*MyError`, untuk menjamin `error` dibuat dengan benar.
+Sebagai contoh,
+https://golang.org/pkg/os/#Open[os.Open]
+mengembalikan `error` walaupun, jika tidak `nil`, ia selalu bertipe konkret
+https://golang.org/pkg/os/#PathError[*os.PathError].
+
+Situasi yang sama seperti yang dijelaskan di sini dapat muncul kapan pun
+_interface_ digunakan.
+Cukup diingat, jika nilai konkret disimpan dalam _interface_, maka _interface_
+tersebut tidak akan bernilai `nil`.
+Untuk informasi lebih lanjut, lihat
+https://golang.org/doc/articles/laws_of_reflection.html[Hukum refleksi].
+
+//}}}
+
+[#unions]
+===  Kenapa tidak ada _union_, seperti pada C?
+
+Union akan melanggar jaminan keamanan _memory_ pada Go.
+
+[#variant_types]
+===  Kenapa Go tidak memiliki tipe varian?
+//{{{
+
+Tipe varian, dikenal juga dengan tipe aljabar, menyediakan suatu cara untuk
+menspesifikasikan bahwa sebuah nilai bisa memiliki salah satu dari sekumpulan
+tipe, namun hanya tipe-tipe yang didefinisikan saja.
+Salah satu contoh umum yaitu pada pemrograman sistem yang menspesifikasikan
+bahwa sebuah eror adalah eror jaringan, eror keamanan, atau eror pada aplikasi
+dan membolehkan pemanggil untuk membedakan sumber dari permasalahan dengan
+membedah tipe dari eror.
+Contoh lainnya yaitu pohon sintaks yang mana setiap node dapat memiliki tipe
+yang berbeda: deklarasi, perintah, penempatan, dan lainnya.
+
+Kami mempertimbangkan menambahkan tipe varian ke dalam Go, namun setelah
+berdiskusi lebih lanjut kami memutuskan untuk mengindahkannya karena tumpang
+tindih dengan _interface_.
+Apa yang terjadi jika elemen dari sebuah tipe varian adalah _interface_ dari
+dirinya sendiri?
+
+Selain itu, beberapa permasalahan dari tipe varian telah dipenuhi oleh bahasa
+Go.
+Contohnya pada penanganan eror yang bisa diekspresikan dengan menggunakan
+nilai _interface_ yang menyimpan eror dan switch bertipe untuk membedakannya.
+Pohon sintaks juga bisa diterapkan dengan model yang sama, walaupun kurang
+elegan.
+
+//}}}
+
+[#covariant_types]
+=== Kenapa Go tidak memiliki tipe kembalian _covariant_?
+//{{{
+
+Tipe kembalian _covariant_ artinya sebuah _interface_ seperti
+
+----
+type Copyable interface {
+	Copy() interface{}
+}
+----
+
+akan dipenuhi oleh _method_
+
+----
+func (v Value) Copy() Value
+----
+
+karena `Value` mengimplementasikan _interface_ kosong.
+Dalam Go, tipe _method_ harus sesuai secara eksak, jadi `Value` tidak
+mengimplementasikan `Copyable`.
+Go memisahkan antara apa yang sebuah tipe dapat lakukan--_method_ -nya--dari
+apa yang diimplementasinya.
+Jika dua _method_ mengembalikan tipe yang berbeda, mereka berarti tidak
+melakukan hal yang sama.
+Pemrogram yang menginginkan tipe kembalian _covariant_ terkadang mencoba
+mengekspresikan hirarki tipe lewat _interface_.
+Dalam Go lebih wajar untuk memiliki pemisahan yang jelas antara _interface_
+dan implementasinya.
 
 //}}}
