@@ -1563,28 +1563,30 @@ perintah `top` pada Unix dan perhatikan kolom `RES` (Linux) atau `RSIZE`
 //{{{
 
 Penjelasan dari operasi _atomic_ dalam Go dapat ditemukan dalam dokumen
-https://golang.org/ref/mem[Model Memory Go (Inggris)].
+https://golang.org/ref/mem[Model _memory_ Go (Inggris)].
 
-Sinkronisasi level-bawah dan primitif _atomic_ tersedia dalam paket
+Sinkronisasi tingkat-rendah dan primitif _atomic_ tersedia dalam paket
 https://golang.org/pkg/sync[sync]
 dan
 https://golang.org/pkg/sync/atomic[sync/atomic].
 Paket-paket tersebut cukup bagus untuk pekerjaan sederhana seperti
-penghitungan referensi atau menjamin mutual eksklusi dalam skala kecil.
+penghitungan referensi (_reference counts_) atau menjamin mutual eksklusi
+(_mutual exclusion_) dalam skala kecil.
 
-Untuk operasi level-atas, seperti koordinasi antara server, teknik tingkat
-tinggi dapat membuat program lebih baik, dan Go mendukung pendekatan ini lewat
-goroutine dan channel.
+Untuk operasi tingkat-tinggi, seperti koordinasi antara server, Go
+mendukungnya dengan pendekatan lewat goroutine dan channel.
 Misalnya, kita dapat menyusun program supaya hanya satu goroutine yang
 bertanggung jawab untuk suatu data tertentu.
 Pendekatan ini diringkas dalam
-https://www.youtube.com/watch?v=PAAkCSZUG1c[Pepatah Go].
+https://www.youtube.com/watch?v=PAAkCSZUG1c[Pepatah Go (Video - Inggris)].
 
-"Jangan berkomunikasi lewat pembagian _memory_. Namun, bagilah _memory_ lewat
+____
+"Jangan berkomunikasi dengan berbagi _memory_. Namun, bagilah _memory_ dengan
 berkomunikasi"
+____
 
 Lihat contoh kode
-https://golang.org/doc/codewalk/sharemem/[Berbagi Memory dengan berkomunikasi]
+https://golang.org/doc/codewalk/sharemem/[Berbagi Memory dengan Berkomunikasi]
 dan
 https://blog.golang.org/2010/07/share-memory-by-communicating.html[artikel
 terkait]
@@ -1604,13 +1606,13 @@ Bahasa Go menyediakan konkurensi primitif, seperti goroutine dan channel,
 namun konkurensi hanya mengaktifkan paralelisme saat permasalahan yang
 ditangani secara intrinsik benar paralel.
 Permasalahan yang secara intrinsik sekuensial tidak akan bisa dipercepat
-dengan menambahkan CPU, sementara kode yang bisa dipecah menjadi lebih kecil
-dapat dieksekusi secara paralel bisa jadi mempercepat program.
+dengan menambahkan CPU, sementara kode yang dipecah menjadi lebih kecil
+dan dapat dieksekusi secara paralel bisa jadi mempercepat program.
 
 Terkadang menambah CPU malah memperlambat program.
 Dalam praktiknya, program yang menghabiskan waktu lebih banyak untuk
 sinkronisasi dan berkomunikasi, daripada melakukan komputasi, bisa mengalami
-penurunan performansi saat menggunakan beberapa _thread_ OS.
+penurunan performansi saat menggunakan beberapa _thread_ di OS.
 Hal ini disebabkan karena pengiriman data antara _thread_ mengikutkan
 perpindahan konteks (_context switching_), yang memiliki biaya yang
 signifikan, dan biaya tersebut dapat bertambah dengan menambah jumlah CPU.
@@ -1698,3 +1700,700 @@ fleksibel.
 
 //}}}
 
+
+[#Functions_methods]
+==  Fungsi dan method
+
+[#different_method_sets]
+===  Kenapa T dan *T memiliki kumpulan method yang berbeda?
+//{{{
+
+Seperti yang ditulis dalam
+https://golang.org/ref/spec#Types[spesifikasi Go],
+kumpulan method dari tipe `T` terdiri dari semua method yang penerimanya
+adalah `T`, sementara tipe dengan pointer `*T` mengikutkan semua method yang
+penerimanya adalah `*T` atau `T`.
+Ini artinya semua method `*T` mengikutkan `T`, tapi tidak sebaliknya.
+
+Perbedaan ini muncul karena jika sebuah nilai interface berisi `*T`,
+pemanggilan method pada `T` dapat dilakukan dengan mengembalikan referensi
+kepada pointer, namun jika nilai interface mengandung nilai `T`, tidak ada
+cara yang aman untuk melakukan pemanggilan method lewat pointer.
+(Cara tersebut akan menyebabkan method dapat mengubah nilai di dalam
+interface, yang mana tidak dibolehkan oleh spesifikasi bahasa.)
+
+Bahkan apabila _compiler_ dapat mengambil alamat dari sebuah nilai untuk
+dikirim ke method, jika method tersebut mengubah nilai maka perubahannya akan
+hilang pada sisi pemanggil.
+Sebagai contoh, jika method `Write` dari
+https://golang.org/pkg/bytes/#Buffer[bytes.Buffer]
+menggunakan penerima dengan nilai bukan pointer, kode berikut:
+
+----
+var buf bytes.Buffer
+io.Copy(buf, os.Stdin)
+----
+
+akan menyalin standar input ke dalam salinan dari `buf`, bukan ke dalam `buf`
+itu sendiri.
+Hal seperti ini bukanlah yang kita inginkan.
+
+//}}}
+
+[#closures_and_goroutines]
+===  Apa yang terjadi bila goroutine dijalankan secara _closure_?
+//{{{
+
+Beberapa kesalahan bisa muncul saat menggunakan _closure_ dengan konkurensi.
+Misalnya pada contoh program berikut:
+
+----
+func main() {
+	done := make(chan bool)
+
+	values := []string{"a", "b", "c"}
+	for _, v := range values {
+		go func() {
+			fmt.Println(v)
+			done <- true
+		}()
+	}
+
+	// Tunggu sampai semua goroutine selesai sebelum keluar.
+	for _ = range values {
+		<-done
+	}
+}
+----
+
+Seseorang mengharapkan mendapatkan `a`, `b`, `c` sebagai keluaran.
+Apa yang tercetak bisa saja `c`, `c`, `c`.
+Hal ini disebabkan karena setiap iterasi dari pengulangan menggunakan instansi
+variabel `v` yang sama, sehingga setiap _closure_ berbagi variabel yang sama.
+Saat _closure_ dijalankan, ia akan mencetak nilai dari `v` saat `fmt.Println`
+dieksekusi, namun `v` bisa saja telah diubah sejak goroutine diluncurkan.
+Untuk membantu mendeteksi permasalahan seperti ini, gunakan
+https://golang.org/cmd/go/#hdr-Run_go_tool_vet_on_packages[go vet].
+
+Untuk menempatkan nilai dari `v` ke setiap _closure_ saat dijalankan, kita
+harus mengubah pengulangan supaya membuat variabel baru untuk setiap iterasi.
+Salah satu caranya yaitu dengan mengirim variabel sebagai argumen dari
+_closure_:
+
+----
+	for _, v := range values {
+		go func(u string) {
+			fmt.Println(u)
+			done <- true
+		}(v)
+	}
+----
+
+Pada contoh ini, nilai `v` dikirim sebagai argumen ke fungsi anonim.
+Nilai tersebut diakses di dalam fungsi sebagai variabel `u`.
+
+Cara yang lebih mudah lagi untuk membuat variabel baru yaitu menggunakan
+deklarasi, yang mungkin tampak aneh tapi bekerja pada Go:
+
+----
+	for _, v := range values {
+		v := v // buat variabel 'v' yang baru.
+		go func() {
+			fmt.Println(v)
+			done <- true
+		}()
+	}
+----
+
+Perilaku bahasa Go seperti ini, yang mana tidak mendefinisikan variabel baru
+untuk setiap iterasi, kalau dilihat kembali mungkin adalah suatu kesalahan
+pada rancangan bahasa.
+Ia mungkin akan diatasi pada versi selanjutnya, tapi demi kompatibilitas, hal
+ini tidak bisa diubah pada Go versi 1.
+
+//}}}
+
+
+[#Control_flow]
+==  Alur kontrol
+
+[#Does_Go_have_a_ternary_form]
+===  Kenapa Go tidak punya operator `?:`?
+//{{{
+
+Tidak ada operasi ternari (`?:`) dalam Go.
+Kita bisa menggunakan kode berikut untuk mendapatkan hal yang sama:
+
+----
+if expr {
+	n = trueVal
+} else {
+	n = falseVal
+}
+----
+
+Alasan kenapa `?:` tidak ada dalam Go yaitu karena perancang bahasa terlalu
+sering melihat operator tersebut digunakan untuk menulis ekspresi yang
+kompleks.
+Bentuk `if-else`, walau lebih panjang, tidak dapat disangsikan lagi lebih
+jelas.
+Sebuah bahasa hanya perlu satu konstruksi alur kontrol kondisi.
+
+//}}}
+
+
+[#Packages_Testing]
+==  Paket dan Pengujian
+
+[#How_do_I_create_a_multifile_package]
+===  Bagaimana cara membuat paket dengan banyak berkas?
+//{{{
+
+Simpan semua berkas kode untuk paket tersebut di dalam sebuah direktori.
+Sebuah berkas sumber kode dapat mengacu ke item di berkas yang berbeda;
+tidak perlu membuat deklarasi acuan atau berkas _header_ (seperti pada C/C++).
+
+Selain dapat dipisahkan menjadi beberapa berkas, paket akan di _compile_ dan
+di tes seperti dibuat dalam berkas yang tunggal.
+
+//}}}
+
+[#How_do_I_write_a_unit_test]
+===  Bagaimana membuat unit tes?
+//{{{
+
+Buat berkas baru yang berakhiran `_test.go` di direktori yang sama dengan
+sumber paket.
+Di dalam berkas tersebut, `import "testing"` dan tulis fungsi dengan bentuk
+
+----
+func TestFoo(t *testing.T) {
+	...
+}
+----
+
+Jalankan `go test` di direktori tersebut.
+Program tersebut akan mencari fungsi yang berawalan `Test`, membuat binari
+tes, dan menjalankannya.
+
+Lihat dokumentasi
+link:/doc/code.html[Cara Menulis Kode Go],
+paket
+https://golang.org/pkg/testing/[testing]
+dan perintah
+https://golang.org/cmd/go/#hdr-Test_packages[go test]
+untuk lebih rinci.
+
+//}}}
+
+[#testing_framework]
+===  Dimana atau apa saja fungsi pembantu untuk pengujian?
+//{{{
+
+Paket standar
+https://golang.org/pkg/testing/[testing]
+pada Go memudahkan menulis unit tes, namun ia tidak memiliki fitur yang pada
+kerangka bahasa lain seperti fungsi untuk _assert_.
+Seperti yang telah dijelaskan pada
+<<assertions,bagian sebelumnya>>, Go tidak memiliki _assert_, dan argumen yang
+sama juga berlaku untuk fungsi `assert` pada pengujian.
+Penanganan eror yang baik artinya membolehkan tes yang lain berjalan saat
+salah satu darinya gagal, sehingga orang yang melakukan _debugging_ terhadap
+kegagalan tersebut mendapatkan gambaran secara keseluruhan.
+Akan lebih berguna bila unit tes melaporkan bahwa fungsi `isPrime`
+memberikan jawaban yang salah untuk 2, 3, 5, dan 7 (atau untuk 2, 4, 8, dan
+16) daripada melaporkan bahwa `isPrime` mengembalikan jawaban yang salah untuk
+2 sehingga tidak ada pengujian yang berjalan lagi.
+Pemrogram yang menjalankan tes dan gagal bisa saja tidak paham dengan kode
+yang melaporkan kesalahan.
+Waktu yang dihabiskan untuk menulis sebuah pesan eror yang baik nanti akan
+dibayar saat mendapatkan pengujian gagal.
+
+Alasan lainnya yaitu kerangka pengujian condong berkembang menjadi sebuah
+bahasa-kecil sendiri, dengan mekanisme kontrol, kondisi, dan pencetakan
+tersendiri, namun Go sudah memiliki semua kemampuan tersebut;
+kenapa dibuat lagi?
+Kita lebih baik menulis unit tes dengan Go;
+lebih sedikit bahasa yang dipelajari dan pendekatan ini menjaga pengujian
+tetap mudah digunakan dan dipahami.
+
+Jika jumlah kode yang dibutuhkan untuk menulis eror yang baik tampak repetitif
+dan terlalu besar, pengujian mungkin lebih baik ditulis dalam bentuk _tabel_,
+mengiterasi sebuah daftar masukan dan keluaran yang didefinisikan dalam sebuah
+struktur data (Go mendukung struktur data anonim).
+Penulisan tes dan pesan eror yang baik nantinya akan diamortisasi oleh
+banyaknya kasus-kasus pengujian.
+Pustaka standar Go mengandung banyak contoh unit tes, seperti
+https://golang.org/src/fmt/fmt_test.go[pengujian pemformatan pada paket
+`fmt`].
+
+///}}}
+
+[#x_in_std]
+===  Kenapa _X_ tidak ada dalam pustaka standar?
+//{{{
+
+Tujuan dari pustaka standar yaitu untuk mendukung _runtime_, menghubungkan
+sistem operasi, dan menyediakan fungsionalitas utama yang dibutuhkan oleh
+banyak program Go, seperti pemformatan I/O dan jaringan.
+Ia juga mengandung elemen-elemen penting untuk pemrograman web, termasuk
+kriptografi dan dukungan untuk standar seperti HTTP, JSON, dan XML.
+
+Tidak ada kriteria yang jelas yang menentukan apa saja yang diikutkan dalam
+pustaka standar karena selama ini, _hanya_ inilah pustaka Go.
+Namun ada kriteria yang mendefinisikan apa yang dapat ditambahkan untuk saat
+sekarang.
+
+Penambahkan pada pustaka standar biasanya sangat jarang dan syarat supaya
+dapat ditambah biasanya cukup tinggi.
+Kode yang dimasukan ke dalam pustaka standar membutuhkan biaya pemeliharaan
+(bahkan ditanggung oleh selain penulis awalnya), subjek terhadap
+https://golang.org/doc/go1compat.html[perjanjian kompatibilitas Go 1]
+(menahan perbaikan dari kesalahan dalam API), dan juga subjek terhadap
+https://golang.org/s/releasesched[jadwal rilis] Go,
+yang mencegah perbaikan _bug_ tersedia secara langsung terhadap pengguna
+dengan cepat.
+
+Umumnya kode yang baru sebaiknya ada di luar pustaka standar dan dapat diakses
+lewat https://golang.org/cmd/go/[perkakas go] dengan perintah `go get`.
+Kode tersebut memiliki pemelihara, siklus rilis, dan jaminan kompatibilitasnya
+sendiri.
+Pengguna Go dapat mencari paket dan membaca dokumentasinya di
+https://godoc.org/[godoc.org].
+
+Walaupun sebenarnya ada beberapa bagian dalam pustaka standar yang seharusnya
+tidak diikutkan, seperti `log/syslog`, kami terus memelihara semua yang ada
+dalam pustaka standar karena perjanjian kompatibilitas Go.
+Namun kami menyarankan untuk kode yang baru supaya dibuat ditempat yang lain.
+
+//}}}
+
+
+[#Implementation]
+==  Implementasi
+
+[#What_compiler_technology_is_used_to_build_the_compilers]
+===  Teknologi _compiler_ apa saja yang digunakan untuk membangun _compiler_ Go?
+//{{{
+
+Ada beberapa _compiler_ untuk Go yang siap digunakan, dan ada juga yang dalam
+tahap pengembangan untuk _platform_ yang beragam.
+
+_Compiler_ bawaan, `gc`, disertakan dalam distribusi Go untuk mendukung
+perintah `go`.
+`Gc` awalnya ditulis dalam bahasa C karena kesulitan dalam melakukan
+_bootstrapping_--proses yang mana sebuah _compiler_ Go diperlukan untuk
+menyiapkan lingkungan Go (_compiler_ yang menghasilkan _compiler_).
+Namun beberapa hal telah berkembang dan sejak rilis Go 1.5, _compiler_
+tersebut sudah dalam bentuk program Go.
+_Compiler_ tersebut dikonversi dari C ke Go menggunakan perangkat translasi
+otomatis, seperti yang dijelaskan dalam
+https://golang.org/s/go13compiler[dokumen rancangan]
+dan
+https://talks.golang.org/2015/gogo.slide#1[wicara] berikut.
+Sekarang _compiler_ bersifat "self-hosting", yang artinya dibutuhkan untuk
+mengatasi permasalahan _bootstrapping_.
+Solusinya yaitu dengan memiliki lingkungan Go yang telah terpasang, seperti
+halnya seperti pada lingkungan C yang siap digunakan.
+Sejarah dan dokumentasi untuk cara membangun lingkungan Go yang baru dari
+sumber dijelaskan di
+https://golang.org/s/go15bootstrap[sini]
+dan di
+https://golang.org/doc/install/source[sini].
+
+`Gc` ditulis dalam Go menggunakan _recursive descent parser_ dan menggunakan
+kostum _loader_, yang juga ditulis dengan Go berdasarkan loader pada Plan 9,
+untuk menghasilkan binari dalam format ELF/Mach-O/PE.
+
+Pada awal proyek kami mempertimbangkan menggunakan LLVM untuk `gc` namun
+tidak jadi karena terlalu besar dan lambat untuk sesuai dengan tujuan dari
+performansi yang ingin kami capai.
+Alasan utama lainnya, dengan LLVM akan membuat lebih sukar untuk melakukan
+perubahan pada tingkat ABI (_Application Binary Interface_) dan sekitarnya,
+seperti manajemen _stack_, yang dibutuhkan oleh Go namun bukan bagian dari
+standar C.
+https://go.googlesource.com/gollvm/[Implementasi LLVM] yang baru mulai
+merintis hal tersebut sekarang.
+
+_Compiler_ `gccgo` adalah antar muka yang ditulis dalam bahasa C++ dengan
+_recursive descent parser_ digabung dengan GCC sebagai _back end_ nya.
+
+Go ternyata menjadi bahasa yang bagus untuk mengimplementasikan _compiler_ Go,
+walaupun itu bukan tujuan awalnya.
+Dengan tidak menggunakan _self-hosting_ sejak awal, membolehkan perancangan Go
+fokus pada tujuan penggunaan awalnya, yaitu sebagai server dalam jaringan.
+Bila kami memutuskan Go supaya dapat meng- _compile_ dirinya sendiri sedari
+awal, kami mungkin berakhir dengan bahasa yang berfokus pada konstruksi
+_compiler_, yang mana merupakan tujuan yang berguna namun bukan yang dari awal
+kita harapkan.
+
+Walaupun `gc` belum menggunakannya, _parser_ dan _lexer_ untuk Go tersedia
+dalam paket
+https://golang.org/pkg/go/[go]
+dan juga ada paket untuk
+https://golang.org/pkg/go/types[pemeriksaan tipe].
+
+//}}}
+
+[#How_is_the_run_time_support_implemented]
+===  Bagaimana dukungan _runtime_ diimplementasikan?
+//{{{
+
+Sekali lagi karena permasalahan _bootstrapping_, kode _runtime_ awalnya
+ditulis dalam C (dengan sedikit _assembler_) namun telah diterjemahkan ke Go
+(kecuali bagian _assembler_).
+Dukungan _runtime_ `gccgo` menggunakan `glibc`.
+_Compiler_ `gccgo` mengimplementasikan goroutine menggunakan teknik yang
+dikenal dengan _stack_ tersegmentasi, yang didukung oleh modifikasi terbaru
+dari _gold linker_.
+Hal yang sama, `Gollvm` dibangun berdasarkan infrastruktur LLVM.
+
+//}}}
+
+[#Why_is_my_trivial_program_such_a_large_binary]
+===  Kenapa program sederhana saya ukurannya sangat besar?
+//{{{
+
+_Linker_ pada `gc` membuat binari yang secara statis terkait
+(_statically linked_) secara bawaan.
+Semua program Go oleh karena itu mengikutkan _runtime_ Go, bersamaan dengan
+informasi tipe _runtime_ yang dibutuhkan untuk mendukung pemeriksaan tipe,
+refleksi, dan pelacakan _stack_ saat panic.
+
+Sebuah program "hello, world" dengan C yang secara statis terkait menggunakan
+gcc pada Linux ukurannya sekitar 750 kB, mengikutkan implementasi `printf`.
+Sebuah program Go yang sama menggunakan `fmt.Printf` ukurannya sekitar
+beberapa _megabyte_, namun berisi dukungan _runtime_ dan tipe yang lebih kuat
+dan informasi _debugging_.
+
+Program Go yang di- _compile_ dengan `gc` dapat dikaitkan dengan `-ldflags=-w`
+untuk menonaktifkan pembangkit DWARF, sehingga menghapus informasi _debugging_
+pada binari tanpa ada fungsi yang hilang.
+Cara ini bisa mengurangi ukuran binari yang cukup besar.
+
+//}}}
+
+[#unused_variables_and_imports]
+===  Apakah bisa menghentikan eror dari variabel/import yang tidak digunakan?
+//{{{
+
+Adanya variabel yang tidak terpakai menandakan sebuah _bug_, sementara import
+yang tak terpakai memperlambat kompilasi, efeknya bisa besar saat kode program
+bertambah sepanjang waktu.
+Karena itu, Go menolak meng- _compile_ program yang memiliki import atau
+variabel yang tak terpakai, mengganti kenyamanan sementara demi kecepatan dan
+kejelasan program untuk waktu yang panjang.
+
+Tetap saja, saat menulis kode, sangat umum situasi seperti ini terjadi dan
+terkadang mengganggu karena harus disunting dahulu sebelum program dapat di-
+_compile_.
+
+Beberapa orang meminta supaya menyediakan opsi untuk mematikan pemeriksaan
+tersebut atau setidaknya menjadi peringatan (_warning_).
+Opsi tersebut belum ditambahkan, karena opsi _compiler_ seharusnya tidak
+mempengaruhi semantik dari bahasa dan karena _compiler_ Go tidak melaporkan
+peringatan, hanya eror yang mencegah kompilasi.
+
+Ada dua alasan kenapa tidak adanya peringatan, tapi hanya ada eror.
+Pertama, jika layak untuk dikeluhkan, maka ia patut diperbaiki di dalam kode.
+(Dan jika tidak patut diperbaiki, maka tidak layak dikeluhkan.)
+Kedua, membuat _compiler_ yang mencetak peringatan mendorong implementasi yang
+melaporan kasus-kasus lemah yang membuat kompilasi menjadi berisik, menutup
+adanya eror yang sebenarnya yang seharusnya diperbaiki.
+
+Cukup mudah untuk mengatasi masalah ini sebenarnya.
+Cukup gunakan pengidentifikasi kosong untuk membiarkan variabel atau import
+yang tak terpakai tetap ada saat anda membangun program.
+
+----
+import "unused"
+
+// Deklarasi ini menandai import sedang digunakan dengan mengacu item dari
+// paket tersebut.
+var _ = unused.Item  // TODO: Hapus sebelum di- commit!
+
+func main() {
+	debugData := debug.Profile()
+	_ = debugData // Digunakan hanya saat debugging.
+	...
+}
+----
+
+Sekarang, kebanyakan pemrogram Go menggunakan perkakas
+https://godoc.org/golang.org/x/tools/cmd/goimports[goimports],
+yang secara otomatis menulis ulang sumber kode supaya memiliki import yang
+benar, menghapus permasalahan import yang tidak terpakai.
+Program ini dengan mudah dapat disambungkan ke _editor_ supaya dijalankan
+secara otomatis saat sumber berkas Go disimpan.
+
+//}}}
+
+[#virus]
+===  Kenapa anti-virus menganggap binari Go terinfeksi?
+//{{{
+
+Hal ini sering terjadi, khususnya pada mesin Windows, dan biasanya itu adalah
+peringatan yang salah.
+Program anti-virus komersial terkadang bingung dengan struktur binari Go, yang
+jarang mereka lihat dari binari yang di- _compile_ pada bahasa lain.
+
+Jika anda baru saja memasang distribusi Go dan sistem melaporkan bahwa ia
+terinfeksi, itu adalah kesalahan.
+Untuk lebih teliti, kita bisa memverifikasi berkas yang diunduh dengan
+membandingkan _checksum_ yang ada pada
+https://golang.org/dl/[halaman unduhan].
+
+Jika anda percaya bahwa laporan tersebut salah, silahkan laporkan sebagai
+_bug_ ke pembuat anti-virus.
+Mungkin suatu saat nanti anti-virus akan belajar untuk memahami program Go.
+
+//}}}
+
+
+[#Performance]
+==  Performansi
+
+[#Why_does_Go_perform_badly_on_benchmark_x]
+===   Kenapa benchmark X berjalan buruk dengan Go?
+//{{{
+
+Salah satu tujuan dari rancangan Go yaitu mendekati performansi C dari program
+yang sama, namun beberapa _benchmark_ Go berjalan cukup buruk, termasuk
+beberapa _benchmark_ dalam
+https://go.googlesource.com/exp/+/master/shootout/[golang.org/x/exp/shootout].
+Benchmark yang paling lambat bergantung kepada pustaka yang mana versi
+performansi yang lebih baik tidak tersedia pada Go.
+Misalnya,
+https://go.googlesource.com/exp/+/master/shootout/pidigits.go[pidigits.go]
+bergantung pada paket multi-presisi `math`, dan versi C -nya menggunakan
+https://gmplib.org/[GMP]
+(yang ditulis dengan _assembler_ dan dioptimisasi).
+_Benchmark_ yang bergantung pada ekspresi regular (misalnya,
+https://go.googlesource.com/exp/+/master/shootout/regex-dna.go[regex-dna.go]
+)
+membandingkan
+https://golang.org/pkg/regexp[paket regex]
+natif dari Go dengan pustaka regex yang lebih matang dan sangat dioptimasi
+seperti PCRE.
+
+_Benchmark game_ dimenangkan oleh penyetelan lebih lanjut (dari kode yang di
+_benchmark_) dan versi Go dari kebanyakan _benchmark_ membutuhkan perhatian
+tambahan.
+Jika anda membandingkan program C dan Go (misalnya
+https://go.googlesource.com/exp/+/master/shootout/reverse-complement.go[reverse-complement.go]),
+kita akan melihat kedua bahasa saling berdekatan performansinya daripada yang
+diindikasikan oleh _benchmark game_.
+
+Tentu saja, masih ada ruang untuk peningkatan.
+_Compiler_ yang ada sekarang cukup bagus namun bisa lebih baik lagi, banyak
+pustaka membutuhkan peningkatan performansi, dan _garbage collector_ belum
+cukup cepat.
+
+Pada kasus lainnya, Go seringkali sangat kompetitif.
+Telah ada beberapa peningkatan pada banyak program selama bahasa dan perkakas
+dikembangkan.
+Lihat blog tentang
+https://blog.golang.org/2011/06/profiling-go-programs.html[profiling program
+Go]
+untuk contoh yang informatif.
+
+//}}}
+
+
+[#change_from_c]
+==  Perbedaan dari C
+
+[#different_syntax]
+===  Kenapa sintaks Go sangat berbeda dengan C?
+//{{{
+
+Selain sintaks deklarasi, perbedaannya tidak terlalu banyak dan berangkat dari
+dua keinginan.
+Pertama, sintaks seharusnya ringan, tanpa terlalu banyak kata kunci,
+pengulangan, atau _misteri_.
+Kedua, bahasa Go dirancang supaya mudah dianalisis dan dapat diurai tanpa
+tabel simbol.
+Hal ini membuatnya mudah untuk membuat perkakas seperti _debugger_,
+penganalisis dependensi, pengekstrak dokumentasi otomatis, _plugin_ untuk IDE,
+dan lainnya.
+C dan turunannya terkenal sangat sukar dalam hal ini.
+
+//}}}
+
+[#declarations_backwards]
+===  Kenapa deklarasinya terbalik?
+//{{{
+
+Ia tampak terbalik bila kita terlalu terbiasa dengan C.
+Dalam C, notasinya adalah sebuah variabel dideklarasikan dengan ekspresi yang
+mengacu tipenya, yang mana merupakan ide yang bagus, tapi tata-bahasa dari
+tipe dan ekspresi tidak tergabung dengan baik dan hasilnya terkadang
+membingungkan;
+yang dapat kita lihat pada pointer ke fungsi.
+Go pada umumnya memisahkan ekspresi dan sintaks dari tipe dan hal ini
+menyederhanakan beberapa hal (menggunakan prefiks `*` untuk pointer adalah
+pengecualian yang membuktikan aturan ini).
+Dalam C, deklarasi
+
+----
+	int* a, b;
+----
+
+mendeklarasikan `a` sebagai pointer tapi tidak `b`;
+dalam Go
+
+----
+	var a, b *int
+----
+
+mendeklarasikan keduanya sebagai pointer.
+Hal ini lebih jelas dan lebih umum.
+Juga, bentuk deklarasi singkat `:=` menyatakan bahwa deklarasi variabel
+secara keseluruhan harusnya sama seperti dengan adanya `:=` sehingga
+
+----
+	var a uint64 = 1
+----
+
+memiliki efek yang sama dengan
+
+----
+	a := uint64(1)
+----
+
+Penguraian juga disederhanakan dengan memiliki tata-bahasa yang jelas pada
+tipe-tipe bukan saja pada tata-bahasa ekspresi;
+kata kunci seperti `func` dan `chan` membuat hal-hal tertentu lebih jelas.
+
+Lihat artikel tentang
+https://golang.org/doc/articles/gos_declaration_syntax.html[Sintaks Deklarasi
+Go (Inggris)] untuk lebih rinci.
+
+//}}}
+
+[#no_pointer_arithmetic]
+===  Kenapa tidak ada operasi aritmatika pada pointer?
+//{{{
+
+Keamanan.
+Tanpa adanya operasi aritmatika pada pointer maka memungkinkan membuat sebuah
+bahasa yang tidak pernah memperoleh alamat _memory_ yang salah.
+Teknologi perangkat keras dan _compiler_ telah berkembang di mana pengulangan
+menggunakan indeks array bisa seefisien seperti pengulangan dengan aritmatika
+pointer.
+Dan juga, tidak adanya aritmatika pointer mempermudah implementasi dari
+_garbage collector_.
+
+//}}}
+
+[#inc_dec]
+===  Kenapa `++` dan `--` merupakan penempatan bukan ekspresi? Dan kenapa hanya posfiks, tidak prefiks?
+//{{{
+
+Tanpa adanya aritmatika pointer, kenyamanan dari peningkatan menggunakan
+operator pre- dan posfiks dihilangkan.
+Dengan menghapus mereka dari hirarki ekspresi, sintaks ekspresi menjadi mudah
+dan masalah rumit mengenai urutan evaluasi dari `++` dan `--` (misalkan
+`f(i++)` dan `p[i] = q[++i]`) menjadi hilang juga.
+Penyederhanaan ini signifikan.
+Untuk posfiks vs. prefiks, salah satunya akan bekerja dengan baik, tapi versi
+yang posfiks lebih tradisional;
+adanya prefiks timbul dari STL, pustaka dari sebuah bahasa yang namanya
+mengandung, secara ironis, peningkatan posfiks (C++).
+
+//}}}
+
+[#semicolons]
+===  Kenapa ada tanda kurung kurawal tapi tidak titik-koma? dan kenapa kurawal buka tidak bisa dibaris berikutnya?
+//{{{
+
+Go menggunakan kurung kurawal untuk pengelompokan perintah, sintaks yang cukup
+akrab bagi yang sering bekerja dengan bahasa dari keluarga C.
+Titik-koma, sebenarnya untuk _parser_ bukan untuk pemrogram, dan kami ingin
+menghilangkannya sebisa mungkin.
+Untuk mencapai tujuan ini, Go meminjam trik dari BCPL: titik-koma yang
+memisahkan perintah ada dalam tata-bahasa formal namun disisipkan secara
+otomatis, tanpa perlu melihat (_lookahead_), oleh _lexer_
+disetiap akhir baris yang bisa mengakhiri sebuah perintah.
+Hal ini bekerja cukup baik pada praktiknya tapi memiliki efek yang memaksa
+gaya penggunaan kurung kurawal.
+Misalnya, kurawal buka dari fungsi tidak bisa muncul pada baris selanjutnya.
+
+Beberapa orang memperdebatkan bahwa _lexer_ seharusnya melakukan _lookahead_
+supaya kurawal buka bisa ada dibaris selanjutnya.
+Kami tidak setuju.
+Secara kode Go ditujukan untuk diformat secara otomatis oleh
+https://golang.org/cmd/gofmt/[gofmt],
+_beberapa_ gaya harus dipilih.
+Gaya tersebut mungkin berbeda dengan apa yang anda sering gunakan di C atau
+Java, tapi Go bahasa yang berbeda dan gaya `gofmt` sama baiknya dengan yang
+lainnya.
+Lebih penting lagi, keuntungan dari format (gaya kode) yang tunggal, yang
+diatur secara programmatis, untuk semua program Go menjadi lebih penting dari
+kekurangan terhadap gaya kode tertentu.
+
+//}}}
+
+[#garbage_collection]
+===  Kenapa _garbage collection_? Bukannya itu mahal?
+//{{{
+
+Salah satu sumber pencatatan terbesar dalam program yaitu mengatur waktu-hidup
+dari objek yang dialokasi.
+Pada bahasa seperti C, waktu-hidup dari objek dilakukan secara manual, yang
+bisa menghabiskan waktu pemrogram yang cukup signifikan dan terkadang
+menyebabkan _bug_ yang buruk.
+Bahkan pada bahasa seperti C++ atau Rust yang menyediakan mekanisme untuk
+membantu hal tersebut, mekanisme tersebut bisa memiliki efek yang signifikan
+pada rancangan perangkat lunak, terkadang menambah biaya pemrograman
+tersendiri.
+Kami merasakan perlu untuk menghilangkan biaya pemrograman tersebut, dan
+dengan perkembangan teknologi _garbage collection_ pada beberapa tahun
+belakangan ini memberi kita kepercayaan bahwa ia dapat diimplementasikan
+dengan cukup murah, dengan latensi yang cukup rendah, dan bisa menjadi
+pendekatan yang cukup bagus untuk pemrograman pada sistem jaringan.
+
+Kesulitan yang umum dari pemrograman konkuren berakar dari permasalahan
+waktu-hidup dari objek: saat objek dikirim diantara _thread_ maka akan menjadi
+rumit untuk menjamin bahwa objek tersebut akan dibebaskan secara aman.
+_Garbage collection_ otomatis membuat kode yang konkuren lebih mudah ditulis.
+Tentu saja, mengimplementasikan _garbage collection_ dalam lingkungan yang
+konkuren adalah sebuah tantangan, namun menerapkannya sekali saja (pada
+_runtime_) daripada di setiap program dapat membantu semua orang.
+
+Terakhir, disamping konkurensi, _garbage collection_ membuat _interface_ lebih
+mudah karena mereka tidak membutuhkan bagaimana _memory_ diatur diantara
+mereka.
+
+Ini bukan berarti bahwa pekerjaan dan teknologi bahasa terbaru dalam
+bahasa seperti Rust yang membawa ide baru terhadap permasalah pengaturan
+sumber daya adalah salah;
+kami sangat mendorong pekerjaan tersebut dan ikut merasa bersemangat melihat
+bagaimana mereka berkembang.
+Namun Go mengambil pendekatan lebih tradisional dengan mengatasi waktu-hidup
+objek lewat _garbage collection_, dan cukup dengan _garbage collection_ saja.
+
+Implementasi _garbage collection_ pada Go sekarang menggunakan metode kolektor
+_mark-and-sweep_.
+Pada mesin yang memiliki banyak _processor_, maka kolektor berjalan pada
+_core_ CPU tersendiri, paralel dengan program utama.
+Pekerjaan utama pada pengembangan kolektor pada beberapa tahun terakhir telah
+mengurangi waktu _pause_ bahkan sampai ke sub-milidetik, bahkan untuk
+_heap_ yang besar.
+Pekerjaan masih terus dilanjutkan untuk memperbagus algoritma, mengurangi
+biaya dan latensi lebih rendah lagi, dan mengeksplorasi pendekatan baru.
+https://blog.golang.org/ismmkeynote[Intisari ISSM] oleh Rick Hudson dari tim
+Go menjelaskan progres sejauh ini dan menyarankan beberapa pendekatan di masa
+depan.
+
+Mengenai performansi, ingatlah bahwa Go memberikan pemrogram kontrol yang
+cukup terhadap pengaturan dan alokasi _memory_, lebih banyak dari bahasa
+dengan _garbage collection_ pada umumnya.
+Pemrogram dapat mengurangi biaya _garbage collection_ lebih banyak dengan
+menggunakan bahasa dengan baik;
+lihat artikel
+https://blog.golang.org/2011/06/profiling-go-programs.html[_Profiling_ program
+Go_ (Inggris)]
+untuk melihat contohnya, termasuk demonstrasi dari perkakas profiling pada Go.
+
+//}}}
