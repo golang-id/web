@@ -1,0 +1,327 @@
+=  Spesifikasi Bahasa Pemrograman Go
+:stylesheet: /assets/style.css
+:toc:
+
+==  Versi 2018 November 16
+
+[#Introduction]
+==  Pendahuluan
+
+Dokumen ini adalah referensi manual untuk bahasa pemrograman Go.
+Untuk informasi dan dokumentasi lainnya lihat
+https://golang.org[golang.org (Inggris)]
+atau
+link:/[golang-id.org (Indonesia)].
+
+Go adalah bahasa pemrograman yang dirancang untuk pemrograman sistem.
+Go adalah bahasa dengan tipe yang kuat dan dengan _garbage-collection_ dan
+mendukung pemrograman konkuren secara eksplisit.
+Program dibangun dari paket-paket, yang membolehkan pengaturan kebergantungan
+paket secara efisien.
+
+Tata-bahasa dari Go padat dan teratur, membuatnya mudah untuk dianalisis oleh
+perkakas-perkakas otomatis seperti lingkungan pengembangan terintegrasi (IDE).
+
+
+[#Notation]
+===  Notasi
+
+Sintaks dispesifikasikan menggunakan _Extended Backus-Naur Form_ (EBNF):
+
+----
+Production  = production_name "=" [ Expression ] "." .
+Expression  = Alternative { "|" Alternative } .
+Alternative = Term { Term } .
+Term        = production_name | token [ "…" token ] | Group | Option | Repetition .
+Group       = "(" Expression ")" .
+Option      = "[" Expression "]" .
+Repetition  = "{" Expression "}" .
+----
+
+_Production_ adalah ekspresi yang dibangun dari sekumpulan _term_ dan operator
+pendukung berikut, secara berurut:
+
+----
+|   alternasi
+()  pengelompokan
+[]  opsi (0 atau 1 kali)
+{}  pengulangan (0 sampai n kali)
+----
+
+Nama `production_name` dengan huruf kecil digunakan untuk mengidentifikasi
+token leksikal.
+`production_name` dengan _CamelCase_ adalah _non-terminal_ (tidak berakhir).
+Token leksikal dibungkus dalam tanda kutip ganda " " atau kutip terbalik ````.
+
+Bentuk `a … b` merepresentasikan kumpulan karakter alternatif dari `a` sampai
+`b`.
+Elipsis horizontal `…` juga digunakan dinotasi lain dalam spesifikasi ini
+untuk secara informal menandakan enumerasi atau kode yang dipotong.
+Karakter `…` (berlawanan dengan tiga karakter ...) bukanlah token dari
+bahasa Go.
+
+[#Source_code_representation]
+==  Representasi sumber kode
+
+Sumber kode adalah teks Unicode dalam
+https://id.wikipedia.org/wiki/UTF-8[UTF-8].
+Teks tersebut tidak dikanonikalisasikan, sehingga titik kode beraksen adalah
+berbeda dari karakter yang sama yang dibangun dari menggabungkan sebuah aksen
+dan sebuah huruf;
+keduanya dianggap sebagai dua titik kode.
+Demi kemudahan, dokumen ini menggunakan istilah _karakter_ untuk mengacu pada
+titik kode Unicode dalam teks sumber kode.
+
+Setiap titik kode berbeda satu dengan yang lainnya; misalnya, huruf besar dan
+kecil adalah karakter yang berbeda.
+
+Batasan implementasi: Untuk kompatibilitas dengan perkakas lainnya, _compiler_
+mungkin tidak membolehkan karakter NUL (U+0000) dalam teks sumber kode.
+
+Batasan implementasi: Untuk kompatibilitas dengan perkakas lainnya, _compiler_
+bisa mengindahkan penanda urutan byte untuk _UTF-8-encoded_ (U+FEFF) jika ia
+adalah titik kode Unicode pertama dalam teks sumber kode.
+Penanda urutan _byte_ bisa saja tidak dibolehkan dimanapun dalam sumber kode.
+
+[#Characters]
+===  Karakter
+
+Istilah berikut digunakan untuk menandakan kelas karakter Unicode tertentu:
+
+----
+newline        = /* titik kode Unicode U+000A untuk baris baru */ .
+unicode_char   = /* titik kode Unicode apapun kecuali baris baru */ .
+unicode_letter = /* titik kode Unicode dikelompokan sebagai "Letter" (huruf) */ .
+unicode_digit  = /* titik kode Unicode dikelompokan sebagai "Number, decimal digit" */ .
+----
+
+https://www.unicode.org/versions/Unicode8.0.0/[The Unicode Standard 8.0],
+Bagian 4.5 "General Category" mendefinisikan sekumpulan kategori karakter.
+Go mengenali semua karakter dalam kategori Letter berikut Lu, Ll, Lt, Lm, atau
+Lo sebagai huruf Unicode, dan yang berada dalam kategori Number Nd sebagai
+angka Unicode.
+
+[#Letters_and_digits]
+===  Huruf dan angka
+
+Karakter garis bawah `_` (U+005F) dianggap sebagai huruf.
+
+----
+letter        = unicode_letter | "_" .
+decimal_digit = "0" … "9" .
+octal_digit   = "0" … "7" .
+hex_digit     = "0" … "9" | "A" … "F" | "a" … "f" .
+----
+
+
+[#Lexical_elements]
+==  Elemen leksikal
+
+[#Comments]
+===  Komentar
+
+Komentar berfungsi sebagai dokumentasi program.
+Ada dua bentuk komentar:
+
+.  _Komentar baris_ dimulai dengan urutan karakter `//` dan berakhir pada
+   ujung baris.
+.  _Komentar umum_ dimulai dengan urutan karakter `/*` dan berakhir dengan
+   urutan karakter `*/` yang pertama.
+
+Komentar tidak boleh dimulai dalam sebuah
+<<Rune_literals,rune>>
+atau
+<<String_literals,string>>,
+atau di dalam komentar yang lain.
+Komentar umum tanpa baris baru berarti memiliki sebuah spasi.
+Komentar lainnya akan diartikan berada pada baris baru.
+
+
+[#Tokens]
+===  Token
+
+Token-token membentuk kosa kata dari bahasa Go.
+Ada empat kelas token: _identifiers_ (pengidentifikasi), _keywords_
+(kata-kunci), _operators dan punctuation_ (operator dan tanda baca),
+dan _literal_ (abjad).
+Karakter kosong yang dibentuk dari spasi (U+0020), tab horizontal (U+0009),
+_carriage returns_ (U+0009), dan baris baru (U+000A), diindahkan kecuali ia
+memisahkan token-token yang bila digabungkan menjadi sebuah token.
+Juga, sebuah baris baru atau akhir dari berkas bisa memicu
+<<#Semicolons,titik-koma>>.
+Saat memecah input menjadi token-token, token selanjutnya adalah urutan
+karakter terpanjang yang membentuk sebuah token yang valid.
+
+[#Semicolons]
+===  Titik-koma
+
+Tata-bahasa formal menggunakan titik-koma ";" sebagai penanda akhir pada
+beberapa pernyataan.
+Program Go bisa menghilangkan titik-koma tersebut menggunakan dua aturan
+berikut:
+
+.  Saat input dipecah menjadi token-token, sebuah titik-koma secara otomatis
+   langsung ditambahkan ke dalam aliran token setelah token terakhir pada
+   sebuah baris jika token tersebut adalah
+
+   *  sebuah <<#Identifiers,pengidentifikasi>>
+   *  sebuah <<#Integer_literals,integer>>,
+      <<#Floating-point_literals,floating-point>>, <<#Rune_literals,rune>>,
+      atau <<#String_literals,string>>
+   *  salah satu <<#Keywords,kata-kunci>> `break`, `continue`, `fallthrough`,
+      atau `return`
+   *  salah satu <<#Operators_and_punctuation,operator dan tanda baca>> `++`,
+      `--`, `)`, `]`, atau `}`
+
+.  Untuk membolehkan perintah yang kompleks menghabiskan satu baris,
+   titik-koma bisa dihilangkan sebelum ditutup oleh ")" atau "}"
+
+Untuk merefleksikan penggunaan idiomatis, contoh kode dalam dokumen ini tidak
+menggunakan titik-koma menggunakan aturan di atas.
+
+
+[#Identifiers]
+[Pengidentifikasi]
+
+Pengidentifikasi memberi nama entitas seperti variabel dan tipe.
+Sebuah pengidentifikasi adalah sebuah urutan satu atau lebih huruf dan angka.
+Karakter pertama dalam sebuah pengidentifikasi haruslah huruf.
+
+----
+identifier = letter { letter | unicode_digit } .
+----
+
+----
+a
+_x9
+ThisVariableIsExported
+αβ
+----
+
+Beberapa pengidentifikasi <<#Predeclared_identifiers,telah dideklarasikan
+sebelumnya>>.
+
+[#Keywords]
+===  Kata kunci
+
+Kata kunci berikut telah disiapkan dan tidak bisa digunakan sebagai
+pengidentifikasi:
+
+----
+break        default      func         interface    select
+case         defer        go           map          struct
+chan         else         goto         package      switch
+const        fallthrough  if           range        type
+continue     for          import       return       var
+----
+
+[#Operators_and_punctuation]
+===  Operator dan tanda baca
+
+Urutan karakter berikut merepresentasikan
+<<#Operators,operator>>
+(termasuk <<#assign_op,operator penempatan>>)
+dan tanda baca:
+
+----
++    &     +=    &=     &&    ==    !=    (    )
+-    |     -=    |=     ||    <     <=    [    ]
+*    ^     *=    ^=     <-    >     >=    {    }
+/    <<    /=    <<=    ++    =     :=    ,    ;
+%    >>    %=    >>=    --    !     ...   .    :
+     &^          &^=
+----
+
+[#Integer_literals]
+===  Abjad integer
+
+Abjad integer adalah seurutan angka merepresentasikan sebuah
+<<#Constants,konstanta integer>>.
+Beberapa opsi prefiks menyatakan basis non-desimal: `0` untuk oktal, `0x`
+atau `0x` untuk heksadesimal.
+Dalam abjad heksadesimal, huruf `a-f` dan `A-F` merepresentasikan nilai antara
+10 sampai 155.
+
+----
+int_lit     = decimal_lit | octal_lit | hex_lit .
+decimal_lit = ( "1" … "9" ) { decimal_digit } .
+octal_lit   = "0" { octal_digit } .
+hex_lit     = "0" ( "x" | "X" ) hex_digit { hex_digit } .
+----
+
+----
+42
+0600
+0xBadFace
+170141183460469231731687303715884105727
+----
+
+
+[#Floating-point_literals]
+===  Abjad _floating-point_
+
+Abjad _floating-point_ adalah representasi desimal dari
+<<#Constants,konstanta _floating-point_>>.
+Ia memiliki bagian integer, titik desimal, bagian pecahan, dan bagian
+eksponen.
+Bagian integer dan pecahan terdiri dari angka desimal;
+bagian eksponen yaitu `e` atau `E` diikuti dengan nilai eksponen.
+Salah satu bagian integer atau pecahan bisa diindahkan;
+salah satu bagian pecahan atau eksponen bisa diindahkan juga.
+
+----
+float_lit = decimals "." [ decimals ] [ exponent ] |
+            decimals exponent |
+            "." decimals [ exponent ] .
+decimals  = decimal_digit { decimal_digit } .
+exponent  = ( "e" | "E" ) [ "+" | "-" ] decimals .
+----
+
+----
+0.
+72.40
+072.40  // == 72.40
+2.71828
+1.e+0
+6.67428e-11
+1E6
+.25
+.12345E+5
+----
+
+
+[#Imaginary_literals]
+===  Abjad imajiner
+
+Abjad imajiner merepresentasikan bagian imajiner dari
+<<#Constants,konstanta kompleks>>.
+Ia terdiri dari abjad
+<<#Integer_literals,integer>>
+atau
+<<#Floating-point_literals,floating-point>>
+diikuti oleh huruf kecil `i`.
+Nilai dari abjad imajiner yaitu nilai dari abjad integer atau floating-point
+dikalikan dengan unit imajiner _i_.
+
+----
+imaginary_lit = (decimal_digits | int_lit | float_lit) "i" .
+----
+
+Untuk kompatibilitas kebelakang, bagian integer dari abjad imajiner yang
+semuanya terdiri dari angka desimal (dan kemungkinan garis bawah) dianggap
+sebagai integer desimal, walaupun diawali dengan `0`.
+
+----
+0i
+0123i         // == 123i for backward-compatibility
+0o123i        // == 0o123 * 1i == 83i
+0xabci        // == 0xabc * 1i == 2748i
+0.i
+2.71828i
+1.e+0i
+6.67428e-11i
+1E6i
+.25i
+.12345E+5i
+0x1p-2i       // == 0x1p-2 * 1i == 0.25i
+----

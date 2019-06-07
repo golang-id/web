@@ -76,3 +76,14 @@ permasalahan dalam program.
 ===  link:/doc/faq/index.html[Tanya jawab]
 
 Dokumen ini berisi jawaban dari pertanyaan yang sering diajukan tentang Go.
+
+[#references]
+==  Referensi
+
+===  https://golang.org/pkg[Dokumentasi paket]
+
+Dokumentasi untuk pustaka bawaan Go.
+
+===  link:/ref/spec[Spesifikasi Bahasa]
+
+Spesifikasi bahasa resmi.
