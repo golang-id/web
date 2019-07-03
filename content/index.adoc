@@ -15,6 +15,12 @@ Untuk mengetahui cara memasang bahasa Go di sistem operasi anda dan belajar
 lebih lanjut, silahkan buka halaman link:/doc[dokumentasi].
 
 
+==  link:/blog[Blog]
+
+Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
+komunitas Go Indonesia.
+
+
 ==  link:/wicara[Wicara]
 
 Halaman ini berisi _podcast_ dan video tentang Go yang dibawakan oleh

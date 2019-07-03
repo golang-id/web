@@ -1,0 +1,7 @@
+=  Blog
+:stylesheet: /assets/style.css
+
+==  Paket
+
+*  link:/blog/json-and-go[JSON dan Go] - menggunakan paket
+   https://golang.org/pkg/encoding/json/[json].

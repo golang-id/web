@@ -1,0 +1,377 @@
+=  JSON dan Go
+Andrew Gerrand
+January 25, 2011
+:stylesheet: /assets/style.css
+:package-json: https://golang.org/pkg/encoding/json
+
+25 January 2011
+
+==  Pendahuluan
+
+JSON (JavaScript Object Notation) adalah format pertukaran data sederhana.
+Secara sintaks ia menyerupai objek dan _list_ dari JavaScript.
+Ia umumnya digunakan untuk komunikasi antara web back-end dan program
+JavaScript yang berjalan di peramban, namun ia digunakan diberbagai tempat
+lainnya juga.
+Situsnya, https://json.org[json.org], menyediakan definisi standar yang jelas
+dan ringkas.
+
+{package-json}[Paket json] menyediakan cara yang cepat untuk membaca dan
+menulis data JSON dalam program Go anda.
+
+
+==  Penulisan (_encoding_)
+
+Untuk meng-_encode_ data JSON kita menggunakan fungsi
+https://golang.org/pkg/encoding/json#Marshal[Marshal].
+
+----
+func Marshal(v interface{}) ([]byte, error)
+----
+
+Diberikan struktur data Go, `Message`,
+
+----
+type Message struct {
+	Name string
+	Body string
+	Time int64
+}
+----
+
+dan sebuah instansi dari `Message`
+
+----
+m := Message{"Alice", "Hello", 1294706395881547000}
+----
+
+kita dapat meng-_encode_ `m` menjadi JSON menggunakan `json.Marshal`:
+
+----
+b, err := json.Marshal(m)
+----
+
+Jika semua berjalan dengan baik, `err` akan bernilai `nil` dan `b` akan berisi
+`[]byte` dari data JSON:
+
+----
+b == []byte(`{"Name":"Alice","Body":"Hello","Time":1294706395881547000}`)
+----
+
+Hanya struktur data yang dapat direpresentasikan sebagai valid JSON yang akan
+di-_encode_:
+
+*  JSON objek hanya mendukung string sebagai key; untuk meng-_encode_ tipe Go
+   map maka haruslah dalam bentuk `map[string]T` (yang mana `T` ialah tipe Go
+   apapun yang didukung oleh paket json).
+
+*  Tipe channel, complex, dan fungsi tidak dapat di-_encode_.
+
+*  Struktur data berulang tidak didukung; ia akan menyebabkan `Marshal`
+   menjadi pengulangan tanpa henti.
+
+*  Pointer akan di-_encode_ menjadi nilai yang ditunjuknya (atau 'null' jika
+   pointer adalah `nil`).
+
+Paket json hanya mengakses field-field yang diekspor pada tipe struct (yang
+berawalan dengan huruf besar).
+Oleh karena itu hanya field yang diekspor dari sebuah struct yang akan muncul
+dalam keluaran JSON.
+
+
+==  Pembacaan (_decoding_)
+
+Untuk membaca data JSON kita menggunakan fungsi
+https://golang.org/pkg/encoding/json#Unmarshal[Unmarshal].
+
+----
+func Unmarshal(data []byte, v interface{}) error
+----
+
+Pertama, kita harus membuat tempat yang menampung data yang akan dibaca,
+
+----
+var m Message
+----
+
+dan memanggil `json.Unmarshal`, mengirim `[]byte` sebagai data JSON dan
+pointer ke `m`
+
+----
+err := json.Unmarshal(b, &m)
+----
+
+Jika `b` berisi valid JSON yang sesuai dengan `m`, setelah pemanggilan fungsi
+tersebut `err` akan berisi `nil` dan data dari `b` akan disimpan dalam struct
+`m`, seperti melakukan penempatan:
+
+----
+m = Message{
+	Name: "Alice",
+	Body: "Hello",
+	Time: 1294706395881547000,
+}
+----
+
+Bagaimana fungsi `Unmarshal` mengetahui field tempat menyimpan data yang
+dibaca?
+Untuk JSON dengan key "Foo", `Unmarshal` akan mencari field dalam struct
+tujuan (dengan urutan berikut):
+
+*  Field yang diekspor dengan tag "Foo" (lihat
+   https://golang.org/ref/spec#Struct_types[spesifikasi Go] untuk informasi
+   lebih lanjut tentang tag pada struct),
+
+*  Field yang diekspor bernama "Foo", atau
+
+*  Field yang diekspor bernama "FOO" atau "FoO" yang mengacuhkan huruf
+   besar-kecil yang sama dengan "Foo".
+
+Apa yang terjadi bila struktur dari data JSON tidak mirip dengan tipe Go?
+
+----
+b := []byte(`{"Name":"Bob","Food":"Pickle"}`)
+var m Message
+err := json.Unmarshal(b, &m)
+----
+
+`Unmarshal` hanya akan membaca field yang ia temukan pada tipe tujuan.
+Dalam kasus ini hanya field `Name` dari `m` yang akan diisi, dan field `Food`
+akan diindahkan.
+Perilaku ini berguna bila anda ingin mengambil hanya field-field tertentu dari
+_blob_ JSON yang besar.
+Hal ini juga berarti bahwa field yang tidak diekspor pada struct tujuan tidak
+akan dipengaruhi oleh `Unmarshal`.
+
+Namun bagaimana jika anda tidak mengetahui struktur dari data JSON sebelumnya?
+
+
+==  JSON generik dengan interface{}
+
+Tipe `interface{}` (interface kosong) mendeskripsikan sebuah interface dengan
+method yang kosong.
+Setiap tipe pada Go mengimplementasikan paling tidak method kosong dan oleh
+karena itu memenuhi interface kosong.
+
+Interface kosong berfungsi sebagai penampung umum dari tipe:
+
+----
+var i interface{}
+i = "a string"
+i = 2011
+i = 2.777
+----
+
+Sebuah asersi tipe mengakses tipe konkret didalamnya:
+
+----
+r := i.(float64)
+fmt.Println("area dari lingkaran yaitu", math.Pi*r*r)
+----
+
+Atau, jika tipe didalam interface kosong tersebut tidak diketahui, sebuah
+switch bertipe dapat menentukan tipenya:
+
+----
+switch v := i.(type) {
+case int:
+	fmt.Println("nilai integer dari i adalah", v)
+case float64:
+	fmt.Println("nilai float64 dari i adalah", v)
+case string:
+	fmt.Println("nilai string dari i adalah", v)
+default:
+	// i bukanlah salah satu dari tipe diatas.
+}
+----
+
+Paket json menggunakan nilai `map[string]interface{}` dan `[]interface{}`
+untuk menyimpan objek dan array dari JSON;
+ia akan membaca JSON _blob_ yang valid menjadi nilai `interface{}`.
+Tipe konkret bawaan dari Go yaitu:
+
+*  `bool` untuk boolean JSON,
+*  `float64` untuk angka JSON,
+*  `string` untuk string JSON, dan
+*  `nil` untuk null JSON.
+
+
+==  Membaca data beragam
+
+Misalkan data JSON berikut, disimpan dalam variabel `b`:
+
+----
+b := []byte(`{"Name":"Wednesday","Age":6,"Parents":["Gomez","Morticia"]}`)
+----
+
+Tanpa mengetahui struktur datanya, kita dapat membacanya menjadi sebuah nilai
+`interface{}` dengan `Unmarshal`:
+
+----
+var f interface{}
+err := json.Unmarshal(b, &f)
+----
+
+Nilai dalam `f` yaitu sebuah map dengan key bertipe string dan nilai
+disimpan dalam interface kosong:
+
+----
+f = map[string]interface{}{
+	"Name": "Wednesday",
+	"Age":  6,
+	"Parents": []interface{}{
+		"Gomez",
+		"Morticia",
+	},
+}
+----
+
+Untuk mengakses data ini kita dapat menggunakan asersi tipe untuk mengakses
+`map[string]interface{}` di dalam `f`:
+
+----
+m := f.(map[string]interface{})
+----
+
+Kita dapat melakukan iterasi pada map dengan perintah `range` dan menggunakan
+sebuah switch bertipe untuk mengakses nilai konkretnya:
+
+----
+for k, v := range m {
+	switch vv := v.(type) {
+	case string:
+		fmt.Println(k, "adalah string", vv)
+	case float64:
+		fmt.Println(k, "adalah float64", vv)
+	case []interface{}:
+		fmt.Println(k, "adalah array:")
+		for i, u := range vv {
+			fmt.Println(i, u)
+		}
+	default:
+		fmt.Println(k, "adalah tipe yang tidak diketahui cara menanganinya")
+	}
+}
+----
+
+Dengan cara ini kita dapat bekerja dengan data JSON yang tidak diketahui
+sebelumnya dengan masih diuntungkan dari keamanan tipe.
+
+
+==  Tipe Referensi
+
+Mari kita definisikan sebuah tipe Go yang berisi data dari contoh sebelumnya,
+
+----
+type FamilyMember struct {
+	Name    string
+	Age     int
+	Parents []string
+}
+
+var m FamilyMember
+err := json.Unmarshal(b, &m)
+----
+
+Memanggil `Unmarshal` pada data `b` ke nilai dari `FamilyMember` bekerja
+seperti yang diharapkan, namun jika kita pelajari lebih dekat kita dapat
+melihat hal yang menarik terjadi.
+Dengan perintah `var` kita mengalokasikan struct `FamilyMember`, dan mengirim
+pointer dari nilai tersebut ke fungsi `Unmarshal`, namun pada saat tersebut
+field `Parents` memiliki nilai slice `nil`.
+Untuk mengisi field `Parents`, `Unmarshal` mengalokasikan slice baru secara
+otomatis.
+Dengan cara inilah `Unmarshal` bekerja dengan tipe referensi (pointer, slice,
+dan map).
+
+Misalkan kita melakukan pembacaan ke dalam struktur data berikut:
+
+----
+type Foo struct {
+	Bar *Bar
+}
+----
+
+Jika JSON objek memiliki field "Bar", `Unmarshal` akan mengalokasikan sebuah
+instansi dari `Bar` yang baru dan mengisinya.
+Jika tidak, `Bar` akan diindahkan dan berisi pointer `nil`.
+
+Pola seperti ini berguna: jika anda memiliki aplikasi yang menerima beberapa
+tipe pesan yang berbeda, anda bisa mendefinisikan struktur "penerima" seperti
+berikut
+
+----
+type IncomingMessage struct {
+	Cmd *Command
+	Msg *Message
+}
+----
+
+dan pada bagian pengirim dapat mengisi field `Cmd` dan/atau field `Msg` dari
+objek JSON, bergantung dari tipe pesan yang ingin dikomunikasikan.
+`Unmarshal`, saat membaca JSON ke struct `IncomingMessage`, hanya akan
+mengalokasikan struktur data yang ada dalam data JSON.
+Untuk mengetahui pesan yang diproses, pemrogram perlu memeriksa apakah `Cmd`
+atau `Msg` yang bernilai `nil`.
+
+
+==  Menulis dan Membaca secara berkelanjutan (_Streaming_)
+
+Paket json menyediakan tipe `Decoder` dan `Encoder` untuk mendukung operasi
+pembacaan dan penulisan data JSON berkelanjutan (_streaming_).
+Fungsi `NewDecoder` dan `NewEncoder` membungkus tipe interface
+https://golang.org/pkg/io/#Reader[io.Reader]
+dan
+https://golang.org/pkg/io/#Writer[io.Writer].
+
+----
+func NewDecoder(r io.Reader) *Decoder
+func NewEncoder(w io.Writer) *Encoder
+----
+
+Berikut contoh program yang membaca sekumpulan objek JSON dari standar input,
+menghapus semua field kecuali `Name` dari setiap objek, dan menulis objek ke
+standar keluaran:
+
+----
+package main
+
+import (
+	"encoding/json"
+	"log"
+	"os"
+)
+
+func main() {
+	dec := json.NewDecoder(os.Stdin)
+	enc := json.NewEncoder(os.Stdout)
+	for {
+		var v map[string]interface{}
+		if err := dec.Decode(&v); err != nil {
+			log.Println(err)
+			return
+		}
+		for k := range v {
+			if k != "Name" {
+				delete(v, k)
+			}
+		}
+		if err := enc.Encode(&v); err != nil {
+			log.Println(err)
+		}
+	}
+}
+----
+
+Karena Reader dan Writer ada dimana-mana, tipe `Encoder` dan `Decoder` ini
+dapat digunakan dalam rentang skenario yang luas, seperti membaca dan menulis
+ke koneksi HTTP, WebSocket, atau berkas.
+
+==  Referensi
+
+Untuk informasi lebih lanjut lihat
+https://golang.org/pkg/encoding/json/[dokumentasi paket json].
+Untuk contoh penggunaan json lihat sumber berkas dari
+https://golang.org/pkg/net/rpc/jsonrpc/[paket jsonrpc].
+
+__Oleh Andrew Gerrand__
