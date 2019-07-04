@@ -1,7 +1,5 @@
 =  Selamat Datang
 :stylesheet: /assets/style.css
-:golang-id-milis: https://groups.google.com/forum/#!forum/golang-id
-:golang-id-berkontribusi: link:/berkontribusi.html
 
 Selamat datang di situs komunitas bahasa pemrograman Go Indonesia.
 
@@ -43,13 +41,17 @@ ikuti dan pantau acara pertemuan komunitas Go Bandung selanjutnya.
 
 ==  Bantuan
 
-===  {golang-id-milis}[Milis Go Indonesia]
+===  https://groups.google.com/forum/#!forum/golang-id[Milis Go Indonesia]
 
 Jika anda memiliki pertanyaan, atau ingin berbagi karya Go anda, atau ingin
 berdiskusi lebih lanjut tentang Go.
 
+===  https://t.me/golangID[Grup Telegram Go Indonesia]
 
-==  {golang-id-berkontribusi}[Berkontribusi]
+Grup untuk berdiskusi dan tanya jawab dengan cepat mengenai apapun.
+
+
+==  link:/berkontribusi.html[Berkontribusi]
 
 Siapapun dapat berkontribusi dalam situs ini.
 Untuk melihat daftar kontribusi yang dapat dilakukan, silahkan kunjungi
