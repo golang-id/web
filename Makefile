@@ -13,5 +13,8 @@ generate:
 build: generate
 	go build ./cmd/golangid
 
+run: generate
+	DEBUG=1 go run ./cmd/golangid
+
 deploy: build
 	rsync ./golangid gcp-webserver:~/bin/
