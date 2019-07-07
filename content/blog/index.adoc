@@ -5,3 +5,6 @@
 
 *  link:/blog/json-and-go[JSON dan Go] - menggunakan paket
    https://golang.org/pkg/encoding/json/[json].
+
+*  link:/blog/gobs-of-data[Gob dari data] - rancangan dan penggunaan paket
+   https://golang.org/pkg/encoding/gob/[gob].
