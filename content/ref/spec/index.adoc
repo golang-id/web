@@ -236,7 +236,7 @@ dan tanda baca:
 ===  Abjad integer
 
 Abjad integer adalah seurutan angka merepresentasikan sebuah
-<<#Constants,konstanta integer>>.
+<<#Constants,konstan integer>>.
 Beberapa opsi prefiks menyatakan basis non-desimal: `0` untuk oktal, `0x`
 atau `0x` untuk heksadesimal.
 Dalam abjad heksadesimal, huruf `a-f` dan `A-F` merepresentasikan nilai antara
@@ -261,7 +261,7 @@ hex_lit     = "0" ( "x" | "X" ) hex_digit { hex_digit } .
 ===  Abjad _floating-point_
 
 Abjad _floating-point_ adalah representasi desimal dari
-<<#Constants,konstanta _floating-point_>>.
+<<#Constants,konstan _floating-point_>>.
 Ia memiliki bagian integer, titik desimal, bagian pecahan, dan bagian
 eksponen.
 Bagian integer dan pecahan terdiri dari angka desimal;
@@ -294,7 +294,7 @@ exponent  = ( "e" | "E" ) [ "+" | "-" ] decimals .
 ===  Abjad imajiner
 
 Abjad imajiner merepresentasikan bagian imajiner dari
-<<#Constants,konstanta kompleks>>.
+<<#Constants,konstan kompleks>>.
 Ia terdiri dari abjad
 <<#Integer_literals,integer>>
 atau
@@ -313,7 +313,7 @@ sebagai integer desimal, walaupun diawali dengan `0`.
 
 ----
 0i
-0123i         // == 123i for backward-compatibility
+0123i         // == 123i untuk kompatibilitas
 0o123i        // == 0o123 * 1i == 83i
 0xabci        // == 0xabc * 1i == 2748i
 0.i
@@ -325,3 +325,318 @@ sebagai integer desimal, walaupun diawali dengan `0`.
 .12345E+5i
 0x1p-2i       // == 0x1p-2 * 1i == 0.25i
 ----
+
+
+[#Rune_literals]
+===  Abjad rune
+
+Abjad rune merepresentasikan sebuah link:/ref/spec#Constants[konstan rune],
+sebuah nilai integer yang mengidentifikasi sebuah kode poin Unicode.
+Abjad rune diekspresikan dengan satu atau lebih karakter yang ditutup dengan
+tanda kutip tunggal, seperti `'x'` atau `'\n'`.
+Di dalam tanda kutip tersebut, karakter apapun dapat ditulis kecuali baris
+baru dan tanda kutip tunggal itu sendiri.
+Sebuah karakter dengan kutip merepresentasikan nilai Unicode dari karakter itu
+sendiri, sementara seurutan karakter yang diawali dengan garis miring terbalik
+(_backslash_) akan ditulis nilainya menjadi beragam format.
+
+Bentuk sederhana dari rune merepresentasikan karakter tunggal diantara tanda
+kutip; secara teks sumber kode dari Go adalah karakter Unicode yang ditulis
+dalam UTF-8, multipel UTF-8 byte bisa merepresentasikan sebuah nilai integer.
+Misalnya, abjad `'a'` menyimpan sebuah byte yang merepresentasikan sebuah
+abjad `a`, Unicode U+0061, dengan nilai `0x61`; sementara `'ä'` menyimpan dua
+byte (`0xc3 0xa4`) yang merepresentasikan abjad a-dwititik, U+00E4, nilai
+`0xe4`.
+
+Beberapa _backslash_ membolehkan nilai beragam ditulis sebagai teks ASCII.
+Ada empat cara untuk merepresentasikan nilai integer sebagai konstan
+numerik: `\x` diikuti dengan dua digit heksadesimal; `\u` diikuti dengan empat
+digit heksadesimal; `\U` diikuti dengan delapan heksadesimal, dan _backslash_
+kosong `\` diikuti dengan tiga digit oktal.
+Pada setiap kasus tersebut nilai dari abjad adalah nilai yang
+direpresentasikan oleh digit pada basis yang berhubungan.
+
+Walaupun representasi tersebut semua hasilnya adalah sebuah integer, mereka
+memiliki rentang yang berbeda.
+Oktal harus merepresentasikan sebuah nilai antara 0 dan 255 secara inklusif.
+Heksadesimal memenuhi kondisi ini secara konstruksi.
+`\u` dan `\U` merepresentasikan kode poin Unicode sehingga beberapa nilai
+adalah ilegal, khususnya nilai di atas `0x10FFFF` dan _surrogate half_
+(bagian setengah atas dari empat heksadecimal).
+
+Setelah tanda _backslash_, beberapa karakter tunggal merepresentasikan nilai
+spesial:
+
+----
+\a   U+0007 alert atau bel
+\b   U+0008 backspace
+\f   U+000C form feed
+\n   U+000A line feed atau newline
+\r   U+000D carriage return
+\t   U+0009 tab horizontal
+\v   U+000b tab vertikal
+\\   U+005c backslash (garis miring terbalik)
+\'   U+0027 tanda kutip tunggal (valid hanya pada abjad rune)
+\"   U+0022 tanda kutip ganda (valid hanya pada abjad string)
+----
+
+Urutan karakter lain yang dimulai dengan sebuah _backslash_ adalah ilegal di
+dalam abjad rune.
+
+----
+rune_lit         = "'" ( unicode_value | byte_value ) "'" .
+unicode_value    = unicode_char | little_u_value | big_u_value | escaped_char .
+byte_value       = octal_byte_value | hex_byte_value .
+octal_byte_value = `\` octal_digit octal_digit octal_digit .
+hex_byte_value   = `\` "x" hex_digit hex_digit .
+little_u_value   = `\` "u" hex_digit hex_digit hex_digit hex_digit .
+big_u_value      = `\` "U" hex_digit hex_digit hex_digit hex_digit
+                           hex_digit hex_digit hex_digit hex_digit .
+escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `"` ) .
+----
+
+----
+'a'
+'ä'
+'本'
+'\t'
+'\000'
+'\007'
+'\377'
+'\x07'
+'\xff'
+'\u12e4'
+'\U00101234'
+'\''         // abjad rune berisi sebuah karakter kutip
+'aa'         // ilegal: terlalu banyak karaketer
+'\xa'        // ilegal: terlalu sedikit digit heksadesimal
+'\0'         // ilegal: terlalu sedikit digit oktal
+'\uDFFF'     // ilegal: setengah
+'\U00110000' // ilegal: invalid Unicode
+----
+
+
+[#String_literals]
+===  Abjad string
+
+Abjad string merepresentasikan
+link:/ref/spec#Constants[konstan string] yang didapat dari menggabungkan
+seurutan karakter-karakter.
+Ada dua bentuk string: abjad string mentah dan abjad string diinterpretasi.
+
+Abjad string mentah yaitu seurutan karakter antara kutip terbalik (aksen
+nontirus), seperti dalam ````foo```` .
+Di antara tanda kutip terbalik, karakter apapun dapat muncul kecuali tanda
+kutip terbalik itu sendiri.
+Nilai dari abjad string mentah tersebut yaitu string yang terdiri dari
+karakter-karakter yang tidak diinterpretasi (implisit UTF-8) di antara tanda
+kutip;
+pada khususnya, _backslash_ tidak berfungsi dan string bisa memiliki baris
+baru.
+Karakter _carriage return_ (`'\r'`) di dalam abjad string mentah diindahkan
+dari nilai string mentah.
+
+Abjad string diinterpretasi yaitu seurutan karakter antara tanda kutip ganda,
+seperti dalam`"bar"`.
+Di antara tanda kutip, karakter apapun bisa muncul kecuali baris baru dan
+tanda kutip ganda lepas (tanpa _backslash_).
+Teks antara tanda kutip membentuk nilai dari abjad, dengan _backslash_
+diinterpretasikan seperti halnya dalam
+link:/ref/spec#Rune_literals[abjad rune] (kecuali `\'` adalah ilegal dan `\"`
+adalah legal), dengan batasan-batasan yang sama.
+Tiga-digit oktal (_\nnn_) dan dua-digit heksadesimal (\x_nn_)
+merepresentasikan _byte_ individu dari string;
+karakter lepas lainnya merepresentasikan _encoding_ UTF-8 (bisa jadi
+multi-byte) dari _karakter-karakter_ tersebut.
+Maka di dalam abjad string, `\377` dan `\xFF` merepresentasikan nilai
+`0xFF`=255, sementara `ÿ, `\u00FF`, `\U000000FF` dan `\xc3\xbf`
+merepresentasikan dua byte `0xc3 0xbf` dari _encoding_ karakter UTF-8  U+00FF.
+
+----
+string_lit             = raw_string_lit | interpreted_string_lit .
+raw_string_lit         = "`" { unicode_char | newline } "`" .
+interpreted_string_lit = `"` { unicode_value | byte_value } `"` .
+----
+
+----
+`abc`                // sama dengan "abc"
+`\n
+\n`                  // sama dengan "\\n\n\\n"
+"\n"
+"\""                 // sama dengan `"`
+"Hello, world!\n"
+"日本語"
+"\u65e5本\U00008a9e"
+"\xff\u00FF"
+"\uD800"             // ilegal: _surrogate half_
+"\U00110000"         // ilegal: invalid kode poin Unicode
+----
+
+Contoh berikut merepresentasikan string yang sama:
+
+----
+"日本語"                                 // UTF-8 input teks
+`日本語`                                // UTF-8 input teks sebagai abjad mentah
+"\u65e5\u672c\u8a9e"                    // kode poin Unicode eksplisit
+"\U000065e5\U0000672c\U00008a9e"        // kode poin Unicode eksplisit
+"\xe6\x97\xa5\xe6\x9c\xac\xe8\xaa\x9e"  // UTF-8 byte eksplisit
+----
+
+Jika sumber kode merepresentasikan sebuah karakter sebagai dua kode poin,
+seperti sebuah gabungan bentuk mengikutkan aksen dan sebuah huruf, hasilnya
+akan eror jika ditempatkan dalam sebuah abjad rune (karena bukanlah kode poin
+tunggal), dan akan muncul sebagai dua kode poin jika ditempatkan dalam abjad
+string.
+
+
+[#Constants]
+==  Konstan
+
+Ada _konstan boolean_, _konstan rune_, _konstan integer_,
+_konstan floating-point_, _konstan complex_, dan _konstan string_.
+Konstan rune, integer, _floating-point_, dan complex secara kolektif disebut
+dengan _konstan numerik_.
+
+Nilai sebuah konstan direpresentasikan oleh sebuah abjad
+link:/ref/spec#Rune_literals[rune],
+link:/ref/spec#Integer_literals[integer],
+link:/ref/spec#Floating-point_literals[_floating-point_],
+link:/ref/spec#Imaginary_literals[imajiner], atau
+link:/ref/spec#String_literals[string],
+sebuah pengidentifikasi yang menyatakan sebuah konstan,
+sebuah link:/ref/spec#Constant_expressions[ekspresi konstan],
+sebuah link:/ref/spec#Conversions[konversi] dengan hasil sebuah konstan,
+atau nilai hasil dari fungsi bawaan seperti `unsafe.Sizeof` yang diterapkan
+terhadap nilai apapun, `cap` atau `len` yang diterapkan pada
+link:/ref/spec#Length_and_capacity[beberapa ekspresi],
+`real` dan `imag` yang diterapkan pada konstan complex dan
+`complex` yang diterapkan pada konstan numerik.
+Nilai boolean direpresentasikan dengan konstan `true` dan `false`.
+Identifikasi pra-deklarasi
+link:/ref/spec#Iota[iota] menyatakan konstan integer.
+
+Secara umum, konstan complex adalah sebuah bentuk dari
+link:/ref/spec#Constant_expressions[ekspresi konstan]
+dan didiskusikan di bagian tersebut.
+
+Konstan numerik merepresentasikan nilai eksak dari presisi beragam dan
+tidak _overflow_.
+Karena itu, tidak ada konstan yang menyatakan nilai negatif nol IEEE-754,
+_infinity_, dan nilai bukan-angka.
+
+Konstan bisa
+link:/ref/spec#Types[bertipe] atau tak bertipe.
+Konstan harfiah, `true`, `false`, `iota`, dan beberapa
+link:/ref/spec#Constant_expressions[ekspresi konstan]
+yang berisi hanya operan konstan tanpa tipe adalah konstan tak bertipe.
+
+Sebuah konstan bisa diberikan tipe secara eksplisit dengan
+link:/ref/spec#Constant_declarations[deklarasi konstan] atau
+link:/ref/spec#Conversions[konversi], atau secara implisit bila digunakan dalam
+sebuah
+link:/ref/spec#Variable_declarations[deklarasi variabel]
+atau dalam sebuah
+link:/ref/spec#Assignments[penempatan]
+atau sebagai sebuah operan dalam sebuah
+link:/ref/spec#Expressions[ekspresi].
+Jika nilai konstan tidak dapat
+link:/ref/spec#Representability[direpresentasikan] sebagai sebuah nilai dari
+tipe maka ia akan eror.
+
+Konstan tak bertipe memiliki _tipe bawaan_ yaitu tipe yang mana konstan
+secara implisit dikonversi dalam konteks di mana nilai bertipe dibutuhkan,
+misalnya,
+dalam
+link:/ref/spec#Short_variable_declarations[deklarasi variabel singkat]
+seperti `i := 0` yang mana tidak ada tipe eksplisit.
+Tipe bawaan dari konstan tak bertipe adalah `bool`, `rune`, `int`, `float64`,
+`complex128` atau `string`, bergantung kepada apakah ia adalah sebuah konstant
+boolean, rune, integer, _floating-point_, complex, atau string.
+
+Batasan implementasi: Walaupun konstan numerik memiliki presisi beragam
+dalam bahasa Go, _compiler_ bisa saja mengimplementasikan mereka menggunakan
+representasi internal dengan presisi terbatas.
+Dengan kata lain, setiap implementasi harus:
+
+*  Merepresentasikan konstan integer paling tidak 256 bit.
+*  Merepresentasikan konstan _floating-point_, termasuk bagian dari
+   konstan complex, dengan mantisa setidaknya 256 bit dan sebuah eksponen
+   binary _signed_ setidaknya 16 bit.
+*  Kembalikan eror bila tidak bisa merepresentasikan konstan integer secara
+   tepat.
+*  Kembalikan eror bila tidak bisa merepresentasikan sebuah konstan
+   _floating-point_ atau complex karena _overflow_.
+*  Bulatkan ke konstan terdekat yang dapat direpresentasikan jika tidak bisa
+   merepresentasikan konstan _floating-point_ atau complex dikarenakan limit
+   atau presisi.
+
+Kebutuhan-kebutuhan di atas berlaku baik terhadap konstan harfiah dan
+terhadap hasil dari mengevaluasi
+link:/ref/spec#Constant_expressions[ekspresi konstan].
+
+
+[#Variables]
+==  Variabel
+
+Sebuah variabel adalah sebuah lokasi penampung untuk menyimpan sebuah _nilai_.
+Kumpulan dari nilai yang diperbolehkan ditentukan oleh
+link:/ref/spec#Types[tipe]
+variabel.
+
+Sebuah
+link:/ref/spec#Variable_declarations[deklarasi variabel] atau, pada parameter
+dan kembalian fungsi, identitas dari sebuah
+link:/ref/spec#Function_declarations[deklarasi fungsi]
+atau
+link:/ref/spec#Function_literals[abjad fungsi]
+mencadagkan penampung untuk variabel bernama.
+Memanggil fungsi bawaan
+link:/ref/spec#Allocation[new]
+atau mengambil alamat dari sebuah
+link:/ref/spec#Composite_literals[abjad komposit]
+mengalokasikan penampung untuk sebuah variabel pada saat _runtime_.
+Variabel anonim diacu lewat sebuah (bisa jadi implisit)
+link:/ref/spec#Address_operators[pointer tak-langsung].
+
+Variabel berstruktur dari tipe
+link:/ref/spec#Array_types[array],
+link:/ref/spec#Slice_types[slice], dan
+link:/ref/spec#Struct_types[struct]
+memiliki elemen-elemen dan field-field yang bisa
+link:/ref/spec#Address_operators[diakses]
+secara individu.
+Setiap elemen tersebut berlaku seperti sebuah variabel.
+
+_Tipe statis_ (atau _tipe_) dari sebuah variabel yaitu tipe yang diberikan
+saat mendeklarasikannya, tipe yang diberikan pada saat pemanggilan `new` atau
+abjad komposit, atau tipe dari elemen dari variabel berstruktur.
+Variabel dari tipe interface memiliki _tipe dinamis_ berbeda, yaitu tipe
+konkret dari nilai yang diberikan ke variabel pada saat _runtime_ (kecuali
+bila nilainya adalah pengidentifikasi pra-deklarasi `nil`, yang berarti tak
+bertipe).
+Tipe dinamis bisa beragam selama eksekusi namun nilai yang disimpan dalam
+variabel interface selalu
+link:/ref/spec#Assignability[ditempatkan]
+ke tipe statis dari variabel.
+
+----
+var x interface{}  // x adalah nil dan tipe statis interface{}
+var v *T           // v bernilai nil, tipe statis *T
+x = 42             // x bernilai 42 dan tipe dinamis int
+x = v              // x bernilai (*T)(nil) dan tipe dinamis *T
+----
+
+Nilai variabel diambil dengan mengacu pada variabel dalam sebuah
+link:/ref/spec#Expressions[ekspresi];
+yaitu nilai terakhir yang
+link:/ref/spec#Assignments[ditempatkan]
+ke variabel.
+Jika sebuah variabel belum diberi nilai, nilainya adalah
+link:/ref/spec#The_zero_value[nilai kosong]
+dari tipenya.
+
+
+[#Types]
+==  Tipe
+
+
