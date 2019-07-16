@@ -1,0 +1,610 @@
+=  Hukum-hukum Refleksi
+Rob Pike
+September 6, 2011
+:stylesheet: /assets/style.css
+:toc:
+
+6 September, 2011
+
+
+==  Pendahuluan
+
+Refleksi dalam domain komputer yaitu kemampuan dari sebuah program untuk
+mengeksaminasi struktur dirinya sendiri, khususnya lewat tipe-tipe;
+refleksi adalah suatu bentuk dari pemrograman-meta (_metaprogramming_).
+
+Dalam artikel ini kita mencoba menjernihkan beberapa hal dengan menjelaskan
+bagaimana refleksi bekerja pada Go.
+Setiap model refleksi pada bahasa pemrograman berbeda-beda (dan banyak bahasa
+pemrograman malah tidak mendukungnya sama sekali), namun artikel ini membahas
+tentang Go, jadi secara keseluruhan dalam artikel ini kata "refleksi" berarti
+"refleksi dalam Go".
+
+
+==  Tipe dan interface
+
+Karena refleksi dibangun di atas sistem tipe, mari kita mulai dengan
+menyegarkan kembali ingatan kita tentang tipe dalam Go.
+
+Go bertipe statis.
+Setiap variabel memiliki sebuah tipe statis, yaitu, hanya satu tipe diketahui
+pada saat dikompilasi: `int`, `float32`, `*MyType`, pass:[]`[]byte`, dan
+seterusnya.
+Jika kita mendeklarasikan
+
+----
+type MyInt int
+
+var i int
+var j MyInt
+----
+
+maka `i` bertipe `int` dan `j` bertipe `MyInt`.
+Variabel `i` dan `j` memiliki tipe statis yang berbeda dan, walaupun tipe
+dasarnya sama, nilai mereka tidak bisa dipertukarkan satu sama lain tanpa
+sebuah konversi.
+
+Salah satu tipe penting adalah tipe interface, yang merepresentasikan
+sekumpulan method yang tetap.
+Sebuah variabel interface dapat menyimpan nilai konkret apapun (yang bukan
+interface) selama nilai tersebut mengimplementasikan method-method dari
+interface tersebut.
+Salah satu contoh interface yang cukup dikenal yaitu `io.Reader` dan
+`io.Writer`, https://golang.org/pkg/io/[paket `io`]:
+
+----
+// Reader is the interface that wraps the basic Read method.
+type Reader interface {
+	Read(p []byte) (n int, err error)
+}
+
+// Writer is the interface that wraps the basic Write method.
+type Writer interface {
+	Write(p []byte) (n int, err error)
+}
+----
+
+Tipe apapun yang mengimplementasikan method `Read` (atau `Write`) dengan
+penanda (tipe argumen dan kembalian yang sama) dikatakan mengimplementasikan
+`io.Reader` (atau `io.Writer`).
+Artinya adalah sebuah variabel bertipe `io.Reader` dapat menampung nilai
+apapun selama tipenya memiliki method `Read`:
+
+----
+var r io.Reader
+r = os.Stdin
+r = bufio.NewReader(r)
+r = new(bytes.Buffer)
+// dan seterusnya
+----
+
+Apapun nilai konkret yang ditampung oleh `r`, tipe dari `r` selalu
+`io.Reader`: Go bertipe statis dan tipe statis dari `r` adalah `io.Reader`.
+
+Contoh yang paling penting dari sebuah tipe interface yaitu interface kosong:
+
+----
+interface{}
+----
+
+Interface kosong merepresentasikan method kosong yang dipenuhi oleh nilai
+apapun, karena nilai apapun memiliki nol atau lebih method.
+
+Beberapa orang mengatakan bahwa interface pada Go bertipe dinamis, namun
+pernyataan tersebut keliru.
+Interface pada Go bertipe statis: sebuah variabel bertipe interface selalu
+memiliki tipe statis yang sama dan walaupun selama program berjalan nilai yang
+ditampung dalam variabel interface tersebut berubah tipenya, nilai tersebut
+akan selalu memenuhi interface tersebut.
+
+Kita perlu lebih rinci mengenai hal ini karena refleksi dan interface berelasi
+dekat.
+
+
+==  Representasi dari sebuah interface
+
+Russ Cox telah menuliskan
+https://research.swtch.com/2009/12/go-data-structures-interfaces.html[secara
+rinci dalam blognya]
+tentang representasi dari nilai interface dalam Go.
+Kita tidak perlu mengulang rincian yang sama di sini, namun sebuah kesimpulan
+yang ringkas diperlukan.
+
+Sebuah variabel bertipe interface menyimpan sebuah pasangan: nilai konkret
+yang ditempatkan ke variabel dan _descriptor_ dari tipe.
+Lebih rincinya, nilai konkret yaitu item data konkret yang mengimplementasikan
+interface, dan _descriptor_ tipe yaitu yang menjelaskan tipe dari item
+tersebut.
+Misalnya, setelah
+
+----
+var r io.Reader
+tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+if err != nil {
+	return nil, err
+}
+r = tty
+----
+
+`r` berisi pasangan (nilai, tipe), (`tty`, `*os.File`).
+Perhatikan bahwa tipe `*os.File` mengimplementasikan method-method selain
+`Read`;
+walaupun interface hanya menyediakan akses ke method `Read`, nilai
+di dalamnya membawa semua informasi tentang nilai tersebut.
+Oleh karena itu kita bisa melakukan hal seperti ini:
+
+----
+var w io.Writer
+w = r.(io.Writer)
+----
+
+Ekspresi dalam penempatan di atas adalah sebuah asersi tipe
+(_type assertion_);
+yang diasersi yaitu item di dalam `r` juga mengimplementasikan `io.Writer`,
+sehingga kita bisa menempatkannya ke `w`.
+Setelah penempatan, `w` akan berisi pasangan (`tty`, `*os.File`).
+Pasangan yang sama dengan yang ditampung dalam `r`.
+Tipe statis dari interface menentukan method apa yang bisa dipanggil dalam
+sebuah variabel interface, walaupun nilai konkret di dalamnya bisa saja
+memiliki sekumpulan methods yang lebih banyak.
+
+Selanjutnya, kita dapat melakukan:
+
+----
+var empty interface{}
+empty = w
+----
+
+dan interface kosong `empty` akan memiliki pasangan (`tty`, `*os.File`).
+Hal ini sangat berguna: sebuah interface kosong dapat menampung nilai apapun
+dan berisi semua informasi yang kita butuhkan tentang nilai tersebut.
+
+(Kita tidak membutuhkan asersi tipe di sini karena secara statis diketahui
+bahwa `w` memenuhi interface kosong.
+Pada contoh di atas kita memindahkan sebuah nilai dari sebuah `Reader` ke
+sebuah `Writer`, dengan cara eksplisit dan menggunakan asersi tipe karena
+method-method dari `Writer` bukan subset dari `Reader`.)
+
+Salah satu detil penting yaitu pasangan di dalam sebuah interface selalu
+berbentuk (nilai, tipe konkret) dan tidak akan bisa berbentuk (nilai, tipe
+interface).
+Interface tidak bisa menampung nilai interface.
+
+Sekarang kita siap untuk refleksi.
+
+==  Hukum pertama dari refleksi
+
+==  1. Refleksi berangkat dari nilai interface ke objek refleksi.
+
+Pada dasarnya, refleksi hanyalah sebuah mekanisme untuk memeriksa pasangan
+tipe dan nilai yang disimpan dalam sebuah variabel interface.
+Untuk memulai, ada dua tipe yang perlu kita ketahui dalam
+https://golang.org/pkg/reflect/[paket `reflect`]:
+https://golang.org/pkg/reflect/#Type[`Type`] dan
+https://golang.org/pkg/reflect/#Value[`Value`].
+Kedua tipe tersebut memberi akses ke isi dari sebuah variabel interface,
+dan dua fungsi sederhana, dikenal dengan `reflect.TypeOf()` dan
+`reflect.ValueOf()`, mengembalikan `reflect.Type` dan `reflect.Value` dari
+sebuah nilai interface.
+(Dari `reflect.Value` kita dengan mudah mendapatkan `reflect.Type`, namun mari
+kita pisahkan konsep dari `Value` dan `Type` ini terlebih dahulu.)
+
+Mari mulai dengan `TypeOf`:
+
+----
+package main
+
+import (
+	"fmt"
+	"reflect"
+)
+
+func main() {
+	var x float64 = 3.4
+	fmt.Println("tipe:", reflect.TypeOf(x))
+}
+----
+
+Program tersebut mencetak
+
+----
+tipe: float64
+----
+
+Anda mungkin berpikir di sebelah mana interface-nya? Secara program tampak
+mengirim variabel `x` bertipe `float64`, bukan sebuah nilai interface, ke
+`reflect.TypeOf`.
+https://golang.org/pkg/reflect/#TypeOf[Dalam dokumentasinya], parameter dari
+`reflect.TypeOf()` adalah sebuah interface kosong:
+
+----
+// TypeOf returns the reflection Type of the value in the interface{}.
+func TypeOf(i interface{}) Type
+----
+
+Saat memanggil `reflect.TypeOf(x)`, `x` pertama disimpan ke dalam sebuah
+interface kosong, dan kemudian dikirim sebagai argumen;
+`reflect.TypeOf` kemudian membuka interface kosong tersebut untuk mendapatkan
+informasi tipenya.
+
+Fungsi `reflect.ValueOf` membuka nilai dari interface kosong:
+
+----
+var x float64 = 3.4
+fmt.Println("nilai:", reflect.ValueOf(x).String())
+----
+
+mencetak
+
+----
+nilai: <float64 Value>
+----
+
+(Kita memanggil method `String()` secara eksplisit karena paket
+`fmt` memanggil `reflect.Value` untuk menampilkan nilai kongkret di dalam
+variabel.
+Method `String()` tidak.)
+
+Kedua tipe `reflect.Type` dan `reflect.Value` memiliki banyak method yang
+bisa kita gunakan untuk memeriksa dan memanipulasi mereka.
+Salah satu contoh penting yaitu `Value` memiliki method `Type()` yang
+mengembalikan `Type` dari sebuah `reflect.Value`.
+Hal penting lainnya yaitu `Type` dan `Value` memiliki method `Kind()` yang
+mengembalikan sebuah konstan mengindikasikan tipe item yang disimpannya:
+`Uint`, `Float64`, `Slice`, dan seterusnya.
+Dan juga method-method pada `Value` seperti `Int()` dan `Float()`
+dapat kita gunakan untuk mengambil nilai (sebagai `int64` dan `float64`) yang
+disimpan di dalamnya:
+
+----
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+fmt.Println("tipe:", v.Type())
+fmt.Println("kind adalah float64:", v.Kind() == reflect.Float64)
+fmt.Println("nilai:", v.Float())
+----
+
+mencetak
+
+----
+tipe: float64
+kind adalah float64: true
+nilai: 3.4
+----
+
+Ada juga method seperti `SetInt()` dan `SetFloat()`, namun untuk
+menggunakannya kita perlu memahami tentang _settability_, subjek dari hukum
+ketiga dari refleksi, yang akan kita bahas di bawah.
+
+Pustaka dari refleksi memiliki sepasang properti khusus.
+Pertama, supaya API-nya sederhana, method "getter" dan "setter" dari `Value`
+beroperasi pada tipe terbesar yang dapat ditampung oleh nilai: `int64` untuk
+semua nilai _signed_ integer, misalnya.
+Oleh karena itu, method `Int()` pada `Value` mengembalikan `int64` dan
+`SetInt()` menerima nilai `int64`;
+maka bila diperlukan nilai tersebut bisa dikonversi ke tipe sebenarnya:
+
+----
+var x uint8 = 'x'
+v := reflect.ValueOf(x)
+fmt.Println("tipe:", v.Type())                                // uint8.
+fmt.Println("kind adalah uint8: ", v.Kind() == reflect.Uint8) // true.
+x = uint8(v.Uint())                                           // v.Uint mengembalikan uint64.
+----
+
+Properti kedua yaitu method `Kind()` dari sebuah objek refleksi
+mendeskripsikan tipe dasarnya, bukan tipe statisnya.
+Jika objek refleksi mengandung sebuah nilai dari tipe integer yang
+didefinisikan sendiri oleh user, seperti
+
+----
+type MyInt int
+var x MyInt = 7
+v := reflect.ValueOf(x)
+----
+
+maka `Kind()` dari `v` adalah `reflect.Int`, walaupun tipe statis dari `x`
+adalah `MyInt`.
+Dengan kata lain, `Kind()` tidak bisa membedakan antara `int` dengan `MyInt`
+walaupun `Type()` bisa.
+
+
+==  Hukum kedua dari refleksi
+
+==  2. Refleksi berangkat dari objek refleksi ke nilai interface
+
+Seperti cermin, refleksi dalam Go menghasilkan kebalikannya sendiri.
+
+Diberikan sebuah `reflect.Value` kita dapat membuka nilai interface
+menggunakan method `Interface()`;
+efeknya method tersebut membungkus kembali informasi tipe dan nilainya menjadi
+sebuah representasi interface dan mengembalikan hasilnya:
+
+----
+// Interface returns v's value as an interface{}.
+func (v Value) Interface() interface{}
+----
+
+Konsekuensinya kita dapat menulis
+
+----
+y := v.Interface().(float64) // y akan bertipe float64.
+fmt.Println(y)
+----
+
+untuk mencetak nilai `float64` yang direpresentasikan oleh objek refleksi `v`.
+
+Tentu saja, kode di atas bisa dipersingkat.
+Argumen dari `fmt.Println`, `fmt.Printf` dan seterusnya dikirim sebagai nilai
+interface kosong, yang kemudian dibongkar oleh paket `fmt` secara internal
+seperti yang kita lakukan pada contoh sebelumnya.
+Oleh karena itu yang diperlukan untuk mencetak isi dari sebuah `reflect.Value`
+dengan benar yaitu mengirim hasil dari method `Interface` ke fungsi
+pencetakan:
+
+----
+fmt.Println(v.Interface())
+----
+
+(Kenapa tidak `fmt.Println(v)`?
+Karena `v` adalah sebuah `reflect.Value`;
+kita menginginkan nilai konkret yang ditampungnya.)
+Karena nilainya adalah sebuah `float64`, kita bisa menggunakan format
+_floating-point_ jika mau:
+
+----
+fmt.Printf("nilai adalah %7.1e\n", v.Interface())
+----
+
+dan mendapatkan
+
+----
+3.4e+00
+----
+
+Sekali lagi, tidak perlu asersi tipe untuk hasil dari `v.Interface()` ke
+`float64`;
+nilai interface kosong mengandung nilai kongkret dari informasi tipe di
+dalamnya dan `Printf` akan membukanya.
+
+Secara singkatnya, method `Interface()` adalah kebalikan dari fungsi
+`ValueOf`, kecuali hasilnya selalu bertipe statis `interface{}`.
+
+Mengulangi kembali: refleksi berangkat dari nilai interface ke objek refleksi
+dan balik lagi (ke nilai interface).
+
+==  Hukum ketiga dari refleksi
+
+==  3. Untuk mengubah objek refleksi, nilainya harus bisa di set
+
+Hukum ketiga yaitu yang paling _halus_ dan membingungkan, namun cukup mudah
+dipahami bila kita mulai dari prinsip pertama.
+
+Berikut kode yang tidak bisa dieksekusi,
+
+----
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+v.SetFloat(7.1) // Eror: akan panic.
+----
+
+Jika kita jalankan, ia akan _panic_ dengan pesan
+
+----
+panic: reflect.Value.SetFloat using unaddressable value
+----
+
+Permasalahannya bukan karena nilai `7.1` tidak memiliki alamat;
+tapi karena `v` tidak bisa di set.
+_Settability_ adalah sebuah properti dari sebuah refleksi `Value`, yang tidak
+dimiliki oleh semua refleksi `Value`.
+
+Method `CanSet()` dari `Value` melaporkan _settability_ dari sebuah `Value`;
+dalam kasus di atas,
+
+----
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+fmt.Println("settability dari v:", v.CanSet())
+----
+
+mencetak
+
+----
+settability dari v: false
+----
+
+Adalah sebuah kesalahan bila memanggil method `Set()` pada `Value` yang tidak
+bisa di set.
+Lalu apa itu _settability_?
+
+_Settability_ yaitu seperti pengalamatan (_memory_), tapi lebih ketat.
+Ia adalah properti yang menyatakan bahwa sebuah objek refleksi dapat diubah
+nilainya atau tidak.
+_Settability_ ditentukan dari apakah objek refleksi menampung item aslinya.
+Saat kita mengatakan
+
+----
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+----
+
+kita mengirim salinan dari `x` ke `reflect.ValueOf`, sehingga nilai interface
+yang dikirim sebagai argumen ke `reflect.ValueOf` adalah sebuah salinan dari
+`x` bukan `x` itu sendiri.
+Maka, jika perintah
+
+----
+v.SetFloat(7.1)
+----
+
+berjalan dengan sukses, ia tidak akan mengubah nilai `x`, walaupun `v` tampak
+seperti dibuat dari `x`.
+Namun, ia hanya akan mengubah salinan dari `x` yang disimpan dalam nilai
+objek refleksi dan `x` itu sendiri tidak terpengaruh.
+Hal ini bisa membingungkan, sehingga dibuat menjadi ilegal oleh perancang Go,
+dan _settability_ adalah properti yang digunakan untuk menghindari kasus tersebut.
+
+Jika konsel ini tampak aneh, sebenarnya tidak.
+Ia sebenarnya situasi yang sering kita temui dalam konsep yang tidak biasa
+(refleksi).
+Bayangkan bila kita mengirim `x` ke sebuah fungsi:
+
+----
+f(x)
+----
+
+Fungsi `f()` tidak akan bisa mengubah `x` karena kita mengirim salinan
+dari nilai `x`, bukan `x` itu sendiri.
+Jika kita ingin supaya `f()` bisa mengubah nilai `x` secara langsung, kita
+harus mengirim alamat dari `x` (yaitu, sebuah pointer ke `x`):
+
+----
+f(&x)
+----
+
+Hal ini cukup jelas dan lazim, dan refleksi bekerja dengan cara yang sama.
+Jika kita ingin mengubah `x` dengan refleksi, kita harus mengirim pointer ke
+nilai yang ingin kita ubah.
+
+Mari kita coba.
+Pertama kita inisialisasi `x` seperti biasa dan kemudian membuat nilai
+refleksi yang menunjuknya, katakanlah `p`.
+
+----
+var x float64 = 3.4
+p := reflect.ValueOf(&x) // Catatan: ambil alamat dari x.
+fmt.Println("tipe dari p:", p.Type())
+fmt.Println("settability dari p:", p.CanSet())
+----
+
+Keluarannya
+
+----
+tipe dari p: *float64
+settability dari p: false
+----
+
+Objek refleksi `p` tidak bisa di set, tapi bukan `p` yang ingin kita set,
+namun `*p`.
+Untuk mendapatkan apa yang ditunjuk oleh `p`, kita panggil method `Elem` dari
+`Value`, yang langsung ke pointer, dan menyimpan hasilnya dalam sebuah `Value`
+refleksi bernama `v`:
+
+----
+v := p.Elem()
+fmt.Println("settability dari v:", v.CanSet())
+----
+
+Sekarang `v` adalah objek refleksi yang dapat di set, seperti yang ditunjukan
+oleh keluaran,
+
+----
+settability dari v: true
+----
+
+dan karena ia merepresentasikan `x`, kita akhirnya dapat menggunakan
+`v.SetFloat` untuk mengubah nilai dari `x`:
+
+----
+v.SetFloat(7.1)
+fmt.Println(v.Interface())
+fmt.Println(x)
+----
+
+Keluarannya, seperti yang diharapkan, yaitu
+
+----
+7.1
+7.1
+----
+
+Refleksi bisa sangat sulit untuk dipahami namun ia berfungsi seperti yang
+bahasa Go terapkan, walaupun lewat `Type` dan `Value` yang menyamarkan apa
+yang terjadi.
+Ingatlah selalu bahwa `Value` dari refleksi perlu alamat sesuatu untuk dapat
+mengubah apa yang direpresentasikannya.
+
+==  Struct
+
+Pada contoh sebelumnya `v` bukanlah sebuah pointer, ia hanya diturunkan dari
+pointer.
+Salah satu situasi umum yang muncul adalah saat menggunakan refleksi untuk
+mengubah field dari sebuah struktur.
+Selama kita memiliki alamat dari struktur, kita dapat mengubah nilai dari
+field-fieldnya.
+
+Berikut sebuah contoh sederhana yang menganalisis nilai sebuah struct, `t`.
+Kita buat objek refleksi dengan alamat dari struct karena kita ingin
+mengubahnya nanti.
+Kemudian kita set `typeOfT` berisi tipe dari `t` dan mengiterasi field-field
+menggunakan pemanggilan method langsung (lihat
+https://golang.org/pkg/reflect/[paket reflect] untuk lebih rinci).
+Kita juga bisa mengekstrak nama dari field dari tipe struct, namun field itu
+sendiri adalah objek dari `reflect.Value`.
+
+----
+type T struct {
+	A int
+	B string
+}
+t := T{23, "skidoo"}
+s := reflect.ValueOf(&t).Elem()
+typeOfT := s.Type()
+for i := 0; i < s.NumField(); i++ {
+	f := s.Field(i)
+	fmt.Printf("%d: %s %s = %v\n", i, typeOfT.Field(i).Name, f.Type(),
+		f.Interface())
+}
+----
+
+Keluaran dari program adalah
+
+----
+0: A int = 23
+1: B string = skidoo
+----
+
+Ada satu poin lagi tentang _settability_ yang diperlihatkan dalam contoh di
+atas: nama field dari `T` adalah huruf besar (diekspor) karena hanya
+field-field yang diekspor dari sebuah struct yang bisa di set.
+
+Karena `s` mengandung objek refleksi yang bisa di set, kita bisa mengubah
+field-field di dalam struktur.
+
+----
+s.Field(0).SetInt(77)
+s.Field(1).SetString("Sunset Strip")
+fmt.Println("t sekarang", t)
+----
+
+Dan hasilnya:
+
+----
+t sekarang {77 Sunset Strip}
+----
+
+Jika kita mengubah program sehingga `s` dibuat dari `t`, bukan `t`,
+pemanggilan ke `SetInt` dan `SetString` akan gagal karena field dari `t` tidak
+bisa di set.
+
+==  Kesimpulan
+
+Berikut hukum-hukum refleksi:
+
+*  Refleksi berangkat dari nilai interface ke objek refleksi.
+*  Refleksi berangkat dari objek refleksi ke nilai interface.
+*  Untuk mengubah objek refleksi, nilainya harus bisa di set.
+
+Saat anda memahami hukum-hukum refleksi dalam Go maka ia akan lebih mudah
+digunakan.
+Refleksi adalah perkakas yang kuat yang harus digunakan dengan hati-hati dan
+kalau bisa dihindari kecuali benar-benar diperlukan.
+
+Ada banyak hal tentang refleksi yang belum kita bongkar -- mengirim dan
+menerima dari `channel`, alokasi _memory_, menggunakan `slice` dan `map`,
+pemanggilan method dan fungsi -- namun artikel ini sekiranya cukup.
+Kita akan telaah beberapa topik tersebut di artikel selanjutnya.
+
+
+_Oleh Rob Pike_

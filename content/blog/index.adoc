@@ -8,3 +8,6 @@
 
 *  link:/blog/gobs-of-data[Gob dari data] - rancangan dan penggunaan paket
    https://golang.org/pkg/encoding/gob/[gob].
+
+*  link:/blog/laws-of-reflection[Hukum-hukum refleksi] - fundamental dari
+   paket https://golang.org/pkg/reflect/[reflect].
