@@ -1,0 +1,359 @@
+=  Paket image pada Go
+Nigel Tao
+September 21, 2011
+:stylesheet: /assets/style.css
+:toc:
+
+
+==  Pendahuluan
+
+Paket
+https://golang.org/pkg/image/[image]
+dan
+https://golang.org/pkg/image/color[image/color]
+berisi sejumlah tipe: `color.Color` dan `color.Model` yang mendeskripsikan
+warna, `image.Point` dan `image.Rectangle` yang mendeskripsikan geometri 2-D,
+dan `image.Image` yang menggabungkan kedua konsep tersebut untuk
+representasi sebuah kotak persegi panjang berisi warna-warna.
+Sebuah
+link:/blog/go-imagedraw-package[artikel terpisah]
+membahas cara melakukan komposisi gambar dengan dengan paket
+https://golang.org/pkg/image/draw/[image/draw].
+
+Catatan: artikel ini membutuhkan pengetahuan tentang konsep warna dan gambar
+dalam domain komputer.
+
+
+==  Warna dan Model Warna
+
+https://golang.org/pkg/image/color/#Color[Color]
+adalah interface yang mendefinisikan sekumpulan method untuk tipe bentukan
+supaya dapat dianggap sebagai sebuah warna: yang bisa dikonversi ke merah,
+hijau, biru, dan nilai _alpha_.
+Hasil konversi warna bisa jadi _lossy_ (menghilangkan atau mengurangi beberapa
+data gambar), seperti konversi dari ruang warna CMYK atau YCbCr.
+
+----
+type Color interface {
+	// RGBA returns the alpha-premultiplied red, green, blue and alpha values
+	// for the color. Each value ranges within [0, 0xFFFF], but is represented
+	// by a uint32 so that multiplying by a blend factor up to 0xFFFF will not
+	// overflow.
+	RGBA() (r, g, b, a uint32)
+}
+----
+
+Ada tiga hal penting dari nilai kembalian fungsi `RGBA()` di atas.
+Pertama, nilai merah `r`, hijau `g`, dan biru `b` dikembalikan dengan nilai
+perkalian _alpha_-nya: sebuah warna merah yang 25% transparan
+direpresentasikan dengan RGBA yang mengembalikan 75% r.
+Kedua, kanal memiliki rentang 16-bit: warna merah 100% direpresentasikan
+dengan RGBA yang mengembalikan nilai r sebagai 65535, bukan 255, sehingga
+mengonversi dari CMYK atau YCbCr tidaklah _lossy_.
+Ketiga, tipe yang dikembalikan adalah `uint32`, walaupun maksimum nilainya
+adalah 65536, untuk menjamin bahwa perkalian dua nilai tersebut tidak
+mengakibatkan _overflow_.
+Perkalian tersebut terjadi saat menggabungkan dua warna menurut nilai _alpha_
+dari warna ketiga, dengan cara aljabar klasik
+https://en.wikipedia.org/wiki/Alpha_compositing[Porter dan Duff]:
+
+----
+dstr, dstg, dstb, dsta := dst.RGBA()
+srcr, srcg, srcb, srca := src.RGBA()
+_, _, _, m := mask.RGBA()
+const M = 1<<16 - 1
+// Hasil dari warna merah adalah gabungan dari dstr dan srcr, dengan rentang
+// antara [0, M].
+// Perhitungan untuk hijau, biru dan _alpha_ sama.
+dstr = (dstr*(M-m) + srcr*m) / M
+----
+
+Baris terakhir dari potongan kode tersebut akan menjadi lebih rumit jika kita
+bekerja dengan warna tanpa nilai _alpha_, oleh karena itulah kenapa `Color`
+menggunakan nilai _alpha_ yang telah dihitung sebelumnya.
+
+Paket image/color juga mendefinisikan sejumlah tipe konkret yang
+mengimplementasikan interface `Color`.
+Sebagai contohnya,
+https://golang.org/pkg/image/color/#RGBA[RGBA]
+adalah sebuah struct yang merepresentasikan warna klasik "8 bits per kanal".
+
+----
+type RGBA struct {
+	R, G, B, A uint8
+}
+----
+
+Ingatlah bahwa field `R` dari sebuah `RGBA` adalah warna yang memiliki nilai
+perkalian-_alpha_ dengan rentang [0,255].
+`RGBA` memenuhi interface `Color` dengan mengalikan nilai tersebut dengan
+0x101 untuk menghasilkan warna perkalian-_alpha_ dalam rentang [0, 65535].
+Hal yang sama, tipe struct
+https://golang.org/pkg/image/color/#NRGBA[NRGBA]
+merepresentasikan 8 bits warna tanpa perkalian-_alpha_, seperti yang digunakan
+oleh format PNG.
+Saat memanipulasi field-field NRGBA, nilainya adalah non perkalian-_alpha_,
+namun saat memanggil method RGBA(), nilai kembaliannya dikalikan dengan nilai
+_alpha_.
+
+Sebuah https://golang.org/pkg/image/color/#Model[Model]
+yaitu interface yang dapat mengonversi `Color` ke `Color` lainnya, bisa jadi
+secara _lossy_.
+Misalnya, `GrayModel` bisa mengonversi `Color` apa pun menjadi
+https://golang.org/pkg/image/color/#Gray[Gray].
+Sebuah `Palette` bisa mengonversi `Color` apa pun ke salah satu _palette_
+terbatas.
+
+----
+type Model interface {
+	Convert(c Color) Color
+}
+
+type Palette []Color
+----
+
+==  Point (titik) dan Rectangle (persegi panjang)
+
+Sebuah
+https://golang.org/pkg/image/#Point[Point]
+yaitu sebuah koordinat (x,y) pada _grid_ integer, dengan poros ke kanan dan ke
+bawah.
+Ia bukanlah sebuah _pixel_ dan bukan pula sebuah kotak segi empat.
+Sebuah `Point` tidak memiliki lebar, tinggi, atau warna, namun visualisasi di
+bawah ini menggunakan bentuk kontak berwarna.
+
+----
+type Point struct {
+	X, Y int
+}
+----
+
+image:/assets/go-image-package_image-package-01.png[]
+
+----
+p := image.Point{2, 1}
+----
+
+Sebuah
+https://golang.org/pkg/image/#Rectangle[Rectangle]
+yaitu persegi panjang dalam _grid_ integer, didefinisikan `Point` pada
+bagian atas-kiri dan bawah-kanan.
+Sebuah `Rectangle` juga tidak memiliki warna, namun visualisasi di bawah ini
+menggarisi persegi panjang dengan garis berwarna, dan mencetak nilai `Max`
+dan `Min`.
+
+----
+type Rectangle struct {
+	Min, Max Point
+}
+----
+
+Untuk lebih mudah, `image.Rect(x0, y0, x1, y1)` sama dengan
+`image.Rectangle{image.Point{x0, y0}, image.Point{x1, y1}}`,
+namun ditulis lebih ringkas.
+
+Sebuah `Rectangle` inklusif pada sisi atas-kiri dan eksklusif pada bawah-kanan.
+Untuk sebuah `Point p` dan sebuah `Rectangle r`, `p.In(r)` jika dan hanya jika
+`r.Min.X <= p.X && p.X < r.Max.X`, dan hal yang sama berlaku juga untuk `Y`.
+Hal ini sama dengan bagaimana sebuah slice `s[i0:i1]` adalah
+inklusif pada batas bawah dan eksklusif pada batas atas dari slice aslinya `s`.
+(Tidak seperti array dan slice, sebuah `Rectangle` sering kali memiliki nilai
+yang bukan nol.)
+
+image:/assets/go-image-package_image-package-02.png[]
+
+----
+r := image.Rect(2, 1, 5, 5)
+// Dx dan Dy mengembalikan lebar dan tinggi persegi panjang.
+fmt.Println(r.Dx(), r.Dy(), image.Pt(0, 0).In(r)) // mencetak 3 4 false
+----
+
+Menambahkan sebuah `Point` ke `Rectangle` memindahkan `Rectangle` tersebut.
+Point dan Rectangles tidak terbatas hanya pada bagian kuadran bawah-kanan.
+
+image:/assets/go-image-package_image-package-03.png[]
+
+----
+r := image.Rect(2, 1, 5, 5).Add(image.Pt(-4, -2))
+fmt.Println(r.Dx(), r.Dy(), image.Pt(0, 0).In(r)) // mencetak 3 4 true
+----
+
+Persilangan dua `Rectangle` menghasilkan `Rectangle` yang lain, yang bisa saja
+kosong.
+
+image:/assets/go-image-package_image-package-04.png[]
+
+----
+r := image.Rect(0, 0, 4, 3).Intersect(image.Rect(2, 2, 5, 5))
+// Method Size() mengembalikan lebar dan tinggi dari Rectangle, dalam bentuk
+// Point.
+fmt.Printf("%#v\n", r.Size()) // mencetak image.Point{X:2, Y:1}
+----
+
+Point dan Rectangle dikirim dan dikembalikan dengan nilai.
+Fungsi yang menerima argumen `Rectangle` sama efisien dengan menerima dua
+argumen `Point`, atau empat argumen `int`.
+
+
+==  Image (Gambar)
+
+Sebuah
+https://golang.org/pkg/image/#Image[Image]
+memetakan setiap kotak _grid_ dalam sebuah `Rectangle` menjadi `Color` dari
+sebuah `Model`.
+"_Pixel_ pada (x,y)" mengacu pada warna dari kotak _grid_ yang didefinisikan
+oleh titik (x,y), (x+1,y),(x+1,y+1), dan (x,y+1).
+
+----
+type Image interface {
+	// ColorModel returns the Image's color model.
+	ColorModel() color.Model
+	// Bounds returns the domain for which At can return non-zero color.
+	// The bounds do not necessarily contain the point (0, 0).
+	Bounds() Rectangle
+	// At returns the color of the pixel at (x, y).
+	// At(Bounds().Min.X, Bounds().Min.Y) returns the upper-left pixel of the grid.
+	// At(Bounds().Max.X-1, Bounds().Max.Y-1) returns the lower-right one.
+	At(x, y int) color.Color
+}
+----
+
+Salah satu kesalahan yang umum yaitu mengasumsikan bahwa batas atas `Image`
+dimulai dari (0, 0).
+Misalnya, animasi GIF berisi urutan `Image`, dan setiap `Image` setelah yang
+pertama biasanya hanya menyimpan data _pixel_ untuk wilayah yang berubah, dan
+wilayah tersebut tidak harus dimulai dari (0, 0).
+Cara yang paling benar untuk iterasi pixel pada `Image` yaitu seperti:
+
+----
+b := m.Bounds()
+for y := b.Min.Y; y < b.Max.Y; y++ {
+	for x := b.Min.X; x < b.Max.X; x++ {
+		doStuffWith(m.At(x, y))
+	}
+}
+----
+
+Implementasi `Image` tidak harus berbasiskan slice dari data _pixel_.
+Contohnya, sebuah
+https://golang.org/pkg/image/#Uniform[Uniform]
+yaitu sebuah `Image` yang memiliki garis batas yang sangat besar dengan satu
+warna, yang representasi di _memory_ hanyalah warna saja.
+
+----
+type Uniform struct {
+	C color.Color
+}
+----
+
+Biasanya, program menginginkan sebuah gambar yang berbasis slice.
+Tipe struct seperti
+https://golang.org/pkg/image/#RGBA[RGBA] dan
+https://golang.org/pkg/image/#Gray[Gray]
+(yang dipanggil oleh paket lain sebagai `image.RGBA` dan `image.Gray`)
+menyimpan slice dari data _pixel_ dan mengimplementasikan interface `Image`.
+
+----
+type RGBA struct {
+	// Pix holds the image's pixels, in R, G, B, A order. The pixel at
+	// (x, y) starts at Pix[(y-Rect.Min.Y)*Stride + (x-Rect.Min.X)*4].
+	Pix []uint8
+	// Stride is the Pix stride (in bytes) between vertically adjacent pixels.
+	Stride int
+	// Rect is the image's bounds.
+	Rect Rectangle
+}
+----
+
+Tipe tersebut juga menyediakan method `Set(x, y int, c color.Color)` untuk
+mengubah pixel satu per satu pada gambar.
+
+----
+m := image.NewRGBA(image.Rect(0, 0, 640, 480))
+m.Set(5, 5, color.RGBA{255, 0, 0, 255})
+----
+
+Jika kita membaca atau menulis banyak data _pixel_, akan lebih efisien,
+namun lebih kompleks, dengan mengakses field `Pix` secara langsung.
+
+Implementasi `Image` berbasis slice juga menyediakan method `SubImage()`, yang
+mengembalikan sebuah `Image` yang memiliki dasar array yang sama.
+Mengubah pixel pada sub-gambar akan mempengaruhi pixel pada gambar aslinya,
+hal yang sama seperti mengubah isi dari sub-slice `s[i0:i1]` juga akan
+mempengaruhi isi dari slice asli `s`.
+
+image:/assets/go-image-package_image-package-05.png[]
+
+----
+m0 := image.NewRGBA(image.Rect(0, 0, 8, 5))
+m1 := m0.SubImage(image.Rect(1, 2, 5, 5)).(*image.RGBA)
+fmt.Println(m0.Bounds().Dx(), m1.Bounds().Dx()) // mencetak 8, 4
+fmt.Println(m0.Stride == m1.Stride)             // mencetak true
+----
+
+Untuk kode tingkat-rendah yang bekerja pada field `Pix` pada `Image`, ingatlah
+bahwa melakukan `range` pada `Pix` dapat mempengaruhi pixel di luar garis batas
+gambar.
+Pada contoh di atas, pixel-pixel yang ditutupi oleh `m1.Pix` diwarnai dengan
+biru.
+Untuk kode tingkat-tinggi, seperti method `At()` dan `Set()` atau
+https://golang.org/pkg/image/draw/[paket image/draw],
+akan memotong operasi pixel sesuai dengan garis batas gambar.
+
+
+==  Format gambar
+
+Pustaka bawaan mendukung sejumlah format gambar umum, seperti GIF, JPEG, dan
+PNG.
+Jika anda mengetahui format dari berkas gambar, anda dapat men- _decode_
+langsung dari
+https://golang.org/pkg/io/#Reader[io.Reader].
+
+----
+import (
+	"image/jpeg"
+	"image/png"
+	"io"
+)
+
+// convertJPEGToPNG mengonversi dari JPEG ke PNG.
+func convertJPEGToPNG(w io.Writer, r io.Reader) error {
+	img, err := jpeg.Decode(r)
+	if err != nil {
+		return err
+	}
+	return png.Encode(w, img)
+}
+----
+
+Jika anda memiliki gambar dengan format tidak diketahui, fungsi
+https://golang.org/pkg/image/#Decode[image.Decode]
+dapat digunakan untuk mendeteksi formatnya.
+Kumpulan format yang dikenali dibentuk pada saat _runtime_ dan tidak terbatas
+hanya pada yang ada di pustaka bawaan.
+Sebuah paket format gambar biasanya meregistrasi format dalam fungsi `init`,
+dan paket `main` akan menggunakan "import kosong" pada paket tersebut supaya
+format teregistrasi.
+
+----
+import (
+	"image"
+	"image/png"
+	"io"
+
+	_ "code.google.com/p/vp8-go/webp"
+	_ "image/jpeg"
+)
+
+// convertToPNG mengonversi dari format apa pun ke PNG.
+func convertToPNG(w io.Writer, r io.Reader) error {
+	img, _, err := image.Decode(r)
+	if err != nil {
+		return err
+	}
+	return png.Encode(w, img)
+}
+----
+
+
+_Oleh Nigel Tao_

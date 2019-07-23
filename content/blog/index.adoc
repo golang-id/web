@@ -11,3 +11,6 @@
 
 *  link:/blog/laws-of-reflection[Hukum-hukum refleksi] - fundamental dari
    paket https://golang.org/pkg/reflect/[reflect].
+
+*  link:/blog/go-image-package[Paket image pada Go] - fundamental dari paket
+   https://golang.org/pkg/image/[image].
