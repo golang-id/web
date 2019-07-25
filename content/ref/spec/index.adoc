@@ -16,17 +16,17 @@ link:/[golang-id.org (Indonesia)].
 Go adalah bahasa pemrograman yang dirancang untuk pemrograman sistem.
 Go adalah bahasa dengan tipe yang kuat dan dengan _garbage-collection_ dan
 mendukung pemrograman konkuren secara eksplisit.
-Program dibangun dari paket-paket, yang membolehkan pengaturan kebergantungan
+Program dibangun dari paket-paket, yang membolehkan ketergantungan
 paket secara efisien.
 
 Tata-bahasa dari Go padat dan teratur, membuatnya mudah untuk dianalisis oleh
-perkakas-perkakas otomatis seperti lingkungan pengembangan terintegrasi (IDE).
+perkakas-perkakas otomatis seperti lingkungan pengembangan integrasi (IDE).
 
 
 [#Notation]
 ===  Notasi
 
-Sintaks dispesifikasikan menggunakan _Extended Backus-Naur Form_ (EBNF):
+Spesifikasi sintaksis menggunakan _Extended Backus-Naur Form_ (EBNF):
 
 ----
 Production  = production_name "=" [ Expression ] "." .
@@ -53,9 +53,9 @@ token leksikal.
 `production_name` dengan _CamelCase_ adalah _non-terminal_ (tidak berakhir).
 Token leksikal dibungkus dalam tanda kutip ganda " " atau kutip terbalik ````.
 
-Bentuk `a … b` merepresentasikan kumpulan karakter alternatif dari `a` sampai
+Bentuk `a … b` merepresentasikan kumpulan huruf alternatif dari `a` sampai
 `b`.
-Elipsis horizontal `…` juga digunakan dinotasi lain dalam spesifikasi ini
+Elipsis horizontal `…` juga digunakan dalam spesifikasi ini
 untuk secara informal menandakan enumerasi atau kode yang dipotong.
 Karakter `…` (berlawanan dengan tiga karakter ...) bukanlah token dari
 bahasa Go.
@@ -65,9 +65,9 @@ bahasa Go.
 
 Sumber kode adalah teks Unicode dalam
 https://id.wikipedia.org/wiki/UTF-8[UTF-8].
-Teks tersebut tidak dikanonikalisasikan, sehingga titik kode beraksen adalah
-berbeda dari karakter yang sama yang dibangun dari menggabungkan sebuah aksen
-dan sebuah huruf;
+Teks tersebut tidak kanonis, sehingga titik kode dengan aksen berbeda dengan
+karakter yang sama yang dibangun dari menggabungkan sebuah aksen dan sebuah
+huruf;
 keduanya dianggap sebagai dua titik kode.
 Demi kemudahan, dokumen ini menggunakan istilah _karakter_ untuk mengacu pada
 titik kode Unicode dalam teks sumber kode.
@@ -81,7 +81,7 @@ mungkin tidak membolehkan karakter NUL (U+0000) dalam teks sumber kode.
 Batasan implementasi: Untuk kompatibilitas dengan perkakas lainnya, _compiler_
 bisa mengindahkan penanda urutan byte untuk _UTF-8-encoded_ (U+FEFF) jika ia
 adalah titik kode Unicode pertama dalam teks sumber kode.
-Penanda urutan _byte_ bisa saja tidak dibolehkan dimanapun dalam sumber kode.
+Penanda urutan _byte_ bisa saja tidak dibolehkan dalam sumber kode.
 
 [#Characters]
 ===  Karakter
@@ -90,9 +90,9 @@ Istilah berikut digunakan untuk menandakan kelas karakter Unicode tertentu:
 
 ----
 newline        = /* titik kode Unicode U+000A untuk baris baru */ .
-unicode_char   = /* titik kode Unicode apapun kecuali baris baru */ .
-unicode_letter = /* titik kode Unicode dikelompokan sebagai "Letter" (huruf) */ .
-unicode_digit  = /* titik kode Unicode dikelompokan sebagai "Number, decimal digit" */ .
+unicode_char   = /* titik kode Unicode apa pun kecuali baris baru */ .
+unicode_letter = /* titik kode Unicode dikelompokkan sebagai "Letter" (huruf) */ .
+unicode_digit  = /* titik kode Unicode dikelompokkan sebagai "Number, decimal digit" */ .
 ----
 
 https://www.unicode.org/versions/Unicode8.0.0/[The Unicode Standard 8.0],
@@ -140,7 +140,7 @@ Komentar lainnya akan diartikan berada pada baris baru.
 [#Tokens]
 ===  Token
 
-Token-token membentuk kosa kata dari bahasa Go.
+Token-token membentuk kosakata dari bahasa Go.
 Ada empat kelas token: _identifiers_ (pengidentifikasi), _keywords_
 (kata-kunci), _operators dan punctuation_ (operator dan tanda baca),
 dan _literal_ (abjad).
@@ -160,7 +160,7 @@ beberapa pernyataan.
 Program Go bisa menghilangkan titik-koma tersebut menggunakan dua aturan
 berikut:
 
-.  Saat input dipecah menjadi token-token, sebuah titik-koma secara otomatis
+.  Saat input terpecah menjadi token-token, sebuah titik-koma secara otomatis
    langsung ditambahkan ke dalam aliran token setelah token terakhir pada
    sebuah baris jika token tersebut adalah
 
@@ -235,7 +235,7 @@ dan tanda baca:
 [#Integer_literals]
 ===  Abjad integer
 
-Abjad integer adalah seurutan angka merepresentasikan sebuah
+Abjad integer adalah urutan angka merepresentasikan sebuah
 <<#Constants,konstan integer>>.
 Beberapa opsi prefiks menyatakan basis non-desimal: `0` untuk oktal, `0x`
 atau `0x` untuk heksadesimal.
@@ -307,9 +307,9 @@ dikalikan dengan unit imajiner _i_.
 imaginary_lit = (decimal_digits | int_lit | float_lit) "i" .
 ----
 
-Untuk kompatibilitas kebelakang, bagian integer dari abjad imajiner yang
+Untuk kompatibilitas, bagian integer dari abjad imajiner yang
 semuanya terdiri dari angka desimal (dan kemungkinan garis bawah) dianggap
-sebagai integer desimal, walaupun diawali dengan `0`.
+sebagai integer desimal, walaupun dimulai dengan `0`.
 
 ----
 0i
@@ -334,13 +334,13 @@ Abjad rune merepresentasikan sebuah link:/ref/spec#Constants[konstan rune],
 sebuah nilai integer yang mengidentifikasi sebuah kode poin Unicode.
 Abjad rune diekspresikan dengan satu atau lebih karakter yang ditutup dengan
 tanda kutip tunggal, seperti `'x'` atau `'\n'`.
-Di dalam tanda kutip tersebut, karakter apapun dapat ditulis kecuali baris
+Di dalam tanda kutip tersebut, karakter apa pun dapat ditulis kecuali baris
 baru dan tanda kutip tunggal itu sendiri.
 Sebuah karakter dengan kutip merepresentasikan nilai Unicode dari karakter itu
-sendiri, sementara seurutan karakter yang diawali dengan garis miring terbalik
+sendiri, sementara seurutan karakter yang dimulai dengan garis miring terbalik
 (_backslash_) akan ditulis nilainya menjadi beragam format.
 
-Bentuk sederhana dari rune merepresentasikan karakter tunggal diantara tanda
+Bentuk sederhana dari rune merepresentasikan karakter tunggal antara tanda
 kutip; secara teks sumber kode dari Go adalah karakter Unicode yang ditulis
 dalam UTF-8, multipel UTF-8 byte bisa merepresentasikan sebuah nilai integer.
 Misalnya, abjad `'a'` menyimpan sebuah byte yang merepresentasikan sebuah
@@ -362,7 +362,7 @@ Oktal harus merepresentasikan sebuah nilai antara 0 dan 255 secara inklusif.
 Heksadesimal memenuhi kondisi ini secara konstruksi.
 `\u` dan `\U` merepresentasikan kode poin Unicode sehingga beberapa nilai
 adalah ilegal, khususnya nilai di atas `0x10FFFF` dan _surrogate half_
-(bagian setengah atas dari empat heksadecimal).
+(bagian setengah atas dari empat heksadesimal).
 
 Setelah tanda _backslash_, beberapa karakter tunggal merepresentasikan nilai
 spesial:
@@ -422,11 +422,11 @@ escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `
 Abjad string merepresentasikan
 link:/ref/spec#Constants[konstan string] yang didapat dari menggabungkan
 seurutan karakter-karakter.
-Ada dua bentuk string: abjad string mentah dan abjad string diinterpretasi.
+Ada dua bentuk string: abjad string mentah dan abjad string interpretasi.
 
 Abjad string mentah yaitu seurutan karakter antara kutip terbalik (aksen
 nontirus), seperti dalam ````foo```` .
-Di antara tanda kutip terbalik, karakter apapun dapat muncul kecuali tanda
+Di antara tanda kutip terbalik, karakter apa pun dapat muncul kecuali tanda
 kutip terbalik itu sendiri.
 Nilai dari abjad string mentah tersebut yaitu string yang terdiri dari
 karakter-karakter yang tidak diinterpretasi (implisit UTF-8) di antara tanda
@@ -436,12 +436,12 @@ baru.
 Karakter _carriage return_ (`'\r'`) di dalam abjad string mentah diindahkan
 dari nilai string mentah.
 
-Abjad string diinterpretasi yaitu seurutan karakter antara tanda kutip ganda,
+Abjad string interpretasi yaitu seurutan karakter antara tanda kutip ganda,
 seperti dalam`"bar"`.
-Di antara tanda kutip, karakter apapun bisa muncul kecuali baris baru dan
+Di antara tanda kutip, karakter apa pun bisa muncul kecuali baris baru dan
 tanda kutip ganda lepas (tanpa _backslash_).
 Teks antara tanda kutip membentuk nilai dari abjad, dengan _backslash_
-diinterpretasikan seperti halnya dalam
+diartikan seperti halnya dalam
 link:/ref/spec#Rune_literals[abjad rune] (kecuali `\'` adalah ilegal dan `\"`
 adalah legal), dengan batasan-batasan yang sama.
 Tiga-digit oktal (_\nnn_) dan dua-digit heksadesimal (\x_nn_)
@@ -507,13 +507,14 @@ sebuah pengidentifikasi yang menyatakan sebuah konstan,
 sebuah link:/ref/spec#Constant_expressions[ekspresi konstan],
 sebuah link:/ref/spec#Conversions[konversi] dengan hasil sebuah konstan,
 atau nilai hasil dari fungsi bawaan seperti `unsafe.Sizeof` yang diterapkan
-terhadap nilai apapun, `cap` atau `len` yang diterapkan pada
+terhadap nilai apa pun, `cap` atau `len` yang diterapkan pada
 link:/ref/spec#Length_and_capacity[beberapa ekspresi],
 `real` dan `imag` yang diterapkan pada konstan complex dan
 `complex` yang diterapkan pada konstan numerik.
 Nilai boolean direpresentasikan dengan konstan `true` dan `false`.
-Identifikasi pra-deklarasi
-link:/ref/spec#Iota[iota] menyatakan konstan integer.
+Identifikasi
+link:/ref/spec#Iota[iota]
+menyatakan konstan integer.
 
 Secara umum, konstan complex adalah sebuah bentuk dari
 link:/ref/spec#Constant_expressions[ekspresi konstan]
@@ -550,7 +551,7 @@ dalam
 link:/ref/spec#Short_variable_declarations[deklarasi variabel singkat]
 seperti `i := 0` yang mana tidak ada tipe eksplisit.
 Tipe bawaan dari konstan tak bertipe adalah `bool`, `rune`, `int`, `float64`,
-`complex128` atau `string`, bergantung kepada apakah ia adalah sebuah konstant
+`complex128` atau `string`, bergantung kepada apakah ia adalah sebuah konstan
 boolean, rune, integer, _floating-point_, complex, atau string.
 
 Batasan implementasi: Walaupun konstan numerik memiliki presisi beragam
@@ -584,12 +585,12 @@ link:/ref/spec#Types[tipe]
 variabel.
 
 Sebuah
-link:/ref/spec#Variable_declarations[deklarasi variabel] atau, pada parameter
-dan kembalian fungsi, identitas dari sebuah
-link:/ref/spec#Function_declarations[deklarasi fungsi]
+link:/ref/spec#Variable_declarations[deklarasi variabel] atau penanda dari
+link:/ref/spec#Function_declarations[deklarasi fungsi] (pada parameter dan
+kembalian dari fungsi),
 atau
-link:/ref/spec#Function_literals[abjad fungsi]
-mencadagkan penampung untuk variabel bernama.
+link:/ref/spec#Function_literals[fungsi literal]
+mencadangkan penampung untuk sebuah variabel bernama.
 Memanggil fungsi bawaan
 link:/ref/spec#Allocation[new]
 atau mengambil alamat dari sebuah
@@ -608,19 +609,18 @@ secara individu.
 Setiap elemen tersebut berlaku seperti sebuah variabel.
 
 _Tipe statis_ (atau _tipe_) dari sebuah variabel yaitu tipe yang diberikan
-saat mendeklarasikannya, tipe yang diberikan pada saat pemanggilan `new` atau
-abjad komposit, atau tipe dari elemen dari variabel berstruktur.
+saat deklarasi, tipe yang diberikan pada saat pemanggilan `new` atau
+komposit literal, atau tipe dari sebuah elemen dari variabel berstruktur.
 Variabel dari tipe interface memiliki _tipe dinamis_ berbeda, yaitu tipe
 konkret dari nilai yang diberikan ke variabel pada saat _runtime_ (kecuali
-bila nilainya adalah pengidentifikasi pra-deklarasi `nil`, yang berarti tak
-bertipe).
+bila nilainya adalah `nil`, yang berarti tak bertipe).
 Tipe dinamis bisa beragam selama eksekusi namun nilai yang disimpan dalam
 variabel interface selalu
 link:/ref/spec#Assignability[ditempatkan]
 ke tipe statis dari variabel.
 
 ----
-var x interface{}  // x adalah nil dan tipe statis interface{}
+var x interface{}  // x adalah nil dengan tipe statis interface{}
 var v *T           // v bernilai nil, tipe statis *T
 x = 42             // x bernilai 42 dan tipe dinamis int
 x = v              // x bernilai (*T)(nil) dan tipe dinamis *T
@@ -628,15 +628,690 @@ x = v              // x bernilai (*T)(nil) dan tipe dinamis *T
 
 Nilai variabel diambil dengan mengacu pada variabel dalam sebuah
 link:/ref/spec#Expressions[ekspresi];
-yaitu nilai terakhir yang
+nilai dari variabel yaitu nilai terakhir yang
 link:/ref/spec#Assignments[ditempatkan]
-ke variabel.
+ke variabel tersebut.
 Jika sebuah variabel belum diberi nilai, nilainya adalah
 link:/ref/spec#The_zero_value[nilai kosong]
-dari tipenya.
+dari tipe variabel.
 
 
 [#Types]
 ==  Tipe
 
+Sebuah tipe menentukan sekumpulan nilai berikut dengan operasi dan method
+yang spesifik terhadap nilainya.
+Sebuah tipe bisa ditulis dengan sebuah _nama tipe_, jika ada, atau
+dispesifikasikan menggunakan _literal tipe_, yang membentuk sebuah tipe dari
+tipe-tipe yang telah ada.
 
+----
+Type      = TypeName | TypeLit | "(" Type ")" .
+TypeName  = identifier | QualifiedIdent .
+TypeLit   = ArrayType | StructType | PointerType | FunctionType | InterfaceType |
+	    SliceType | MapType | ChannelType .
+----
+
+Bahasa Go
+link:/ref/spec#Predeclared_identifiers[mendeklarasikan]
+beberapa nama tipe.
+Nama tipe lainnya diperkenalkan lewat
+link:/ref/spec#Type_declarations[deklarasi tipe].
+_Tipe komposit_ -- tipe array, struct, pointer, fungsi, interface, slice, map,
+dan channel -- bisa dibangun menggunakan literal tipe.
+
+Setiap tipe T memiliki _tipe dasar_: Jika `T` adalah salah satu tipe boolean,
+numerik, string, literal; make tipe dasar dari `T` itu sendiri adalah `T`.
+Selain itu, tipe dasar dari `T` yaitu tipe yang diberikan saat
+link:/ref/spec#Type_declarations[deklarasi].
+
+----
+type (
+	A1 = string
+	A2 = A1
+)
+
+type (
+	B1 string
+	B2 B1
+	B3 []B1
+	B4 B3
+)
+----
+
+Tipe dasar dari `string`, `A1`, `A2`, `B1`, dan `B2` adalah `string`.
+Tipe dasar dari `[]B1`, `B3`, dan `B4` yaitu `[]B1`.
+
+[#Method_sets]
+===  Kumpulan method
+
+Sebuah tipe bisa memiliki _sekumpulan method_.
+Kumpulan method dari
+link:/ref/spec#Interface_types[tipe interface]
+yaitu interface-nya sendiri.
+Kumpulan method dari tipe `T` terdiri dari semua
+link:/ref/spec#Method_declarations[method-method]
+yang dideklarasikan pada penerima (_receiver_) tipe `T`.
+Kumpulan method dari
+link:/ref/spec#Pointer_types[tipe pointer] `*T` yaitu semua
+method yang dideklarasikan dengan penerima `*T` atau `T` (ia berisi juga
+kumpulan method dari `T`).
+Aturan yang sama juga berlaku untuk struct yang berisi field-field yang
+ditanam (_embed_), seperti yang dijelaskan dalam bagian
+link:/ref/spec#Struct_types[tipe struct].
+Tipe apa pun memiliki kumpulan method kosong.
+Di dalam sebuah kumpulan method, setiap method harus memiliki
+link:/ref/spec#MethodName[nama method]
+yang unik dan tidak kosong.
+
+Kumpulan method dari sebuah tipe menentukan interface yang
+link:/ref/spec#Interface_types[diimplementasi]
+oleh tipe tersebut dan method tersebut bisa
+link:/ref/spec#Calls[dipanggil]
+menggunakan penerima dari tipe tersebut.
+
+
+[#Boolean_types]
+===  Tipe boolean
+
+Sebuah _tipe boolean_ merepresentasikan kumpulan nilai Boolean yang
+dilambangkan oleh konstan `true` dan `false`.
+Tipe boolean dikenal sebagai `bool`;
+ia adalah
+link:/ref/spec#Type_definitions[tipe terdefinisi].
+
+
+[#Numeric_types]
+===  Tipe numerik
+
+_Tipe numerik_ merepresentasikan kumpulan nilai integer atau _floating-point_.
+Deklarasi dari tipe numerik, yang bergantung pada arsitektur, yaitu:
+
+----
+uint8       kumpulan semua unsigned  8-bit integer (0 sampai 255)
+uint16      kumpulan semua unsigned 16-bit integer (0 sampai 65535)
+uint32      kumpulan semua unsigned 32-bit integer (0 sampai 4294967295)
+uint64      kumpulan semua unsigned 64-bit integer (0 sampai 18446744073709551615)
+
+int8        kumpulan semua signed  8-bit integers (-128 sampai 127)
+int16       kumpulan semua signed 16-bit integers (-32768 sampai 32767)
+int32       kumpulan semua signed 32-bit integers (-2147483648 sampai 2147483647)
+int64       kumpulan semua signed 64-bit integers (-9223372036854775808 sampai 9223372036854775807)
+
+float32     kumpulan semua IEEE-754 32-bit bilangan floating-point
+float64     kumpulan semua IEEE-754 64-bit bilangan floating-point
+
+complex64   kumpulan semua bilangan complex dengan float32 pada bagian real dan imajiner
+complex128  kumpulan semua bilangan complex dengan float64 pada bagian real dan imajiner
+
+byte        alias untuk uint8
+rune        alias untuk int32
+----
+
+Nilai dari _n_-bit integer yaitu _n_ bit lebarnya dan direpresentasikan
+menggunakan
+https://en.wikipedia.org/wiki/Two's_complement[aritmetika komplemen ganda].
+
+Ada juga kumpulan tipe numerik yang ukurannya tergantung pada arsitektur:
+
+----
+uint     bisa 32 atau 64 bit
+int      berukuran sama dengan uint
+uintptr  unsigned integer cukup besar menyimpan bit dari nilai pointer
+----
+
+Untuk menghindari masalah portabilitas semua tipe numerik adalah
+link:/ref/spec#Type_definitions[tipe terdefinisi]
+dan makanya berbeda kecuali `byte`, yang merupakan
+link:/ref/spec#Alias_declarations[alias]
+dari `uint8`, dan `rune`, yang merupakan alias untuk `uint32`.
+Konversi eksplisit dibutuhkan saat tipe numerik berbeda bertemu pada sebuah
+ekspresi atau pernyataan.
+Misalnya, `int32` dan `int` bukanlah tipe yang sama walaupun keduanya
+berukuran sama pada arsitektur tertentu.
+
+
+[#String_types]
+===  Tipe string
+
+_Tipe string_ merepresentasikan kumpulan nilai string.
+Nilai sebuah string yaitu (bisa kosong) urutan dari byte.
+Jumlah byte disebut juga panjang dari string dan tidak pernah negatif.
+String adalah _immutable_ (tetap): sekali dibuat, maka tidak akan bisa lagi
+diubah isinya.
+Tipe string yaitu `string`; ia adalah
+link:/ref/spec#Type_definitions[tipe terdefinisi].
+
+Panjang dari string `s` dapat diketahui lewat fungsi bawaan
+link:/ref/spec#Length_and_capacity[len].
+Panjangnya akan konstan bila string tersebut adalah konstan.
+Isi byte dari string dapat diakses dengan
+link:/ref/spec#Index_expressions[indeks]
+0 sampai `len(s)-1`.
+Mengambil alamat byte pada string adalah ilegal;
+jika `s[i]` adalah byte ke `i` dari string, maka `&s[i]` tidak valid.
+
+
+[#Array_types]
+===  Tipe array
+
+Sebuah array yaitu urutan elemen dari sebuah tipe yang jumlahnya tetap.
+Jumlah dari elemen disebut juga dengan panjang array dan tidak pernah negatif.
+
+----
+ArrayType   = "[" ArrayLength "]" ElementType .
+ArrayLength = Expression .
+ElementType = Type .
+----
+
+Panjang array adalah bagian dari tipe array;
+Ia harus berupa
+link:/ref/spec#Constants[konstanta]
+non-negatif yang
+link:/ref/spec#Representability[direpresentasikan]
+oleh nilai bertipe `int`.
+Panjang dari array `a` dapat diketahui dengan fungsi bawaan
+link:/ref/spec#Length_and_capacity[len].
+Setiap elemen array dapat diakses lewat
+link:/ref/spec#Index_expressions[indeks]
+0 sampai `len(a)-1`.
+Tipe array selalu satu dimensi namun bisa digabung untuk membentuk tipe
+multi-dimensi.
+
+----
+[32]byte
+[2*N] struct { x, y int32 }
+[1000]*float64
+[3][5]int
+[2][2][2]float64  // sama dengan [2]([2]([2]float64))
+----
+
+
+[#Slice_types]
+===  Tipe slice
+
+Sebuah slice adalah penampung dari segmen bersambungan dari sebuah
+_array dasar_ dan menyediakan akses ke elemen dari array tersebut.
+Sebuah tipe slice menandakan kumpulan dari semua bagian dari array dari tipe
+elemennya.
+Jumlah elemen disebut dengan panjang slice dan tidak pernah negatif.
+Nilai dari slice yang tidak diinisiasi yaitu `nil`.
+
+----
+SliceType = "[" "]" ElementType .
+----
+
+Panjang dari slice diketahui lewat fungsi bawaan
+link:/ref/spec#Length_and_capacity[len];
+tidak seperti array ia bisa berubah selama eksekusi.
+Elemen slice bisa diakses lewat integer
+link:/ref/spec#Index_expressions[indeks]
+0 sampai `len(s)-1`.
+Indeks slice dari elemen bisa kecil dari indeks dari elemen yang sama di array
+dasarnya.
+
+Sebuah slice, setelah diinisiasi, selalu berasosiasi dengan array dasar yang
+menyimpan elemen-elemennya.
+Oleh karena itu sebuah slice berbagi tempat penyimpanan dengan array-nya dan
+dengan slice lain dari array yang sama;
+sebaliknya, array yang berbeda merepresentasikan tempat penyimpanan yang
+berbeda.
+
+Array yang mendasari sebuah slice bisa diperlebar melebihi akhir dari slice.
+Konsep ini dikenal dengan _kapasitas_: ia adalah jumlah panjang dari slice dan
+panjang dari array-dasar slice;
+Sebuah slice yang panjangnya lebih dari kapasitas bisa dibuat dengan
+link:/ref/spec#Slice_expressions[_slicing_] (memotong)
+yang baru dari slice asli.
+Kapasitas dari slice `a` dapat diketahui menggunakan fungsi bawaan
+link:/ref/spec#Length_and_capacity[`cap(a)`].
+
+Slice baru bertipe `T` dapat diinisiasi menggunakan fungsi bawaan
+link:/ref/spec#Making_slices_maps_and_channels[make],
+yang menerima tipe slice dan parameter yang menentukan panjang, dan opsi
+kapasitas.
+Sebuah slice yang dibuat dengan `make` selalu mengalokasikan array yang baru
+yang diacu oleh slice yang dikembalikan.
+Sehingga, mengeksekusi
+
+----
+make([]T, length, capacity)
+----
+
+menghasilkan slice yang sama seperti membuat array dan
+link:/ref/spec#Slice_expressions[memotongnya],
+sehingga dua ekspresi berikut adalah sama:
+
+----
+make([]int, 50, 100)
+new([100]int)[0:50]
+----
+
+Seperti halnya array, slice selalu satu-dimensi namun bisa bergabung membentuk
+objek dengan dimensi lebih tinggi.
+Lewat array dari array, array di dalamnya, selalu memiliki panjang yang sama;
+namun dengan slice dari slice (atau array dari slice), panjang di dalamnya
+bisa beragam secara dinamis.
+Lebih lanjut, slice paling dalam harus diinisiasi secara sendiri-sendiri.
+
+
+[#Struct_types]
+===  Tipe struct
+
+Sebuah struct yaitu urutan dari elemen bernama, disebut field, tiap-tiap field
+memiliki nama dan tipe.
+Nama field bisa secara eksplisit (IdentifierList) atau secara implisit
+(EmbeddedField).
+Dalam sebuah struct, nama field yang tidak
+link:/ref/spec#Blank_identifier[kosong]
+haruslah
+link:/ref/spec#Uniqueness_of_identifiers[unik].
+
+----
+StructType    = "struct" "{" { FieldDecl ";" } "}" .
+FieldDecl     = (IdentifierList Type | EmbeddedField) [ Tag ] .
+EmbeddedField = [ "*" ] TypeName .
+Tag           = string_lit .
+----
+
+----
+// Sebuah struct kosong.
+struct {}
+
+// Sebuah struct dengan 6 field.
+struct {
+	x, y int
+	u float32
+	_ float32  // padding
+	A *[]int
+	F func()
+}
+----
+
+Field dengan tipe namun tanpa nama disebut dengan _field tertanam_.
+Field tertanam haruslah tipe bernama `T` atau sebagai pointer ke tipe bernama
+yang bukan interface `*T`, dan `T` itu sendiri bisa saja bukan tipe pointer.
+Nama tipe pada field tertanam berlaku sebagai nama field.
+
+----
+// Sebuah struct dengan empat field tertanam bertipe T1, *T2, P.T3 dan *P.T4
+struct {
+	T1        // nama fieldnya yaitu T1
+	*T2       // nama fieldnya yaitu T2
+	P.T3      // nama fieldnya yaitu T3
+	*P.T4     // nama field nya yaitu T4
+	x, y int  // nama field nya yaitu x dan y
+}
+----
+
+Deklarasi berikut ilegal karena nama field harus unik dalam sebuah tipe
+struct:
+
+----
+struct {
+	T     // konflik dengan field tertanam *T dan *P.T
+	*T    // konflik dengan field tertanam T dan *P.T
+	*P.T  // konflik dengan field tertanam T dan *T
+}
+----
+
+Sebuah field atau
+link:/ref/spec#Method_declarations[method]
+`f` dari field tertanam dalam sebuah struct `x` disebut _dipromosikan_ jika
+`x.f` adalah
+link:/ref/spec#Selectors[selektor]
+yang legal yang menandakan field atau method `f` tersebut.
+
+Field yang dipromosikan berlaku seperti field biasa kecuali ia tidak bisa
+digunakan sebagai nama field di dalam
+link:/ref/spec#Composite_literals[literal komposit]
+dari struct.
+
+Diberikan sebuah tipe struct `S` dan
+link:/ref/spec#Type_definitions[tipe terdefinisi] `T`,
+method-method yang dipromosikan yang masuk ke dalam kumpulan method dari
+struct `S` yaitu:
+
+*  Jika `S` berisi field tertanam `T`,
+   link:/ref/spec#Method_sets[kumpulan method]
+   dari `S` dan `*S` mengikutkan method-method promosi dari `T`.
+   Kumpulan method dari `*S` juga mengikutkan method promosi dari `*T`.
+
+*  Jika `S` berisi field tertanam `T`, kumpulan method dari `S` dan `*S`
+   keduanya mengikutkan method promosi dari `T` atau `*T`.
+
+Deklarasi field bisa ditambah dengan literal string _tag_, yang menjadi
+atribut dari field.
+Tag kosong berarti tidak ada tag.
+Tag bisa diakses lewat
+link:/pkg/reflect/#StructTag[interface refleksi]
+dan ambil bagian dalam
+link:/ref/spec#Type_identity[identitas tipe]
+dari struct.
+
+----
+struct {
+	x, y float64 ""  // tag kosong sama dengan tanpa tag.
+	name string  "string apa pun dibolehkan sebagai tag"
+	_    [4]byte "ceci n'est pas un champ de structure"
+}
+
+// Sebuah struct untuk TimeStamp pada protocol buffer.
+// String tag mendefinisikan field angka untuk protocol buffer;
+// hal ini mengikuti konvensi yang dijelaskan oleh paket reflect.
+struct {
+	microsec  uint64 `protobuf:"1"`
+	serverIP6 uint64 `protobuf:"2"`
+}
+----
+
+[#Pointer_types]
+===  Tipe pointer
+
+Tipe pointer menandakan kumpulan semua pointer terhadap
+link:/ref/spec#Variables[variabel]
+dari tipe yang diberikan, disebut juga dengan _tipe dasar_ dari pointer.
+Nilai dari pointer yang tidak diinisiasi adalah `nil`.
+
+----
+PointerType = "*" BaseType .
+BaseType    = Type .
+----
+
+----
+*Point
+*[4]int
+----
+
+
+[#Function_types]
+===  Tipe fungsi
+
+Tipe fungsi menandakan kumpulan semua fungsi dengan tipe parameter dan
+kembalian yang sama.
+Nilai dari variabel bertipe fungsi yang tidak diinisiasi yaitu `nil`.
+
+----
+FunctionType   = "func" Signature .
+Signature      = Parameters [ Result ] .
+Result         = Parameters | Type .
+Parameters     = "(" [ ParameterList [ "," ] ] ")" .
+ParameterList  = ParameterDecl { "," ParameterDecl } .
+ParameterDecl  = [ IdentifierList ] [ "..." ] Type .
+----
+
+Dalam parameter atau kembalian, nama (IdentifierList) haruslah ada atau tidak
+ada sama sekali.
+Jika ada, setiap nama mengacu untuk satu item (parameter atau kembalian) dari
+tipe dan semua nama haruslah
+link:/ref/spec#Uniqueness_of_identifiers[unik].
+Jika tanpa nama, setiap tipe merepresentasikan satu item untuk tipe tersebut.
+Daftar parameter dan kembalian selalu dalam tanda kurung kecuali pada
+kembalian tunggal tanpa nama, ia bisa ditulis tanpa tanda kurung.
+
+Parameter terakhir dalam penanda fungsi bisa memiliki tipe yang dimulai dengan
+"..." .
+Fungsi dengan parameter tersebut disebut _variadic_ dan bisa dipanggil tanpa
+atau lebih argumen dengan tipe yang sama.
+
+----
+func()
+func(x int) int
+func(a, _ int, z float32) bool
+func(a, b int, z float32) (bool)
+func(prefix string, values ...int)
+func(a, b int, z float64, opt ...interface{}) (success bool)
+func(int, int, float64) (float64, *[]int)
+func(n int) func(p *T)
+----
+
+
+[#Interface_types]
+===  Tipe interface
+
+Tipe interface menspesifikasikan
+link:/ref/spec#Method_sets[sekumpulan method]
+yang disebut dengan _interface_.
+Sebuah variabel bertipe interface dapat menyimpan tipe apa pun asalkan
+memiliki kumpulan method yang dimiliki oleh interface tersebut.
+Tipe tersebut dikatakan _mengimplementasikan interface_.
+Nilai dari variabel interface yang tidak diinisiasi adalah `nil`.
+
+----
+InterfaceType      = "interface" "{" { MethodSpec ";" } "}" .
+MethodSpec         = MethodName Signature | InterfaceTypeName .
+MethodName         = identifier .
+InterfaceTypeName  = TypeName .
+----
+
+Dalam tipe interface, setiap method haruslah memiliki nama yang
+link:/ref/spec#Uniqueness_of_identifiers[unik]
+dan tidak-
+link:/ref/spec#Blank_identifier[kosong].
+
+----
+// Sebuah interface berkas sederhana.
+interface {
+	Read(b Buffer) bool
+	Write(b Buffer) bool
+	Close()
+}
+----
+
+Satu atau lebih tipe yang berbeda dapat mengimplementasikan sebuah interface.
+Misalnya, jika dua tipe `S1` dan `S2` memiliki sekumpulan method
+
+----
+func (p T) Read(b Buffer) bool { return … }
+func (p T) Write(b Buffer) bool { return … }
+func (p T) Close() { … }
+----
+
+(yang mana `T` bisa `S1` atau `S2`) maka interface `File` dikatakan
+diimplementasikan oleh `S1` dan `S2`, walaupun `S1` dan `S2` bisa saja punya
+method yang lain.
+
+Sebuah tipe bisa mengimplementasikan satu atau lebih interface yang berbeda.
+Misalnya, semua tipe mengimplementasikan _interface kosong_:
+
+----
+interface{}
+----
+
+Hal yang sama, pada spesifikasi interface berikut, yang muncul dalam
+link:/ref/spec#Type_declarations[deklarasi tipe]
+yang mendefinisikan sebuah interface bernama `Locker`:
+
+----
+type Locker interface {
+	Lock()
+	Unlock()
+}
+----
+
+Jika `S1` dan `S2` juga mengimplementasikan
+
+----
+func (p T) Lock() { … }
+func (p T) Unlock() { … }
+----
+
+maka mereka juga mengimplementasikan interface `Locker` dan juga interface
+`File`.
+
+Sebuah interface `T` bisa menanam tipe interface bernama `E`.
+Hal ini disebut _penanaman_ interface `E` dalam `T`;
+penanaman interface berarti menambahkan semua method (yang diekspor dan tidak
+diekspor) dari `E` ke interface `T`.
+
+----
+type ReadWriter interface {
+	Read(b Buffer) bool
+	Write(b Buffer) bool
+}
+
+type File interface {
+	ReadWriter  // sama dengan menambahkan method-method dari ReadWriter
+	Locker      // sama dengan menambahkan method-method dari Locker
+	Close()
+}
+
+type LockedFile interface {
+	Locker
+	File        // ilegal: Lock, Unlock tidak unik
+	Lock()      // ilegal: Lock tidak unik
+}
+----
+
+Interface bertipe `T` tidak bisa secara rekursi menanam dirinya sendiri atau
+interface lain yang menanam `T`.
+
+----
+// ilegal: Bad tidak bisa menanam dirinya sendiri
+type Bad interface {
+	Bad
+}
+
+// ilegal: Bad1 tidak bisa menanam dirinya sendiri menggunakan Bad2
+type Bad1 interface {
+	Bad2
+}
+type Bad2 interface {
+	Bad1
+}
+----
+
+[#Map_types]
+===  Tipe map
+
+Sebuah map adalah gabungan tak urut dari elemen dari satu tipe, yang
+disebut tipe elemen, yang memiliki indeks berupa sekumpulan _key_ unik dari
+tipe lainnya, disebut tipe key.
+Nilai dari map yang tidak diinisiasi yaitu `nil`.
+
+----
+MapType     = "map" "[" KeyType "]" ElementType .
+KeyType     = Type .
+----
+
+link:/ref/spec#Comparison_operators[Operator pembanding] `==`
+dan `!=` haruslah terdefinisi untuk operan dari tipe key;
+oleh karena itu tipe key tidak bisa berupa fungsi, map, atau slice.
+Jika tipe key adalah sebuah tipe interface, maka operator pembanding harus
+terdefinisi untuk nilai key dinamis;
+jika tidak akan menyebabkan
+link:/ref/spec#Run_time_panics[run-time panic].
+
+----
+map[string]int
+map[*T]struct{ x, y float64 }
+map[string]interface{}
+----
+
+Jumlah elemen map disebut panjang.
+Untuk map `m`, jumlahnya bisa diambil dengan fungsi bawaan
+link:/ref/spec#Length_and_capacity[len]
+dan ia bisa berubah selama eksekusi.
+Elemen bisa ditambah selama eksekusi menggunakan
+link:/ref/spec#Assignments[penempatan]
+dan diambil dengan
+link:/ref/spec#Index_expressions[ekspresi indeks];
+dan elemen bisa dihapus dengan fungsi bawaan
+link:/ref/spec#Deletion_of_map_elements[delete].
+
+Nilai map yang baru dan kosong dibuat dengan fungsi bawaan
+link:/ref/spec#Making_slices_maps_and_channels[make],
+yang menerima tipe map dan kapasitas opsional sebagai argumen:
+
+----
+make(map[string]int)
+make(map[string]int, 100)
+----
+
+Kapasitas awal tidak ada batas ukurannya: map berkembang untuk mengakomodasi
+sejumlah item yang disimpannya, kecuali pada map yang `nil`.
+Map yang `nil` sama dengan map kosong kecuali ia tidak bisa ditambahkan dengan
+elemen.
+
+
+[#Channel_types]
+===  Tipe channel
+
+Sebuah channel menyediakan sebuah mekanisme untuk
+link:/ref/spec#Go_statements[mengeksekusi fungsi secara konkuren]
+untuk berkomunikasi dengan
+link:/ref/spec#Send_statements[mengirim]
+dan
+link:/ref/spec#Receive_operator[menerima]
+nilai dari tipe elemen yang ditentukan.
+Nilai dari channel yang tidak diinisiasi yaitu `nil`.
+
+----
+ChannelType = ( "chan" | "chan" "<-" | "<-" "chan" ) ElementType .
+----
+
+Operator opsional `<-` menspesifikasikan _arah_ channel, _kirim_ atau
+_terima_.
+Jika tidak ada arah yang diberikan, maka channel adalah _bidirectional_ (dua
+arah).
+Sebuah channel bisa dibatasi hanya untuk mengirim atau menerima saja dengan
+link:/ref/spec#Assignments[penempatan]
+atau
+link:/ref/spec#Conversions[konversi]
+eksplisit.
+
+----
+chan T          // bisa digunakan untuk mengirim dan menerima nilai bertipe T
+chan<- float64  // hanya bisa digunakan mengirim float64
+<-chan int      // hanya bisa menerima int
+----
+
+Operator `<-` berhubungan dengan `chan` yang paling kiri:
+
+----
+chan<- chan int    // sama dengan chan<- (chan int)
+chan<- <-chan int  // sama dengan chan<- (<-chan int)
+<-chan <-chan int  // sama dengan <-chan (<-chan int)
+chan (<-chan int)
+----
+
+Inisiasi nilai channel yang baru bisa dibuat dengan fungsi bawaan
+link:/ref/spec#Making_slices_maps_and_channels[make]
+yang menerima tipe channel dan _kapasitas_ opsional sebagai argumen:
+
+----
+make(chan int, 100)
+----
+
+Kapasitas, atau jumlah elemen, mengatur ukuran _buffer_ dalam channel.
+Jika kapasitasnya kosong atau tidak ada, channel adalah tanpa _buffer_ dan
+komunikasi akan sukses saat pengirim dan penerima telah siap.
+Sebaliknya, bila kapasitas tidak kosong, maka channel adalah ber-_buffer_
+dan komunikasi akan sukses tanpa ditahan jika _buffer_ tidak penuh (mengirim)
+atau tidak kosong (menerima).
+Channel yang `nil` tidak akan pernah bisa berkomunikasi.
+
+Channel bisa ditutup dengan fungsi bawaan
+link:/ref/spec#Close[close].
+Bentuk penempatan banyak-nilai dari
+link:/ref/spec#Receive_operator[operator penerima]
+melaporkan apakah nilai yang diterima dikirim sebelum channel ditutup.
+
+Sebuah channel bisa digunakan untuk
+link:/ref/spec#Send_statements[mengirim],
+link:/ref/spec#Receive_operator[menerima],
+dan memanggil fungsi bawaan
+link:/ref/spec#Length_and_capacity[cap]
+dan
+link:/ref/spec#Length_and_capacity[len]
+oleh sejumlah goroutine berbeda tanpa perlu sinkronisasi.
+Channel bersifat antrean first-in-first-out (yang pertama masuk, yang pertama
+keluar).
+Misalnya, jika sebuah goroutine mengirim nilai ke channel dan goroutine kedua
+menerimanya, nilai diterima sesuai urutan yang dikirim.
+
+[#Properties_of_types_and_values]
+==  Properti dari tipe dan nilai
+
+[#Type_identity]
+===  Identitas tipe
