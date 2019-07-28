@@ -1310,8 +1310,962 @@ keluar).
 Misalnya, jika sebuah goroutine mengirim nilai ke channel dan goroutine kedua
 menerimanya, nilai diterima sesuai urutan yang dikirim.
 
+
 [#Properties_of_types_and_values]
 ==  Properti dari tipe dan nilai
 
+
 [#Type_identity]
 ===  Identitas tipe
+
+Dua buah tipe akan _identik_ atau _berbeda_.
+
+link:/ref/spec#Type_definitions[Tipe terdefinisi]
+selalu berbeda dengan tipe lainnya.
+Sebaliknya, dua tipe adalah identik jika tipe
+link:/ref/spec#Types[dasar]
+mereka secara struktural sama;
+yaitu, memiliki struktur literal yang sama dan komponen yang
+berhubungan memiliki tipe yang sama.
+Secara lebih rinci:
+
+*  Dua tipe array adalah identik jika mereka punya tipe elemen dan panjang
+   yang sama.
+*  Dua tipe slice adalah identik jika mereka punya tipe elemen yang sama.
+*  Dua tipe struct adalah identik jika mereka memiliki urutan field yang sama,
+   dan jika field-field tersebut memiliki nama. tipe, dan tag yang sama.
+   Nama field yang
+   link:/ref/spec#Exported_identifiers[tidak diekspor]
+   dari paket yang berbeda selalu menghasilkan tipe struct yang tidak identik.
+*  Dua tipe pointer adalah identik jika mereka memiliki tipe dasar yang sama.
+*  Dua tipe fungsi adalah identik jika mereka memiliki jumlah parameter dan
+   kembalian yang sama, dengan tipe parameter dan kembalian yang sama, dan
+   bila kedua fungsi adalah _variadic_ atau tidak sama sekali.
+   Nama pada parameter dan kembalian tidak harus sama.
+*  Dua tipe interface adalah identik jika mereka memiliki kumpulan method
+   dengan nama yang sama dan tipe fungsi yang sama.
+   Nama method yang
+   link:/ref/spec#Exported_identifiers[tidak diekspor]
+   dari paket yang berbeda akan selalu menghasilkan tipe yang tidak identik.
+   Urutan dari method tidak berpengaruh.
+*  Dua tipe map adalah identik jika mereka memiliki tipe key dan elemen yang
+   sama.
+*  Dua tipe channel adalah identik jika mereka memiliki tipe elemen dan arah
+   yang sama.
+
+Diberikan deklarasi berikut,
+
+----
+type (
+	A0 = []string
+	A1 = A0
+	A2 = struct{ a, b int }
+	A3 = int
+	A4 = func(A3, float64) *A0
+	A5 = func(x int, _ float64) *[]string
+)
+
+type (
+	B0 A0
+	B1 []string
+	B2 struct{ a, b int }
+	B3 struct{ a, c int }
+	B4 func(int, float64) *B0
+	B5 func(x int, y float64) *A1
+)
+
+type	C0 = B0
+----
+
+tipe-tipe berikut adalah identik:
+
+----
+A0, A1, dan []string
+A2 dan struct{ a, b int }
+A3 dan int
+A4, func(int, float64) *[]string, dan A5
+
+B0 dan C0
+[]int dan []int
+struct{ a, b *T5 } dan struct{ a, b *T5 }
+func(x int, y float64) *[]string, func(int, float64) (result *[]string), dan A5
+----
+
+`B0` dan `B1` berbeda karena mereka adalah tipe baru yang dibuat dengan
+link:/ref/spec#Type_definitions[definisi tipe]
+yang berbeda;
+`func(int, float64) *B0` dan `func(x int, y float64) *[]string`
+adalah berbeda karena `B0` berbeda dari `[]string`.
+
+
+[#Assignability]
+===  _Assignability_ (Penempatan)
+
+Sebuah nilai `x` bisa _ditempatkan_ ke sebuah
+link:/ref/spec#Variables[variabel]
+bertipe `T` ("x bisa diisi ke T") jika salah satu kondisi berikut berlaku:
+
+*  tipe x identik dengan `T`.
+*  tipe x yaitu `V`, `V` dan `T` memiliki
+   link:/ref/spec#Types[tipe dasar]
+   yang sama dan paling tidak salah satu dari `V` atau `T` bukanlah
+   tipe
+   link:/ref/spec#Type_definitions[tipe terdefinisi].
+*  `T` adalah tipe interface dan `x`
+   link:/ref/spec#Interface_types[mengimplementasikan]
+   `T`
+*  `x` adalah nilai channel dua arah, `T` bertipe channel, bila tipe `x` dari
+   yaitu `V` dan `T` memiliki tipe elemen yang sama, dan paling tidak salah
+   satu dari `V` atau `T` bukanlah tipe terdefinisi.
+*  `x` adalah `nil` dan `T` bertipe pointer, fungsi, slice, map, channel, atau
+   interface.
+*  `x` adalah sebuah
+   link:/ref/spec#Constants[konstan]
+   link:/ref/spec#Representability[direpresentasikan]
+   dengan nilai bertipe `T`.
+
+
+[#Representability]
+===  _Representability_
+
+Sebuah
+link:/ref/spec#Constants[konstan]
+`x` bisa direpresentasikan oleh sebuah nilai bertipe `T` jika salah satu
+kondisi berikut berlaku:
+
+*  `x` ada dalam kumpulan nilai
+   link:/ref/spec#Types[yang ditentukan]
+   oleh `T`.
+*  `T` bertipe _floating-point_ dan `x` bisa dibulatkan ke presisi `T` tanpa
+   _overflow_.
+   Pembulatan menggunakan aturan pembulatan-genap dari IEEE 754 namun dengan
+   IEEE nol negatif disederhanakan menjadi unsigned nol.
+   Ingatlah bahwa nilai konstan tidak pernah menghasilkan IEEE nol negatif,
+   NaN, atau tanpa batas.
+*  `T` bertipe complex, dan
+   link:/ref/spec#Complex_numbers[komponen] x `real(x)` dan `imag(x)` bisa
+   direpresentasikan oleh nilai tipe komponen dari `T` (`float32` atau
+   `float64`).
+
+----
+x                   T           x bisa direpresentasikan oleh nilai T karena
+
+'a'                 byte        97 ada dalam kumpulan nilai byte
+97                  rune        rune adalah alias untuk int32, dan 97 ada dalam kumpulan integer 32-bit
+"foo"               string      "foo" ada dalam kumpulan nilai string
+1024                int16       1024 ada dalam kumpulan integer 16-bit
+42.0                byte        42 ada dalam kumpulan unsigned integer 8-bit
+1e10                uint64      10000000000 ada dalam kumpulan unsigned integer 64-bit
+2.718281828459045   float32     2.718281828459045 dibulatkan ke 2.7182817 yang ada dalam kumpulan nilai float32
+-1e-1000            float64     -1e-1000 dibulatkan ke IEEE -0.0 yang kemudian disederhanakan menjadi 0.0
+0i                  int         0 adalah nilai integer
+(42 + 0i)           float32     42.0 (dengan bagian imajiner nol) ada dalam kumpulan nilai float32
+----
+
+----
+x                   T           x tidak direpresentasikan oleh nilai T karena
+
+0                   bool        0 tidak ada dalam kumpulan nilai boolean
+'a'                 string      'a' adalah rune, ia tidak ada dalam kumpulan nilai string
+1024                byte        1024 bukan berada dalam kumpulan unsigned integer 8-bit
+-1                  uint16      -1 bukan berada dalam kumpulan unsigned integer 16-bit
+1.1                 int         1.1 bukanlah nilai integer
+42i                 float32     (0 + 42i) bukan berada dalam kumpulan nilai float32
+1e1000              float64     1e1000 menjadi overflow ke IEEE +Inf setelah pembulatan
+----
+
+
+[#Blocks]
+==  Blok
+
+Sebuah blok yaitu seurutan deklarasi dan perintah, yang bisa saja kosong, di
+antara tanda kurung kurawal.
+
+----
+Block = "{" StatementList "}" .
+StatementList = { Statement ";" } .
+----
+
+Selain blok eksplisit dalam kode, ada beberapa blok implisit:
+
+.  _blok universal_ melingkupi semua teks kode Go
+.  Setiap
+   link:/ref/spec#Packages[paket]
+   memiliki sebuah _blok paket_ yang berisi semua teks sumber kode Go untuk
+   paket tersebut
+.  Setiap berkas memiliki sebuah _blok berkas_ berisi teks sumber kode Go
+   dalam berkas tersebut
+.  Setiap perintah
+   link:/ref/spec#If_statements["if"],
+   link:/ref/spec#For_statements["for"], dan
+   link:/ref/spec#Switch_statements["switch"]
+   dianggap berada dalam blok implisit-nya sendiri.
+.  Setiap "case" di dalam perintah
+   link:/ref/spec#Switch_statements["switch"]
+   atau
+   link:/ref/spec#Select_statements["select"]
+   bersifat sebagai blok implisit.
+
+Sekumpulan blok yang bersarang mempengaruhi
+link:/ref/spec#Declarations_and_scope[skop].
+
+
+[#Declarations_and_scope]
+==  Deklarasi dan skop
+
+Sebuah _deklarasi_ mengikat pengidentifikasi yang tidak
+link:/ref/spec#Blank_identifier[kosong]
+terhadap sebuah
+link:/ref/spec#Constant_declarations[konstan],
+link:/ref/spec#Type_declarations[tipe],
+link:/ref/spec#Variable_declarations[variabel],
+link:/ref/spec#Function_declarations[fungsi],
+link:/ref/spec#Labeled_statements[label], atau
+link:/ref/spec#Import_declarations[paket].
+Setiap identifikasi dalam sebuah program haruslah dideklarasikan.
+Tidak ada pengidentifikasi yang bisa dideklarasikan dua kali dalam blok yang
+sama, dan tidak ada pengidentifikasi bisa dideklarasikan dalam blok berkas dan
+paket.
+
+link:/ref/spec#Blank_identifier[Pengidentifikasi kosong]
+bisa digunakan seperti pengidentifikasi lainnya dalam sebuah deklarasi, namun
+tidak mengakibatkan pengikatan sehingga tidak dideklarasi.
+Dalam blok paket, pengidentifikasi `init` hanya bisa digunakan untuk deklarasi
+link:/ref/spec#Package_initialization[fungsi `init`],
+dan seperti pengidentifikasi kosong ia tidak menghasilkan pengikatan yang
+baru.
+
+----
+Declaration   = ConstDecl | TypeDecl | VarDecl .
+TopLevelDecl  = Declaration | FunctionDecl | MethodDecl .
+----
+
+_Ruang lingkup_ dari sebuah deklarasi pengidentifikasi yaitu betas dari teks
+sumber kode di mana pengidentifikasi menyatakan konstan, tipe, variabel,
+fungsi, label, atau paket yang ditentukan.
+
+Go secara leksikal dibatasi menggunakan
+link:/ref/spec#Blocks[blok-blok]:
+
+1.  Skop dari
+    link:/ref/spec#Predeclared_identifiers[pengidentifikasi pra-deklarasi]
+    yaitu blok universal.
+2.  Skop dari pengidentifikasi yang menyatakan sebuah konstan, tipe, variabel,
+    atau fungsi (tetapi tidak method) yang dideklarasikan pada bagian atas
+    (di luar fungsi apa pun) adalah blok paket.
+3.  Skop dari nama paket yang diimpor yaitu blok berkas yang berisi deklarasi
+    impor.
+4.  Skop dari pengidentifikasi yang menyatakan penerima method, parameter
+    fungsi, atau variabel kembalian yaitu badan dari fungsi.
+5.  Skop dari konstan atau variabel yang dideklarasikan dalam fungsi dimulai
+    dari ConstSpec atau VarSpec (ShortVarDecl untuk deklarasi variabel
+    singkat) dan berakhir pada blok yang mengandungnya.
+6.  Skop dari pengidentifikasi tipe yang dideklarasikan dalam sebuah fungsi
+    dimulai dari pengidentifikasi dalam TypeSpec dan berakhir pada blok yang
+    mengandungnya.
+
+Pengidentifikasi yang dideklarasikan dalam sebuah blok bisa dideklarasikan
+kembali di dalam blok sebelah dalam.
+Saat pengidentifikasi dari deklarasi di dalam skop, ia menyatakan entitas yang
+dideklarasikan oleh deklarasi di dalamnya.
+
+link:/ref/spec#Package_clause[Klausa paket] bukanlah sebuah deklarasi;
+nama paket tidak muncul dalam skop manapun.
+Tujuan klausa paket yaitu untuk mengidentifikasi berkas berada dalam
+link:/ref/spec#Packages[paket]
+yang sama dan untuk menentukan nama paket untuk deklarasi impor.
+
+
+[#Label_scopes]
+===  Skop label
+
+Label dideklarasikan oleh
+link:/ref/spec#Labeled_statements[perintah label]
+dan digunakan dalam perintah
+link:/ref/spec#Break_statements["break"],
+link:/ref/spec#Continue_statements["continue"],
+dan
+link:/ref/spec#Goto_statements["goto"].
+Adalah ilegal mendefinisikan sebuah label yang tidak pernah digunakan.
+Berbeda dengan pengidentifikasi lainnya, label tidaklah dibatasi oleh skip dan
+tidak konflik dengan pengidentifikasi yang bukan label.
+Skop dari label yaitu badan dari fungsi di mana ia dideklarasikan dan tidak
+mengikutkan badan dari fungsi yang bersarang.
+
+
+[#Blank_identifier]
+===  Pengidentifikasi kosong
+
+_Pengidentifikasi kosong_ direpresentasikan oleh karakter garis bawah `_`.
+Ia berfungsi sebagai penampung anonim bukan sebagai pengidentifikasi biasa
+(yang bukan kosong) dan memiliki arti khusus dalam
+link:/ref/spec#Declarations_and_scope[deklarasi],
+seperti sebuah
+link:/ref/spec#Operands[operan],
+dan dalam
+link:/ref/spec#Assignments[penempatan].
+
+
+[#Predeclared_identifiers]
+===  Pengidentifikasi pradeklarasi
+
+Pengidentifikasi berikut secara implisit dideklarasikan dalam
+link:/ref/spec#Blocks[blok universal]:
+
+----
+Tipe:
+	bool byte complex64 complex128 error float32 float64
+	int int8 int16 int32 int64 rune string
+	uint uint8 uint16 uint32 uint64 uintptr
+
+Konstan:
+	true false iota
+
+Nilai kosong:
+	nil
+
+Fungsi:
+	append cap close complex copy delete imag len
+	make new panic print println real recover
+----
+
+
+[#Exported_identifiers]
+===  Pengidentifikasi yang diekspor
+
+Sebuah pengidentifikasi bisa _diekspor_ untuk membolehkan akses kepadanya dari
+paket lainnya.
+Pengidentifikasi diekspor jika:
+
+1.  Karakter pertama dari nama pengidentifikasi adalah huruf besar Unicode
+    (kelas Unicode "Lu"); dan
+2.  Pengidentifikasi dideklarasikan dalam
+    link:/ref/spec#Blocks[blok paket]
+    atau ia merupakan
+    link:/ref/spec#Struct_types[nama field]
+    atau
+    link:/ref/spec#MethodName[nama method].
+
+Pengidentifikasi lainnya tidak diekspor.
+
+
+[#Uniqueness_of_identifiers]
+===  Keunikan pengidentifikasi
+
+Diberikan sekumpulan pengidentifikasi, sebuah pengidentifikasi dikatakan
+_unik_ jika ia _berbeda_ dari yang lainnya dalam kumpulan tersebut.
+Dua pengidentifikasi adalah berbeda jika mereka dieja secara berbeda, atau
+jika mereka muncul di
+link:/ref/spec#Packages[paket]
+yang berbeda dan tidak
+link:/ref/spec#Exported_identifiers[diekspor].
+Selain itu, mereka adalah pengidentifikasi yang sama.
+
+
+[#Constant_declarations]
+===  Deklarasi konstan
+
+Deklarasi konstan mengikat sejumlah pengidentifikasi (nama-nama dari konstan)
+terhadap nilai dari daftar dari
+link:/ref/spec#Constant_expressions[ekspresi konstan].
+Jumlah pengidentifikasi harus sama dengan jumlah ekspresi, dan
+pengidentifikasi ke-_n_ di bagian kiri terikat ke nilai dari ekspresi ke-_n_
+di bagian kanan.
+
+----
+ConstDecl      = "const" ( ConstSpec | "(" { ConstSpec ";" } ")" ) .
+ConstSpec      = IdentifierList [ [ Type ] "=" ExpressionList ] .
+
+IdentifierList = identifier { "," identifier } .
+ExpressionList = Expression { "," Expression } .
+----
+
+Jika tipe didefinisikan, semua konstan memakai tipe tersebut, dan ekspresi
+nilai haruslah
+link:/ref/spec#Assignability[dapat di-assign]
+ke tipe tersebut.
+Jika tipe diindahkan, maka konstan memiliki tipe berdasarkan ekspresi.
+Jika nilai ekspresi adalah
+link:/ref/spec#Constants[konstan]
+tanpa tipe, maka konstan tetap tanpa tipe dan pengidentifikasi konstan
+menyatakan nilai konstan.
+Misalnya, jika ekspresi adalah abjad _floating-point_, pengidentifikasi
+konstan menyatakan sebuah konstan _floating-point_, bahkan bila bagian pecahan
+adalah nol.
+
+----
+const Pi float64 = 3.14159265358979323846
+const zero = 0.0         // konstan floating-point tanpa tipe
+const (
+	size int64 = 1024
+	eof        = -1  // konstan integer tanpa tipe
+)
+const a, b, c = 3, 4, "foo"  // a = 3, b = 4, c = "foo", konstan integer dan
+string tanpa tipe
+const u, v float32 = 0, 3    // u = 0.0, v = 3.0
+----
+
+Dalam deklarasi `const` dengan tanda kurung, daftar ekspresi bisa diindahkan
+kecuali ConstSpec yang pertama.
+Daftar kosong seperti ini sama saja dengan penggantian tekstual dari daftar
+ekspresi pertama yang tidak kosong dan tipenya jika ada.
+Mengindahkan daftar ekspresi maka sama saja dengan mengulang daftar
+sebelumnya.
+Jumlah pengidentifikasi harus sama dengan jumlah ekspresi pada daftar
+sebelumnya.
+Bersama dengan
+link:/ref/spec#Iota[`iota` konstan generator]
+mekanisme ini membolehkan deklarasi ringan dari nilai berurutan:
+
+----
+const (
+	Sunday = iota
+	Monday
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Partyday
+	numberOfDays  // this constant is not exported
+)
+----
+
+[#Iota]
+===  Iota
+
+Di dalam sebuah
+link:/ref/spec#Constant_declarations[deklarasi konstan],
+pengidentifikasi `iota` merepresentasikan
+link:/ref/spec#Constants[konstan]
+integer tanpa-tipe beriringan.
+Nilainya yaitu indeks dari
+link:/ref/spec#ConstSpec[ConstSpec]
+dalam deklarasi konstan tersebut, dimulai dari nol.
+Ia bisa digunakan untuk membentuk sekumpulan konstan yang berhubungan:
+
+----
+const (
+	c0 = iota  // c0 == 0
+	c1 = iota  // c1 == 1
+	c2 = iota  // c2 == 2
+)
+
+const (
+	a = 1 << iota  // a == 1  (iota == 0)
+	b = 1 << iota  // b == 2  (iota == 1)
+	c = 3          // c == 3  (iota == 2, tidak terpakai)
+	d = 1 << iota  // d == 8  (iota == 3)
+)
+
+const (
+	u         = iota * 42  // u == 0     (konstan integer tanpa tipe)
+	v float64 = iota * 42  // v == 42.0  (konstan float64)
+	w         = iota * 42  // w == 84    (konstan integer tanpa tipe)
+)
+
+const x = iota  // x == 0
+const y = iota  // y == 0
+----
+
+Secara definisi, penggunaan `iota` berulang kali di dalam ConstSpec yang sama
+memiliki nilai yang sama:
+
+----
+const (
+	bit0, mask0 = 1 << iota, 1<<iota - 1  // bit0 == 1, mask0 == 0  (iota == 0)
+	bit1, mask1                           // bit1 == 2, mask1 == 1  (iota == 1)
+	_, _                                  //                        (iota == 2, tak terpakai)
+	bit3, mask3                           // bit3 == 8, mask3 == 7  (iota == 3)
+)
+----
+
+Contoh terakhir menggunakan
+link:/ref/spec#Constant_declarations[pengulangan implisit]
+dari daftar ekspresi yang tidak kosong.
+
+
+[#Type_declarations]
+===  Deklarasi tipe
+
+Sebuah deklarasi tipe mengikat pengidentifikasi, _name tipe_, ke sebuah
+link:/ref/spec#Types[tipe]
+Deklarasi tipe ada dua bentuk: deklarasi alias dan definisi tipe.
+
+----
+TypeDecl = "type" ( TypeSpec | "(" { TypeSpec ";" } ")" ) .
+TypeSpec = AliasDecl | TypeDef .
+----
+
+====  Deklarasi alias
+
+Deklarasi alias mengikat pengidentifikasi ke tipe yang diberikan.
+
+----
+AliasDecl = identifier "=" Type .
+----
+
+Dalam
+link:/ref/spec#Declarations_and_scope[skop]
+pengidentifikasi, ia berfungsi sebagai _alias_ dari tipe.
+
+----
+type (
+	nodeList = []*Node  // nodeList dan []*Node adalah tipe yang identik
+	Polar    = polar    // Polar dan polar menyatakan tipe yang identik
+)
+----
+
+====  Definisi tipe
+
+Sebuah definisi tipe membuat tipe yang baru dan berbeda dengan
+link:/ref/spec#Types[tipe dasar]
+dan operasi yang sama dengan tipe yang diberikan, dan mengikat
+pengidentifikasi padanya.
+
+----
+TypeDef = identifier Type .
+----
+
+Tipe yang baru disebut _tipe terdefinisi_.
+Ia
+link:/ref/spec#Type_identity[berbeda]
+dengan tipe lainnya, termasuk dari tipe yang membentuknya.
+
+----
+type (
+	Point struct{ x, y float64 }  // Point dan struct{ x, y float64 }
+	                              // adalah tipe yang berbeda.
+	polar Point                   // polar dan Point menyatakan tipe yang
+	                              // berbeda.
+)
+
+type TreeNode struct {
+	left, right *TreeNode
+	value *Comparable
+}
+
+type Block interface {
+	BlockSize() int
+	Encrypt(src, dst []byte)
+	Decrypt(src, dst []byte)
+}
+----
+
+Tipe terdefinisi bisa memiliki
+link:/ref/spec#Method_declarations[method]
+yang berasosiasi dengannya.
+Ia tidak mewariskan method apa pun dari tipe yang diikat, namun
+link:/ref/spec#Method_sets[kumpulan method]
+dari tipe interface atau elemen dari tipe komposit tidak berubah:
+
+----
+// Mutex adalah tipe data dengan dua method, Lock dan Unlock.
+type Mutex struct         { /* field dari Mutex */ }
+func (m *Mutex) Lock()    { /* implementasi Lock */ }
+func (m *Mutex) Unlock()  { /* implementasi Unlock */ }
+
+// NewMutex memiliki komposisi yang sama dengan Mutex namun set method-nya
+// kosong.
+type NewMutex Mutex
+
+// Kumpulan method dari tipe dasar PtrMutex yaitu *Mutex tetap tidak berubah,
+// namun kumpulan method dari PtrMutex adalah kosong.
+type PtrMutex *Mutex
+
+// Kumpulan method dari *PrintableMutex berisi method Lock dan Unlock terikat
+// dari field tertanamnya Mutex.
+type PrintableMutex struct {
+	Mutex
+}
+
+// MyBlock yaitu tipe interface yang memiliki kumpulan method yang sama dengan
+// Block.
+type MyBlock Block
+----
+
+Definisi tipe bisa digunakan untuk mendefinisikan tipe boolean, numerik, atau
+string yang berbeda dan mengasosiasikan method dengan tipe tersebut:
+
+----
+type TimeZone int
+
+const (
+	EST TimeZone = -(5 + iota)
+	CST
+	MST
+	PST
+)
+
+func (tz TimeZone) String() string {
+	return fmt.Sprintf("GMT%+dh", tz)
+}
+----
+
+
+[#Variable_declarations]
+===  Deklarasi variabel
+
+Deklarasi variabel membuat satu atau lebih
+link:/ref/spec#Variables[variabel],
+mengikat pengidentifikasi yang berkorespondensi kepadanya, dan memberikan
+setiap tiap-tiapnya sebuah tipe dan nilai awal.
+
+----
+VarDecl     = "var" ( VarSpec | "(" { VarSpec ";" } ")" ) .
+VarSpec     = IdentifierList ( Type [ "=" ExpressionList ] | "=" ExpressionList ) .
+----
+
+----
+var i int
+var U, V, W float64
+var k = 0
+var x, y float32 = -1, -2
+var (
+	i       int
+	u, v, s = 2.0, 3.0, "bar"
+)
+var re, im = complexSqrt(-1)
+var _, found = entries[name]  // pencarian map; hanya tertarik pada "found"
+----
+
+Jika sebuah daftar ekspresi diberikan, maka variabel diinisiasi dengan
+ekspresi mengikuti aturan-aturan
+link:/ref/spec#Assignments[penempatan].
+Selain itu, setiap variabel diinisiasi dengan
+link:/ref/spec#The_zero_value[nilai kosong]
+nya.
+
+Jika sebuah tipe diberikan, setiap variabel diberikan tipe tersebut.
+Selain itu, setiap variabel diberikan tipe dari nilai inisiasi pada
+penempatan.
+Jika nilai tersebut sebuah konstan tak bertipe, maka pertama kali ia secara
+implisit
+link:/ref/spec#Conversions[dikonversi]
+ke
+link:/ref/spec#Constants[tipe defaultnya];
+misalnya, jika variabel adalah nilai boolean tanpa tipe, maka ia secara
+implisit dikonversi ke tipe `bool`.
+Nilai `nil` tidak bisa digunakan untuk menginisiasi sebuah variabel tanpa tipe
+eksplisit.
+
+----
+var d = math.Sin(0.5)  // d adalah float64
+var i = 42             // i adalah int
+var t, ok = x.(T)      // t adalah T, ok adalah bool
+var n = nil            // ilegal
+----
+
+Batasan implementasi: _Compiler_ bisa mengilegalkan deklarasi variabel di
+dalam
+link:/ref/spec#Function_declarations[badan fungsi]
+jika variabel tersebut tidak pernah digunakan.
+
+
+[##Short_variable_declarations]
+===  Deklarasi variabel singkat
+
+_Deklarasi variabel singkat_ menggunakan sintaks:
+
+----
+ShortVarDecl = IdentifierList ":=" ExpressionList .
+----
+
+Ia merupakan cara cepat
+link:/ref/spec#Variable_declarations[mendeklarasikan variabel]
+dengan ekspresi inisiasi tanpa tipe:
+
+----
+"var" IdentifierList = ExpressionList .
+----
+
+----
+i, j := 0, 10
+f := func() int { return 7 }
+ch := make(chan int)
+r, w, _ := os.Pipe()  // os.Pipe() mengembalikan pasangan File dan error
+_, y, _ := coord(p)   // coord() mengembalikan tiga nilai; yang diambil hanya koordinat y
+----
+
+Tidak seperti deklarasi variabel, deklarasi variabel singkat bisa
+_mendeklarasi ulang_ variabel setelah ia dideklarasikan sebelumnya di dalam
+blok yang sama (atau dari daftar parameter jika blok adalah badan fungsi)
+dengan tipe yang sama, dan paling tidak salah satu dari variabel yang tidak
+link:/ref/spec#Blank_identifier[kosong]
+adalah variabel baru.
+Akibatnya, deklarasi ulang hanya dapat muncul dalam sebuah deklarasi singkat
+multi-variabel.
+Deklarasi ulang tidak menyebabkan munculnya variabel baru; ia hanya
+menempatkan nilai baru ke variabel aslinya.
+
+----
+field1, offset := nextField(str, 0)
+field2, offset := nextField(str, offset)  // deklarasi ulang pada offset
+a, a := 1, 2                              // ilegal: deklarasi ganda dari a
+                                          // atau tidak ada variabel baru bila
+					  // a dideklarasikan sebelumnya.
+----
+
+Deklarasi variabel singkat hanya bisa muncul dalam fungsi.
+Dalam beberapa konteks seperti inisiasi untuk perintah
+link:/ref/spec#If_statements["if"],
+link:/ref/spec#For_statements["for"], atau
+link:/ref/spec#Switch_statements["switch"],
+mereka dapat digunakan untuk mendeklarasikan variabel lokal sementara.
+
+
+[#Function_declarations]
+===  Deklarasi fungsi
+
+Deklarasi fungsi mengikat pengidentifikasi, _nama fungsi_, ke sebuah fungsi.
+
+----
+FunctionDecl = "func" FunctionName Signature [ FunctionBody ] .
+FunctionName = identifier .
+FunctionBody = Block .
+----
+
+Jika
+link:/ref/spec#Function_types[fungsi]
+mengembalikan nilai, daftar perintah pada badan fungsi harus berakhir dengan
+link:/ref/spec#Terminating_statements[perintah terminasi].
+
+----
+func IndexRune(s string, r rune) int {
+	for i, c := range s {
+		if c == r {
+			return i
+		}
+	}
+	// tidak valid: perintah return tidak ada.
+}
+----
+
+Deklarasi fungsi bisa tanpa badan.
+Deklarasi seperti ini menyediakan _signature_ untuk sebuah fungsi yang
+diimplementasikan di luar Go, seperti rutin _assembly_.
+
+----
+func min(x int, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+func flushICache(begin, end uintptr)  // diimplementasikan di luar.
+----
+
+
+[#Method_declarations]
+===  Deklarasi method
+
+Sebuah method yaitu sebuah
+link:/ref/spec#Function_declarations[fungsi]
+dengan sebuah _receiver_ (penerima).
+Deklarasi method mengikat pengidentifikasi, _nama method_, terhadap sebuah
+method, dan mengasosiasikan method tersebut dengan _tipe dasar_ _receiver_.
+
+----
+MethodDecl = "func" Receiver MethodName Signature [ FunctionBody ] .
+Receiver   = Parameters .
+----
+
+Si _receiver_ dispesifikasikan lewat bagian parameter sebelum nama method.
+Bagian parameter tersebut harus mendeklarasikan sebuah parameter tunggal, yang
+disebut juga dengan _receiver_.
+Tipe _receiver_ haruslah tipe
+link:/ref/spec#Type_definitions[terdefinisi]
+`T` atau sebuah pointer ke tipe terdefinisi `T`.
+`T` disebut juga _tipe dasar receiver_.
+Tipe dasar _receiver_ tidak bisa berupa tipe pointer atau interface dan ia
+harus didefinisikan di dalam paket yang sama dengan method.
+Method tersebut dikatakan _terikat_ dengan tipe dasar _receiver_ dan nama
+method hanya dapat dipanggil oleh
+link:/ref/spec#Selectors[selector]
+untuk tipe `T` atau `*T`.
+
+Pengidentifikasi _receiver_ haruslah
+link:/ref/spec#Uniqueness_of_identifiers[unik]
+dalam penanda method.
+Jika nilai _receiver_ tidak dipakai di dalam badan method, maka
+pengidentifikasinya bisa dihilangkan dalam deklarasi.
+Hal yang sama berlaku secara umum terhadap parameter dari fungsi dan method.
+
+Untuk tipe dasar yang sama, nama-nama dari method haruslah unik.
+Jika tipe dasar adalah sebuah
+link:/ref/spec#Struct_types[tipe struct],
+nama method dan field haruslah berbeda.
+
+Diberikan sebuah tipe `Point`, deklarasi berikut
+
+----
+func (p *Point) Length() float64 {
+	return math.Sqrt(p.x * p.x + p.y * p.y)
+}
+
+func (p *Point) Scale(factor float64) {
+	p.x *= factor
+	p.y *= factor
+}
+----
+
+mengikat method `Length()` dan `Scale()`, dengan _receiver_ bertipe `*Point`,
+terhadap tipe dasar `Point`.
+
+Tipe dari sebuah method yaitu tipe dari fungsi dengan _receiver_ sebagai
+argumen yang pertama.
+Misalnya, method `Scale()` bertipe
+
+----
+func(p *Point, factor float64)
+----
+
+Namun, fungsi yang dideklarasikan seperti di atas bukanlah sebuah method.
+
+
+[#Expressions]
+==  Ekspresi
+
+Sebuah ekspresi menentukan komputasi dari sebuah nilai dengan menerapkan
+operator dan fungsi terhadap operan.
+
+
+#Operands
+===  Operan-operan
+
+Operan menyatakan nilai elementer dalam sebuah ekspresi.
+Sebuah operan bisa jadi abjad, sebuah pengindentifikasi bukan-
+link:/ref/spec#Blank_identifier[kosong] (bisa saja
+/ref/spec#Qualified_identifiers[terbatas])
+yang menyatakan sebuah
+link:/ref/spec#Constant_declarations[konstan],
+link:/ref/spec#Variable_declarations[variabel],
+atau
+link:/ref/spec#Function_declarations[fungsi],
+atau ekspresi dalam tanda kurung.
+
+http://127.0.0.1:6060/ref/spec#Blank_identifier[Pengidentifikasi kosong]
+bisa muncul sebaga operan hanya pada bagian kiri dari sebuah
+http://127.0.0.1:6060/ref/spec#Assignments[penempatan].
+
+----
+Operand     = Literal | OperandName | "(" Expression ")" .
+Literal     = BasicLit | CompositeLit | FunctionLit .
+BasicLit    = int_lit | float_lit | imaginary_lit | rune_lit | string_lit .
+OperandName = identifier | QualifiedIdent.
+----
+
+
+[#Qualified_identifiers]
+===  Pengidentifikasi terbatas
+
+Sebuah pengidentifikasi terbatas yaitu sebuah pengidentifikasi yang dibatasi
+oleh awalan nama paket.
+Nama paket dan pengidentifikasi haruslah tidak
+http://127.0.0.1:6060/ref/spec#Blank_identifier[kosong].
+
+----
+QualifiedIdent = PackageName "." identifier .
+----
+
+Pengidentifikasi terbatas mengakses pengidentifikasi di paket yang berbeda,
+yang harus
+http://127.0.0.1:6060/ref/spec#Import_declarations[diimpor].
+Si pengidentifikasi haruslah
+http://127.0.0.1:6060/ref/spec#Exported_identifiers[diekspor]
+dan dideklarasikan dalam
+http://127.0.0.1:6060/ref/spec#Blocks[blok paket]
+dari paket tersebut.
+
+----
+math.Sin	// menyatakan fungsi Sin dalam paket math.
+----
+
+[#Composite_literals]
+===  Abjad komposit
+
+Abjad komposit membentuk nilai-nilai untuk struct, array, slice, dan map; dan
+membuat sebuah nilai baru setiap kali ia dievaluasi.
+Ia dibentuk dari tipe dari abjad diikuti oleh daftar elemen yang dibatasi oleh
+kurung kurawal.
+Setiap elemen bisa diawali dengan kunci yang berkorespondensi.
+
+----
+CompositeLit  = LiteralType LiteralValue .
+LiteralType   = StructType | ArrayType | "[" "..." "]" ElementType |
+                SliceType | MapType | TypeName .
+LiteralValue  = "{" [ ElementList [ "," ] ] "}" .
+ElementList   = KeyedElement { "," KeyedElement } .
+KeyedElement  = [ Key ":" ] Element .
+Key           = FieldName | Expression | LiteralValue .
+FieldName     = identifier .
+Element       = Expression | LiteralValue .
+----
+
+Tipe dasar dari LiteralType haruslah sebuah tipe struct, array, slice, atau
+map (gramatika memaksa batasan ini kecuali bisa tipe diberikan sebagai sebuah
+TypeName).
+Tipe dari elemen dan kunci harus bisa
+http://127.0.0.1:6060/ref/spec#Assignability[ditempatkan]
+ke tipe field, elemen, dan kunci dari tipe abjad yang bersangkutan;
+tidak ada konversi tambahan.
+Kunci diinterpretasikan sebagai sebuah nama field untuk abjad struct, sebuah
+indeks pada abjad array dan slice, dan sebuah kunci untuk abjad map.
+Untuk abjad map, semua elemen harus memiliki sebuah kunci.
+Adalah sebuah kesalahan bila menspesifikasikan beragam lemen dengan nama field
+yang sama atau nilai key menggunakan konstan.
+Untuk kunci map yang tidak-konstan, lihat bagian pada
+http://127.0.0.1:6060/ref/spec#Order_of_evaluation[urutan evaluasi].
+
+Untuk abjad struct aturan-aturan berikut berlaku:
+
+*  Sebuah kunci haruslah nama field yang dideklarasikan dalam tipe struct.
+*  Daftar elemen yang tidak memiliki kunci haruslah mendaftarkan setiap elemen
+   pada field struct dengan urutan sebagaimana ia dideklarasikan.
+*  Jika elemen memiliki key, maka semua elemen haruslah memiliki key.
+*  Daftar elemen yang mengandung kunci tidak harus memiliki elemen untuk
+   setiap field struct.
+   Field yang diindahkan akan mendapatkan nilai kosong untuk field tersebut.
+*  Abjad bisa mengindahkan daftar elemen; abjad tersebut dievaluasi menjadi
+   nilai kosong untuk tipenya.
+*  Adalah sebuah kesalahan bila menspesifikasikan sebuah elemen untuk field
+   yang tidak diekspor dari sebuah struct yang dimiliki oleh paket yang
+   berbeda.
+
+Diberikan deklarasi berikut
+
+----
+type Point3D struct { x, y, z float64 }
+type Line struct { p, q Point3D }
+----
+
+kita bisa menulis
+
+----
+origin := Point3D{}                            // nilai kosong untuk Point3D
+line := Line{origin, Point3D{y: -4, z: 12.3}}  // nilai kosong untuk line.q.x
+----
+
+Untuk array dan slice, aturan-aturan berikut berlaku:
+
+*  Setiap elemen memiliki indeks integer yang menandakan posisinya dalam
+   array.
+*  Sebuah elemen dengan sebuah kunci menggunakan kunci tersebut sebagai
+   indeksnya.
+   Kunci tersebut haruslah konstan bukan-negatif yang
+   http://127.0.0.1:6060/ref/spec#Representability[dapat direpresentasikan]
+   oleh nilai bertipe `int`; dan jika ia bertipe maka harus bertipe integer.
+*  Sebuah elemen tanpa kunci menggunakan indeks elemen sebelumnya ditambah
+   satu.
+   Jika elemen pertama tanpa kunci, indeksnya adalah nol.
+
+http://127.0.0.1:6060/ref/spec#Address_operators[Mengambil alamat
+dari abjad komposit menghasilkan sebuah pointer ke sebuah
+http://127.0.0.1:6060/ref/spec#Variables[variabel]
+unik yang diinisiasi dengan nilai literal.
+
+----
+var pointer *Point3D = &Point3D{y: 1000}
+----
+
+
