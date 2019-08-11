@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	srv := ciigo.NewServer(":5000")
+	srv := ciigo.NewServer("./content", ":5000", "./templates/html.tmpl")
 
 	srv.Start()
 }
