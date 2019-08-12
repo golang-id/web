@@ -14,8 +14,8 @@
 {go-dl}[Unduh Go].
 
 Distribusi binary resmi tersedia untuk sistem operasi FreeBSD (rilis 10-STABLE
-dan diatasnya), Linux, macOS (10.10 dan diatasnya), dan Windows; dengan
-prosesor berarsitektur 32-bit (386) atau 64-bit (amd64) x86.
+dan di atasnya), Linux, macOS (10.10 dan di atasnya), dan Windows; dengan
+prosesor arsitektur 32-bit (386) atau 64-bit (amd64) x86.
 
 Jika distribusi binary tidak tersedia untuk kombinasi sistem operasi dan
 arsitektur anda, coba
@@ -86,7 +86,7 @@ Sebagai contohnya,
 `sudo`.)
 
 Tambahkan `/usr/local/go/bin` ke variabel lingkungan `PATH`.
-Anda bisa melakukannya dengan menambahkan baris berikut pada `/etc/profile`
+Anda bisa melakukan dengan menambahkan baris berikut pada `/etc/profile`
 (untuk pemasangan secara global) atau `$HOME/.profile`:
 
   export PATH=$PATH:/usr/local/go/bin
@@ -221,7 +221,7 @@ go version go1.10.7 linux/amd64
 
 Semua versi Go yang dapat dipasang terdaftar di halaman {go-dl}[unduhan].
 Anda bisa menemukan lokasi dari versi yang terpasang dengan melihat variabel
-lingkungkan `GOROOT`; sebagai contohnya, `go1.10.7 env GOROOT`.
+lingkungan `GOROOT`; sebagai contohnya, `go1.10.7 env GOROOT`.
 Untuk menghapus versi yang terpasang, cukup hapus direktori `GOROOT` dan
 program `goX.Y.Z`.
 
@@ -246,4 +246,4 @@ Pengguna sistem Windows sebaiknya membaca bagian tentang
 [#help]
 ==  Bantuan
 
-Untuk bantuan, silahkan tanyakan lewat {golang-id-list}[milis Go Indonesia].
+Untuk bantuan, silakan tanyakan lewat {golang-id-list}[milis Go Indonesia].

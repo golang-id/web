@@ -29,5 +29,5 @@ memprogram Go.
    menyediakan dukungan tambahan untuk Go.
 
 Ini hanyalah beberapa solusi paling umum; untuk
-{en-wiki-ides}[daftar _plugin_ dan _IDE_ yang lebih komprehensif] tersedia di
+{en-wiki-ides}[daftar plugin dan IDE yang lebih komprehensif] tersedia di
 halaman wiki.

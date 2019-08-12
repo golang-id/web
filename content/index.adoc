@@ -10,7 +10,7 @@ membangun perangkat lunak yang handal, efisien, dan bersahaja.
 ==  Dokumentasi
 
 Untuk mengetahui cara memasang bahasa Go di sistem operasi anda dan belajar
-lebih lanjut, silahkan buka halaman link:/doc[dokumentasi].
+lebih lanjut, silakan buka halaman link:/doc[dokumentasi].
 
 
 ==  link:/blog[Blog]
@@ -48,11 +48,11 @@ berdiskusi lebih lanjut tentang Go.
 
 ===  https://t.me/golangID[Grup Telegram Go Indonesia]
 
-Grup untuk berdiskusi dan tanya jawab dengan cepat mengenai apapun.
+Grup untuk berdiskusi dan tanya jawab dengan cepat mengenai apa pun.
 
 
 ==  link:/berkontribusi.html[Berkontribusi]
 
-Siapapun dapat berkontribusi dalam situs ini.
-Untuk melihat daftar kontribusi yang dapat dilakukan, silahkan kunjungi
-{golang-id-berkontribusi}[halaman ini].
+Siapa pun dapat berkontribusi dalam situs ini.
+Untuk melihat daftar kontribusi yang dapat dilakukan, silakan kunjungi
+link:/berkontribusi.html[halaman ini].

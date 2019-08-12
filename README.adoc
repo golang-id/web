@@ -3,11 +3,11 @@
 Repositori ini adalah sumber kode dari situs komunitas Go Indonesia,
 https://golang-id.org.
 
-Siapapun dapat berkontribusi dalam repositori ini.
+Siapa pun dapat berkontribusi dalam repositori ini.
 
 Repositori ini menggunakan bahasa _markup_
 https://asciidoctor.org/docs/what-is-asciidoc/[asciidoc] untuk
-konten-kontennya.
+format pada konten.
 
 
 ==  Cara berkontribusi
@@ -17,10 +17,10 @@ terjemahan, atau blog; sama dengan alur kerja pada proyek-proyek sumber
 terbuka lainnya, yaitu dengan cara membuat salinan repositori lewat Github,
 _commit_, dan buat _pull request_.
 
-Untuk menghindari redundansi dan konflik, misalnya dua orang menerjemahkan
+Untuk menghindari duplikasi dan konflik, misalnya dua orang menerjemahkan
 artikel yang sama, pastikan untuk melihat halaman
 https://github.com/golang-id/web/issues[isu]
-terlebih dahulu, apabila tidak ada yang mengklaim untuk menterjemahkan artikel
+terlebih dahulu, apabila tidak ada yang mengklaim untuk menerjemahkan artikel
 tersebut, buat isu baru dan nyatakan dalam isu tersebut artikel yang akan anda
 terjemahkan.
 
@@ -37,14 +37,15 @@ https://github.com/shuLhan/ciigo[kerangkanya]:
 *  `content`: direktori ini berisi konten/halaman dari situs.
    Setiap halaman dibuat dengan menggunakan format asciidoc dan harus
    menggunakan ekstensi ".adoc".
-   Berkas berekstensi selain ".adoc" akan diindahkan.
+   Berkas dengan ekstensi selain ".adoc" akan diindahkan.
 
 *  `content/assets`: direktori yang menyimpan berkas statis, seperti
    _stylesheet_.
 
 *  `templates/html.tmpl`: berisi template yang membungkus hasil HTML dari
-   berkas asciidoc.  Sebisa mungkin berkas ini tidak diubah dahulu, kecuali
-   anda tahu yang anda lakukan.
+   berkas asciidoc.
+   Sebaik mungkin berkas ini tidak diubah dahulu, kecuali anda tahu yang anda
+   lakukan.
 
 
 ==  Memulai pengembangan
@@ -67,7 +68,7 @@ $ git clone https://github.com/golang-id/web .
 $ go generate
 ----
 
-.  Jalankan program `golangid` di komputer anda dengan menset variabel
+.  Jalankan program `golangid` di komputer anda dengan men set variabel
    lingkungan `DEBUG` dengan nilai `2`,
 +
 ----
@@ -81,5 +82,5 @@ $ ./golangid
 .  Untuk membuat halaman baru, lihat contoh yang sudah ada dalam direktori
    "content".
 
-.  Jika anda ingin menggabungkan pekerjaan anda, silahkan _commit_ dan _push_
+.  Jika anda ingin menggabungkan pekerjaan anda, silakan _commit_ dan _push_
    ke repositori anda sendiri dan buat _pull request_ ke repositori ini.

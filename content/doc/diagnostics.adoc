@@ -16,7 +16,7 @@ Ekosistem Go menyediakan sejumlah _Application Programming Interface_ (API,
 atau
 https://id.wikipedia.org/wiki/Antarmuka_pemrograman_aplikasi[antarmuka
 pemrograman aplikasi])
-dan perkakas untuk mendiagnosis permasalahan logika dan performansi dalam
+dan perkakas untuk mendiagnosis permasalahan logika dan kinerja dalam
 program.
 Halaman dokumentasi ini memberi ringkasan perkakas yang ada dan membantu
 pengguna untuk memilih yang sesuai dengan permasalahannya.
@@ -38,7 +38,7 @@ Solusi dari diagnostik dapat dikategorikan ke dalam kelompok berikut:
 *  *Statistik dan _event_ _runtime_*: Kumpulan dan analisis dari statistik dan
    _event_ menyediakan ringkasan yang lebih umum dari program.
    Naik atau turunnya grafik dapat membantu mengidentifikasi perubahan
-   dalam kecepatan pemrosesan, penggunaan sumber daya, dan performansi.
+   dalam kecepatan pemrosesan, penggunaan sumber daya, dan kinerja.
 
 Catatan: Beberapa perkakas diagnostik bisa saling mengganggu satu dengan yang
 lainnya.
@@ -58,7 +58,7 @@ dan yang paling memakan sumber daya.
 _Runtime_ menyediakan
 https://golang.org/pkg/runtime/pprof/[data profiling]
 dalam format yang dapat dibaca oleh
-{link-google-pprof}[perkakas visualisasi `pprof`].
+{link-google-pprof}[perkakas visualisasi pprof].
 Data _profiling_ dapat dikumpulkan selama melakukan pengujian lewat `go test`
 atau dari _endpoint_ yang disediakan oleh paket `net/http/pprof`.
 Pengguna harus mengumpulkan data _profiling_ terlebih dahulu dan selanjutnya
@@ -94,7 +94,7 @@ Pada Linux,
 https://perf.wiki.kernel.org/index.php/Tutorial[perkakas perf]
 dapat digunakan untuk melakukan _profiling_ program Go.
 Perkakas `perf` dapat memprofil dan mengulang kode cgo/SWIG dan kernel,
-sehingga dapat berguna untuk mengetahui lambatnya performansi sampai ke
+sehingga dapat berguna untuk mengetahui lambatnya kinerja sampai ke
 tingkat _kernel_.
 Pada macOS,
 https://developer.apple.com/library/content/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/[perkakas
@@ -106,8 +106,8 @@ dapat digunakan untuk melakukan _profiling_ program Go.
 Ya.
 Melakukan _profiling_ program dalam sistem _production_ adalah aman, namun
 mengaktifkannya (misalnya, profil CPU) menambah biaya.
-Kita akan melihat adanya penurunan performansi.
-Biaya dari performansi ini dapat dihitung dengan mengukur batas atas dari
+Kita akan melihat adanya penurunan kinerja.
+Biaya dari kinerja ini dapat dihitung dengan mengukur batas atas dari
 profil sebelum mengaktifkannya dalam tahap _production_.
 
 _profiling_ bisa dilakukan secara periodik terhadap program-program
@@ -127,9 +127,9 @@ untuk mengumpulkan hanya satu jenis profil pada satu waktu.
 Go menyediakan visualisasi dalam bentuk teks, grafik, dan
 http://valgrind.org/docs/manual/cl-manual.html[callgrind] dari data profil
 menggunakan
-{link-google-pprof}[`go tool pprof`].
+{link-google-pprof}[go tool pprof].
 Bacalah
-{blog-profiling-go-programs}[_Profiling Go programs_]
+{blog-profiling-go-programs}[Profiling Go programs]
 untuk melihat bagaimana cara melakukannya.
 
 .Daftar fungsi yang paling sering dipanggil dalam format teks
@@ -154,7 +154,7 @@ dalam format weblist,800]
 Cara lain untuk memvisualisasikan data profil yaitu dengan
 http://www.brendangregg.com/flamegraphs.html[grafik flame].
 Grafik _flame_ bisa digunakan dengan berpindah-pindah dari satu _path_ ke
-_path_ yang lain, untuk melihat bagian kode tertentu lebih rinci.
+_path_ yang lain, untuk melihat bagian kode tertentu lebih detail.
 Program `pprof` mendukung grafik _flame_ ini.
 
 [.center]
@@ -163,15 +163,15 @@ image::/assets/flame.png[Grafik flame,800]
 
 *Apakah terbatas hanya menggunakan profil bawaan?*
 
-Kita dapat membuat profil kostumnya sendiri lewat `pprof.Profile` dan
+Kita dapat membuat profil kostum sendiri lewat `pprof.Profile` dan
 menggunakan perkakas yang sudah ada untuk memeriksanya.
 
 *Bisakah mengubah path dan port handler dari profiler (/debug/pprof/...)?*
 
 Ya.
 Paket `net/http/pprof` meregistrasi handler-nya ke variabel global `mux` yang
-ada pada `net/http`, tapi juga bisa diregister dengan menggunakan handler yang
-diekspor pada paket tersebut.
+ada pada `net/http`, tetapi juga bisa diregister dengan menggunakan handler
+yang diekspor pada paket tersebut.
 
 Sebagai contohnya, kode berikut akan melayani `pprof.Profile` pada port
 `:7777` pada _path_ "/custom_debug_path/profile":
@@ -211,7 +211,7 @@ _Tracing_ digunakan untuk:
 *  Mengukur dan menganalisis latensi aplikasi dalam proses.
 *  Mengukur biaya dari pemanggilan fungsi tertentu dalam sebuah rantaian
    pemanggilan.
-*  Mencari tahu penggunaan dan performasi yang bisa ditingkatkan.
+*  Mencari tahu penggunaan dan kinerja yang bisa ditingkatkan.
    Lambatnya pemrosesan terkadang tidak terlihat tanpa adanya data hasil
    dari _tracing_.
 
@@ -221,16 +221,16 @@ Semua modul berada dalam satu proses dan memiliki sumber daya yang sama untuk
 melaporkan pencatatan, eror, dan informasi diagnostik lainnya.
 Saat sistem berkembang lebih dari satu proses dan mulai terdistribusi,
 maka akan lebih sulit untuk mengikuti sebuah pemanggilan server web dari
-_front-end_ sampai _back-end_ sampai respon dikembalikan lagi ke
+_front-end_ sampai _back-end_ sampai respons dikembalikan lagi ke
 _user_.
-Disinilah _tracing_ terdistribusi memainkan peran penting untuk mengukur dan
-menganalisis sistem di tahap _production_.
+Di bagian inilah _tracing_ terdistribusi memainkan peran penting untuk
+mengukur dan menganalisis sistem di tahap _production_.
 
 _Tracing_ terdistribusi adalah salah satu cara mengukur program untuk
 menganalisis latensi dari sebuah siklus permintaan (masukan) dari pengguna.
 Saat sistem telah terdistribusi dan perkakas _profiling_ dan _debugging_ yang
 konvensional tidak bisa menganalisisnya, maka perkakas _tracing_ yang
-terdistribusi bisa digunakan untuk menganalisis performansi dari permintaan
+terdistribusi bisa digunakan untuk menganalisis kinerja dari permintaan
 pengguna dan _Remote Procedure Call_ (RPC).
 
 _Tracing_ terdistribusi digunakan untuk:
@@ -238,7 +238,7 @@ _Tracing_ terdistribusi digunakan untuk:
 *  Mengukur dan melakukan _profiling_ latensi aplikasi dalam sistem yang besar.
 *  Melacak semua RPC dalam satu siklus permintaan dari pengguna dan melihat
    isu-isu integrasi yang hanya terjadi pada tahap _production_.
-*  Mencari tahu peningkatan performansi yang bisa diterapkan pada sistem.
+*  Mencari tahu peningkatan kinerja yang bisa diterapkan pada sistem.
    Umumnya proses yang lambat tidak terlihat sebelum data _tracing_
    dikumpulkan.
 
@@ -252,7 +252,7 @@ membuat rentang pelacakan.
 Masih diperlukan pengaturan kode secara manual untuk membuat, menghentikan,
 dan memberi rentang anotasi.
 
-*Bagaiamana cara memperluas pelacakan sampai ke dalam pustaka Go?*
+*Bagaimana cara memperluas pelacakan sampai ke dalam pustaka Go?*
 
 Kita bisa memperluas identifikasi dan tag pelacakan menggunakan
 https://golang.org/pkg/context#Context[context.Context].
@@ -291,7 +291,7 @@ Pengguna Go umumnya menggunakan _debugger_ berikut:
 
 *  https://github.com/derekparker/delve[Delve]: Delve adalah _debugger_ yang
    mendukung konsep _runtime_ dan tipe bawaan.
-   Delve adalah _debugger_ yang kaya dengan fitur dan terpercaya.
+   Delve adalah _debugger_ yang kaya dengan fitur dan tepercaya.
 
 *  https://golang.org/doc/gdb[GDB]: GDB menyediakan dukungan Go lewat
    _compiler_ Go bawaan dan `gccgo`.
@@ -308,7 +308,7 @@ registrasi variabel.
 Pengoptimalan ini terkadang membuat proses _debugging_ menjadi sukar.
 Upaya untuk meningkatkan kualitas informasi DWARF yang dihasilkan untuk
 program yang dioptimalkan sedang dikembangkan saat ini.
-Sampai peningkatan tersebut siap digunakan, direkomendasikan menon-aktifkan
+Sampai peningkatan tersebut siap digunakan, dianjurkan tidak mengaktifkan
 pengoptimalan saat membangun kode yang akan di- _debug_.
 Perintah berikut membuat paket yang tidak optimal:
 
@@ -320,7 +320,7 @@ Sebagai bagian dari peningkatan, Go 1.10 memperkenalkan opsi baru
 `-dwarflocationlists`.
 Opsi tersebut membuat _compiler_ menambah daftar lokasi yang dapat membantu
 _debugger_ bekerja pada program yang dioptimalkan.
-Perintah berikut membuat paket yang optimal tapi dengan daftar lokasi DWARF:
+Perintah berikut membuat paket yang optimal tetapi dengan daftar lokasi DWARF:
 
 ----
 $ go build -gcflags="-dwarflocationlists=true"
@@ -352,10 +352,10 @@ langkah demi langkah.
 //{{{
 
 _Runtime_ menyediakan statistik dan pelaporan dari _event_ internal untuk
-mendiagnosis performansi dan permasalahan pada tingkat _runtime_.
+mendiagnosis kinerja dan permasalahan pada tingkat _runtime_.
 
 Kita dapat memonitor statistik tersebut untuk memahami lebih lanjut tentang
-kesehatan dan performansi dari program.
+kesehatan dan kinerja dari program.
 Beberapa statistik dan status yang sering dimonitor:
 
 *  https://golang.org/pkg/runtime/#ReadMemStats[runtime.ReadMemStats]
