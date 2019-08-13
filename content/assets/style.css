@@ -164,11 +164,6 @@ dd {
 #toctitle {
 	display: none;
 }
-#toc {
-	font-size: 14px;
-	-moz-column-count: 2;
-	column-count: 2;
-}
 #toc li {
 	list-style: none;
 }
