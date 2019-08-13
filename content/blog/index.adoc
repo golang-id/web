@@ -1,6 +1,12 @@
 =  Blog
 :stylesheet: /assets/style.css
 
+
+==  Bahasa
+
+*  link:/blog/gos-declaration-syntax/[Sintaksis deklarasi pada Go]
+
+
 ==  Paket
 
 *  link:/blog/json-and-go[JSON dan Go] - menggunakan paket

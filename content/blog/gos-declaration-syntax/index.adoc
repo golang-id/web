@@ -1,0 +1,285 @@
+=  Sintaksis deklarasi pada Go
+:stylesheet: /assets/style.css
+:author: Rob Pike
+:date: 7 July 2010
+
+==  Pendahuluan
+
+Pengguna baru Go bertanya kenapa sintaksis deklarasi berbeda dengan tradisi
+yang telah dibangun dalam keluarga bahasa C.
+Dalam artikel ini kita akan membandingkan pendekatan dari kedua bahasa
+tersebut dan menjelaskan kenapa deklarasi Go bentuknya seperti sekarang.
+
+
+==  Sintaksis pada C
+
+Pertama, mari kita telaah sintaksis pada C.
+C menggunakan pendekatan yang cerdas dan tidak biasa untuk sintaksis
+deklarasi.
+Dalam C, kita menulis sebuah ekspresi yang mengikutkan item yang
+dideklarasikan, dan menyatakan tipe yang akan dimiliki oleh ekspresi tersebut.
+Maka
+
+----
+int x;
+----
+
+mendeklarasikan x sebagai int: ekspresi 'x' akan bertipe `int`.
+Pada umumnya, untuk mengetahui cara menulis tipe untuk variabel yang
+baru, tulis sebuah ekspresi yang mengikutkan variabel tersebut yang dievaluasi
+ke sebuah tipe dasar, kemudian tulis tipe dasar pada bagian kiri dan
+ekspresinya pada bagian kanan.
+
+Maka, deklarasi
+
+----
+int *p;
+int a[3];
+----
+
+menyatakan bahwa p adalah sebuah pointer ke int karena '*p' memiliki tipe
+`int`, dan a adalah sebuah array dari int karena a[3] (mengindahkan nilai
+indeks, yang mana merupakan ukuran dari array) bertipe int.
+
+Bagaimana dengan fungsi?
+Aslinya, deklarasi fungsi pada C menaruh tipe dari argumen di luar tanda
+kurung, seperti berikut:
+
+----
+int main(argc, argv)
+	int argc;
+	char *argv[];
+{ /* ... */ }
+----
+
+Kita dapat melihat bahwa `main` adalah sebuah fungsi karena ekspresi
+`main(argc,argv)` mengembalikan sebuah `int`.
+Dalam notasi modern kita menulisnya dengan
+
+----
+int main(int argc, char *argv[]) { /* ... */ }
+----
+
+namun struktur dasarnya sama.
+
+Hal ini adalah ide sintaksis yang cerdas yang bekerja dengan baik untuk tipe
+sederhana namun kemudian bisa menjadi membingungkan.
+Contoh yang paling terkenal yaitu deklarasi pointer ke fungsi.
+Dengan mengikuti aturan di atas, kita akan mendapatkan ini:
+
+----
+int (*fp)(int a, int b);
+----
+
+Di sini, `fp` adalah sebuah pointer ke sebuah fungsi karena jika kita menulis
+`(*fp)(a,b)` artinya kita akan memanggil sebuah fungsi yang mengembalikan
+`int`, bukan mendeklarasikan pointer ke fungsi.
+Bagaimana jika salah satu argumen dari `fp` adalah sebuah fungsi?
+
+----
+int (*fp)(int (*ff)(int x, int y), int b)
+----
+
+Hal ini mulai semakin sukar dibaca.
+
+Tentu saja, kita dapat mengindahkan nama dari parameter saat mendeklarasikan
+sebuah fungsi, sehingga `main` dapat dideklarasikan
+
+----
+int main(int, char *[])
+----
+
+Ingat kembali bahwa `argv` dideklarasikan seperti berikut,
+
+----
+char *argv[]
+----
+
+sehingga kita menghilangkan nama di tengah deklarasi untuk membentuk tipenya.
+Tampak tidak jelas, kita mendeklarasikan sesuatu bertipe `char *[]` dengan
+menaruh namanya di tengah.
+
+Dan lihat apa yang terjadi dengan deklarasi fp jika kita tidak menamakan
+parameter:
+
+----
+int (*fp)(int (*)(int, int), int)
+----
+
+Tidak jelas di mana harus menaruh nama parameter di dalam deklarasi di atas
+dan
+
+----
+int (*)(int, int)
+----
+
+tidak juga jelas bahwa ia adalah sebuah deklarasi pointer ke fungsi.
+Dan bagaimana jika tipe kembalian adalah sebuah pointer ke fungsi?
+
+----
+int (*(*fp)(int (*)(int, int), int))(int, int)
+----
+
+Semakin sukar melihat bahwa deklarasi ini adalah tentang fp.
+
+Kita bisa membentuk beberapa contoh lain namun hal di atas cukup
+mengilustrasikan beberapa kesukaran yang diperkenalkan dari sintaksis
+deklarasi C.
+
+Ada salah satu hal lain yang harus diperhatikan.
+Karena tipe dan sintaksis deklarasi adalah sama, maka akan sulit untuk
+membaca ekspresi dengan tipe di tengah.
+Inilah kenapa, misalnya, konversi pada C selalu mengurung tipenya, seperti
+
+----
+(int)M_PI
+----
+
+
+==  Sintaksis Go
+
+Bahasa-bahasa di luar keluarga C biasanya menggunakan sintaksis tipe yang
+berbeda dalam deklarasi.
+Nama (variabel) biasanya yang pertama, terkadang diikuti oleh tanda titik-dua.
+Maka contoh kita di atas menjadi seperti (dalam bahasa yang fiksi namun
+ilustratif)
+
+----
+x: int
+p: pointer to int
+a: array[3] of int
+----
+
+Deklarasi seperti ini jelas, walaupun panjang - kita membacanya dari kiri ke
+kanan.
+Go mengambil petunjuk dari situ, namun supaya singkat maka tanda titik-dua
+berikut dengan beberapa kata kunci dihapus:
+
+----
+x int
+p *int
+a [3]int
+----
+
+Tidak ada korespondensi langsung antara bentuk `[3]int` dengan bagaimana cara
+menggunakan `a` dalam sebuah ekspresi.
+(Kita akan lihat dibagian selanjutnya bagaimana pointer dideklarasikan.)
+Kita mendapatkan kejelasan dengan sintaksis yang berbeda.
+
+Sekarang bandingkan fungsi.
+Mari kita terjemahkan deklarasi untuk fungsi `main` seperti yang ditulis di
+atas bila ditulis dalam Go, walaupun fungsi `main` sebenarnya dalam Go tidak
+menerima argumen:
+
+----
+func main(argc int, argv []string) int
+----
+
+Secara singkat tidak begitu berbeda dari C, selain perubahan dari array `char`
+menjadi `string`, namun terbaca dengan jelas dari kiri ke kanan:
+
+fungsi main menerima sebuah int dan sebuah slice dari string dan mengembalikan
+sebuah int.
+
+Hapus nama parameter dan ia masih tetap jelas terbaca - nama parameter selalu
+yang pertama sehingga tidak menimbulkan kebingungan.
+
+----
+func main(int, []string) int
+----
+
+Salah satu kelebihan gaya kiri-ke-kanan ini yaitu bekerja dengan baik saat
+tipe semakin kompleks.
+Berikut deklarasi dari sebuah variabel fungsi (analogi dari sebuah pointer ke
+fungsi dalam C):
+
+----
+f func(func(int,int) int, int) int
+----
+
+Atau jika f mengembalikan sebuah fungsi:
+
+----
+f func(func(int,int) int, int) func(int, int) int
+----
+
+Ia masih terbaca dengan jelas, dari kiri ke kanan, dan selalu kentara nama apa
+saja yang dideklarasikan - nama selalu yang pertama.
+
+Perbedaan antara tipe dan ekspresi sintaksis membuat kita mudah menulis dan
+memanggil _closure_ dalam Go:
+
+----
+sum := func(a, b int) int { return a+b } (3, 4)
+----
+
+
+==  Pointer
+
+Pointer adalah pengecualian yang membuktikan aturan tersebut.
+Perhatikan bahwa dalam array dan slice, misalnya, sintaksis tipe Go menaruh
+tanda kurung-siku di sebelah kiri tipe tetapi sintaksis ekspresi menaruhnya di
+sebelah kanan ekspresi:
+
+----
+var a []int
+x = a[1]
+----
+
+Karena kebiasaan, pointer pada Go menggunakan notasi `*` dari C, namun kita
+tidak bisa menggunakan sintaksis C yang sama untuk pointer ke tipe.
+Maka pointer bekerja seperti berikut
+
+----
+var p *int
+x = *p
+----
+
+Kita tidak bisa menulis
+
+----
+var p *int
+x = p*
+----
+
+karena sufiks `*` akan berbenturan dengan perkalian.
+Kita bisa menggunakan notasi `^` seperti pada Pascal, contohnya:
+
+----
+var p ^int
+x = p^
+----
+
+dan mungkin sebaiknya begitu (dan memilih operator lain untuk `xor`), karena
+prefiks bintang pada kedua tipe dan ekspresi mempersulit beberapa hal.
+Misalnya, walau kita bisa menulis
+
+----
+[]int("hi")
+----
+
+saat melakukan konversi, kita harus memberi tanda kurung pada tipe jika ia
+berawalan sebuah *:
+
+----
+(*int)(nil)
+----
+
+Seandainya saja kita mau menyerah menggunakan tanda * sebagai sintaksis
+pointer, maka ekspresi tanda kurung tersebut tidak diperlukan lagi.
+
+Jadi sintaksis pointer pada Go terikat dengan kebiasaan bentuk pada C, namun
+keterikatan tersebut berarti kita tidak dapat sepenuhnya berhenti dari
+menggunakan tanda-kurung untuk membedakan tipe dan ekspresi dalam tata bahasa.
+
+Secara keseluruhan, kita percaya sintaksis tipe pada Go lebih mudah dipahami
+daripada C, terutama saat hal-hal menjadi semakin kompleks.
+
+
+==  Catatan
+
+Deklarasi pada Go dibaca dari kiri ke kanan.
+Deklarasi pada C dikatakan dibaca secara spiral!
+Lihat
+http://c-faq.com/decl/spiral.anderson.html[The "Clockwise/Spiral Rule"] oleh
+David Anderson.
