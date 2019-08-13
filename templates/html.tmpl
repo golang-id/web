@@ -43,7 +43,13 @@
 		<div class="page">
 			<div class="container">
 				<h1>{{.Title}}</h1>
-				{{.Body}}
+				{{ if .Author }}
+				<div class="meta">
+					{{.Author}}
+					<br />
+					{{.Date}}
+				</div>
+				{{ end }} {{.Body}}
 			</div>
 			<!-- .container -->
 		</div>

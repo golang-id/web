@@ -1,10 +1,8 @@
 =  JSON dan Go
-Andrew Gerrand
-January 25, 2011
+:author: Andrew Gerrand
+:date: 25 Januari 2011
 :stylesheet: /assets/style.css
 :package-json: https://golang.org/pkg/encoding/json
-
-25 January 2011
 
 ==  Pendahuluan
 
@@ -373,5 +371,3 @@ Untuk informasi lebih lanjut lihat
 https://golang.org/pkg/encoding/json/[dokumentasi paket json].
 Untuk contoh penggunaan json lihat sumber berkas dari
 https://golang.org/pkg/net/rpc/jsonrpc/[paket jsonrpc].
-
-__Oleh Andrew Gerrand__

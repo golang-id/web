@@ -1,10 +1,8 @@
 =  Hukum-hukum Refleksi
-Rob Pike
-September 6, 2011
+:author: Rob Pike
+:date: 6 September 2011
 :stylesheet: /assets/style.css
 :toc:
-
-6 September, 2011
 
 
 ==  Pendahuluan
@@ -605,6 +603,3 @@ Ada banyak hal tentang refleksi yang belum kita bongkar -- mengirim dan
 menerima dari `channel`, alokasi _memory_, menggunakan `slice` dan `map`,
 pemanggilan method dan fungsi -- namun artikel ini sekiranya cukup.
 Kita akan telaah beberapa topik tersebut di artikel selanjutnya.
-
-
-_Oleh Rob Pike_

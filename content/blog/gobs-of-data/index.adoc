@@ -1,10 +1,8 @@
 =  Gob dari data
-Rob Pike
-Maret 24, 2011
+:author: Rob Pike
+:date: 24 Maret 2011
 :stylesheet: /assets/style.css
 :toc:
-
-24 Maret 2011
 
 
 ==  Pendahuluan
@@ -357,5 +355,3 @@ menjelaskan lebih rinci dari apa yang dibahas di sini dan mengikutkan contoh
 lengkap yang memperlihatkan bagaimana _encoding_ merepresentasikan data.
 Jika tertarik dengan dalaman dari implementasi gob, berkas tersebut
 adalah tempat yang bagus untuk memulai.
-
-_Oleh Rob Pike_

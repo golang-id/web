@@ -1,6 +1,6 @@
 =  Paket image pada Go
-Nigel Tao
-September 21, 2011
+:author: Nigel Tao
+:date: 21 September 2011
 :stylesheet: /assets/style.css
 :toc:
 
@@ -354,6 +354,3 @@ func convertToPNG(w io.Writer, r io.Reader) error {
 	return png.Encode(w, img)
 }
 ----
-
-
-_Oleh Nigel Tao_

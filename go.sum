@@ -31,8 +31,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
-github.com/shuLhan/ciigo v0.0.0-20190805171354-32389460c459 h1:/+aR6icoxsOnSG/h+Es719ecolLMX7MQl+eL7cIj2PA=
-github.com/shuLhan/ciigo v0.0.0-20190805171354-32389460c459/go.mod h1:vnWaEJoKmBZwtVQMDunkuyICqtMj3H4EKvMTmzIcXf4=
+github.com/shuLhan/ciigo v0.0.0-20190813174134-8ff2e5a522a3 h1:gE38cZvXe+41d6b7Ng1gx/kxx0cbczUOaYbqTsWIN7M=
+github.com/shuLhan/ciigo v0.0.0-20190813174134-8ff2e5a522a3/go.mod h1:vnWaEJoKmBZwtVQMDunkuyICqtMj3H4EKvMTmzIcXf4=
 github.com/shuLhan/share v0.8.1 h1:yLOp/oCHuONxWwPelZ0ga1qqNaMXlFfmISns4H7g7ks=
 github.com/shuLhan/share v0.8.1/go.mod h1:p2/wsQ00pX/F1ysg+tXaix99ca2poS7iiWd6WWcVnuI=
 github.com/sirupsen/logrus v1.4.2 h1:SPIRibHv4MatM3XXNO2BJeFLZwZ2LvZgfQ5+UNI2im4=
