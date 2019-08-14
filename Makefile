@@ -13,8 +13,8 @@ generate:
 build: generate
 	go build ./cmd/golangid
 
-run: generate
+serve: generate
 	DEBUG=1 go run ./cmd/golangid
 
 deploy: build
-	rsync ./golangid gcp-webserver:~/bin/
+	rsync --progress ./golangid gcp-webserver:~/bin/
