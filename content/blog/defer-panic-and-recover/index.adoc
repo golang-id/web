@@ -1,0 +1,259 @@
+=  Defer, Panic, dan Recover
+:author: Andrew Gerrand
+:date: 4 Agustus 2010
+:stylesheet: /assets/style.css
+
+Go memiliki mekanisme umum untuk alur kontrol: `if`, `for`, `switch`, dan
+`goto`.
+Go juga memiliki perintah `go` untuk menjalankan kode dalam goroutine yang
+terpisah.
+Dalam artikel ini kita akan membahas beberapa perintah yang jarang digunakan:
+`defer`, `panic`, dan `recover`.
+
+**Perintah defer** menyimpan pemanggilan sebuah fungsi ke dalam sebuah daftar
+fungsi.
+Daftar fungsi tersebut kemudian dieksekusi satu per satu setelah fungsi di
+baliknya selesai.
+Defer biasanya digunakan untuk mempermudah fungsi untuk melakukan aksi-aksi
+pembersihan.
+
+Sebagai contohnya, mari kita lihat fungsi yang membuka dua berkas dan menyalin
+isi dari satu berkas ke berkas yang lain.
+
+----
+func CopyFile(dstName, srcName string) (written int64, err error) {
+	src, err := os.Open(srcName)
+	if err != nil {
+		return
+	}
+
+	dst, err := os.Create(dstName)
+	if err != nil {
+		return
+	}
+
+	written, err = io.Copy(dst, src)
+	dst.Close()
+	src.Close()
+	return
+}
+----
+
+Cara di atas bekerja, namun ada sebuah _bug_.
+Jika pemanggilan os.Create gagal, fungsi akan kembali tanpa menutup berkas
+sumber `src`.
+Masalah ini bisa diperbaiki dengan memanggil src.Close sebelum perintah
+`return`
+yang kedua, tetapi jika fungsi semakin kompleks permasalahan seperti ini
+mungkin tidak disadari dan sukar ditangani.
+Dengan menggunakan perintah `defer` kita dapat memastikan bahwa berkas-berkas
+tersebut selalu ditutup:
+
+----
+func CopyFile(dstName, srcName string) (written int64, err error) {
+	src, err := os.Open(srcName)
+	if err != nil {
+		return
+	}
+	defer src.Close()
+
+	dst, err := os.Create(dstName)
+	if err != nil {
+		return
+	}
+	defer dst.Close()
+
+	return io.Copy(dst, src)
+}
+----
+
+Perintah defer membuat kita berpikir untuk menutup setiap berkas setelah
+membukanya, menjamin bahwa, walaupun banyak perintah `return` dalam fungsi
+tersebut, berkas-berkas tersebut _akan_ ditutup.
+
+Perilaku perintah `defer` sangat mudah dan bisa diprediksi.
+Ada tiga aturan sederhana:
+
+(1) Argumen dari fungsi yang di-defer dievaluasi saat perintah defer di
+evaluasi
+
+Dalam contoh ini, ekspresi "i" dievaluasi saat pemanggilan Println di defer.
+Pemanggilan defer akan mencetak "0" setelah fungsi selesai.
+
+----
+func a() {
+	i := 0
+	defer fmt.Println(i)
+	i++
+	return
+}
+----
+
+(2) Pemanggilan fungsi yang di-defer berurutan secara _Last In First Out_
+(yang terakhir masuk yang pertama keluar) setelah fungsi yang menutupnya
+selesai.
+
+Fungsi berikut mencetak "3210":
+
+----
+func b() {
+	for i := 0; i < 4; i++ {
+		defer fmt.Print(i)
+	}
+}
+----
+
+(3) Fungsi yang di-defer bisa membaca dan menyimpan ke nilai kembalian dari
+fungsi yang bernama.
+
+Dalam contoh berikut, fungsi yang di-defer menambah nilai kembalian `i`
+_setelah_ fungsi di baliknya selesai.
+Maka, fungsi berikut mengembalikan 2:
+
+----
+func c() (i int) {
+	defer func() { i++ }()
+	return 1
+}
+----
+
+Hal ini merupakan cara yang mudah untuk mengubah nilai kembalian error dari
+sebuah fungsi;
+kita akan melihat contohnya nanti.
+
+**Panic** adalah fungsi bawaan yang menghentikan alur kontrol dan memulai
+_panik_.
+Saat fungsi F memanggil panic, eksekusi dari F berhenti, fungsi yang di-defer
+dalam F dieksekusi secara normal, dan kemudian F dikembalikan ke yang
+memanggilnya.
+Dari sisi pemanggil, F berperilaku seperti pemanggilan panic.
+Proses tersebut berlanjut terus sampai semua fungsi dalam goroutine tersebut,
+sampai suatu saat program akan _crash_.
+Panic bisa diinisiasi secara langsung dengan memanggil `panic`.
+Panic juga bisa disebabkan oleh eror pada _runtime_, seperti akses array yang
+di luar batas.
+
+**Recover** adalah fungsi bawaan yang mengontrol kembali sebuah goroutine yang
+panik.
+Recover hanya berguna dalam fungsi yang di defer.
+Dalam eksekusi yang normal, pemanggilan terhadap `recover` akan mengembalikan
+nil dan tidak ada pengaruhnya.
+Jika goroutine yang aktif panik, pemanggilan dari `recover` akan menangkap
+nilai yang diberikan oleh `panic` dan mengulang eksekusi menjadi normal.
+
+Berikut contoh program yang memperlihatkan mekanisme dari panic dan defer:
+
+----
+package main
+
+import "fmt"
+
+func main() {
+	f()
+	fmt.Println("Returned normally from f.")
+}
+
+func f() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
+	fmt.Println("Calling g.")
+	g(0)
+	fmt.Println("Returned normally from g.")
+}
+
+func g(i int) {
+	if i > 3 {
+		fmt.Println("Panicking!")
+		panic(fmt.Sprintf("%v", i))
+	}
+	defer fmt.Println("Defer in g", i)
+	fmt.Println("Printing in g", i)
+	g(i + 1)
+}
+----
+
+Fungsi g menerima int i, dan akan panik jika i lebih besar dari 3, atau selain
+itu ia akan memanggil dirinya sendiri dengan argumen i+1.
+Fungsi f men-defer sebuah fungsi yang memanggil recover dan mencetak nilai
+yang dipulihkan (selama nilainya tidak nil).
+Coba bayangkan keluaran dari program tersebut sebelum meneruskan membaca.
+
+Program akan mencetak:
+
+----
+Calling g.
+Printing in g 0
+Printing in g 1
+Printing in g 2
+Printing in g 3
+Panicking!
+Defer in g 3
+Defer in g 2
+Defer in g 1
+Defer in g 0
+Recovered in f 4
+Returned normally from f.
+----
+
+Jika kita menghapus fungsi yang di-defer dalam f maka panic tidak akan
+dipulihkan sehingga mencapai _call stack_ paling atas dari goroutine,
+sehingga mengakhiri program menjadi _crash_.
+Program yang dimodifikasi tersebut akan mencetak:
+
+----
+Calling g.
+Printing in g 0
+Printing in g 1
+Printing in g 2
+Printing in g 3
+Panicking!
+Defer in g 3
+Defer in g 2
+Defer in g 1
+Defer in g 0
+panic: 4
+
+panic PC=0x2a9cd8
+[jejak stack yang sengaja dihapus]
+----
+
+Untuk contoh dunia-nyata dari **panic** dan **recover**, lihat
+https://golang.org/pkg/encoding/json/[paket json]
+dari pustaka standar Go.
+Paket json meng-encode sebuah interface dengan sekumpulan fungsi-fungsi yang
+rekursif.
+Jika sebuah eror terjadi saat menapaki nilai yang akan di-encode, panic
+dipanggil untuk mengembalikan _stack_ ke pemanggilan fungsi yang paling atas,
+yang akan memulihkan panic dan mengembalikan nilai error yang sesuai (lihat
+method 'error' dan 'marshal' dari tipe encodeState dalam
+https://golang.org/src/pkg/encoding/json/encode.go[encode.go]
+
+Konvensi dalam pustaka Go yaitu meskipun sebuah paket menggunakan panic di
+dalamnya, API di luarnya masih tetap mengembalikan nilai error.
+
+Penggunaan **defer** yang lain (selain contoh file.Close sebelumnya) yaitu
+melepas sebuah _mutex_:
+
+----
+mu.Lock()
+defer mu.Unlock()
+----
+
+mencetak sebuah catatan kaki:
+
+----
+printHeader()
+defer printFooter()
+----
+
+dan lainnya.
+
+Kesimpulannya, perintah defer (dengan atau tanpa panic dan recover)
+menyediakan mekanisme alur kontrol yang kokoh namun sedikit tidak biasa.
+Mekanisme tersebut bisa digunakan untuk memodelkan sejumlah fitur-fitur yang
+diimplementasikan dengan struktur atau tujuan yang khusus di dalam bahasa
+pemrograman lain.
+Cobalah.
