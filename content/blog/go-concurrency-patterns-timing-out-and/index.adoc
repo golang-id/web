@@ -1,0 +1,102 @@
+=  Pola konkurensi Go: pewaktuan dan terus berjalan
+:author: Andrew Gerrand
+:date: 23 September 2010
+:stylesheet: /assets/style.css
+
+Pemrograman konkuren memiliki idiom tersendiri.
+Salah satu contoh idiom tersebut yaitu penggunaan pewaktuan (_timeout_).
+Walaupun channel pada Go tidak mendukung _timeout_, konsep _timeout_
+sebenarnya cukup mudah diimplementasikan.
+Katakanlah kita ingin menerima sebuah nilai dari channel `ch`, namun ingin
+menunggu hanya selama satu detik sebelum nilai sampai.
+Kita bisa memulai dengan membuat sebuah channel yang memberi sinyal dan
+meluncurkan sebuah goroutine yang tidur sebelum mengirim ke channel
+tersebut:
+
+----
+timeout := make(chan bool, 1)
+go func() {
+	time.Sleep(1 * time.Second)
+	timeout <- true
+}()
+----
+
+Kemudian kita dapat menggunakan perintah `select` untuk menerima antara `ch`
+atau `timeout`.
+Jika tidak ada nilai yang diterima pada `ch` setelah satu detik, maka pilihan
+timeout akan dipilih dan pembacaan pada `ch` ditinggalkan.
+
+----
+select {
+case <-ch:
+	// pembacaan dari ch telah terjadi
+case <-timeout:
+	// pembacaan dari ch waktunya telah habis
+}
+----
+
+Channel `timeout` memiliki buffer dengan ruang 1 nilai, sehingga membolehkan
+goroutine mengirim ke channel dan selesai.
+Goroutine tersebut tidak tahu (atau tidak peduli) apakah nilai yang dikirimnya
+diterima atau tidak.
+Hal ini berarti goroutine tersebut tidak akan menunggu selamanya jika channel
+`ch` menerima nilai sebelum timeout terjadi.
+Channel `timeout` nantinya akan dibersihkan oleh _garbage collector_.
+
+(Dalam contoh ini kita menggunakan `time.Sleep` untuk memperlihatkan mekanisme
+dari goroutine dan channel.
+Dalam program sebenarnya, anda seharusnya menggunakan
+https://golang.org/pkg/time/#After[time.After],
+yaitu fungsi yang mengembalikan sebuah channel dan mengirim nilai ke channel
+tersebut setelah durasi tertentu.)
+
+Mari kita lihat variasi lain dari pola ini.
+Dalam contoh berikut kita memiliki sebuah program yang mencoba mendapatkan
+nilai dari beberapa basis data (_database_) replika secara simultan.
+Program tersebut hanya butuh satu jawaban, dan hanya menerima jawaban yang
+datang pertama kali.
+
+Fungsi `Query` menerima sebuah slice koneksi database dan sebuah string
+`query`.
+Fungsi tersebut akan mengeksekusi `query` di setiap koneksi database secara
+paralel dan mengembalikan respons pertama yang sampai:
+
+----
+func Query(conns []Conn, query string) Result {
+	ch := make(chan Result)
+	for _, conn := range conns {
+		go func(c Conn) {
+			select {
+				case ch <- c.DoQuery(query):
+				default:
+			}
+		}(conn)
+	}
+	return <-ch
+}
+----
+
+Dalam contoh di atas, _closure_ (fungsi tanpa nama, dalam konteks ini yaitu
+fungsi di dalam pengulangan `for`) melakukan pengiriman tanpa ditahan, dengan
+menggunakan operasi pengiriman dalam perintah `select` dengan `default`.
+Jika pengiriman tidak bisa langsung terjadi maka pilihan `default` akan
+dijalankan.
+Dengan melakukan pengiriman tanpa ditahan, maka menjamin bahwa tidak ada
+goroutine yang diluncurkan dalam pengulangan tersebut akan _hang_.
+Namun, jika hasilnya eksekusi dari `DoQuery` diterima sebelum fungsi `Query`
+sampai ke perintah "return <-ch", maka pengiriman dapat gagal karena tidak ada
+yang siap menerima dari channel `ch`:
+
+Permasalahan ini adalah contoh yang dikenal sebagai
+https://en.wikipedia.org/wiki/Race_condition[kondisi berpacu]
+(_race condition_), namun cara memperbaiki cukup mudah.
+Kita cukup membuat channel `ch` memiliki _buffer_ (dengan menambahkan panjang
+_buffer_  sebagai argumen dari
+https://golang.org/pkg/builtin/#make[make]),
+sehingga menjamin bahwa pengiriman yang pertama memiliki ruang untuk menyimpan
+nilai kembaliannya.
+Hal ini supaya pengiriman selalu sukses, dan nilai pertama yang
+diterima akan sampai tanpa memperhatikan urutan eksekusi.
+
+Kedua contoh di atas memperlihatkan kesahajaan, yang mana Go dapat
+mengekspresikan interaksi yang kompleks antara goroutine.
