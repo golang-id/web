@@ -1,0 +1,400 @@
+=  Slice pada Go: penggunaan dan internal
+:author: Andrew Gerrand
+:date: 5 Januari 2011
+:stylesheet: /assets/style.css
+
+
+==  Pendahuluan
+
+Tipe slice pada Go menyediakan cara yang mudah dan efisien untuk bekerja
+dengan seurutan data bertipe.
+Slice sama dengan array pada bahasa pemrograman lainnya, namun memiliki
+beberapa properti yang tidak biasa.
+Artikel ini akan menelaah apa itu slice dan bagaimana cara menggunakannya.
+
+
+==  Array
+
+Tipe slice adalah sebuah abstraksi yang dibangun di atas tipe array, jadi
+untuk memahami slice kita harus memahami array terlebih dahulu.
+
+Definisi tipe dari sebuah array menspesifikasikan panjang dan tipe dari
+elemen.
+Contohnya, tipe `[4]int` merepresentasikan sebuah array dari empat integer.
+Ukuran dari array tetap;
+panjangnya adalah bagian dari tipenya
+(`[4]int` dan `[5]int` adalah tipe yang berbeda dan tidak kompatibel).
+Array bisa diakses dengan metode indeks pada biasanya, sehingga ekspresi
+`s[n]` berarti mengakses elemen ke-n, yang mana `n` dimulai dari nol.
+
+----
+var a [4]int
+a[0] = 1
+i := a[0]
+// i == 1
+----
+
+Array tidak perlu diinisiasi secara eksplisit;
+nilai kosong dari sebuah array siap digunakan yang setiap elemennya yaitu
+nilai kosong dari tipe array tersebut:
+
+----
+// a[2] == 0, nilai kosong dari tipe int
+----
+
+Representasi `[4]int` dalam memori yaitu empat integer yang berurutan:
+
+image:/blog/go-slices-usage-and-internals/go-slices-usage-and-internals_slice-array.png[]
+
+Array pada Go adalah nilai.
+Sebuah variabel array menyatakan keseluruhan array: ia bukan pointer ke elemen
+pertama (seperti halnya pada C).
+Hal ini berarti bahwa saat kita mengisi atau mengirim nilai array, kita akan
+membuat salinan dari isinya.
+(Untuk mengindahkan penyalinan kita bisa mengirim sebuah pointer ke array,
+namun hal ini berarti sebuah pointer ke sebuah array, bukan sebuah array.)
+Bayangkan array adalah sebuah bentuk struct dengan indeks bukan dengan
+field-field yang memiliki nama: sebuah nilai komposit yang berukuran tetap.
+
+----
+b := [2]string{"Penn", "Teller"}
+----
+
+Atau, kita bisa membuat _compiler_ menghitung elemen array secara otomatis:
+
+----
+b := [...]string{"Penn", "Teller"}
+----
+
+Dalam kedua kasus di atas, tipe dari b yaitu `[2]string`.
+
+
+==  Slice
+
+Array ada gunanya, namun tidak fleksibel, sehingga kita jarang melihatnya
+dalam kode Go.
+Slice, ada di mana saja.
+Slice dibentuk dari array untuk menyediakan kemudahan dan kekuatan yang lebih.
+
+Spesifikasi tipe untuk sebuah slice yaitu `[]T`, yang mana `T` adalah tipe
+dari elemen slice.
+Tidak seperti tipe array, tipe slice tidak memiliki panjang.
+
+Sintaksis dari slice dideklarasikan seperti sintaksis array, namun tanpa
+jumlah elemen:
+
+----
+letters := []string{"a", "b", "c", "d"}
+----
+
+Sebuah slice bisa dibuat dengan fungsi bawaan `make`, yang memiliki penanda,
+
+----
+func make([]T, len, cap) []T
+----
+
+yang mana `T` yaitu tipe elemen dari slice yang akan dibuat.
+Fungsi `make` menerima sebuah tipe, panjang, dan kapasitas yang opsional.
+Saat dipanggil, `make` mengalokasikan sebuah array dan mengembalikan sebuah
+slice yang mengacu pada array tersebut.
+
+----
+var s []byte
+s = make([]byte, 5, 5)
+// s == []byte{0, 0, 0, 0, 0}
+----
+
+Bila argumen kapasitas diindahkan, ia akan sama nilainya dengan panjang yang
+dispesifikasikan.
+Berikut versi singkat dari kode yang sama:
+
+----
+s := make([]byte, 5)
+----
+
+Panjang dan kapasitas dari sebuah slice dapat diketahui menggunakan fungsi
+bawaan `len` dan `cap`.
+
+----
+len(s) == 5
+cap(s) == 5
+----
+
+Dua bagian berikut akan mendiskusikan hubungan antara panjang dan kapasitas.
+
+Nilai kosong dari sebuah slice adalah `nil`.
+Fungsi `len` dan `cap` akan mengembalikan nilai 0 untuk slice yang nil.
+
+Sebuah slice juga dapat dibentuk dengan "memotong" slice atau array.
+Pemotongan dilakukan dengan menspesifikasikan rentang setengah-terbuka dengan
+dua indeks yang dipisahkan oleh tanda titik-dua.
+Contohnya, ekspresi `b[1:4]` membuat sebuah slice yang mengikutkan elemen 1
+sampai 3 dari b (indeks dari pemotongan slice yaitu tetap dari 0 sampai 2).
+
+----
+b := []byte{'g', 'o', 'l', 'a', 'n', 'g'}
+// b[1:4] == []byte{'o', 'l', 'a'}, berbagi penyimpanan yang sama dengan b.
+----
+
+Indeks awal dan akhir dari ekspresi pemotongan slice tidak harus diisi;
+nilai bakunya yaitu nol dan panjang dari slice itu sendiri:
+
+----
+// b[:2] == []byte{'g', 'o'}
+// b[2:] == []byte{'l', 'a', 'n', 'g'}
+// b[:] == b
+----
+
+Berikut sintaksis untuk membuat sebuah slice dari sebuah array:
+
+----
+x := [3]string{"Лайка", "Белка", "Стрелка"}
+s := x[:] // sebuah slice yang mengacu penyimpanan dari x.
+----
+
+
+==  Internal dari slice
+
+Sebuah slice yaitu _descriptor_ (yang mendeskripsikan) segmen dari array.
+Ia terdiri dari pointer ke array, panjang dari segmen, dan kapasitasnya
+(panjang maksimum dari segmen).
+
+image:/blog/go-slices-usage-and-internals/go-slices-usage-and-internals_slice-struct.png[]
+
+Variabel `s` yang kita buat sebelumnya dengan `make([]byte, 5)`, memiliki
+struktur seperti berikut:
+
+image:/blog/go-slices-usage-and-internals/go-slices-usage-and-internals_slice-1.png[]
+
+Panjangnya yaitu jumlah elemen yang diacu oleh slice.
+Kapasitasnya yaitu jumlah elemen pada array di belakangnya (dimulai dari
+elemen pertama yang diacu oleh pointer pada slice).
+Perbedaan antara panjang dan kapasitas akan terlihat jelas saat kita melihat
+contoh-contoh selanjutnya.
+
+Saat kita memotong slice `s`, perhatikan perubahan pada struktur data slice
+dan hubungannya dengan array di baliknya:
+
+----
+s = s[2:4]
+----
+
+image:/blog/go-slices-usage-and-internals/go-slices-usage-and-internals_slice-2.png[]
+
+Memotong slice tidak menyalin data dari slice.
+Ia membuat sebuah nilai slice yang baru yang menunjuk ke array aslinya.
+Hal ini membuat operasi slice efisien seperti memanipulasi indeks dari array.
+Oleh karena itu, mengubah _elemen_ (bukan slice itu sendiri) dari hasil
+pemotongan slice akan mengubah elemen di slice aslinya:
+
+----
+d := []byte{'r', 'o', 'a', 'd'}
+e := d[2:]
+// e == []byte{'a', 'd'}
+e[1] = 'm'
+// e == []byte{'a', 'm'}
+// d == []byte{'r', 'o', 'a', 'm'}
+----
+
+Sebelumnya kita memotong `s` dengan panjang yang lebih kecil dari
+kapasitasnya.
+Kita dapat mengembangkan `s` sampai ke kapasitasnya dengan memotongnya
+kembali:
+
+----
+s = s[:cap(s)]
+----
+
+image:/blog/go-slices-usage-and-internals/go-slices-usage-and-internals_slice-3.png[]
+
+Sebuah slice tidak dapat mengembang lebih dari kapasitasnya.
+Mencoba melakukan hal tersebut akan menyebabkan panik _runtime_, seperti saat
+melakukan pengindeksan di luar batas dari slice atau array.
+Hal yang serupa, slice tidak bisa dipotong kecil dari nol untuk mengakses
+elemen sebelumnya dalam array.
+
+
+==  Mengembangkan slice (fungsi copy dan append)
+
+Untuk meningkatkan kapasitas dari sebuah slice kita harus membuat slice yang
+baru dan lebih besar dan menyalin isi dari slice asli ke dalamnya.
+Teknik ini adalah cara implementasi array secara dinamis pada bahasa
+pemrograman lain.
+Contoh selanjutnya melipatgandakan kapasitas dari `s` dengan membuat slice
+baru `t`, menyalin isi dari `s` ke `t`, dan kemudian menempatkan nilai slice
+`t` ke `s`:
+
+----
+t := make([]byte, len(s), (cap(s)+1)*2) // +1 seandainya cap(s) == 0
+for i := range s {
+	t[i] = s[i]
+}
+s = t
+----
+
+Bagian pengulangan pada operasi di atas dapat dipermudah dengan fungsi bawaan
+`copy`.
+Seperti namanya, `copy` menyalin data dari slice sumber ke slice tujuan.
+Ia mengembalikan jumlah elemen yang disalin.
+
+----
+func copy(dst, src []T) int
+----
+
+Fungsi `copy` mendukung penyalinan antara slice yang berbeda panjangnya (ia
+hanya akan menyalin sampai jumlah elemen paling kecil).
+Sebagai tambahan, `copy` dapat menangani slice sumber dan tujuan yang berbagi
+array yang sama, menangani slice yang saling timpa dengan benar.
+
+Dengan menggunakan `copy`, kita dapat menyederhanakan potongan kode di atas:
+
+----
+t := make([]byte, len(s), (cap(s)+1)*2)
+copy(t, s)
+s = t
+----
+
+Operasi umum lainnya dari slice yaitu menambahkan data ke akhir slice.
+Fungsi berikut menambahkan elemen byte ke sebuah slice dari byte,
+mengembangkan slice jika perlu, dan mengembalikan nilai slice yang diperbarui:
+
+----
+func AppendByte(slice []byte, data ...byte) []byte {
+	m := len(slice)
+	n := m + len(data)
+	if n > cap(slice) { // jika perlu, alokasi ulang.
+		// Buat alokasi dua kali lebih besar dari yang dibutuhkan,
+		// untuk penambahan nantinya.
+		newSlice := make([]byte, (n+1)*2)
+		copy(newSlice, slice)
+		slice = newSlice
+	}
+	slice = slice[0:n]
+	copy(slice[m:n], data)
+	return slice
+}
+----
+
+Kita gunakan fungsi `AppendByte` seperti berikut:
+
+----
+p := []byte{2, 3, 5}
+p = AppendByte(p, 7, 11, 13)
+// p == []byte{2, 3, 5, 7, 11, 13}
+----
+
+Fungsi seperti `AppendByte` berguna karena memberikan kontrol sepenuhnya
+dalam mengembangkan isi dari slice.
+Bergantung pada karakteristik program, fungsi tersebut bisa saja
+mengalokasikan potongan yang lebih kecil atau besar, atau mengatur batas atas
+dari ukuran realokasi.
+
+Namun kebanyakan program tidak perlu kontrol sepenuhnya, sehingga Go
+menyediakan fungsi bawaan `append` yang berguna untuk tujuan umum; 
+fungsi `append` memiliki penanda 
+
+----
+func append(s []T, x ...T) []T
+----
+
+Fungsi `append` menambahkan elemen-elemen `x` ke akhir dari slice `s`, dan
+mengembangkan ukuran slice jika kapasitas lebih besar dibutuhkan.
+
+----
+a := make([]int, 1)
+// a == []int{0}
+a = append(a, 1, 2, 3)
+// a == []int{0, 1, 2, 3}
+----
+
+Untuk menambahkan slice ke slice lainnya, gunakan ... untuk memperluas
+argumen kedua menjadi sebuah daftar argumen.
+
+----
+a := []string{"John", "Paul"}
+b := []string{"George", "Ringo", "Pete"}
+a = append(a, b...) // sama dengan "append(a, b[0], b[1], b[2])"
+// a == []string{"John", "Paul", "George", "Ringo", "Pete"}
+----
+
+Secara nilai kosong dari slice (`nil`) sifatnya seperti slice dengan panjang
+nol, kita dapat mendeklarasikan sebuah variabel slice dan kemudian
+menambahkan elemen-elemen dalam sebuah pengulangan:
+
+----
+// Filter mengembalikan sebuah slice baru yang menyimpan hanya elemen-elemen
+// dari s yang memenuhi fungsi fn().
+func Filter(s []int, fn func(int) bool) []int {
+	var p []int // == nil
+	for _, v := range s {
+		if fn(v) {
+			p = append(p, v)
+		}
+	}
+	return p
+}
+----
+
+
+==  Kesalahan yang umum
+
+Seperti yang disebutkan sebelumnya, memotong sebuah slice tidak menyalin array
+di belakangnya.
+Array yang utuh tetap tersimpan dalam memori sampai tidak ada lagi yang
+memakainya.
+Terkadang hal ini bisa membuat program menyimpan semua data di dalam memori
+saat hanya sebagian kecil dari slice yang dibutuhkan.
+
+Sebagai contohnya, fungsi `FindDigits` berikut memuat sebuah berkas ke dalam
+memori dan mencari seurutan digit numerik yang pertama, dan mengembalikan
+urutan tersebut sebagai sebuah slice yang baru.
+
+----
+var digitRegexp = regexp.MustCompile("[0-9]+")
+
+func FindDigits(filename string) []byte {
+	b, _ := ioutil.ReadFile(filename)
+	return digitRegexp.Find(b)
+}
+----
+
+Kode di atas berjalan seperti yang tertulis, namun `[]byte` yang dikembalikan
+menunjuk ke array yang berisi seluruh berkas.
+Karena slice mengacu ke array aslinya, selama slice tersebut masih digunakan
+maka _garbage collector_ tidak dapat menghapus array;
+beberapa byte yang terpakai dari berkas menahan seluruh isi berkas di dalam
+memori.
+
+Untuk memperbaiki permasalahan ini kita dapat menyalin data yang perlu saja ke
+slice yang baru sebelum dikembalikan:
+
+----
+func CopyDigits(filename string) []byte {
+	b, _ := ioutil.ReadFile(filename)
+	b = digitRegexp.Find(b)
+	c := make([]byte, len(b))
+	copy(c, b)
+	return c
+}
+----
+
+Versi lebih ringkas dari fungsi di atas dapat dibangun menggunakan `append`.
+Cara ini adalah latihan bagi pembaca.
+
+
+==  Bacaan Lebih Lanjut
+
+link:/doc/effective_go.html[Efektif Go]
+berisi perlakuan lebih dalam dari
+link:/doc/effective_go.html#slices[slice]
+dan
+link:/doc/effective_go.html#arrays[array],
+dan
+link:/ref/spec/index.html[spesifikasi bahasa]
+Go mendefinisikan
+link:/ref/spec/index.html#Slice_types[slice]
+dan
+link:/ref/spec/index.html#Appending_and_copying_slices[fungsi-fungsi]
+link:/ref/spec/index.html#Making_slices_maps_and_channels[pembantu]
+link:/ref/spec/index.html#Length_and_capacity[yang berhubungan]
+dengan slice.

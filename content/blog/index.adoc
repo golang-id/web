@@ -8,6 +8,8 @@
 *  link:/blog/defer-panic-and-recover/[Defer Panic dan Recover]
 *  link:/blog/go-concurrency-patterns-timing-out-and/[Pola konkurensi Go:
    pewaktuan dan terus berjalan]
+*  link:/blog/go-slices-usage-and-internals[Slice pada Go: penggunaan dan
+   internal]
 
 
 ==  Paket
