@@ -10,7 +10,7 @@
    pewaktuan dan terus berjalan]
 *  link:/blog/go-slices-usage-and-internals[Slice pada Go: penggunaan dan
    internal]
-*  link:/blog/gif-decoder-exercise-in-go-interfaces[Membaca GIF: latihan
+*  link:/blog/gif-decoder-exercise-in-go-interfaces[Dekoder GIF: latihan
    interface pada Go]
 
 

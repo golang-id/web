@@ -1,4 +1,4 @@
-=  Membaca GIF: latihan interface pada Go
+=  Dekoder GIF: latihan interface pada Go
 :stylesheet: /assets/style.css
 :author: Rob Pike
 :date: 25 Mei 2011
@@ -21,20 +21,21 @@ dengan menambahkan sebuah kumis sehingga menghasilkan:
 
 image:/blog/gif-decoder-exercise-in-go-interfaces/gif-decoder-exercise-in-go-interfaces_image02.jpg[]
 
-Semua pemrosesan grafis, termasuk penambahan kumis, dilakukan oleh sebuah
-program Go yang berjalan di App Engine.
+Semua pemrosesan grafis, termasuk penambahan kumis seperti contoh di atas,
+dilakukan oleh sebuah program Go yang berjalan di App Engine.
 (Sumber kode tersedia di
 http://code.google.com/p/appengine-go/source/browse/example/moustachio/[proyek
 appengine-go].)
 
-Walaupun semua gambar di web -- setidaknya yang bisa diberi kumis -- adalah
-JPEG, ada banyak format lain yang beredar, dan masuk akal bagi Moustachio
-untuk menerima gambar yang diunggah dalam beberapa format tersebut.
+Walaupun semua gambar di web umumnya adalah JPEG, ada banyak format lain yang
+beredar, dan akan lebih baik lagi bagi Moustachio untuk dapat menerima gambar
+yang diunggah dalam beberapa format tersebut.
 Dekoder untuk JPEG dan PNG telah ada dalam pustaka gambar Go, namun format GIF
-yang lama tidak tersedia, jadi kami memutuskan untuk menulis sebuah dekoder
-GIF sebelum pengumuman tersebut.
+tidak tersedia, jadi kami memutuskan untuk menulis sebuah dekoder GIF sebelum
+pengumuman tersebut.
 Dekoder GIF tersebut berisi beberapa bagian yang memperlihatkan bagaimana
-interface pada Go membuat beberapa permasalahan mudah untuk diselesaikan.
+interface pada Go membuat beberapa permasalahan menjadi mudah untuk
+diselesaikan.
 Selanjutnya blog ini menjelaskan beberapa contoh penggunaan interface pada Go.
 
 
@@ -42,24 +43,26 @@ Selanjutnya blog ini menjelaskan beberapa contoh penggunaan interface pada Go.
 
 Pertama, tur singkat dari format GIF.
 Berkas gambar GIF adalah _palette_, yaitu, setiap nilai piksel adalah
-sebuah indeks ke sebuah peta warna tetap yang ada di dalam berkas.
-Format GIF muncul pada saat layar biasanya tidak lebih dari 8 bit per piksel,
-dan sebuah peta warna digunakan untuk mengonversi sekumpulan nilai terbatas
-menjadi tiga nilai RGB (merah, hijau, biru) untuk ditampilkan ke layar.
+sebuah indeks ke sebuah peta warna yang ada di dalam berkas.
+Format GIF diciptakan pada saat layar tidak lebih dari 8 bit per piksel, dan
+sebuah peta warna digunakan untuk mengonversi sekumpulan nilai piksel
+tersebut menjadi tiga nilai RGB (merah, hijau, biru) untuk ditampilkan ke
+layar.
 (Hal ini terbalik dengan JPEG, misalnya, yang tidak memiliki peta warna karena
 penulisan JPEG merepresentasikan sinyal warna yang berbeda secara terpisah.)
 
 Sebuah gambar GIF dapat berisi dari 1 sampai 8 bit per piksel, secara
 inklusif, namun 8 bit per piksel adalah yang paling umum.
 
-Secara sederhana, sebuah berkas GIF berisi sebuah _header_ yang mendefinisikan
-kedalaman piksel dan dimensi gambar, sebuah peta warna (256 RGB rangkap tiga
-untuk sebuah gambar 8-bit), dan data piksel.
-Data piksel disimpan sebagai urutan bit satu-dimensi, dikompres menggunakan
-algoritme LZW, yang cukup efektif untuk grafik buatan komputer walaupun tidak
-cukup bagus untuk gambar foto.
-Data yang dikompres kemudian dipecah menjadi blok-blok yang panjangnya
-dibatasi dengan sebuah byte sebagai jumlahnya (0-255) diikuti dengan data:
+Secara sederhana, sebuah berkas GIF berisi _header_ yang mendefinisikan
+kedalaman piksel dan dimensi gambar, peta warna (256 RGB rangkap tiga untuk
+sebuah gambar 8-bit), dan data piksel.
+Data piksel disimpan sebagai urutan bit-bit satu-dimensi, dikompres
+menggunakan algoritme LZW, yang cukup efektif untuk grafik buatan komputer
+walaupun tidak cukup bagus untuk gambar foto.
+Data yang dikompres kemudian dibagi menjadi blok-blok yang panjangnya
+dibatasi oleh sebuah byte yang merepresentasikan jumlahnya (0-255) diikuti
+dengan data:
 
 image:/blog/gif-decoder-exercise-in-go-interfaces/gif-decoder-exercise-in-go-interfaces_image03.gif[]
 
@@ -69,26 +72,26 @@ image:/blog/gif-decoder-exercise-in-go-interfaces/gif-decoder-exercise-in-go-int
 Untuk membaca data piksel GIF dengan Go, kita dapat menggunakan dekompresi LZW
 dari paket `compress/lzw`.
 Paket tersebut memiliki fungsi `NewReader` yang mengembalikan sebuah objek
-yang "memenuhi pembacaan dengan mendekompresi data yang dibaca dari r":
+yang "memenuhi pembacaan dengan melakukan dekompresi data yang dibaca dari r":
 
 ----
 func NewReader(r io.Reader, order Order, litWidth int) io.ReadCloser
 ----
 
-Argumen `order` mendefinisikan urutan penulisan bit dan argument `litWidth`
-yaitu ukuran _word_ dalam bit, yang mana dalam berkas GIF berkorespondensi
-dengan kedalaman piksel, biasanya 8.
+Argumen `order` mendefinisikan urutan penulisan bit dan argumen `litWidth`
+yaitu ukuran _word_ dalam bit, yang mana dalam berkas GIF berarti kedalaman
+piksel, biasanya 8.
 
-Namun kita tidak bisa memberi `NewReader` berkas input sebagai argumen pertama
-karena pendekompresi membutuhkan seurutan byte tetapi data GIF berbentuk
-seurutan blok-blok yang harus dibuka terlebih dahulu.
+Namun kita tidak bisa mengirim berkas input sebagai argumen pertama dari
+`NewReader` karena dekompresi membutuhkan seurutan byte tetapi data GIF
+berbentuk seurutan blok-blok yang harus dibuka terlebih dahulu.
 Untuk mengatasi masalah ini, kita dapat membungkus input `io.Reader` dengan
 semacam kode untuk membuka blok tersebut, dan membuat kode tersebut
 mengimplementasikan `Reader` kembali.
-Dengan kata lain, kita simpan kode pembukaan blok ke dalam method `Read` dari
-tipe yang baru, yang kita sebut `blockReader`.
+Dengan kata lain, kita simpan kode yang membuka blok ke dalam method `Read`
+dari tipe yang baru, yang kita sebut `blockReader`.
 
-Berikut struktur data untuk sebuah `blockReader`.
+Berikut struktur data dari `blockReader`.
 
 ----
 type blockReader struct {
@@ -102,7 +105,7 @@ Pembaca, r, akan menjadi sumber dari data gambar, bisa jadi sebuah berkas
 atau koneksi HTTP.
 Field `slice` dan `tmp` akan digunakan untuk mengatur pembukaan blok.
 Berikut seluruh method `Read`.
-Ia adalah contoh bagus dari penggunaan slice dan array dalam Go.
+Kode berikut adalah contoh bagus dari penggunaan slice dan array dalam Go.
 
 ----
 1  func (b *blockReader) Read(p []byte) (int, os.Error) {
@@ -143,32 +146,33 @@ Jika jumlahnya nol, GIF mendefinisikannya sebagai blok terakhir, sehingga kita
 dapat mengembalikan EOF pada baris 11.
 
 Sekarang kita tahu harus membaca sejumlah `blockLen` byte, jadi kita isi
-`b.slice` dengan byte dari `b.tmp` yang pertama dan menggunakan fungsi
-bantuan `io.ReadFull` untuk membaca keseluruhan blok data.
+`b.slice` dengan byte dari `b.tmp` dan menggunakan fungsi bantuan
+`io.ReadFull` untuk membaca keseluruhan blok data.
 Fungsi tersebut akan mengembalikan error jika tidak bisa membaca sejumlah
 `blockLen`, yang seharusnya tidak pernah terjadi.
-Jika tidak error kita punya sejumlah `blockLen` yang siap dibaca.
+Jika tidak error kita punya sejumlah `blockLen` yang siap dibaca di dalam
+`b.slice`.
 
 Baris 18-19 menyalin data dari `b.slice` ke buffer yang dikirim.
 Kita mengimplementasikan `Read`, bukan `ReadFull`, sehingga kita boleh
 mengembalikan jumlah byte yang kurang dari jumlah yang diminta.
-Hal ini menjadi lebih mudah: kita cukup menyalin data dari `b.slice` ke buffer
+Caranya cukup mudah: kita cukup menyalin data dari `b.slice` ke buffer
 yang dikirim (`p`), dan kembalian dari `copy` yaitu jumlah byte yang disalin.
-Kemudian kita potong `b.slice` untuk menghapus `n` byte pertama, siap untuk
-pemanggilan selanjutnya.
+Kemudian kita potong `b.slice` untuk menghapus `n` byte yang telah disalin,
+siap untuk pemanggilan selanjutnya.
 
 Teknik yang sangat bagus dalam pemrograman Go yaitu menggabungkan sebuah slice
 (`b.slice`) dengan sebuah array (`b.tmp`).
 Dalam kasus ini, artinya tipe `blockReader` tidak pernah melakukan alokasi.
-Hal ini juga berarti kita tidak perlu menyimpan penghitungan (ia secara
-implisit ada sebagai panjang slice), dan fungsi bawaan `copy` menjamin operasi
-penyalinan tidak pernah lebih dari yang seharusnya.
+Hal ini juga berarti kita tidak perlu menyimpan penghitungan (karena secara
+implisit ada sebagai panjang dari slice), dan fungsi bawaan `copy` menjamin
+operasi penyalinan tidak pernah lebih dari panjang yang tersedia.
 (Untuk lebih lanjut tentang slice, lihat
 link:/blog/go-slices-usage-and-internals/[artikel berikut dari Blog Go].)
 
-Dengan tipe `blockReader`, kita dapat membaca blok dari seurutan data gambar
-hanya dengan membungkus pembaca input, katakanlah sebuah berkas, seperti
-berikut:
+Dengan tipe `blockReader`, kita dapat membaca blok-blok dari seurutan data
+gambar hanya dengan membungkus pembaca input, katakanlah sebuah berkas,
+seperti berikut:
 
 ----
 deblockingReader := &blockReader{r: imageFile}
@@ -176,10 +180,10 @@ deblockingReader := &blockReader{r: imageFile}
 
 Pembungkusan tersebut menjadikan seurutan gambar GIF yang terbagi dalam
 blok-blok menjadi urutan byte sederhana yang dapat diakses dengan memanggil
-method `Read` dari `blockReader`.
+method `Read` pada `blockReader`.
 
 
-==  Menghubungkan semuanya
+==  Merangkai semuanya
 
 Dengan implementasi `blockReader` dan kompresi LZW yang tersedia dalam
 pustaka, kita punya semua bagian-bagian yang dibutuhkan untuk mendekode
@@ -213,10 +217,11 @@ pemanggilan `NewReader` ke dalam daftar argumen untuk `ReadFull`, seperti saat
 kita membuat `blockReader` di dalam pemanggilan `NewReader`, namun hal
 tersebut terlalu memampatkan banyak kode dalam satu baris.
 
+
 ==  Kesimpulan
 
 Interface pada Go mempermudah membangun perangkat lunak dengan merangkai
-bagian-bagian seperti di atas membentuk struktur data.
+bagian-bagian seperti contoh di atas membentuk suatu struktur data.
 Dalam contoh di atas, kita mengimplementasikan pembacaan GIF dengan merangkai
 sebuah pembaca blok dan sebuah pendekompresi menggunakan interface
 `io.Reader`, analogi ini sama dengan _pipeline_ pada Unix.
@@ -227,7 +232,7 @@ Sangat sulit mengimplementasikan dekoder dengan singkat namun tetap bersih dan
 aman dalam kebanyakan bahasa pemrograman, namun mekanisme interface ditambah
 dengan beberapa konvensi membuatnya tampak natural dalam Go.
 
-Implementasi ini layak menerima gambar lain, kali ini sebuah GIF:
+Implementasi ini layak mendapatkan gambar lain, kali ini sebuah GIF:
 
 image:/blog/gif-decoder-exercise-in-go-interfaces/gif-decoder-exercise-in-go-interfaces_image01.gif[]
 
