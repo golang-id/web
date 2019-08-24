@@ -12,7 +12,7 @@
    internal]
 *  link:/blog/gif-decoder-exercise-in-go-interfaces[Dekoder GIF: latihan
    interface pada Go]
-
+*  link:/blog/error-handling-and-go/[Penanganan error dan Go]
 
 ==  Paket
 

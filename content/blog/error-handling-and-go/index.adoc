@@ -1,0 +1,413 @@
+=  Penanganan kesalahan dan Go
+:author: Andrew Gerrand
+:date: 12 Juli 2011
+:stylesheet: /assets/style.css
+
+===  Pendahuluan
+
+Jika anda pernah menulis kode Go, Anda mungkin pernah menjumpai tipe `error`
+bawaan.
+Kode Go menggunakan nilai `error` untuk mengindikasikan keadaan abnormal.
+Misalnya, fungsi `os.Open` mengembalikan nilai `error` yang bukan `nil` saat
+gagal membuka sebuah berkas.
+
+----
+func Open(name string) (file *File, err error)
+----
+
+Kode berikut menggunakan `os.Open` untuk membuka sebuah berkas.
+Jika sebuah kesalahan terjadi, ia akan memanggil `log.Fatal` untuk mencetak
+pesan kesalahan dan berhenti.
+
+----
+f, err := os.Open("filename.ext")
+if err != nil {
+	log.Fatal(err)
+}
+// Lakukan operasi apa pun dengan *File f yang sudah dibuka.
+----
+
+Kita dapat menyelesaikan banyak hal dalam Go hanya dengan mengetahui tipe
+`error` ini, namun dalam artikel ini kita akan melihat lebih dekat dan
+mendiskusikan beberapa cara praktis tentang penanganan kesalahan dalam Go.
+
+
+===  Tipe `error`
+
+Tipe `error` adalah sebuah tipe interface.
+Sebuah variabel `error` merepresentasikan nilai apa pun yang dapat
+mendeskripsikan dirinya sendiri sebagai sebuah string.
+Berikut deklarasi interface dari `error`:
+
+----
+type error interface {
+	Error() string
+}
+----
+
+Tipe `error`, seperti halnya dengan tipe-tipe bawaan lainnya, telah
+link:/ref/spec/#Predeclared_identifiers[dideklarasikan]
+dalam
+link:/ref/spec/#Blocks[blok universal].
+
+Implementasi `error` yang paling sering digunakan yaitu tipe `errorString`
+dari paket
+https://golang.org/pkg/errors/[errors]
+yang tidak diekspor.
+
+----
+// errorString is a trivial implementation of error.
+type errorString struct {
+	s string
+}
+
+func (e *errorString) Error() string {
+	return e.s
+}
+----
+
+Kita dapat membuat nilai `errorType` dengan fungsi `errors.New`.
+Fungsi tersebut menerima sebuah string yang kemudian dikonversi ke
+`errors.errorString` dan mengembalikan sebuah nilai `error`.
+
+----
+// New returns an error that formats as the given text.
+func New(text string) error {
+	return &errorString{text}
+}
+----
+
+Berikut cara menggunakan `errors.New`:
+
+----
+func Sqrt(f float64) (float64, error) {
+	if f < 0 {
+		return 0, errors.New("math: square root of negative number")
+	}
+	// implementasi
+}
+----
+
+Fungsi `Sqrt()` yang menerima argumen sebuah nilai negatif akan mengembalikan
+sebuah nilai `error` (yang merupakan representasi dari sebuah nilai
+`errors.errorString`).
+Yang memanggil fungsi `Sqrt()` dapat mengakses pesan kesalahan ("math: square
+root of...") dengan memanggil method `Error`, atau cukup dengan mencetaknya:
+
+----
+f, err := Sqrt(-1)
+if err != nil {
+	fmt.Println(err)
+}
+----
+
+Paket
+https://golang.org/pkg/fmt/[fmt]
+memformat nilai `error` dengan memanggil method string `Error()` dari nilai
+`err` tersebut.
+
+Adalah tanggung jawab pengimplementasi eror untuk menyediakan konteks dari
+kesalahan.
+Pesan kesalahan yang dikembalikan oleh `os.Open` memiliki format
+"open /etc/passwd: permission denied", bukan "permission denied" saja.
+Pesan kesalahan yang dikembalikan oleh fungsi `Sqrt()` kita tidak memiliki
+informasi tentang argumen yang tidak valid.
+
+Untuk menambahkan informasi tersebut, salah satu fungsi yang berguna yaitu
+`Errorf` dari paket `fmt`.
+Fungsi `Errorf` memformat string menurut aturan `Printf` dan mengembalikan
+sebuah `error` yang dibuat oleh `errors.New`.
+
+----
+if f < 0 {
+	return 0, fmt.Errorf("math: square root of negative number %g", f)
+}
+----
+
+Pada kebanyakan kasus, menggunakan `fmt.Errorf` sudah cukup bagus, namun
+karena `error` adalah sebuah interface, kita dapat menggunakan struktur data
+apa pun sebagai nilai `error`, untuk membolehkan pemanggil menginspeksi
+detail dari kesalahan yang terjadi.
+
+Misalnya, pemanggil dari `Sqrt` mungkin ingin memperbaiki argumen tidak valid
+yang telah dikirim.
+Kita dapat melakukan hal tersebut dengan mendefinisikan sebuah implementasi
+error yang baru, bukan dengan menggunakan `errors.errorString`:
+
+----
+type NegativeSqrtError float64
+
+func (f NegativeSqrtError) Error() string {
+	return fmt.Sprintf("math: square root of negative number %g", float64(f))
+}
+----
+
+Pemanggil kemudian dapat menggunakan
+link:/ref/spec/#Type_assertions[tipe _assertion_]
+untuk memeriksa apakah
+error adalah sebuah `NegativeSqrtError` dan melakukan penanganan secara
+khusus, sementara itu pengguna fungsi `Sqrt()` yang menangani nilai error
+dengan mengirim ke `fmt.Println` atau `log.Fatal` tidak mengalami atau melihat
+perubahan perilaku apa pun.
+
+Contoh lainnya, paket
+https://golang.org/pkg/encoding/json/[`json`]
+menspesifikasikan tipe `SyntaxError` yang
+dikembalikan oleh fungsi `json.Decode` saat menemukan kesalahan sintaksis
+dari penguraian sebuah _blob_ JSON.
+
+----
+type SyntaxError struct {
+	msg    string // deskripsi dari error
+	Offset int64  // Offset saat kesalahan pembacaan terjadi
+}
+
+func (e *SyntaxError) Error() string { return e.msg }
+----
+
+Field `Offset` tidak ditampilkan dalam format pesan kesalahan, namun pemanggil
+dari `json.Decode` dapat menggunakannya untuk menambahkan informasi berkas dan
+baris pada pesan kesalahan mereka:
+
+----
+if err := dec.Decode(&val); err != nil {
+	if serr, ok := err.(*json.SyntaxError); ok {
+		line, col := findLine(f, serr.Offset)
+		return fmt.Errorf("%s:%d:%d: %v", f.Name(), line, col, err)
+	}
+	return err
+}
+----
+
+(Contoh kode ini merupakan versi sederhana dari
+https://github.com/camlistore/go4/blob/03efcb870d84809319ea509714dd6d19a1498483/jsonconfig/eval.go#L123-L135[kode
+sebenarnya]
+dari proyek
+http://camlistore.org/[Camlistore].)
+
+Interface `error` hanya membutuhkan sebuah method `Error`;
+implementasi kesalahan yang khusus bisa saja punya method-method tambahan.
+Misalnya, paket `net` mengembalikan kesalahan bertipe `error`, mengikuti
+konvensi, namun beberapa implementasi kesalahan memiliki method tambahan yang
+didefinisikan oleh interface `net.Error`:
+
+----
+package net
+
+type Error interface {
+	error
+	Timeout() bool   // Apakah kesalahan karena waktu telah habis?
+	Temporary() bool // Apakah kesalahan sementara?
+}
+----
+
+Kode dari klien dapat memeriksa `net.Error` dengan tipe _assertion_ dan
+membedakan antara kesalahan karena jaringan atau permanen.
+Misalnya, sebuah _web crawler_ bisa menunggu dan mencoba kembali saat
+mengalami sebuah kesalahan sementara dan berhenti setelah mencoba beberapa
+kali.
+
+----
+if nerr, ok := err.(net.Error); ok && nerr.Temporary() {
+	time.Sleep(1e9)
+	continue
+}
+if err != nil {
+	log.Fatal(err)
+}
+----
+
+
+===  Menyederhanakan penanganan error yang berulang
+
+Dalam Go, penanganan kesalahan sangat penting.
+Konvensi dan rancangan bahasa Go mendorong kita untuk secara eksplisit
+memeriksa kesalahan-kesalahan saat ia terjadi (yang berbeda dengan konvensi
+pada bahasa pemrograman lainnya yang menggunakan "pelemparan" `exception` dan
+terkadang "menangkap"-nya).
+Pada beberapa kasus hal ini membuat kode Go menjadi panjang, namun untungnya
+ada beberapa teknik yang dapat kita gunakan untuk mengurangi penanganan
+kesalahan yang berulang.
+
+Anggaplah kita punya sebuah aplikasi
+https://cloud.google.com/appengine/docs/go/[App Engine]
+dengan _handler_ HTTP yang menerima sebuah _record_ dari _datastore_ dan
+memformatnya dengan sebuah _template_.
+
+----
+func init() {
+	http.HandleFunc("/view", viewRecord)
+}
+
+func viewRecord(w http.ResponseWriter, r *http.Request) {
+	c := appengine.NewContext(r)
+	key := datastore.NewKey(c, "Record", r.FormValue("id"), 0, nil)
+	record := new(Record)
+	if err := datastore.Get(c, key, record); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	if err := viewTemplate.Execute(w, record); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+----
+
+Fungsi tersebut mengurus kesalahan-kesalahan yang dikembalikan oleh fungsi
+`datastore.Get` dan method `viewTemplate.Execute`.
+Pada kedua kasus tersebut, kode di atas menampilkan sebuah pesan kesalahan
+sederhana kepada _user_ dengan HTTP status kode 500 ("Internal Server Error").
+Jumlah baris pada kode tersebut tampak cukup bisa di-_maintain_, sampai kita
+menambahkan beberapa _handler_ HTTP lainnya dan akhirnya kita punya banyak
+salinan kode penanganan error yang identik.
+
+Untuk mengurangi duplikasi kita dapat mendefinisikan tipe `appHandler`
+sendiri yang mengembalikan nilai `error`:
+
+----
+type appHandler func(http.ResponseWriter, *http.Request) error
+----
+
+Kemudian kita ganti fungsi `viewRecord` supaya mengembalikan error:
+
+----
+func viewRecord(w http.ResponseWriter, r *http.Request) error {
+	c := appengine.NewContext(r)
+	key := datastore.NewKey(c, "Record", r.FormValue("id"), 0, nil)
+	record := new(Record)
+	if err := datastore.Get(c, key, record); err != nil {
+		return err
+	}
+	return viewTemplate.Execute(w, record)
+}
+----
+
+Kode tersebut lebih sederhana dari yang awalnya, namun paket
+https://golang.org/pkg/net/http/[`http`]
+tidak mengenal fungsi-fungsi yang mengembalikan `error`.
+Untuk memperbaiki hal tersebut kita dapat mengimplementasikan interface
+`http.Handler` yaitu dengan menambahkan method `ServeHTTP()` pada tipe
+`appHandler`:
+
+----
+func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := fn(w, r); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+}
+----
+
+Method `ServeHTTP()` memanggil fungsi `appHandler` dan menampilkan pesan
+kesalahan yang dikembalikan (jika ada) kepada _user_.
+Perhatikan bahwa _receiver_ method, `fn`, adalah sebuah fungsi.
+(Go bisa melakukan hal tersebut!)
+Method `ServeHTTP` akan memanggil fungsi `fn` dengan mengeksekusi ekspresi
+`fn(w, r)`.
+
+Sekarang saat melakukan registrasi `viewRecord` pada paket `http` kita
+menggunakan fungsi `Handle` (bukan `HandleFunc`) secara `appHandler` adalah
+sebuah `http.Handler` (bukan `http.HandlerFunc`).
+
+----
+func init() {
+	http.Handle("/view", appHandler(viewRecord))
+}
+----
+
+Dengan infrastruktur penanganan kesalahan dasar ini, kita dapat membuatnya
+lebih mudah digunakan.
+Tidak hanya menampilkan pesan kesalahan, akan lebih bagus memberikan pengguna
+sebuah pesan kesalahan dengan status kode HTTP yang sesuai, sementara tetap
+mencatat seluruh kesalahan ke App Engine _developer console_ untuk tujuan
+pemeriksaan nantinya.
+
+Untuk melakukan hal ini kita buat sebuah struct `appError` yang berisi sebuah
+`error` dan beberapa field lainnya:
+
+----
+type appError struct {
+	Error   error
+	Message string
+	Code    int
+}
+----
+
+Selanjutnya kita ubah tipe `appHandler` untuk mengembalikan nilai `*appError`:
+
+----
+type appHandler func(http.ResponseWriter, *http.Request) *appError
+----
+
+(Biasanya adalah sebuah kesalahan mengembalikan tipe konkret dari sebuah
+`error` bukan sebuah nilai interface dari `error`, dengan alasan yang telah
+didiskusikan dalam
+link:/doc/faq/#nil_error[Tanya Jawab Go],
+namun untuk saat ini adalah pengecualian dan tepat untuk dilakukan karena
+method `ServeHTTP` satu-satunya tempat yang tahu nilai dari `error` dan cara
+menggunakan isinya.)
+
+Selanjutnya kita buat method `ServeHTTP` dari `appHandler` supaya menampilkan
+`appError.Message` kepada pengguna dengan status kode HTTP yang sesuai dan
+mencatat keseluruhan `Error` ke _developer console_:
+
+----
+func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if e := fn(w, r); e != nil { // e is *appError, not os.Error.
+		c := appengine.NewContext(r)
+		c.Errorf("%v", e.Error)
+		http.Error(w, e.Message, e.Code)
+	}
+}
+----
+
+Terakhir, kita ubah `viewRecord` dengan penanda fungsi yang baru dan
+membuatnya mengembalikan konteks lebih informatif saat menemui sebuah
+kesalahan:
+
+----
+func viewRecord(w http.ResponseWriter, r *http.Request) *appError {
+	c := appengine.NewContext(r)
+	key := datastore.NewKey(c, "Record", r.FormValue("id"), 0, nil)
+	record := new(Record)
+	if err := datastore.Get(c, key, record); err != nil {
+		return &appError{err, "Record not found", 404}
+	}
+	if err := viewTemplate.Execute(w, record); err != nil {
+		return &appError{err, "Can't display record", 500}
+	}
+	return nil
+}
+----
+
+Versi `viewRecord` di atas sama panjangnya dengan yang asli, namun sekarang
+setiap baris memiliki makna tersendiri dan kita menyediakan penanganan
+kesalahan yang lebih bersahabat.
+
+Tidak hanya berakhir di sana;
+kita dapat meningkatkan lebih lanjut penanganan kesalahan dalam aplikasi kita.
+Berikut beberapa ide:
+
+*  memberikan penanganan kesalahan sebuah _template_ HTML
+
+*  membuat _debugging_ lebih mudah dengan menulis _stack trace_ pada nilai
+   kembalian HTTP saat _user_ adalah administrator.
+
+*  menulis sebuah fungsi _constructor_ untuk `appError` yang menyimpan
+   _stack trace_ supaya dapat di _debug_ lebih gampang.
+
+*  pemulihan dari kondisi panik di dalam `appHandler`, mencatat kesalahan ke
+   _console_ sebagai "Critical", sementara menyampaikan kepada _user_ bahwa
+   "sebuah kesalahan kritis telah terjadi".
+   Hal-hal tersebut adalah cara yang bagus untuk menghindari menampilkan
+   kesalahan yang disebabkan oleh pemrograman kepada _user_.
+   Lihat artikel
+   link:/blog/defer_panic_recover/[Defer Panic dan Recover]
+   untuk lebih jelas.
+
+
+===  Kesimpulan
+
+Penanganan kesalahan yang baik adalah kebutuhan yang esensial dari perangkat
+lunak yang bagus.
+Dengan menggunakan teknik-teknik yang telah dijelaskan dalam artikel ini kita
+seharusnya dapat menulis kode Go yang lebih singkat dan dapat diandalkan.
