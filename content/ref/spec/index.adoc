@@ -2541,10 +2541,10 @@ p.x          // (*(*p).T0).x
 
 q.x          // (*(*q).T0).x        (*q).x adalah selector field yang valid
 
-p.M0()       // ((*p).T0).M0()      M0 mendapatkan penerima *T0
-p.M1()       // ((*p).T1).M1()      M1 mendapatkan penerima T1
-p.M2()       // p.M2()              M2 mendapatkan penerima *T2
-t.M2()       // (&t).M2()           M2 mendapatkan penerima *T2, lihat bagian tentang Pemanggilan
+p.M0()       // ((*p).T0).M0()      M0 mendapatkan receiver *T0
+p.M1()       // ((*p).T1).M1()      M1 mendapatkan receiver T1
+p.M2()       // p.M2()              M2 mendapatkan receiver *T2
+t.M2()       // (&t).M2()           M2 mendapatkan receiver *T2, lihat bagian tentang Pemanggilan
 ----
 
 namun pernyataan berikut adalah invalid:
@@ -2554,29 +2554,29 @@ q.M0()       // (*q).M0 valid namun bukan sebuah selector field
 ----
 
 
-[#Method_expressions
+[#Method_expressions]
 ===  Ekspresi method
 
 Jika `M` ada dalam
-http://127.0.0.1:6060/ref/spec#Method_sets[kumpulan method]
+link:/ref/spec#Method_sets[kumpulan method]
 bertipe `T`, `T.M` adalah sebuah fungsi yang dapat dipanggil seperti fungsi
 biasa dengan argumen yang sama dengan `M` yang diawali dengan argumen tambahan
-yaitu penerima (_receiver_) dari method.
+yaitu _receiver_ dari method.
 
 ----
 MethodExpr    = ReceiverType "." MethodName .
 ReceiverType  = Type .
 ----
 
-Misalkan sebuah struct bertipe `T` dengan dua method, `Mv`, dengan penerima
-bertipe `T`; dan `Mp` yang penerimanya bertipe `*T`.
+Misalkan sebuah struct bertipe `T` dengan dua method, `Mv`, dengan _receiver_
+bertipe `T`; dan `Mp` dengan _receiver_ bertipe `*T`.
 
 ----
 type T struct {
 	a int
 }
-func (tv  T) Mv(a int) int         { return 0 }  // penerima nilai
-func (tp *T) Mp(f float32) float32 { return 1 }  // penerima pointer
+func (tv  T) Mv(a int) int         { return 0 }  // receiver berupa nilai
+func (tp *T) Mp(f float32) float32 { return 1 }  // receiver berupa pointer
 
 var t T
 ----
@@ -2587,14 +2587,14 @@ Ekspresi
 T.Mv
 ----
 
-menghasilkan sebuah fungsi yang sama dengan `Mv` namun dengan penerima
-eksplisit sebagai argumen pertama; dengan penanda
+menghasilkan sebuah fungsi yang sama dengan `Mv` namun dengan sebuah
+_receiver_ eksplisit sebagai argumen pertama; dengan penanda
 
 ----
 func(tv T, a int) int
 ----
 
-Fungsi tersebut bisa dipanggil secara normal dengan penerima eksplisit,
+Fungsi tersebut bisa dipanggil secara normal dengan _receiver_ eksplisit,
 sehingga kelima pemanggilan berikut adalah sama:
 
 ----
@@ -2617,8 +2617,8 @@ menghasilkan sebuah nilai fungsi yang merepresentasikan `Mp` dengan penanda
 func(tp *T, f float32) float32
 ----
 
-Untuk sebuah method dengan penerima nilai, kita dapat menurunkan sebuah fungsi
-dengan penerima pointer yang eksplisit, sehingga
+Untuk sebuah method dengan _receiver_ nilai, kita dapat menurunkan sebuah
+fungsi dengan _receiver_ pointer yang eksplisit, sehingga
 
 ----
 (*T).Mv
@@ -2629,3 +2629,549 @@ menghasilkan sebuah nilai fungsi merepresentasikan `Mv` dengan penanda
 ----
 func(tv *T, a int) int
 ----
+
+Fungsi seperti ini secara tidak langsung lewat _receiver_ untuk membuat sebuah
+nilai untuk dikirim sebagai _receiver_ pada method dibaliknya;
+method tersebut tidak menimpa nilai yang alamatnya dikirim ke pemanggilan
+fungsi.
+
+Kasus terakhir, fungsi dengan _receiver_ berupa nilai untuk sebuah method
+dengan _receiver_ berupa pointer, adalah ilegal karena method-method dengan
+_receiver_ pointer tidak berada dalam kumpulan method dari tipe nilai.
+
+Nilai-nilai fungsi yang diturunkan dari method dipanggil dengan sintaksis
+pemanggilan fungsi biasa;
+si _receiver_ diberikan sebagai argumen pertama pada pemanggilan.
+Maka, diberikan `f := T.Mv`, `f` dipanggil dengan cara `f(t,7)` bukan
+`t.f(7)`.
+Untuk membentuk sebuah fungsi yang mengikat _receiver_, gunakan
+link:/ref/spec#Function_literals[literal fungsi]
+atau
+link:/ref/spec#Method_values[nilai method].
+
+Adalah legal menurunkan sebuah nilai fungsi dari sebuah method bertipe
+interface.
+Hasil fungsinya menerima _receiver_ eksplisit dari tipe interface tersebut.
+
+
+[#Method_values]
+===   Nilai method
+
+Jika ekspresi `x` memiliki tipe statis `T` dan `M` berada dalam
+link:/ref/spec#Method_sets[kumpulan method]
+dari tipe `T`, `x.M` disebut _nilai method_.
+Nilai method `x.M` yaitu sebuah nilai fungsi yang dapat dipanggil dengan
+argumen yang sama seperti memanggil method dari `x.M`.
+Ekspresi `x` dievaluasi dan disimpan selama evaluasi dari nilai method;
+salinan yang disimpan kemudian digunakan sebagai _receiver_ pada setiap
+pemanggilan, yang bisa saja dieksekusi nantinya.
+
+Tipe `T` bisa berupa tipe interface atau bukan interface.
+
+Seperti yang telah didiskusikan dalam
+link:/ref/spec#Method_expressions[ekspresi method]
+di atas, misalnya ada sebuah struct bertipe `T` dengan dua method, `Mv`,
+dengan _receiver_ bertipe `T`, dan `Mp`, dengan _receiver_ bertipe `*T`.
+
+----
+type T struct {
+	a int
+}
+func (tv  T) Mv(a int) int         { return 0 }  // value receiver
+func (tp *T) Mp(f float32) float32 { return 1 }  // pointer receiver
+
+var t T
+var pt *T
+func makeT() T
+----
+
+Ekspresi dari
+
+----
+t.Mv
+----
+
+menghasilkan sebuah nilai fungsi bertipe
+
+----
+func(int) int
+----
+
+Pemanggilan berikut adalah sama:
+
+----
+t.Mv(7)
+f := t.Mv; f(7)
+----
+
+Hal yang sama, ekspresi berikut
+
+----
+pt.Mp
+----
+
+menghasilkan sebuah nilai fungsi bertip
+
+----
+func(float32) float32
+----
+
+Seperti halnya dengan
+link:/ref/spec#Selectors[_selector_],
+sebuah referensi ke method yang bukan interface dengan _receiver_ nilai
+menggunakan pointer akan secara otomatis membalikan pointer tersebut:
+`pt.Mv` sama dengan `(*pt)Mv`.
+
+Seperti halnya dengan
+link:/ref/spec#Calls[pemanggilan method],
+sebuah referensi ke method yang bukan interface dengan _receiver_ pointer
+menggunakan nilai beralamat akan secara otomatis mengambil alamat dari nilai
+tersebut: `t.Mp` sama dengan `(&t).Mp`.
+
+----
+f := t.Mv; f(7)   // sama dengan t.Mv(7)
+f := pt.Mp; f(7)  // sama dengan pt.Mp(7)
+f := pt.Mv; f(7)  // sama dengan (*pt).Mv(7)
+f := t.Mp; f(7)   // sama dengan (&t).Mp(7)
+f := makeT().Mp   // tidak valid: hasil dari makeT() tidak beralamat.
+----
+
+Walaupun contoh di atas menggunakan tipe bukan interface, merupakan hal yang
+legal untuk membuat sebuah nilai method dari nilai bertipe interface.
+
+----
+var i interface { M(int) } = myVal
+f := i.M; f(7)  // sama dengan i.M(7)
+----
+
+
+[#Index_expressions]
+===  Ekspresi indeks
+
+Ekspresi dasar dari bentuk
+
+----
+a[x]
+----
+
+menyatakan elemen dari array, pointer ke array, slice, atau map `a` yang
+diindeks oleh `x`.
+Nilai `x` disebut dengan _indeks_ atau _map key_.
+Aturan-aturan berikut berlaku:
+
+Jika `a` bukan sebuah map:
+
+*  indeks `x` haruslah bertipe integer atau konstanta tanpa tipe
+*  indeks berupa konstanta haruslah tidak negatif dan
+   link:/ref/spec#Representability[dapat direpresentasikan]
+   oleh sebuah nilai bertipe `int`
+*  indeks berupa konstanta yang tidak bertipe akan diberikan tipe `int`
+*  indeks `x` berada _dalam rentang_ jika `0 <= x < len(a)`, selain itu _di
+   luar rentang_
+
+Untuk `a` dengan
+link:/ref/spec#Array_types[tipe Array]
+A:
+
+*  sebuah indeks berupa
+   link:/ref/spec#Constants[konstanta]
+   haruslah dalam rentang
+*  jika `x` di luar rentang pada saat _runtime_, sebuah
+   link:/ref/spec#Run_time_panics[panik _runtime_]
+   akan terjadi
+*  `a[x]` adalah elemen array pada indeks `x` dan tipe dari `a[x]` yaitu
+   elemen bertipe `A`
+
+Untuk `a` sebagai
+link:/ref/spec#Pointer_types[pointer]
+ke tipe array:
+
+*  `a[x]` adalah singkatan untuk `(*a)[x]`
+
+Untuk `a` dengan
+link:/ref/spec#Slice_types[tipe slice]
+`S`:
+
+*  jika `x` di luar rentang pada saat _runtime_,
+   link:/ref/spec#Run_time_panics[panik _runtime_]
+   akan terjadi
+*  `a[x]` adalah elemen slice pada indeks `x` dan tipe dari `a[x]` yaitu
+   elemen bertipe `S`
+
+Untuk `a` dari
+link:/ref/spec#String_types[tipe string]:
+
+*  sebuah indeks berupa
+   link:/ref/spec#Constants[konstanta]
+   haruslah dalam rentang jika string `a` juga konstanta`
+*  jika `x` di luar rentang pada saat _runtime_,
+   link:/ref/spec#Run_time_panics[panik _runtime_]
+   akan terjadi
+*  `a[x]` adalah nilai byte bukan konstanta pada indeks `x` dan tipe dari
+   `a[x]` adalah byte
+*  `a[x]` tidak bisa ditimpa bila `a` adalah konstanta
+
+Untuk `a` dari
+link:/ref/spec#Map_types[tipe map]
+`M`:
+
+*  tipe `x` haruslah
+   link:/ref/spec#Assignability[bisa disimpan]
+   ke tipe key dari `M`
+*  jika map berisi sebuah nilai dengan key `x`, `a[x]` adalah elemen map
+   dengan key `x` dan tipe dari `a[x]` yaitu tipe elemen dari `M`
+*  jika map adalah `nil` atau tidak mengandung nilai dengan key `x`, `a[x]`
+   yaitu
+   link:/ref/spec#The_zero_value[nilai kosong]
+   dari tipe elemen dari `M`.
+
+Selain itu `a[x]` adalah ilegal.
+
+Ekspresi indeks dapat sebuah map bertipe `map[K]V` yang digunakan dalam sebuah
+link:/ref/spec#Assignments[penempatan]
+atau inisiasi dari bentuk khusus
+
+----
+v, ok = a[x]
+v, ok := a[x]
+var v, ok = a[x]
+----
+
+menghasilkan sebuah nilai boolean tidak bertipe tambahan.
+Nilai dari `ok` adalah `true` jika key `x` ada dalam map, dan `false` jika
+tidak ada.
+
+Menempatkan ke elemen map yang `nil` akan mengakibatkan
+link:/ref/spec#Run_time_panics[panik _runtime_].
+
+
+[#Slice_expressions]
+===  Ekspresi pemotongan
+
+Ekspresi pemotongan membentuk sebuah substring atau slice dari sebuah string,
+array, pointer ke array, atau slice.
+Ada dua varian: bentuk sederhana yang menentukan batas bawah dan atas, dan
+bentuk penuh yang juga menentukan batas dari kapasitas.
+
+
+====   Ekspresi sederhana pemotongan
+
+Untuk sebuah string, array, pointer ke array, atau slice `a`, ekspresi dasar
+
+----
+a[low : high]
+----
+
+membentuk sebuah substring atau slice.
+Indeks `low` dan `high` memilih elemen mana dari operan `a` yang akan
+dikembalikan.
+Hasil kembaliannya akan memiliki indeks yang berawal dari 0 dan panjang sama
+dengan `high - low`.
+Setelah memotong array `a`
+
+----
+a := [5]int{1, 2, 3, 4, 5}
+s := a[1:4]
+----
+
+slice `s` bertipe `[]int`, panjang 3, kapasitas 4, dan elemennya
+
+----
+s[0] == 2
+s[1] == 3
+s[2] == 4
+----
+
+Demi kemudahan, indeks-indeks tersebut bisa diindahkan.
+Nilai indeks `low` yang diindahkan yaitu nol;
+Nilai indeks `high` yang diindahkan yaitu panjang dari operan slice:
+
+----
+a[2:]  // sama dengan a[2 : len(a)]
+a[:3]  // sama dengan a[0 : 3]
+a[:]   // sama dengan a[0 : len(a)]
+----
+
+Jika `a` adalah pointer ke sebuah array, `a[low : high]` adalah singkatan
+untuk `(*a)[low : high]`.
+
+Untuk array atau string, indeks berada dalam rentang jika
+`0 <= low <= high <= len(a)`, selain itu berarti _di luar rentang_.
+Untuk slice, batas atas dari indeks yaitu kapasitas slice `cap(a)` bukan
+panjangnya.
+Indeks berupa
+link:/ref/spec#Constants[konstanta]
+haruslah tidak negatif dan
+link:/ref/spec#Representability[dapat direpresentasikan]
+oleh nilai bertipe `int`;
+untuk array atau string konstanta, indeks dari konstanta haruslah berada dalam
+rentang.
+Jika kedua indeks adalah konstanta, keduanya haruslah memenuhi `low <= high`.
+Jika indeks-indeks di luar rentang pada saat _runtime_,
+link:/ref/spec#Run_time_panics[panik _runtime_]
+terjadi.
+
+Kecuali untuk
+link:/ref/spec#Constants[string tak bertipe],
+jika operan pemotongan adalah sebuah string atau slice, hasil dari operasi
+pemotongan adalah nilai non-konstanta bertipe `string`.
+Jika opera pemotongan adalah sebuah array, maka harus dapat
+link:/ref/spec#Address_operators[memiliki alamat]
+dan hasil dari operasi pemotongan yaitu sebuah slice dengan tipe elemen yang
+sama dengan array.
+
+Jika operan slice dari sebuah ekspresi pemotongan yang valid adalah
+sebuah slice yang `nil`, hasilnya yaitu sebuah slice `nil`.
+Selain itu, jika hasilnya adalah sebuah slice, ia akan memiliki array dasar
+yang sama dengan operan.
+
+----
+var a [10]int
+s1 := a[3:7]   // array dasar dari s1 yaitu array a; &s1[2] == &a[5]
+s2 := s1[1:4]  // array dasar dari s2 yaitu array dasar dari s1 yaitu array a;
+               // &s2[1] == &a[5]
+s2[1] = 42     // s2[1] == s1[2] == a[5] == 42; semuanya mengacu pada elemen
+               // array dasar yang sama
+----
+
+====  Ekspresi pemotongan penuh
+
+Untuk sebuah array, pointer ke array, atau slice `a` (tetapi bukan string),
+ekspresi dasar
+
+----
+a[low : high : max]
+----
+
+membentuk sebuah slice dengan tipe yang sama, dan dengan panjang dan elemen
+seperti pada ekspresi pemotongan sederhana `a[low : high]`.
+Sebagai tambahan, ia mengontrol kapasitas slice kembalian dengan mensetnya
+menjadi `max - low`.
+Hanya indeks pertama yang boleh diindahkan;
+yang bernilai dasar 0.
+Setelah memotong array `a`
+
+----
+a := [5]int{1, 2, 3, 4, 5}
+t := a[1:3:5]
+----
+
+slice `t` bertipe `[]int`, panjang 2, kapasitas 4, dan elemennya
+
+----
+t[0] == 2
+t[1] == 3
+----
+
+Seperti pada ekspresi pemotongan sederhana, jika `a` adalah sebuah pointer ke
+array, `a[low : high : max]` adalah singkatan dari `(*a)[low : high :max]`.
+Jika operan pemotongan adalah sebuah array, maka haruslah
+link:/ref/spec#Address_operators[memiliki alamat].
+
+Indeks-indeksnya berada _dalam rentang_ jika
+`0 <= low <= high <= max <= cap(a)`,
+selain itu adalah _di luar rentang_.
+Indeks berupa
+link:/ref/spec#Constants[konstanta]
+haruslah tidak negatif dan
+link:/ref/spec#Representability[direpresentasikan]
+oleh sebuah nilai bertipe `int`;
+untuk array, indeks konstanta haruslah juga berada dalam rentang.
+Jika beberapa indeks adalah konstanta, konstanta tersebut haruslah dalam
+rentang yang relatif terhadap satu sama lain.
+Jika indeks-indeks di luar rentang pada saat _runtime_,
+link:/ref/spec#Run_time_panics[panik _runtime_]
+terjadi.
+
+
+[#Type_assertions]
+===  Asersi Tipe
+
+Untuk sebuah ekspresi `x` dari
+link:/ref/spec#Interface_types[tipe interface]
+dan sebuah tipe `T`, ekspresi dasar berikut
+
+----
+x.(T)
+----
+
+menyatakan bahwa `x` tidak `nil` dan nilai yang tersimpan dalam `x` bertipe
+`T`.
+Notasi `x.(T)` disebut dengan _asersi tipe_.
+
+Lebih tepatnya, jika `T` bukan bertipe interface, `x.(T)` menyatakan bahwa
+tipe dinamis dari `x` adalah
+link:/ref/spec#Type_identity[identik]
+dengan tipe `T`.
+Dalam kasus ini, `T` harus
+link:/ref/spec#Method_sets[mengimplementasikan]
+tipe (interface) dari `x`;
+sebaliknya asersi tipe tidak valid karena tidak mungkin bagi `x` untuk
+menyimpan nilai bertipe `T`.
+Jika `T` adalah tipe interface, `x.(T)` menyatakan bahwa tipe dinamis dari `x`
+mengimplementasikan interface `T`.
+
+Jika asersi tipe berhasil, nilai dari ekspresi tersebut yaitu nilai yang
+tersimpan dalam `x` dan tipenya yaitu `T`.
+Jika asersi tipe gagal,
+link:/ref/spec#Run_time_panics[panik _runtime_]
+terjadi.
+Dengan kata lain, walaupun tipe dinamis dari `x` diketahui pada saat
+_runtime_, tipe dari `x.(T)` hanya diketahui sebagai `T` dalam program yang
+benar.
+
+----
+var x interface{} = 7          // x bertipe dinamis int dan nilainya 7
+i := x.(int)                   // i bertipe int dan bernilai 7
+
+type I interface { m() }
+
+func f(y I) {
+	s := y.(string)        // ilegal: string tidak mengimplementasikan
+	                       // I (method m tidak ada)
+	r := y.(io.Reader)     // r bertipe io.Reader dan tipe dinamis dari y
+	                       // harus mengimplementasikan I dan io.Reader
+	…
+}
+----
+
+Asersi tipe yang digunakan dalam
+link:/ref/spec#Assignments[penempatan]
+atau inisiasi dari bentuk khusus
+
+----
+v, ok = x.(T)
+v, ok := x.(T)
+var v, ok = x.(T)
+var v, ok T1 = x.(T)
+----
+
+menghasilkan nilai boolean tambahan.
+Nilai dari `ok` adalah `true` jika asersi berhasil.
+Sebaliknya ia akan `false` dan nilai dari `v` adalah
+link:/ref/spec#The_zero_value[nilai kosong]
+untuk tipe `T`.
+Tidak ada
+link:/ref/spec#Run_time_panics[panik _runtime]
+yang akan terjadi dalam kasus ini.
+
+
+[#Calls]
+===  Pemanggilan
+
+Diberikan sebuah ekspresi `f` dari tipe fungsi `F`,
+
+----
+f(a1, a2, … an)
+----
+
+akan memanggil `f` dengan argumen `a1, a2, ... an`.
+Kecuali untuk kasus khusus, argumen-argumen haruslah ekspresi nilai-tunggal
+yang dapat
+link:/ref/spec#Assignability[disimpan]
+ke tipe parameter dari `F` dan dievaluasi sebelum fungsi dipanggil.
+Tipe dari ekspresi adalah tipe kembalian dari `F`.
+Pemanggilan sebuah method mirip namun method itu sendiri ditentukan sebagai
+sebuah _selector_ dari sebuah nilai dari tipe _receiver_ untuk method
+tersebut.
+
+----
+math.Atan2(x, y)  // pemanggilan fungsi
+var pt *Point
+pt.Scale(3.5)     // pemanggilan method dengan receiver pt
+----
+
+Dalam pemanggilan sebuah fungsi, nilai fungsi dan argumennya dievaluasi dengan
+link:/ref/spec#Order_of_evaluation[urutan yang biasa].
+Setelah mereka dievaluasi, parameter-parameter dari pemanggilan dikirim
+dengan nilai ke dalam fungsi dan fungsi yang dipanggil tersebut mulai
+dieksekusi.
+Parameter kembalian dari fungsi dikirim dengan nilai ke pemanggil fungsi saat
+fungsi berakhir.
+
+Memanggil fungsi yang `nil` menyebabkan
+link:/ref/spec#Run_time_panics[panik _runtime_].
+
+Kasus khusus, jika nilai kembalian dari sebuah fungsi atau method `g` sama
+jumlahnya dan dapat ditempatkan pada parameter-parameter di fungsi atau method
+`f`, maka pemanggilan `f(g(parameter_dari_g))` akan memanggil `f`
+setelah nilai kembalian dari `g` diberikan sebagai parameter ke `f` secara
+berurutan.
+Pemanggilan dari `f` tidak boleh berisi parameter selain pemanggilan ke `g`,
+dan `g` paling tidak harus mengembalikan satu nilai.
+Jika `f` memiliki parameter akhir ..., ia akan diisi nilai kembalian dari `g`
+yang tersisa setelah penempatan parameter biasa sebelumnya.
+
+----
+func Split(s string, pos int) (string, string) {
+	return s[0:pos], s[pos:]
+}
+
+func Join(s, t string) string {
+	return s + t
+}
+
+if Join(Split(value, len(value)/2)) != value {
+	log.Panic("test fails")
+}
+----
+
+Pemanggilan sebuah method `x.m()` valid jika
+link:/ref/spec#Method_sets[kumpulan method]
+dari (tipe) `x` memiliki `m` dan daftar argumen dapat diberikan ke daftar
+parameter dari `m`.
+Jika `x` adalah
+link:/ref/spec#Address_operators[alamat]
+dan kumpulan method `&x` memiliki `m`, `x.m()` adalah singkatan untuk
+`(&x).m()`:
+
+----
+var p Point
+p.Scale(3.5)
+----
+
+Tidak ada perbedaan tipe method dan tidak ada literal method.
+
+
+[#Passing_arguments_to_..._parameters]
+===  Mengirim argumen ke parameter ...
+
+Jika `f` adalah
+link:/ref/spec#Function_types[_variadic_]
+dengan parameter terakhir bertipe `...T`, maka tipe dari `p` dalam `f` sama
+dengan tipe `[]T`.
+Jika `f` dipanggil tanpa argumen untuk `p`, maka nilai yang dikirim ke `p`
+adalah `nil`.
+Sebaliknya, nilai yang dikirim adalah slice baru bertipe `[]T` dengan array
+dasar yang elemennya adalah argumen-argumen aslinya, yang semuanya harus dapat
+link:/ref/spec#Assignability[disimpan]
+ke `T`.
+Panjang dan kapasitas slice yaitu jumlah argumen dan bisa berbeda untuk
+setiap pemanggilan.
+
+Diberikan fungsi dan pemanggilan
+
+----
+func Greeting(prefix string, who ...string)
+Greeting("nobody")
+Greeting("hello:", "Joe", "Anna", "Eileen")
+----
+
+dalam `Greeting`, `who` akan bernilai `nil` pada pemanggilan yang pertama, dan
+`[]string{"Joe", "Anna", "Eileen"}`
+pada pemanggilan kedua.
+
+Jika argumen terakhir dapat disimpan ke slice bertipe `[]T`, maka akan dikirim
+tanpa diubah sebagai nilai untuk parameter `...T` jika argumen diikuti oleh
+`...`.
+Dalam kasus ini tidak ada slice baru yang dibuat.
+
+Diberikan sebuah slice `s` dan pemanggilan
+
+----
+s := []string{"James", "Jasmine"}
+Greeting("goodbye:", s...)
+----
+
+dalam `Greeting`, `who` akan bernilai sama dengan `s` dengan array dasar yang
+sama.
