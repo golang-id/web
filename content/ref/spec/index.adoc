@@ -3175,3 +3175,379 @@ Greeting("goodbye:", s...)
 
 dalam `Greeting`, `who` akan bernilai sama dengan `s` dengan array dasar yang
 sama.
+
+
+[#Operators]
+===  Operator-operator
+
+Operator menggabungkan operan menjadi ekspresi.
+
+----
+Expression = UnaryExpr | Expression binary_op Expression .
+UnaryExpr  = PrimaryExpr | unary_op UnaryExpr .
+
+binary_op  = "||" | "&&" | rel_op | add_op | mul_op .
+rel_op     = "==" | "!=" | "<" | "<=" | ">" | ">=" .
+add_op     = "+" | "-" | "|" | "^" .
+mul_op     = "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" .
+
+unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
+----
+
+Operator pembandingan didiskusikan
+link:/ref/spec#Comparison_operators[dibagian lain].
+Untuk operator binari lainnya, tipe operan haruslah
+link:/ref/spec#Type_identity[identik]
+kecuali pada operasi _shift_ atau bila menggunakan
+link:/ref/spec#Constants[konstanta]
+tanpa tipe.
+Untuk operasi yang mengikutkan konstanta saja, lihat bagian pada
+link:/ref/spec#Constant_expressions[ekspresi konstanta].
+
+Kecuali untuk operasi _shift_, jika salah satu operan adalah
+link:/ref/spec#Constants[konstanta]
+dan operan lainnya bukan, konstanta tersebut secara implisit
+link:/ref/spec#Conversions[dikonversi]
+ke tipe operan lainnya.
+
+Operan sebelah kanan dalam ekspresi _shift_ haruslah tipe integer atau
+konstanta tak bertipe yang dapat
+link:/ref/spec#Representability[direpresentasikan] oleh sebuah
+nilai bertipe `uint`.
+Jika operan sebelah kiri dari ekspresi _shift_ adalah konstanta tanpa tipe,
+maka ia secara implisit dikonversi ke tipe yang diasumsikan jika ekspresi
+_shift_ diganti oleh operan kiri.
+
+----
+var s uint = 33
+var i = 1<<s                  // 1 bertipe int
+var j int32 = 1<<s            // 1 bertipe int32; j == 0
+var k = uint64(1<<s)          // 1 bertipe uint64; k == 1<<33
+var m int = 1.0<<s            // 1.0 bertipe int; m == 0 jika int berukuran
+                              // 32bit
+var n = 1.0<<s == j           // 1.0 bertipe int32; n == true
+var o = 1<<s == 2<<s          // 1 dan 2 bertipe int; o == true jika int
+                              // berukuran 32bit
+var p = 1<<s == 1<<33         // ilegal jika int berukuran 32bit: 1 bertipe
+                              // int, namun 1<<33 int overflow
+var u = 1.0<<s                // ilegal: 1.0 bertipe float64, tidak bisa shift
+var u1 = 1.0<<s != 0          // ilegal: 1.0 bertipe float64, tidak bisa shift
+var u2 = 1<<s != 1.0          // ilegal: 1 bertipe float64, tidak bisa shift
+var v float32 = 1<<s          // ilegal: 1 bertipe float32, tidak bisa shift
+var w int64 = 1.0<<33         // 1.0<<33 adalah ekspresi konstanta shift
+var x = a[1.0<<s]             // 1.0 bertipe int; x == a[0] jika int berukuran
+                              // 32bit
+var a = make([]byte, 1.0<<s)  // 1.0 bertipe int; len(a) == 0 jika int
+                              // berukuran 32bit
+----
+
+
+====  Urutan operator
+
+Operator _unary_ memiliki urutan tertinggi.
+Secara operator `++` dan `--` membentuk perintah, bukan ekspresi, maka mereka
+tidak berada dalam hierarki operator.
+Akibatnya, perintah `*p++` sama dengan `(*p)++`.
+
+Ada lima tingkat urutan untuk operator binari.
+Operator perkalian yang paling tinggi, diikuti oleh operator penambahan,
+operator pembandingan, `&&` (operasi logika AND), dan terakhir `||` (operator
+logika OR):
+
+----
+Precedence    Operator
+    5             *  /  %  <<  >>  &  &^
+    4             +  -  |  ^
+    3             ==  !=  <  <=  >  >=
+    2             &&
+    1             ||
+----
+
+Operator binari pada tingkat yang sama akan di proses berurutan dari kiri ke
+kanan.
+Misalnya, `x / y * z` sama dengan `(x / y) * z`.
+
+----
++x
+23 + 3*x[i]
+x <= f()
+^a >> b
+f() || g()
+x == y+1 && <-chanPtr > 0
+----
+
+
+[#Arithmetic_operators]
+===  Operator aritmetika
+
+Operator aritmetika dipakai pada nilai numerik dan menghasilkan nilai dengan
+tipe yang sama dengan operan pertama.
+Keempat operator standar aritmetika (+, -, *, /) berlaku pada tipe integer,
+_floating-point_, dan complex;
+`+` juga berlaku pada string.
+Operator _shift_ dan logika _bitwise_ berlaku pada integer saja.
+
+----
++    penjumlahan            integer, float, nilai complex, string
+-    pengurangan            integer, float, nilai complex
+*    perkalian              integer, float, nilai complex
+/    pembagian              integer, float, nilai complex
+%    sisa pembagian         integer
+
+&    bitwise AND            integer
+|    bitwise OR             integer
+^    bitwise XOR            integer
+&^   bit clear (AND NOT)    integer
+
+<<   shift kiri             integer << unsigned integer
+>>   shift kanan            integer >> unsigned integer
+----
+
+
+====  Operator integer
+
+Untuk dua integer bernilai `x` dan `y`, persamaan integer `q = x / y` dan sisa
+pembagian `r = x % y` memenuhi hubungan berikut:
+
+----
+x = q*y + r  dan  |r| < |y|
+----
+
+dengan `x / y` dibulatkan ke nol
+https://en.wikipedia.org/wiki/Modulo_operation[(pembagian dibulatkan)].
+
+----
+ x     y     x / y     x % y
+ 5     3       1         2
+-5     3      -1        -2
+ 5    -3      -1         2
+-5    -3       1        -2
+----
+
+Satu-satunya pengecualian dari aturan ini yaitu jika sisa pembagian `x`
+adalah nilai negatif paling besar dari tipe `x`, persamaan `q = x / -1` sama
+dengan `x` (dan `r = 0`) dikarenakan
+link:/ref/spec#Integer_overflow[integer overflow]
+dengan dua-komplemen:
+
+----
+			 x, q
+int8                     -128
+int16                  -32768
+int32             -2147483648
+int64    -9223372036854775808
+----
+
+Jika penyebut adalah sebuah
+link:/ref/spec#Constants[konstanta],
+ia tidak boleh nol.
+Jika penyebut adalah nol pada saat _runtime_,
+link:/ref/spec#Run_time_panics[panik _runtime_]
+terjadi.
+Jika pembilang tidak negatif dan penyebut adalah sebuah konstanta kelipatan 2,
+maka pembagian bisa diganti dengan _shift_ kanan, dan penghitungan sisa
+pembagian bisa diganti dengan operasi _bitwise_ AND:
+
+----
+x     x / 4     x % 4     x >> 2     x & 3
+ 11      2         3         2          3
+-11     -2        -3        -3          1
+----
+
+Operator _shift_ menggeser operan sebelah kiri sebanyak jumlah yang
+disebutkan pada operan sebelah kanan, yang haruslah positif.
+Jika bagian kanan operan _shift_ negatif pada saat _runtime_,
+link:/ref/spec#Run_time_panics[panik _runtime_]
+terjadi.
+Operator _shift_ menerapkan penggeseran aritmetika jika operan kiri adalah
+signed integer dan logika penggeseran jika ia adalah unsigned integer.
+Tidak ada batas atas pada nilai penggeser.
+Penggeseran berjalan seperti operan kiri digeser `n` kali dengan 1 untuk
+jumlah penggeser `n`.
+Hasilnya, `x << 1` sama dengan `x*2` dan `x >> 1` sama dengan `x/2` tetapi
+dibulatkan ke nilai negatif tak terhingga.
+
+Untuk operan integer, operator _unary_ `+`, `-`, dan `^` didefinisikan
+sebagai berikut:
+
+----
++x                        yaitu 0 + x
+-x    negasi              yaitu 0 - x
+^x    komplemen bitwise   yaitu m ^ x  dengan m = "semua bit diset ke 1" untuk unsigned x
+                                       dan    m = -1 untuk signed x
+----
+
+
+====  Integer overflow
+
+Untuk nilai unsigned integer, operasi `+`, `-`, `*`, dan `<<` dihitung
+_modulo_ 2^n, yang mana `n` adalah lebar bit dari tipe
+link:/ref/spec#Numeric_types[unsigned integer].
+Dengan kata lain, operasi unsigned integer menghilangkan bit paling tinggi
+saat overflow terjadi.
+
+Untuk signed integer, operasi `+`, `-`, `*`, `/` dan `<<` bisa saja
+_overflow_ dan memiliki hasil yang secara deterministik didefinisikan oleh
+representasi signed integer, operasi, dan operannya.
+_Overflow_ tidak menyebabkan
+link:/ref/spec#Run_time_panics[panik _runtime_].
+_Compiler_ bisa saja tidak mengoptimalkan sebuah kode dengan asumsi bahwa
+_overflow_ tidak akan terjadi.
+Misalnya, _compiler_ tidak mengasumsikan bahwa `x < x + 1` selalu bernilai
+`true`.
+
+
+====  Operator _floating-point_
+
+Untuk bilangan _floating-point_ dan _complex_, `+x` sama dengan `x`, sementara
+`-x` adalah negasi dari `x`.
+Hasil pembagian dari _floating-point_ atau complex dengan nol tidak
+dispesifikasikan oleh standar IEEE-754;
+apakah
+link:/ref/spec#Run_time_panics[panik _runtime_]
+terjadi adalah spesifik pada implementasi.
+
+Implementasi bisa menggabungkan beberapa operasi _floating-point_ menjadi
+sebuah operasi gabungan, kemungkinan antara beberapa perintah, dan
+menghasilkan nilai yang berbeda bila dieksekusi dan dibulatkan masing-masing.
+link:/ref/spec#Conversions[Konversi]
+tipe _floating-point_ secara eksplisit membulatkan ke presisi dari tipe
+target, menghindari penggabungan yang menyebabkan pembulatan.
+
+Misalnya, beberapa arsitektur menyediakan instruksi "fused multiply add" (FMA)
+yang menghitung `x*y + z` tanpa pembulatan dari hasil `x*y`.
+Contoh berikut memperlihatkan kapan implementasi Go menggunakan instruksi
+tersebut:
+
+----
+// FMA dibolehkan menghitung r, karena x*y secara eksplisit tidak dibulatkan:
+r  = x*y + z
+r  = z;   r += x*y
+t  = x*y; r = t + z
+*p = x*y; r = *p + z
+r  = x*y + float64(z)
+
+// FMA tidak dibolehkan menghitung r, karena akan menghilangkan pembulatan
+// dari x*y:
+r  = float64(x*y) + z
+r  = z; r += float64(x*y)
+t  = float64(x*y); r = t + z
+----
+
+
+====  Penggabungan string
+
+Beberapa string bisa digabungkan menggunakan operator `+` atau operator
+penempatan `+=`:
+
+----
+s := "hi" + string(c)
+s += " and good bye"
+----
+
+Penambahan string menghasilkan string yang baru dengan menggabungkan
+operan-operannya.
+
+
+[#Comparison_operators
+===  Operator pembandingan
+
+Operator pembandingan membandingkan dua opera dan menghasilkan nilai boolean
+tak bertipe.
+
+----
+==    equal
+!=    not equal
+<     less
+<=    less or equal
+>     greater
+>=    greater or equal
+----
+
+Dalam setiap pembandingan, operan pertama haruslah
+http://127.0.0.1:6060/ref/spec#Assignability[dapat disimpan]
+ke tipe dari operan kedua, atau sebaliknya.
+
+Operator persamaan `==` dan `!=` berlaku untuk operan-operan yang dapat
+_dibandingkan_.
+Operator pengurutan `<`, `<=`, `>`, dan `>=` berlaku untuk operan-operan yang
+dapat _diurutkan_.
+Berikut definisi aturan-aturan dan hasil dari pembandingan:
+
+*  Nilai boolean dapat dibandingkan.
+   Dua boolean adalah sama jika keduanya adalah `true` atau `false`.
+*  Nilai integer dapat dibandingkan dan diurutkan, dengan cara yang biasa.
+*  Nilai _floating-point_ dapat dibandingkan dan diurutkan, seperti yang
+   didefinisikan oleh standar IEEE-754
+*  Nilai complex dapat dibandingkan.
+   Dua nilai complex `u` dan `v` adalah sama jika keduanya `real(u) ==
+   real(v)` dan `imag(u) == imag(v)`.
+*  Nilai string dapat dibandingkan dan diurutkan, secara leksikal per byte.
+*  Nilai pointer dapat dibandingkan.
+   Dua nilai pointer adalah sama jika ia menunjuk ke variabel yang sama atau
+   jika keduanya bernilai `nil`.
+   Pointer ke variabel dengan
+   link:/ref/spec#Size_and_alignment_guarantees[ukuran nol]
+   bisa jadi sama atau tidak.
+*  Nilai channel dapat dibandingkan.
+   Dua channel adalah sama jika keduanya dibuat oleh pemanggilan
+   link:/ref/spec#Making_slices_maps_and_channels[make]
+   yang sama atau jika keduanya bernilai `nil`.
+*  Nilai interface dapat dibandingkan.
+   Dua interface dikatakan sama jika keduanya memiliki tipe dinamis yang
+   http://127.0.0.1:6060/ref/spec#Type_identity[identik]
+   dan memiliki nilai dinamis yang sama atau jika keduanya bernilai `nil`.
+*  Nilai `x` bertipe bukan interface `X` dan nilai `t` bertipe interface `T`
+   dapat dibandingkan bila nilai dari tipe `X` dapat dibandingkan dan `X`
+   mengimplementasikan `T`.
+   Keduanya sama jika tipe dinamis `t` identik dengan `X` dan nilai dinamis
+   `t` sama dengan `x`.
+*  Nilai struct dapat dibandingkan jika semua field dapat dibandingkan.
+   Dua nilai struct adalah sama jika setiap field yang bukan
+   link:/ref/spec#Blank_identifier[kosong]
+   adalah sama.
+*  Nilai array dapat dibandingkan jika nilai dari tipe elemen array dapat
+   dibandingkan.
+   Dua nilai array adalah sama jika kedua elemen array adalah sama.
+
+Pembandingan dua nilai interface dengan tipe dinamis yang identik menyebabkan
+link:/ref/spec#Run_time_panics[panik _runtime_]
+jika nilai dari tipe tersebut tidak bisa dibandingkan.
+Perilaku ini berlaku tidak saja pada pembandingan nilai interface langsung
+namun juga saat membandingkan array dari nilai interface atau struct dengan
+field bernilai interface.
+
+Nilai slice, map, dan fungsi tidak bisa dibandingkan.
+Namun, sebagai kasus spesial, nilai slice, map, atau fungsi bisa jadi
+dibandingkan dengan pengidentifikasi `nil`.
+Pembandingan nilai pointer, channel, dan interface dengan `nil` juga
+dibolehkan dan mengikuti aturan di atas.
+
+----
+const c = 3 < 4            // c adalah konstanta boolean tak bertipe true
+
+type MyBool bool
+var x, y int
+var (
+	// Hasil dari pembandingan a yaitu boolean tak bertipe.
+	// Aturan penempatan biasa berlaku.
+	b3        = x == y // b3 bertipe bool
+	b4 bool   = x == y // b4 bertipe bool
+	b5 MyBool = x == y // b5 bertipe MyBool
+)
+----
+
+
+[#Logical_operators]
+===  Operator logika
+
+Operator logika berlaku untuk nilai
+http://127.0.0.1:6060/ref/spec#Boolean_types[boolean]
+dan menghasilkan tipe yang sama dengan operan.
+Operan kanan dievaluasi berdasarkan kondisi.
+
+----
+&&    kondisi AND    p && q  yaitu  "jika p maka q selainnya false"
+||    kondisi OR     p || q  yaitu  "jika p maka true selainnya q"
+!     NOT                !p  yaitu  "bukan p"
+----
