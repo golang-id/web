@@ -148,7 +148,7 @@ Karakter kosong yang dibentuk dari spasi (U+0020), tab horizontal (U+0009),
 _carriage returns_ (U+0009), dan baris baru (U+000A), diindahkan kecuali ia
 memisahkan token-token yang bila digabungkan menjadi sebuah token.
 Juga, sebuah baris baru atau akhir dari berkas bisa memicu
-<<#Semicolons,titik-koma>>.
+<<Semicolons,titik-koma>>.
 Saat memecah input menjadi token-token, token selanjutnya adalah urutan
 karakter terpanjang yang membentuk sebuah token yang valid.
 
@@ -164,13 +164,13 @@ berikut:
    langsung ditambahkan ke dalam aliran token setelah token terakhir pada
    sebuah baris jika token tersebut adalah
 
-   *  sebuah <<#Identifiers,pengidentifikasi>>
-   *  sebuah <<#Integer_literals,integer>>,
-      <<#Floating-point_literals,floating-point>>, <<#Rune_literals,rune>>,
-      atau <<#String_literals,string>>
-   *  salah satu <<#Keywords,kata-kunci>> `break`, `continue`, `fallthrough`,
+   *  sebuah <<Identifiers,pengidentifikasi>>
+   *  sebuah <<Integer_literals,integer>>,
+      <<Floating-point_literals,floating-point>>, <<Rune_literals,rune>>,
+      atau <<String_literals,string>>
+   *  salah satu <<Keywords,kata-kunci>> `break`, `continue`, `fallthrough`,
       atau `return`
-   *  salah satu <<#Operators_and_punctuation,operator dan tanda baca>> `++`,
+   *  salah satu <<Operators_and_punctuation,operator dan tanda baca>> `++`,
       `--`, `)`, `]`, atau `}`
 
 .  Untuk membolehkan perintah yang kompleks menghabiskan satu baris,
@@ -181,7 +181,7 @@ menggunakan titik-koma menggunakan aturan di atas.
 
 
 [#Identifiers]
-[Pengidentifikasi]
+===  Pengidentifikasi
 
 Pengidentifikasi memberi nama entitas seperti variabel dan tipe.
 Sebuah pengidentifikasi adalah sebuah urutan satu atau lebih huruf dan angka.
@@ -198,8 +198,8 @@ ThisVariableIsExported
 αβ
 ----
 
-Beberapa pengidentifikasi <<#Predeclared_identifiers,telah dideklarasikan
-sebelumnya>>.
+Beberapa pengidentifikasi
+<<Predeclared_identifiers,telah dideklarasikan sebelumnya>>.
 
 [#Keywords]
 ===  Kata kunci
@@ -219,8 +219,8 @@ continue     for          import       return       var
 ===  Operator dan tanda baca
 
 Urutan karakter berikut merepresentasikan
-<<#Operators,operator>>
-(termasuk <<#assign_op,operator penempatan>>)
+<<Operators,operator>>
+(termasuk <<assign_op,operator penempatan>>)
 dan tanda baca:
 
 ----
@@ -236,7 +236,7 @@ dan tanda baca:
 ===  Literal integer
 
 Literal integer adalah urutan angka merepresentasikan sebuah
-<<#Constants,konstan integer>>.
+<<Constants,konstan integer>>.
 Beberapa opsi prefiks menyatakan basis non-desimal: `0` untuk oktal, `0x`
 atau `0x` untuk heksadesimal.
 Dalam literal heksadesimal, huruf `a-f` dan `A-F` merepresentasikan nilai antara
@@ -261,7 +261,7 @@ hex_lit     = "0" ( "x" | "X" ) hex_digit { hex_digit } .
 ===  Literal _floating-point_
 
 Literal _floating-point_ adalah representasi desimal dari
-<<#Constants,konstan _floating-point_>>.
+<<Constants,konstan floating-point>>.
 Ia memiliki bagian integer, titik desimal, bagian pecahan, dan bagian
 eksponen.
 Bagian integer dan pecahan terdiri dari angka desimal;
@@ -294,11 +294,11 @@ exponent  = ( "e" | "E" ) [ "+" | "-" ] decimals .
 ===  Literal imajiner
 
 Literal imajiner merepresentasikan bagian imajiner dari
-<<#Constants,konstan kompleks>>.
+<<Constants,konstan kompleks>>.
 Ia terdiri dari literal
-<<#Integer_literals,integer>>
+<<Integer_literals,integer>>
 atau
-<<#Floating-point_literals,floating-point>>
+<<Floating-point_literals,floating-point>>
 diikuti oleh huruf kecil `i`.
 Nilai dari literal imajiner yaitu nilai dari literal integer atau floating-point
 dikalikan dengan unit imajiner _i_.
@@ -330,7 +330,8 @@ sebagai integer desimal, walaupun dimulai dengan `0`.
 [#Rune_literals]
 ===  Literal rune
 
-Literal rune merepresentasikan sebuah link:/ref/spec#Constants[konstan rune],
+Literal rune merepresentasikan sebuah
+<<Constants, konstan rune>>,
 sebuah nilai integer yang mengidentifikasi sebuah kode poin Unicode.
 Literal rune diekspresikan dengan satu atau lebih karakter yang ditutup dengan
 tanda kutip tunggal, seperti `'x'` atau `'\n'`.
@@ -420,8 +421,8 @@ escaped_char     = `\` ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | `\` | "'" | `
 ===  Literal string
 
 Literal string merepresentasikan
-link:/ref/spec#Constants[konstan string] yang didapat dari menggabungkan
-seurutan karakter-karakter.
+<<Constants,konstan string>>
+yang didapat dari menggabungkan seurutan karakter-karakter.
 Ada dua bentuk string: literal string mentah dan literal string interpretasi.
 
 Literal string mentah yaitu seurutan karakter antara kutip terbalik (aksen
@@ -442,8 +443,9 @@ Di antara tanda kutip, karakter apa pun bisa muncul kecuali baris baru dan
 tanda kutip ganda lepas (tanpa _backslash_).
 Teks antara tanda kutip membentuk nilai dari literal, dengan _backslash_
 diartikan seperti halnya dalam
-link:/ref/spec#Rune_literals[literal rune] (kecuali `\'` adalah ilegal dan `\"`
-adalah legal), dengan batasan-batasan yang sama.
+<<Rune_literals,literal rune>>
+(kecuali `\'` adalah ilegal dan `\"` adalah legal), dengan batasan-batasan
+yang sama.
 Tiga-digit oktal (_\nnn_) dan dua-digit heksadesimal (\x_nn_)
 merepresentasikan _byte_ individu dari string;
 karakter lepas lainnya merepresentasikan _encoding_ UTF-8 (bisa jadi
@@ -498,26 +500,29 @@ Konstan rune, integer, _floating-point_, dan complex secara kolektif disebut
 dengan _konstan numerik_.
 
 Nilai sebuah konstan direpresentasikan oleh sebuah literal
-link:/ref/spec#Rune_literals[rune],
-link:/ref/spec#Integer_literals[integer],
-link:/ref/spec#Floating-point_literals[_floating-point_],
-link:/ref/spec#Imaginary_literals[imajiner], atau
-link:/ref/spec#String_literals[string],
+<<Rune_literals,rune>>,
+<<Integer_literals,integer>>,
+<<Floating-point_literals, floating-point>>,
+<<Imaginary_literals,imajiner>>, atau
+<<String_literals,string>>,
 sebuah pengidentifikasi yang menyatakan sebuah konstan,
-sebuah link:/ref/spec#Constant_expressions[ekspresi konstan],
-sebuah link:/ref/spec#Conversions[konversi] dengan hasil sebuah konstan,
-atau nilai hasil dari fungsi bawaan seperti `unsafe.Sizeof` yang diterapkan
-terhadap nilai apa pun, `cap` atau `len` yang diterapkan pada
-link:/ref/spec#Length_and_capacity[beberapa ekspresi],
+sebuah
+<<Constant_expressions, ekspresi konstan>>,
+sebuah
+<<Conversions, konversi>>
+dengan hasil sebuah konstan, atau nilai hasil dari fungsi bawaan seperti
+`unsafe.Sizeof` yang diterapkan terhadap nilai apa pun, `cap` atau `len` yang
+diterapkan pada
+<<Length_and_capacity,beberapa ekspresi>>,
 `real` dan `imag` yang diterapkan pada konstan complex dan
 `complex` yang diterapkan pada konstan numerik.
 Nilai boolean direpresentasikan dengan konstan `true` dan `false`.
 Identifikasi
-link:/ref/spec#Iota[iota]
+<<Iota,iota>>
 menyatakan konstan integer.
 
 Secara umum, konstan complex adalah sebuah bentuk dari
-link:/ref/spec#Constant_expressions[ekspresi konstan]
+<<Constant_expressions, ekspresi konstan>>
 dan didiskusikan di bagian tersebut.
 
 Konstan numerik merepresentasikan nilai eksak dari presisi beragam dan
@@ -525,30 +530,29 @@ tidak _overflow_.
 Karena itu, tidak ada konstan yang menyatakan nilai negatif nol IEEE-754,
 _infinity_, dan nilai bukan-angka.
 
-Konstan bisa
-link:/ref/spec#Types[bertipe] atau tak bertipe.
+Konstan bisa <<Types, bertipe>> atau tak bertipe.
 Konstan harfiah, `true`, `false`, `iota`, dan beberapa
-link:/ref/spec#Constant_expressions[ekspresi konstan]
+<<Constant_expressions, ekspresi konstan>>
 yang berisi hanya operan konstan tanpa tipe adalah konstan tak bertipe.
 
 Sebuah konstan bisa diberikan tipe secara eksplisit dengan
-link:/ref/spec#Constant_declarations[deklarasi konstan] atau
-link:/ref/spec#Conversions[konversi], atau secara implisit bila digunakan dalam
+<<Constant_declarations,deklarasi konstan>> atau
+<<Conversions, konversi>>, atau secara implisit bila digunakan dalam
 sebuah
-link:/ref/spec#Variable_declarations[deklarasi variabel]
+<<Variable_declarations,deklarasi variabel>>
 atau dalam sebuah
-link:/ref/spec#Assignments[penempatan]
+<<Assignments, penempatan>>
 atau sebagai sebuah operan dalam sebuah
-link:/ref/spec#Expressions[ekspresi].
+<<Expressions, ekspresi>>.
 Jika nilai konstan tidak dapat
-link:/ref/spec#Representability[direpresentasikan] sebagai sebuah nilai dari
+<<Representability, direpresentasikan>> sebagai sebuah nilai dari
 tipe maka ia akan eror.
 
 Konstan tak bertipe memiliki _tipe bawaan_ yaitu tipe yang mana konstan
 secara implisit dikonversi dalam konteks di mana nilai bertipe dibutuhkan,
 misalnya,
 dalam
-link:/ref/spec#Short_variable_declarations[deklarasi variabel singkat]
+<<Short_variable_declarations, deklarasi variabel singkat>>
 seperti `i := 0` yang mana tidak ada tipe eksplisit.
 Tipe bawaan dari konstan tak bertipe adalah `bool`, `rune`, `int`, `float64`,
 `complex128` atau `string`, bergantung kepada apakah ia adalah sebuah konstan
@@ -573,38 +577,36 @@ Dengan kata lain, setiap implementasi harus:
 
 Kebutuhan-kebutuhan di atas berlaku baik terhadap konstan harfiah dan
 terhadap hasil dari mengevaluasi
-link:/ref/spec#Constant_expressions[ekspresi konstan].
+<<Constant_expressions, ekspresi konstan>>.
 
 
 [#Variables]
 ==  Variabel
 
 Sebuah variabel adalah sebuah lokasi penampung untuk menyimpan sebuah _nilai_.
-Kumpulan dari nilai yang diperbolehkan ditentukan oleh
-link:/ref/spec#Types[tipe]
+Kumpulan dari nilai yang diperbolehkan ditentukan oleh <<Types,tipe>>
 variabel.
 
 Sebuah
-link:/ref/spec#Variable_declarations[deklarasi variabel] atau penanda dari
-link:/ref/spec#Function_declarations[deklarasi fungsi] (pada parameter dan
-kembalian dari fungsi),
-atau
-link:/ref/spec#Function_literals[fungsi literal]
+<<Variable_declarations, deklarasi variabel>> atau penanda dari
+<<Function_declarations, deklarasi fungsi>> (pada parameter dan kembalian dari
+fungsi), atau
+<<Function_literals, fungsi literal>>
 mencadangkan penampung untuk sebuah variabel bernama.
 Memanggil fungsi bawaan
-link:/ref/spec#Allocation[new]
+<<Allocation, new>>
 atau mengambil alamat dari sebuah
-link:/ref/spec#Composite_literals[literal komposit]
+<<Composite_literals, literal komposit>>
 mengalokasikan penampung untuk sebuah variabel pada saat _runtime_.
 Variabel anonim diacu lewat sebuah (bisa jadi implisit)
-link:/ref/spec#Address_operators[pointer tak-langsung].
+<<Address_operators, pointer tak-langsung>>.
 
 Variabel berstruktur dari tipe
-link:/ref/spec#Array_types[array],
-link:/ref/spec#Slice_types[slice], dan
-link:/ref/spec#Struct_types[struct]
+<<Array_types, array>>,
+<<Slice_types, slice>>, dan
+<<Struct_types, struct>>
 memiliki elemen-elemen dan field-field yang bisa
-link:/ref/spec#Address_operators[diakses]
+<<Address_operators, diakses>>
 secara individu.
 Setiap elemen tersebut berlaku seperti sebuah variabel.
 
@@ -616,7 +618,7 @@ konkret dari nilai yang diberikan ke variabel pada saat _runtime_ (kecuali
 bila nilainya adalah `nil`, yang berarti tak bertipe).
 Tipe dinamis bisa beragam selama eksekusi namun nilai yang disimpan dalam
 variabel interface selalu
-link:/ref/spec#Assignability[ditempatkan]
+<<Assignability, ditempatkan>>
 ke tipe statis dari variabel.
 
 ----
@@ -627,12 +629,12 @@ x = v              // x bernilai (*T)(nil) dan tipe dinamis *T
 ----
 
 Nilai variabel diambil dengan mengacu pada variabel dalam sebuah
-link:/ref/spec#Expressions[ekspresi];
+<<Expressions, ekspresi>>;
 nilai dari variabel yaitu nilai terakhir yang
-link:/ref/spec#Assignments[ditempatkan]
+<<Assignments, ditempatkan>>
 ke variabel tersebut.
 Jika sebuah variabel belum diberi nilai, nilainya adalah
-link:/ref/spec#The_zero_value[nilai kosong]
+<<The_zero_value, nilai kosong>>
 dari tipe variabel.
 
 
@@ -653,17 +655,17 @@ TypeLit   = ArrayType | StructType | PointerType | FunctionType | InterfaceType 
 ----
 
 Bahasa Go
-link:/ref/spec#Predeclared_identifiers[mendeklarasikan]
+<<Predeclared_identifiers, mendeklarasikan>>
 beberapa nama tipe.
 Nama tipe lainnya diperkenalkan lewat
-link:/ref/spec#Type_declarations[deklarasi tipe].
+<<Type_declarations, deklarasi tipe>>.
 _Tipe komposit_ -- tipe array, struct, pointer, fungsi, interface, slice, map,
 dan channel -- bisa dibangun menggunakan literal tipe.
 
 Setiap tipe T memiliki _tipe dasar_: Jika `T` adalah salah satu tipe boolean,
 numerik, string, literal; make tipe dasar dari `T` itu sendiri adalah `T`.
 Selain itu, tipe dasar dari `T` yaitu tipe yang diberikan saat
-link:/ref/spec#Type_declarations[deklarasi].
+<<Type_declarations, deklarasi>>.
 
 ----
 type (
@@ -687,27 +689,27 @@ Tipe dasar dari `[]B1`, `B3`, dan `B4` yaitu `[]B1`.
 
 Sebuah tipe bisa memiliki _sekumpulan method_.
 Kumpulan method dari
-link:/ref/spec#Interface_types[tipe interface]
+<<Interface_types, tipe interface>>
 yaitu interface-nya sendiri.
 Kumpulan method dari tipe `T` terdiri dari semua
-link:/ref/spec#Method_declarations[method-method]
+<<Method_declarations, method-method>>
 yang dideklarasikan pada penerima (_receiver_) tipe `T`.
 Kumpulan method dari
-link:/ref/spec#Pointer_types[tipe pointer] `*T` yaitu semua
-method yang dideklarasikan dengan penerima `*T` atau `T` (ia berisi juga
-kumpulan method dari `T`).
+<<Pointer_types, tipe pointer>>
+`*T` yaitu semua method yang dideklarasikan dengan penerima `*T` atau `T` (ia
+berisi juga kumpulan method dari `T`).
 Aturan yang sama juga berlaku untuk struct yang berisi field-field yang
 ditanam (_embed_), seperti yang dijelaskan dalam bagian
-link:/ref/spec#Struct_types[tipe struct].
+<<Struct_types, tipe struct>>.
 Tipe apa pun memiliki kumpulan method kosong.
 Di dalam sebuah kumpulan method, setiap method harus memiliki
-link:/ref/spec#MethodName[nama method]
+<<MethodName, nama method>>
 yang unik dan tidak kosong.
 
 Kumpulan method dari sebuah tipe menentukan interface yang
-link:/ref/spec#Interface_types[diimplementasi]
+<<Interface_types, diimplementasi>>
 oleh tipe tersebut dan method tersebut bisa
-link:/ref/spec#Calls[dipanggil]
+<<Calls, dipanggil>>
 menggunakan penerima dari tipe tersebut.
 
 
@@ -718,7 +720,7 @@ Sebuah _tipe boolean_ merepresentasikan kumpulan nilai Boolean yang
 dilambangkan oleh konstan `true` dan `false`.
 Tipe boolean dikenal sebagai `bool`;
 ia adalah
-link:/ref/spec#Type_definitions[tipe terdefinisi].
+<<Type_definitions, tipe terdefinisi>>.
 
 
 [#Numeric_types]
@@ -761,9 +763,9 @@ uintptr  unsigned integer cukup besar menyimpan bit dari nilai pointer
 ----
 
 Untuk menghindari masalah portabilitas semua tipe numerik adalah
-link:/ref/spec#Type_definitions[tipe terdefinisi]
+<<Type_definitions, tipe terdefinisi>>
 dan makanya berbeda kecuali `byte`, yang merupakan
-link:/ref/spec#Alias_declarations[alias]
+<<Alias_declarations, alias>>
 dari `uint8`, dan `rune`, yang merupakan alias untuk `uint32`.
 Konversi eksplisit dibutuhkan saat tipe numerik berbeda bertemu pada sebuah
 ekspresi atau pernyataan.
@@ -780,13 +782,13 @@ Jumlah byte disebut juga panjang dari string dan tidak pernah negatif.
 String adalah _immutable_ (tetap): sekali dibuat, maka tidak akan bisa lagi
 diubah isinya.
 Tipe string yaitu `string`; ia adalah
-link:/ref/spec#Type_definitions[tipe terdefinisi].
+<<Type_definitions, tipe terdefinisi>>.
 
 Panjang dari string `s` dapat diketahui lewat fungsi bawaan
-link:/ref/spec#Length_and_capacity[len].
+<<Length_and_capacity, len>>.
 Panjangnya akan konstan bila string tersebut adalah konstan.
 Isi byte dari string dapat diakses dengan
-link:/ref/spec#Index_expressions[indeks]
+<<Index_expressions, indeks>>
 0 sampai `len(s)-1`.
 Mengambil alamat byte pada string adalah ilegal;
 jika `s[i]` adalah byte ke `i` dari string, maka `&s[i]` tidak valid.
@@ -806,14 +808,14 @@ ElementType = Type .
 
 Panjang array adalah bagian dari tipe array;
 Ia harus berupa
-link:/ref/spec#Constants[konstanta]
+<<Constants, konstanta>>
 non-negatif yang
-link:/ref/spec#Representability[direpresentasikan]
+<<Representability, direpresentasikan>>
 oleh nilai bertipe `int`.
 Panjang dari array `a` dapat diketahui dengan fungsi bawaan
-link:/ref/spec#Length_and_capacity[len].
+<<Length_and_capacity,len>>.
 Setiap elemen array dapat diakses lewat
-link:/ref/spec#Index_expressions[indeks]
+<<Index_expressions,indeks>>
 0 sampai `len(a)-1`.
 Tipe array selalu satu dimensi namun bisa digabung untuk membentuk tipe
 multi-dimensi.
@@ -842,10 +844,10 @@ SliceType = "[" "]" ElementType .
 ----
 
 Panjang dari slice diketahui lewat fungsi bawaan
-link:/ref/spec#Length_and_capacity[len];
+<<Length_and_capacity,len>>;
 tidak seperti array ia bisa berubah selama eksekusi.
 Elemen slice bisa diakses lewat integer
-link:/ref/spec#Index_expressions[indeks]
+<<Index_expressions,indeks>>
 0 sampai `len(s)-1`.
 Indeks slice dari elemen bisa kecil dari indeks dari elemen yang sama di array
 dasarnya.
@@ -861,13 +863,13 @@ Array yang mendasari sebuah slice bisa diperlebar melebihi akhir dari slice.
 Konsep ini dikenal dengan _kapasitas_: ia adalah jumlah panjang dari slice dan
 panjang dari array-dasar slice;
 Sebuah slice yang panjangnya lebih dari kapasitas bisa dibuat dengan
-link:/ref/spec#Slice_expressions[_slicing_] (memotong)
+<<Slice_expressions,slicing>> (memotong)
 yang baru dari slice asli.
 Kapasitas dari slice `a` dapat diketahui menggunakan fungsi bawaan
-link:/ref/spec#Length_and_capacity[`cap(a)`].
+<<Length_and_capacity,`cap(a)`>>.
 
 Slice baru bertipe `T` dapat diinisiasi menggunakan fungsi bawaan
-link:/ref/spec#Making_slices_maps_and_channels[make],
+<<Making_slices_maps_and_channels,make>>,
 yang menerima tipe slice dan parameter yang menentukan panjang, dan opsi
 kapasitas.
 Sebuah slice yang dibuat dengan `make` selalu mengalokasikan array yang baru
@@ -879,7 +881,7 @@ make([]T, length, capacity)
 ----
 
 menghasilkan slice yang sama seperti membuat array dan
-link:/ref/spec#Slice_expressions[memotongnya],
+<<Slice_expressions,memotongnya>>,
 sehingga dua ekspresi berikut adalah sama:
 
 ----
@@ -903,9 +905,9 @@ memiliki nama dan tipe.
 Nama field bisa secara eksplisit (IdentifierList) atau secara implisit
 (EmbeddedField).
 Dalam sebuah struct, nama field yang tidak
-link:/ref/spec#Blank_identifier[kosong]
+<<Blank_identifier,kosong>>
 haruslah
-link:/ref/spec#Uniqueness_of_identifiers[unik].
+<<Uniqueness_of_identifiers,unik>>.
 
 ----
 StructType    = "struct" "{" { FieldDecl ";" } "}" .
@@ -956,24 +958,24 @@ struct {
 ----
 
 Sebuah field atau
-link:/ref/spec#Method_declarations[method]
+<<Method_declarations,method>>
 `f` dari field tertanam dalam sebuah struct `x` disebut _dipromosikan_ jika
 `x.f` adalah
-link:/ref/spec#Selectors[selektor]
+<<Selectors,selektor>>
 yang legal yang menandakan field atau method `f` tersebut.
 
 Field yang dipromosikan berlaku seperti field biasa kecuali ia tidak bisa
 digunakan sebagai nama field di dalam
-link:/ref/spec#Composite_literals[literal komposit]
+<<Composite_literals,literal komposit>>
 dari struct.
 
 Diberikan sebuah tipe struct `S` dan
-link:/ref/spec#Type_definitions[tipe terdefinisi] `T`,
+<<Type_definitions,tipe terdefinisi>> `T`,
 method-method yang dipromosikan yang masuk ke dalam kumpulan method dari
 struct `S` yaitu:
 
 *  Jika `S` berisi field tertanam `T`,
-   link:/ref/spec#Method_sets[kumpulan method]
+   <<Method_sets,kumpulan method>>
    dari `S` dan `*S` mengikutkan method-method promosi dari `T`.
    Kumpulan method dari `*S` juga mengikutkan method promosi dari `*T`.
 
@@ -984,9 +986,9 @@ Deklarasi field bisa ditambah dengan literal string _tag_, yang menjadi
 atribut dari field.
 Tag kosong berarti tidak ada tag.
 Tag bisa diakses lewat
-link:/pkg/reflect/#StructTag[interface refleksi]
+https://golang.org/pkg/reflect/#StructTag[interface refleksi]
 dan ambil bagian dalam
-link:/ref/spec#Type_identity[identitas tipe]
+<<Type_identity,identitas tipe>>
 dari struct.
 
 ----
@@ -1009,7 +1011,7 @@ struct {
 ===  Tipe pointer
 
 Tipe pointer menandakan kumpulan semua pointer terhadap
-link:/ref/spec#Variables[variabel]
+<<Variables,variabel>>
 dari tipe yang diberikan, disebut juga dengan _tipe dasar_ dari pointer.
 Nilai dari pointer yang tidak diinisiasi adalah `nil`.
 
@@ -1044,7 +1046,7 @@ Dalam parameter atau kembalian, nama (IdentifierList) haruslah ada atau tidak
 ada sama sekali.
 Jika ada, setiap nama mengacu untuk satu item (parameter atau kembalian) dari
 tipe dan semua nama haruslah
-link:/ref/spec#Uniqueness_of_identifiers[unik].
+<<Uniqueness_of_identifiers,unik>>.
 Jika tanpa nama, setiap tipe merepresentasikan satu item untuk tipe tersebut.
 Daftar parameter dan kembalian selalu dalam tanda kurung kecuali pada
 kembalian tunggal tanpa nama, ia bisa ditulis tanpa tanda kurung.
@@ -1070,7 +1072,7 @@ func(n int) func(p *T)
 ===  Tipe interface
 
 Tipe interface menspesifikasikan
-link:/ref/spec#Method_sets[sekumpulan method]
+<<Method_sets,sekumpulan method>>
 yang disebut dengan _interface_.
 Sebuah variabel bertipe interface dapat menyimpan tipe apa pun asalkan
 memiliki kumpulan method yang dimiliki oleh interface tersebut.
@@ -1085,9 +1087,9 @@ InterfaceTypeName  = TypeName .
 ----
 
 Dalam tipe interface, setiap method haruslah memiliki nama yang
-link:/ref/spec#Uniqueness_of_identifiers[unik]
+<<Uniqueness_of_identifiers,unik>>
 dan tidak-
-link:/ref/spec#Blank_identifier[kosong].
+<<Blank_identifier,kosong>>.
 
 ----
 // Sebuah interface berkas sederhana.
@@ -1119,7 +1121,7 @@ interface{}
 ----
 
 Hal yang sama, pada spesifikasi interface berikut, yang muncul dalam
-link:/ref/spec#Type_declarations[deklarasi tipe]
+<<Type_declarations,deklarasi tipe>>
 yang mendefinisikan sebuah interface bernama `Locker`:
 
 ----
@@ -1194,13 +1196,13 @@ MapType     = "map" "[" KeyType "]" ElementType .
 KeyType     = Type .
 ----
 
-link:/ref/spec#Comparison_operators[Operator pembanding] `==`
+<<Comparison_operators,Operator pembanding>> `==`
 dan `!=` haruslah terdefinisi untuk operan dari tipe key;
 oleh karena itu tipe key tidak bisa berupa fungsi, map, atau slice.
 Jika tipe key adalah sebuah tipe interface, maka operator pembanding harus
 terdefinisi untuk nilai key dinamis;
 jika tidak akan menyebabkan
-link:/ref/spec#Run_time_panics[run-time panic].
+<<Run_time_panics,run-time panic>>.
 
 ----
 map[string]int
@@ -1210,17 +1212,17 @@ map[string]interface{}
 
 Jumlah elemen map disebut panjang.
 Untuk map `m`, jumlahnya bisa diambil dengan fungsi bawaan
-link:/ref/spec#Length_and_capacity[len]
+<<Length_and_capacity,len>>
 dan ia bisa berubah selama eksekusi.
 Elemen bisa ditambah selama eksekusi menggunakan
-link:/ref/spec#Assignments[penempatan]
+<<Assignments,penempatan>>
 dan diambil dengan
-link:/ref/spec#Index_expressions[ekspresi indeks];
+<<Index_expressions,ekspresi indeks>>;
 dan elemen bisa dihapus dengan fungsi bawaan
-link:/ref/spec#Deletion_of_map_elements[delete].
+<<Deletion_of_map_elements,delete>>.
 
 Nilai map yang baru dan kosong dibuat dengan fungsi bawaan
-link:/ref/spec#Making_slices_maps_and_channels[make],
+<<Making_slices_maps_and_channels,make>>,
 yang menerima tipe map dan kapasitas opsional sebagai argumen:
 
 ----
@@ -1238,11 +1240,11 @@ elemen.
 ===  Tipe channel
 
 Sebuah channel menyediakan sebuah mekanisme untuk
-link:/ref/spec#Go_statements[mengeksekusi fungsi secara konkuren]
+<<Go_statements,mengeksekusi fungsi secara konkuren>>
 untuk berkomunikasi dengan
-link:/ref/spec#Send_statements[mengirim]
+<<Send_statements,mengirim>>
 dan
-link:/ref/spec#Receive_operator[menerima]
+<<Receive_operator,menerima>>
 nilai dari tipe elemen yang ditentukan.
 Nilai dari channel yang tidak diinisiasi yaitu `nil`.
 
@@ -1255,9 +1257,9 @@ _terima_.
 Jika tidak ada arah yang diberikan, maka channel adalah _bidirectional_ (dua
 arah).
 Sebuah channel bisa dibatasi hanya untuk mengirim atau menerima saja dengan
-link:/ref/spec#Assignments[penempatan]
+<<Assignments,penempatan>>
 atau
-link:/ref/spec#Conversions[konversi]
+<<Conversions,konversi>>
 eksplisit.
 
 ----
@@ -1276,7 +1278,7 @@ chan (<-chan int)
 ----
 
 Inisiasi nilai channel yang baru bisa dibuat dengan fungsi bawaan
-link:/ref/spec#Making_slices_maps_and_channels[make]
+<<Making_slices_maps_and_channels,make>>
 yang menerima tipe channel dan _kapasitas_ opsional sebagai argumen:
 
 ----
@@ -1292,18 +1294,18 @@ atau tidak kosong (menerima).
 Channel yang `nil` tidak akan pernah bisa berkomunikasi.
 
 Channel bisa ditutup dengan fungsi bawaan
-link:/ref/spec#Close[close].
+<<Close,close>>.
 Bentuk penempatan banyak-nilai dari
-link:/ref/spec#Receive_operator[operator penerima]
+<<Receive_operator,operator penerima>>
 melaporkan apakah nilai yang diterima dikirim sebelum channel ditutup.
 
 Sebuah channel bisa digunakan untuk
-link:/ref/spec#Send_statements[mengirim],
-link:/ref/spec#Receive_operator[menerima],
+<<Send_statements,mengirim>>,
+<<Receive_operator,menerima>>,
 dan memanggil fungsi bawaan
-link:/ref/spec#Length_and_capacity[cap]
+<<Length_and_capacity,cap>>
 dan
-link:/ref/spec#Length_and_capacity[len]
+<<Length_and_capacity,len>>
 oleh sejumlah goroutine berbeda tanpa perlu sinkronisasi.
 Channel bersifat antrean first-in-first-out (yang pertama masuk, yang pertama
 keluar).
@@ -1320,10 +1322,10 @@ menerimanya, nilai diterima sesuai urutan yang dikirim.
 
 Dua buah tipe akan _identik_ atau _berbeda_.
 
-link:/ref/spec#Type_definitions[Tipe terdefinisi]
+<<Type_definitions,Tipe terdefinisi>>
 selalu berbeda dengan tipe lainnya.
 Sebaliknya, dua tipe adalah identik jika tipe
-link:/ref/spec#Types[dasar]
+<<Types,dasar>>
 mereka secara struktural sama;
 yaitu, memiliki struktur literal yang sama dan komponen yang
 berhubungan memiliki tipe yang sama.
@@ -1335,7 +1337,7 @@ Secara lebih rinci:
 *  Dua tipe struct adalah identik jika mereka memiliki urutan field yang sama,
    dan jika field-field tersebut memiliki nama. tipe, dan tag yang sama.
    Nama field yang
-   link:/ref/spec#Exported_identifiers[tidak diekspor]
+   <<Exported_identifiers,tidak diekspor>>
    dari paket yang berbeda selalu menghasilkan tipe struct yang tidak identik.
 *  Dua tipe pointer adalah identik jika mereka memiliki tipe dasar yang sama.
 *  Dua tipe fungsi adalah identik jika mereka memiliki jumlah parameter dan
@@ -1345,7 +1347,7 @@ Secara lebih rinci:
 *  Dua tipe interface adalah identik jika mereka memiliki kumpulan method
    dengan nama yang sama dan tipe fungsi yang sama.
    Nama method yang
-   link:/ref/spec#Exported_identifiers[tidak diekspor]
+   <<Exported_identifiers,tidak diekspor>>
    dari paket yang berbeda akan selalu menghasilkan tipe yang tidak identik.
    Urutan dari method tidak berpengaruh.
 *  Dua tipe map adalah identik jika mereka memiliki tipe key dan elemen yang
@@ -1392,7 +1394,7 @@ func(x int, y float64) *[]string, func(int, float64) (result *[]string), dan A5
 ----
 
 `B0` dan `B1` berbeda karena mereka adalah tipe baru yang dibuat dengan
-link:/ref/spec#Type_definitions[definisi tipe]
+<<Type_definitions,definisi tipe>>
 yang berbeda;
 `func(int, float64) *B0` dan `func(x int, y float64) *[]string`
 adalah berbeda karena `B0` berbeda dari `[]string`.
@@ -1402,17 +1404,17 @@ adalah berbeda karena `B0` berbeda dari `[]string`.
 ===  _Assignability_ (Penempatan)
 
 Sebuah nilai `x` bisa _ditempatkan_ ke sebuah
-link:/ref/spec#Variables[variabel]
+<<Variables,variabel>>
 bertipe `T` ("x bisa diisi ke T") jika salah satu kondisi berikut berlaku:
 
 *  tipe x identik dengan `T`.
 *  tipe x yaitu `V`, `V` dan `T` memiliki
-   link:/ref/spec#Types[tipe dasar]
+   <<Types,tipe dasar>>
    yang sama dan paling tidak salah satu dari `V` atau `T` bukanlah
    tipe
-   link:/ref/spec#Type_definitions[tipe terdefinisi].
+   <<Type_definitions,tipe terdefinisi>>.
 *  `T` adalah tipe interface dan `x`
-   link:/ref/spec#Interface_types[mengimplementasikan]
+   <<Interface_types,mengimplementasikan>>
    `T`
 *  `x` adalah nilai channel dua arah, `T` bertipe channel, bila tipe `x` dari
    yaitu `V` dan `T` memiliki tipe elemen yang sama, dan paling tidak salah
@@ -1420,8 +1422,8 @@ bertipe `T` ("x bisa diisi ke T") jika salah satu kondisi berikut berlaku:
 *  `x` adalah `nil` dan `T` bertipe pointer, fungsi, slice, map, channel, atau
    interface.
 *  `x` adalah sebuah
-   link:/ref/spec#Constants[konstan]
-   link:/ref/spec#Representability[direpresentasikan]
+   <<Constants,konstan>>
+   <<Representability,direpresentasikan>>
    dengan nilai bertipe `T`.
 
 
@@ -1429,12 +1431,12 @@ bertipe `T` ("x bisa diisi ke T") jika salah satu kondisi berikut berlaku:
 ===  _Representability_
 
 Sebuah
-link:/ref/spec#Constants[konstan]
+<<Constants,konstan>>
 `x` bisa direpresentasikan oleh sebuah nilai bertipe `T` jika salah satu
 kondisi berikut berlaku:
 
 *  `x` ada dalam kumpulan nilai
-   link:/ref/spec#Types[yang ditentukan]
+   <<Types,yang ditentukan>>
    oleh `T`.
 *  `T` bertipe _floating-point_ dan `x` bisa dibulatkan ke presisi `T` tanpa
    _overflow_.
@@ -1443,7 +1445,7 @@ kondisi berikut berlaku:
    Ingatlah bahwa nilai konstan tidak pernah menghasilkan IEEE nol negatif,
    NaN, atau tanpa batas.
 *  `T` bertipe complex, dan
-   link:/ref/spec#Complex_numbers[komponen] x `real(x)` dan `imag(x)` bisa
+   <<Complex_numbers,komponen>> x `real(x)` dan `imag(x)` bisa
    direpresentasikan oleh nilai tipe komponen dari `T` (`float32` atau
    `float64`).
 
@@ -1490,48 +1492,48 @@ Selain blok eksplisit dalam kode, ada beberapa blok implisit:
 
 .  _blok universal_ melingkupi semua teks kode Go
 .  Setiap
-   link:/ref/spec#Packages[paket]
+   <<Packages,paket>>
    memiliki sebuah _blok paket_ yang berisi semua teks sumber kode Go untuk
    paket tersebut
 .  Setiap berkas memiliki sebuah _blok berkas_ berisi teks sumber kode Go
    dalam berkas tersebut
 .  Setiap perintah
-   link:/ref/spec#If_statements["if"],
-   link:/ref/spec#For_statements["for"], dan
-   link:/ref/spec#Switch_statements["switch"]
+   <<If_statements,"if">>,
+   <<For_statements,"for">>, dan
+   <<Switch_statements,"switch">>
    dianggap berada dalam blok implisit-nya sendiri.
 .  Setiap "case" di dalam perintah
-   link:/ref/spec#Switch_statements["switch"]
+   <<Switch_statements,"switch">>
    atau
-   link:/ref/spec#Select_statements["select"]
+   <<Select_statements,"select">>
    bersifat sebagai blok implisit.
 
 Sekumpulan blok yang bersarang mempengaruhi
-link:/ref/spec#Declarations_and_scope[skop].
+<<Declarations_and_scope,skop>>.
 
 
 [#Declarations_and_scope]
 ==  Deklarasi dan skop
 
 Sebuah _deklarasi_ mengikat pengidentifikasi yang tidak
-link:/ref/spec#Blank_identifier[kosong]
+<<Blank_identifier,kosong>>
 terhadap sebuah
-link:/ref/spec#Constant_declarations[konstan],
-link:/ref/spec#Type_declarations[tipe],
-link:/ref/spec#Variable_declarations[variabel],
-link:/ref/spec#Function_declarations[fungsi],
-link:/ref/spec#Labeled_statements[label], atau
-link:/ref/spec#Import_declarations[paket].
+<<Constant_declarations,konstan>>,
+<<Type_declarations,tipe>>,
+<<Variable_declarations,variabel>>,
+<<Function_declarations,fungsi>>,
+<<Labeled_statements,label>>, atau
+<<Import_declarations,paket>>.
 Setiap identifikasi dalam sebuah program haruslah dideklarasikan.
 Tidak ada pengidentifikasi yang bisa dideklarasikan dua kali dalam blok yang
 sama, dan tidak ada pengidentifikasi bisa dideklarasikan dalam blok berkas dan
 paket.
 
-link:/ref/spec#Blank_identifier[Pengidentifikasi kosong]
+<<Blank_identifier,Pengidentifikasi kosong>>
 bisa digunakan seperti pengidentifikasi lainnya dalam sebuah deklarasi, namun
 tidak mengakibatkan pengikatan sehingga tidak dideklarasi.
 Dalam blok paket, pengidentifikasi `init` hanya bisa digunakan untuk deklarasi
-link:/ref/spec#Package_initialization[fungsi `init`],
+<<Package_initialization,fungsi `init`>>,
 dan seperti pengidentifikasi kosong ia tidak menghasilkan pengikatan yang
 baru.
 
@@ -1545,10 +1547,10 @@ sumber kode di mana pengidentifikasi menyatakan konstan, tipe, variabel,
 fungsi, label, atau paket yang ditentukan.
 
 Go secara leksikal dibatasi menggunakan
-link:/ref/spec#Blocks[blok-blok]:
+<<Blocks,blok-blok>>:
 
 1.  Skop dari
-    link:/ref/spec#Predeclared_identifiers[pengidentifikasi pra-deklarasi]
+    <<Predeclared_identifiers,pengidentifikasi pra-deklarasi>>
     yaitu blok universal.
 2.  Skop dari pengidentifikasi yang menyatakan sebuah konstan, tipe, variabel,
     atau fungsi (tetapi tidak method) yang dideklarasikan pada bagian atas
@@ -1569,10 +1571,10 @@ kembali di dalam blok sebelah dalam.
 Saat pengidentifikasi dari deklarasi di dalam skop, ia menyatakan entitas yang
 dideklarasikan oleh deklarasi di dalamnya.
 
-link:/ref/spec#Package_clause[Klausa paket] bukanlah sebuah deklarasi;
+<<Package_clause,Klausa paket>> bukanlah sebuah deklarasi;
 nama paket tidak muncul dalam skop manapun.
 Tujuan klausa paket yaitu untuk mengidentifikasi berkas berada dalam
-link:/ref/spec#Packages[paket]
+<<Packages,paket>>
 yang sama dan untuk menentukan nama paket untuk deklarasi impor.
 
 
@@ -1580,12 +1582,12 @@ yang sama dan untuk menentukan nama paket untuk deklarasi impor.
 ===  Skop label
 
 Label dideklarasikan oleh
-link:/ref/spec#Labeled_statements[perintah label]
+<<Labeled_statements,perintah label>>
 dan digunakan dalam perintah
-link:/ref/spec#Break_statements["break"],
-link:/ref/spec#Continue_statements["continue"],
+<<Break_statements,"break">>,
+<<Continue_statements,"continue">>,
 dan
-link:/ref/spec#Goto_statements["goto"].
+<<Goto_statements,"goto">>.
 Adalah ilegal mendefinisikan sebuah label yang tidak pernah digunakan.
 Berbeda dengan pengidentifikasi lainnya, label tidaklah dibatasi oleh skip dan
 tidak konflik dengan pengidentifikasi yang bukan label.
@@ -1599,18 +1601,18 @@ mengikutkan badan dari fungsi yang bersarang.
 _Pengidentifikasi kosong_ direpresentasikan oleh karakter garis bawah `_`.
 Ia berfungsi sebagai penampung anonim bukan sebagai pengidentifikasi biasa
 (yang bukan kosong) dan memiliki arti khusus dalam
-link:/ref/spec#Declarations_and_scope[deklarasi],
+<<Declarations_and_scope,deklarasi>>,
 seperti sebuah
-link:/ref/spec#Operands[operan],
+<<Operands,operan>>,
 dan dalam
-link:/ref/spec#Assignments[penempatan].
+<<Assignments,penempatan>>.
 
 
 [#Predeclared_identifiers]
 ===  Pengidentifikasi pradeklarasi
 
 Pengidentifikasi berikut secara implisit dideklarasikan dalam
-link:/ref/spec#Blocks[blok universal]:
+<<Blocks,blok universal>>:
 
 ----
 Tipe:
@@ -1640,11 +1642,11 @@ Pengidentifikasi diekspor jika:
 1.  Karakter pertama dari nama pengidentifikasi adalah huruf besar Unicode
     (kelas Unicode "Lu"); dan
 2.  Pengidentifikasi dideklarasikan dalam
-    link:/ref/spec#Blocks[blok paket]
+    <<Blocks,blok paket>>
     atau ia merupakan
-    link:/ref/spec#Struct_types[nama field]
+    <<Struct_types,nama field>>
     atau
-    link:/ref/spec#MethodName[nama method].
+    <<MethodName,nama method>>.
 
 Pengidentifikasi lainnya tidak diekspor.
 
@@ -1656,9 +1658,9 @@ Diberikan sekumpulan pengidentifikasi, sebuah pengidentifikasi dikatakan
 _unik_ jika ia _berbeda_ dari yang lainnya dalam kumpulan tersebut.
 Dua pengidentifikasi adalah berbeda jika mereka dieja secara berbeda, atau
 jika mereka muncul di
-link:/ref/spec#Packages[paket]
+<<Packages,paket>>
 yang berbeda dan tidak
-link:/ref/spec#Exported_identifiers[diekspor].
+<<Exported_identifiers,diekspor>>.
 Selain itu, mereka adalah pengidentifikasi yang sama.
 
 
@@ -1667,7 +1669,7 @@ Selain itu, mereka adalah pengidentifikasi yang sama.
 
 Deklarasi konstan mengikat sejumlah pengidentifikasi (nama-nama dari konstan)
 terhadap nilai dari daftar dari
-link:/ref/spec#Constant_expressions[ekspresi konstan].
+<<Constant_expressions,ekspresi konstan>>.
 Jumlah pengidentifikasi harus sama dengan jumlah ekspresi, dan
 pengidentifikasi ke-_n_ di bagian kiri terikat ke nilai dari ekspresi ke-_n_
 di bagian kanan.
@@ -1682,11 +1684,11 @@ ExpressionList = Expression { "," Expression } .
 
 Jika tipe didefinisikan, semua konstan memakai tipe tersebut, dan ekspresi
 nilai haruslah
-link:/ref/spec#Assignability[dapat di-assign]
+<<Assignability,dapat di-assign>>
 ke tipe tersebut.
 Jika tipe diindahkan, maka konstan memiliki tipe berdasarkan ekspresi.
 Jika nilai ekspresi adalah
-link:/ref/spec#Constants[konstan]
+<<Constants,konstan>>
 tanpa tipe, maka konstan tetap tanpa tipe dan pengidentifikasi konstan
 menyatakan nilai konstan.
 Misalnya, jika ekspresi adalah literal _floating-point_, pengidentifikasi
@@ -1714,7 +1716,7 @@ sebelumnya.
 Jumlah pengidentifikasi harus sama dengan jumlah ekspresi pada daftar
 sebelumnya.
 Bersama dengan
-link:/ref/spec#Iota[`iota` konstan generator]
+<<Iota,`iota` konstan generator>>
 mekanisme ini membolehkan deklarasi ringan dari nilai berurutan:
 
 ----
@@ -1734,12 +1736,12 @@ const (
 ===  Iota
 
 Di dalam sebuah
-link:/ref/spec#Constant_declarations[deklarasi konstan],
+<<Constant_declarations,deklarasi konstan>>,
 pengidentifikasi `iota` merepresentasikan
-link:/ref/spec#Constants[konstan]
+<<Constants,konstan>>
 integer tanpa-tipe beriringan.
 Nilainya yaitu indeks dari
-link:/ref/spec#ConstSpec[ConstSpec]
+<<ConstSpec,ConstSpec>>
 dalam deklarasi konstan tersebut, dimulai dari nol.
 Ia bisa digunakan untuk membentuk sekumpulan konstan yang berhubungan:
 
@@ -1780,7 +1782,7 @@ const (
 ----
 
 Contoh terakhir menggunakan
-link:/ref/spec#Constant_declarations[pengulangan implisit]
+<<Constant_declarations,pengulangan implisit>>
 dari daftar ekspresi yang tidak kosong.
 
 
@@ -1788,7 +1790,7 @@ dari daftar ekspresi yang tidak kosong.
 ===  Deklarasi tipe
 
 Sebuah deklarasi tipe mengikat pengidentifikasi, _name tipe_, ke sebuah
-link:/ref/spec#Types[tipe]
+<<Types,tipe>>
 Deklarasi tipe ada dua bentuk: deklarasi alias dan definisi tipe.
 
 ----
@@ -1805,7 +1807,7 @@ AliasDecl = identifier "=" Type .
 ----
 
 Dalam
-link:/ref/spec#Declarations_and_scope[skop]
+<<Declarations_and_scope,skop>>
 pengidentifikasi, ia berfungsi sebagai _alias_ dari tipe.
 
 ----
@@ -1818,7 +1820,7 @@ type (
 ====  Definisi tipe
 
 Sebuah definisi tipe membuat tipe yang baru dan berbeda dengan
-link:/ref/spec#Types[tipe dasar]
+<<Types,tipe dasar>>
 dan operasi yang sama dengan tipe yang diberikan, dan mengikat
 pengidentifikasi padanya.
 
@@ -1828,7 +1830,7 @@ TypeDef = identifier Type .
 
 Tipe yang baru disebut _tipe terdefinisi_.
 Ia
-link:/ref/spec#Type_identity[berbeda]
+<<Type_identity,berbeda>>
 dengan tipe lainnya, termasuk dari tipe yang membentuknya.
 
 ----
@@ -1852,10 +1854,10 @@ type Block interface {
 ----
 
 Tipe terdefinisi bisa memiliki
-link:/ref/spec#Method_declarations[method]
+<<Method_declarations,method>>
 yang berasosiasi dengannya.
 Ia tidak mewariskan method apa pun dari tipe yang diikat, namun
-link:/ref/spec#Method_sets[kumpulan method]
+<<Method_sets,kumpulan method>>
 dari tipe interface atau elemen dari tipe komposit tidak berubah:
 
 ----
@@ -1906,7 +1908,7 @@ func (tz TimeZone) String() string {
 ===  Deklarasi variabel
 
 Deklarasi variabel membuat satu atau lebih
-link:/ref/spec#Variables[variabel],
+<<Variables,variabel>>,
 mengikat pengidentifikasi yang berkorespondensi kepadanya, dan memberikan
 setiap tiap-tiapnya sebuah tipe dan nilai awal.
 
@@ -1930,9 +1932,9 @@ var _, found = entries[name]  // pencarian map; hanya tertarik pada "found"
 
 Jika sebuah daftar ekspresi diberikan, maka variabel diinisiasi dengan
 ekspresi mengikuti aturan-aturan
-link:/ref/spec#Assignments[penempatan].
+<<Assignments,penempatan>>.
 Selain itu, setiap variabel diinisiasi dengan
-link:/ref/spec#The_zero_value[nilai kosong]
+<<The_zero_value,nilai kosong>>
 nya.
 
 Jika sebuah tipe diberikan, setiap variabel diberikan tipe tersebut.
@@ -1940,9 +1942,9 @@ Selain itu, setiap variabel diberikan tipe dari nilai inisiasi pada
 penempatan.
 Jika nilai tersebut sebuah konstan tak bertipe, maka pertama kali ia secara
 implisit
-link:/ref/spec#Conversions[dikonversi]
+<<Conversions,dikonversi>>
 ke
-link:/ref/spec#Constants[tipe defaultnya];
+<<Constants,tipe defaultnya>>;
 misalnya, jika variabel adalah nilai boolean tanpa tipe, maka ia secara
 implisit dikonversi ke tipe `bool`.
 Nilai `nil` tidak bisa digunakan untuk menginisiasi sebuah variabel tanpa tipe
@@ -1957,7 +1959,7 @@ var n = nil            // ilegal
 
 Batasan implementasi: _Compiler_ bisa mengilegalkan deklarasi variabel di
 dalam
-link:/ref/spec#Function_declarations[badan fungsi]
+<<Function_declarations,badan fungsi>>
 jika variabel tersebut tidak pernah digunakan.
 
 
@@ -1971,7 +1973,7 @@ ShortVarDecl = IdentifierList ":=" ExpressionList .
 ----
 
 Ia merupakan cara cepat
-link:/ref/spec#Variable_declarations[mendeklarasikan variabel]
+<<Variable_declarations,mendeklarasikan variabel>>
 dengan ekspresi inisiasi tanpa tipe:
 
 ----
@@ -1990,7 +1992,7 @@ Tidak seperti deklarasi variabel, deklarasi variabel singkat bisa
 _mendeklarasi ulang_ variabel setelah ia dideklarasikan sebelumnya di dalam
 blok yang sama (atau dari daftar parameter jika blok adalah badan fungsi)
 dengan tipe yang sama, dan paling tidak salah satu dari variabel yang tidak
-link:/ref/spec#Blank_identifier[kosong]
+<<Blank_identifier,kosong>>
 adalah variabel baru.
 Akibatnya, deklarasi ulang hanya dapat muncul dalam sebuah deklarasi singkat
 multi-variabel.
@@ -2007,9 +2009,9 @@ a, a := 1, 2                              // ilegal: deklarasi ganda dari a
 
 Deklarasi variabel singkat hanya bisa muncul dalam fungsi.
 Dalam beberapa konteks seperti inisiasi untuk perintah
-link:/ref/spec#If_statements["if"],
-link:/ref/spec#For_statements["for"], atau
-link:/ref/spec#Switch_statements["switch"],
+<<If_statements,"if">>,
+<<For_statements,"for">>, atau
+<<Switch_statements,"switch">>,
 mereka dapat digunakan untuk mendeklarasikan variabel lokal sementara.
 
 
@@ -2025,9 +2027,9 @@ FunctionBody = Block .
 ----
 
 Jika
-link:/ref/spec#Function_types[fungsi]
+<<Function_types,fungsi>>
 mengembalikan nilai, daftar perintah pada badan fungsi harus berakhir dengan
-link:/ref/spec#Terminating_statements[perintah terminasi].
+<<Terminating_statements,perintah terminasi>>.
 
 ----
 func IndexRune(s string, r rune) int {
@@ -2060,7 +2062,7 @@ func flushICache(begin, end uintptr)  // diimplementasikan di luar.
 ===  Deklarasi method
 
 Sebuah method yaitu sebuah
-link:/ref/spec#Function_declarations[fungsi]
+<<Function_declarations,fungsi>>
 dengan sebuah _receiver_ (penerima).
 Deklarasi method mengikat pengidentifikasi, _nama method_, terhadap sebuah
 method, dan mengasosiasikan method tersebut dengan _tipe dasar_ _receiver_.
@@ -2074,18 +2076,18 @@ Si _receiver_ dispesifikasikan lewat bagian parameter sebelum nama method.
 Bagian parameter tersebut harus mendeklarasikan sebuah parameter tunggal, yang
 disebut juga dengan _receiver_.
 Tipe _receiver_ haruslah tipe
-link:/ref/spec#Type_definitions[terdefinisi]
+<<Type_definitions,terdefinisi>>
 `T` atau sebuah pointer ke tipe terdefinisi `T`.
 `T` disebut juga _tipe dasar receiver_.
 Tipe dasar _receiver_ tidak bisa berupa tipe pointer atau interface dan ia
 harus didefinisikan di dalam paket yang sama dengan method.
 Method tersebut dikatakan _terikat_ dengan tipe dasar _receiver_ dan nama
 method hanya dapat dipanggil oleh
-link:/ref/spec#Selectors[selector]
+<<Selectors,selector>>
 untuk tipe `T` atau `*T`.
 
 Pengidentifikasi _receiver_ haruslah
-link:/ref/spec#Uniqueness_of_identifiers[unik]
+<<Uniqueness_of_identifiers,unik>>
 dalam penanda method.
 Jika nilai _receiver_ tidak dipakai di dalam badan method, maka
 pengidentifikasinya bisa dihilangkan dalam deklarasi.
@@ -2093,7 +2095,7 @@ Hal yang sama berlaku secara umum terhadap parameter dari fungsi dan method.
 
 Untuk tipe dasar yang sama, nama-nama dari method haruslah unik.
 Jika tipe dasar adalah sebuah
-link:/ref/spec#Struct_types[tipe struct],
+<<Struct_types,tipe struct>>,
 nama method dan field haruslah berbeda.
 
 Diberikan sebuah tipe `Point`, deklarasi berikut
@@ -2135,18 +2137,18 @@ operator dan fungsi terhadap operan.
 
 Operan menyatakan nilai elementer dalam sebuah ekspresi.
 Sebuah operan bisa jadi literal, sebuah pengindentifikasi bukan-
-link:/ref/spec#Blank_identifier[kosong] (bisa saja
+<<Blank_identifier,kosong>> (bisa saja
 /ref/spec#Qualified_identifiers[terbatas])
 yang menyatakan sebuah
-link:/ref/spec#Constant_declarations[konstan],
-link:/ref/spec#Variable_declarations[variabel],
+<<Constant_declarations,konstan>>,
+<<Variable_declarations,variabel>>,
 atau
-link:/ref/spec#Function_declarations[fungsi],
+<<Function_declarations,fungsi>>,
 atau ekspresi dalam tanda kurung.
 
-link:/ref/spec#Blank_identifier[Pengidentifikasi kosong]
+<<Blank_identifier,Pengidentifikasi kosong>>
 bisa muncul sebaga operan hanya pada bagian kiri dari sebuah
-link:/ref/spec#Assignments[penempatan].
+<<Assignments,penempatan>>.
 
 ----
 Operand     = Literal | OperandName | "(" Expression ")" .
@@ -2162,7 +2164,7 @@ OperandName = identifier | QualifiedIdent.
 Sebuah pengidentifikasi terbatas yaitu sebuah pengidentifikasi yang dibatasi
 oleh awalan nama paket.
 Nama paket dan pengidentifikasi haruslah tidak
-link:/ref/spec#Blank_identifier[kosong].
+<<Blank_identifier,kosong>>.
 
 ----
 QualifiedIdent = PackageName "." identifier .
@@ -2170,11 +2172,11 @@ QualifiedIdent = PackageName "." identifier .
 
 Pengidentifikasi terbatas mengakses pengidentifikasi di paket yang berbeda,
 yang harus
-link:/ref/spec#Import_declarations[diimpor].
+<<Import_declarations,diimpor>>.
 Si pengidentifikasi haruslah
-link:/ref/spec#Exported_identifiers[diekspor]
+<<Exported_identifiers,diekspor>>
 dan dideklarasikan dalam
-link:/ref/spec#Blocks[blok paket]
+<<Blocks,blok paket>>
 dari paket tersebut.
 
 ----
@@ -2206,7 +2208,7 @@ Tipe dasar dari LiteralType haruslah sebuah tipe struct, array, slice, atau
 map (gramatika memaksa batasan ini kecuali bisa tipe diberikan sebagai sebuah
 TypeName).
 Tipe dari elemen dan kunci harus bisa
-link:/ref/spec#Assignability[ditempatkan]
+<<Assignability,ditempatkan>>
 ke tipe field, elemen, dan kunci dari tipe literal yang bersangkutan;
 tidak ada konversi tambahan.
 Kunci diinterpretasikan sebagai sebuah nama field untuk literal struct, sebuah
@@ -2215,7 +2217,7 @@ Untuk literal map, semua elemen harus memiliki sebuah kunci.
 Adalah sebuah kesalahan bila menspesifikasikan beragam lemen dengan nama field
 yang sama atau nilai key menggunakan konstan.
 Untuk kunci map yang tidak-konstan, lihat bagian pada
-link:/ref/spec#Order_of_evaluation[urutan evaluasi].
+<<Order_of_evaluation,urutan evaluasi>>.
 
 Untuk literal struct aturan-aturan berikut berlaku:
 
@@ -2253,16 +2255,16 @@ Untuk array dan slice, aturan-aturan berikut berlaku:
 *  Sebuah elemen dengan sebuah kunci menggunakan kunci tersebut sebagai
    indeksnya.
    Kunci tersebut haruslah konstan bukan-negatif yang
-   link:/ref/spec#Representability[dapat direpresentasikan]
+   <<Representability,dapat direpresentasikan>>
    oleh nilai bertipe `int`; dan jika kunci tersebut bertipe maka harus
    bertipe integer.
 *  Sebuah elemen tanpa kunci menggunakan indeks elemen sebelumnya ditambah
    satu.
    Jika elemen pertama tanpa kunci, indeksnya adalah nol.
 
-link:/ref/spec#Address_operators[Mengambil alamat]
+<<Address_operators,Mengambil alamat>>
 dari literal komposit menghasilkan sebuah pointer ke sebuah
-link:/ref/spec#Variables[variabel]
+<<Variables,variabel>>
 unik yang diinisiasi dengan nilai literal.
 
 ----
@@ -2270,13 +2272,13 @@ var pointer *Point3D = &Point3D{y: 1000}
 ----
 
 Ingatlah bahwa
-link:/ref/spec#The_zero_value[nilai kosong] dari sebuah tipe
+<<The_zero_value,nilai kosong>> dari sebuah tipe
 slice atau map tidak sama dengan slice atau yang map diinisiasi dengan nilai
 kosong dari tipe yang sama.
 Akibatnya, mengambil alamat dari literal komposit dari sebuah slice atau map
 yang kosong tidak sama efeknya dengan mengalokasikan slice atau map yang baru
 dengan
-link:/ref/spec#Allocation[new].
+<<Allocation,new>>.
 
 ----
 p1 := &[]int{}    // p1 menunjuk ke slice kosong yang diinisiasi dengan nilai
@@ -2337,7 +2339,7 @@ type PPoint *Point
 
 Ambiguitas muncul saat literal komposit menggunakan bentuk TypeName dari
 LiteralType muncul sebagai operan antara
-link:/ref/spec#Keywords[kata kunci]
+<<Keywords,kata kunci>>
 dan kurung buka dari blok perintah "if", "for", atau "switch", dan literal
 komposit tidak ditutup dalam tanda kurung, kurung siku, atau kurung kurawal.
 Dalam kasus langka ini, kurung buka dari literal dengan keliru dianggap
@@ -2374,7 +2376,7 @@ noteFrequency := map[string]float32{
 ===  Literal fungsi
 
 Sebuah literal fungsi merepresentasikan sebuah
-link:/ref/spec#Function_declarations[fungsi]
+<<Function_declarations,fungsi>>
 anonim.
 
 ----
@@ -2440,9 +2442,9 @@ f.p[i].x()
 ===  Selector
 
 Untuk sebuah
-link:/ref/spec#Primary_expressions[ekspresi dasar]
+<<Primary_expressions,ekspresi dasar>>
 `x` yang bukan sebuah
-link:/ref/spec#Package_clause[nama paket],
+<<Package_clause,nama paket>>,
 _ekspresi selektor_
 
 ----
@@ -2453,15 +2455,15 @@ menyatakan field atau method `f` dari nilai `x` (atau terkadang `*x`; lihat di
 bawah).
 Pengidentifikasi `f` disebut (field atau method) _selector_;
 ia tidak boleh sebuah
-link:/ref/spec#Blank_identifier[pengidentifikasi kosong].
+<<Blank_identifier,pengidentifikasi kosong>>.
 Tipe dari ekspresi _selector_ yaitu tipe dari `f`.
 Jika `x` adalah sebuah nama paket, lihat bagian
-link:/ref/spec#Qualified_identifiers[pengidentifikasi
+<<Qualified_identifiers[pengidentifikasi
 terbatas].
 
 Sebuah _selector_ `f` bisa menyatakan sebuah field atau method `f` dari sebuah
 tipe `T`, atau ia bisa mengacu pada sebuah field atau method `f` dari
-link:/ref/spec#Struct_types[field tertanam]
+<<Struct_types,field tertanam>>
 dari `T`.
 Jumlah field tertanam yang dijajaki sampai ke `f` disebut dengan _kedalaman_
 dari `T`.
@@ -2476,27 +2478,27 @@ Aturan-aturan berikut berlaku pada _selector_:
    pointer atau interface, `x.f` menyatakan field atau method pada kedalaman
    paling dangkal dalam `T` yang mana `f` tersebut ada.
    Jika tidak ada
-   link:/ref/spec#Uniqueness_of_identifiers[satu f]
+   <<Uniqueness_of_identifiers,satu f>>
    pada kedalaman terdangkal, ekspresi _selector_ tersebut adalah ilegal.
 .  Untuk sebuah nilai `x` bertipe `I` yang mana `I` adalah sebuah tipe
    interface, `x.f` menyatakan method bernama `f` dari nilai dinamis `x`.
    Jika tidak ada method bernama `f` dalam
-   link:/ref/spec#Method_sets[kumpulan method]
+   <<Method_sets,kumpulan method>>
    dari `I`, ekspresi _selector_ tersebut adalah ilegal.
 .  Sebagai pengecualian, jika tipe dari `x` merupakan tipe pointer
-   link:/ref/spec#Type_definitions[terdefinisi]
+   <<Type_definitions,terdefinisi>>
    dan `(*x).f` adalah ekspresi _selector_ yang valid yang menyatakan sebuah
    field (bukan sebuah method), `x.f` adalah singkatan untuk `(*x).f`.
 .  Pada kasus lainnya `x.f` adalah ilegal.
 .  Jika `x` adalah tipe pointer dan bernilai `nil` dan `x.f` menyatakan sebuah
    field pada struct, mengisi atau mengambil nilai `x.f` mengakibatkan
-   link:/ref/spec#Run_time_panics[panik _runtime_].
+   <<Run_time_panics,panik runtime>>.
 .  Jika `x` bertipe interface dan bernilai `nil`,
-   link:/ref/spec#Calls[memanggil]
+   <<Calls,memanggil>>
    atau
-   link:/ref/spec#Method_values[mengevaluasi]
+   <<Method_values,mengevaluasi>>
    method `x.f` menyebakan
-   link:/ref/spec#Run_time_panics[panik _runtime_].
+   <<Run_time_panics,panik runtime>>.
 
 Sebagai contoh, dari deklarasi berikut:
 
@@ -2558,7 +2560,7 @@ q.M0()       // (*q).M0 valid namun bukan sebuah selector field
 ===  Ekspresi method
 
 Jika `M` ada dalam
-link:/ref/spec#Method_sets[kumpulan method]
+<<Method_sets,kumpulan method>>
 bertipe `T`, `T.M` adalah sebuah fungsi yang dapat dipanggil seperti fungsi
 biasa dengan argumen yang sama dengan `M` yang diawali dengan argumen tambahan
 yaitu _receiver_ dari method.
@@ -2645,9 +2647,9 @@ si _receiver_ diberikan sebagai argumen pertama pada pemanggilan.
 Maka, diberikan `f := T.Mv`, `f` dipanggil dengan cara `f(t,7)` bukan
 `t.f(7)`.
 Untuk membentuk sebuah fungsi yang mengikat _receiver_, gunakan
-link:/ref/spec#Function_literals[literal fungsi]
+<<Function_literals,literal fungsi>>
 atau
-link:/ref/spec#Method_values[nilai method].
+<<Method_values,nilai method>>.
 
 Adalah legal menurunkan sebuah nilai fungsi dari sebuah method bertipe
 interface.
@@ -2658,7 +2660,7 @@ Hasil fungsinya menerima _receiver_ eksplisit dari tipe interface tersebut.
 ===   Nilai method
 
 Jika ekspresi `x` memiliki tipe statis `T` dan `M` berada dalam
-link:/ref/spec#Method_sets[kumpulan method]
+<<Method_sets,kumpulan method>>
 dari tipe `T`, `x.M` disebut _nilai method_.
 Nilai method `x.M` yaitu sebuah nilai fungsi yang dapat dipanggil dengan
 argumen yang sama seperti memanggil method dari `x.M`.
@@ -2669,7 +2671,7 @@ pemanggilan, yang bisa saja dieksekusi nantinya.
 Tipe `T` bisa berupa tipe interface atau bukan interface.
 
 Seperti yang telah didiskusikan dalam
-link:/ref/spec#Method_expressions[ekspresi method]
+<<Method_expressions,ekspresi method>>
 di atas, misalnya ada sebuah struct bertipe `T` dengan dua method, `Mv`,
 dengan _receiver_ bertipe `T`, dan `Mp`, dengan _receiver_ bertipe `*T`.
 
@@ -2717,13 +2719,13 @@ func(float32) float32
 ----
 
 Seperti halnya dengan
-link:/ref/spec#Selectors[_selector_],
+<<Selectors,selector>>,
 sebuah referensi ke method yang bukan interface dengan _receiver_ nilai
 menggunakan pointer akan secara otomatis membalikan pointer tersebut:
 `pt.Mv` sama dengan `(*pt)Mv`.
 
 Seperti halnya dengan
-link:/ref/spec#Calls[pemanggilan method],
+<<Calls,pemanggilan method>>,
 sebuah referensi ke method yang bukan interface dengan _receiver_ pointer
 menggunakan nilai beralamat akan secara otomatis mengambil alamat dari nilai
 tersebut: `t.Mp` sama dengan `(&t).Mp`.
@@ -2763,72 +2765,72 @@ Jika `a` bukan sebuah map:
 
 *  indeks `x` haruslah bertipe integer atau konstanta tanpa tipe
 *  indeks berupa konstanta haruslah tidak negatif dan
-   link:/ref/spec#Representability[dapat direpresentasikan]
+   <<Representability,dapat direpresentasikan>>
    oleh sebuah nilai bertipe `int`
 *  indeks berupa konstanta yang tidak bertipe akan diberikan tipe `int`
 *  indeks `x` berada _dalam rentang_ jika `0 <= x < len(a)`, selain itu _di
    luar rentang_
 
 Untuk `a` dengan
-link:/ref/spec#Array_types[tipe Array]
+<<Array_types,tipe Array>>
 A:
 
 *  sebuah indeks berupa
-   link:/ref/spec#Constants[konstanta]
+   <<Constants,konstanta>>
    haruslah dalam rentang
 *  jika `x` di luar rentang pada saat _runtime_, sebuah
-   link:/ref/spec#Run_time_panics[panik _runtime_]
+   <<Run_time_panics,panik runtime>>
    akan terjadi
 *  `a[x]` adalah elemen array pada indeks `x` dan tipe dari `a[x]` yaitu
    elemen bertipe `A`
 
 Untuk `a` sebagai
-link:/ref/spec#Pointer_types[pointer]
+<<Pointer_types,pointer>>
 ke tipe array:
 
 *  `a[x]` adalah singkatan untuk `(*a)[x]`
 
 Untuk `a` dengan
-link:/ref/spec#Slice_types[tipe slice]
+<<Slice_types,tipe slice>>
 `S`:
 
 *  jika `x` di luar rentang pada saat _runtime_,
-   link:/ref/spec#Run_time_panics[panik _runtime_]
+   <<Run_time_panics,panik runtime>>
    akan terjadi
 *  `a[x]` adalah elemen slice pada indeks `x` dan tipe dari `a[x]` yaitu
    elemen bertipe `S`
 
 Untuk `a` dari
-link:/ref/spec#String_types[tipe string]:
+<<String_types,tipe string>>:
 
 *  sebuah indeks berupa
-   link:/ref/spec#Constants[konstanta]
+   <<Constants,konstanta>>
    haruslah dalam rentang jika string `a` juga konstanta`
 *  jika `x` di luar rentang pada saat _runtime_,
-   link:/ref/spec#Run_time_panics[panik _runtime_]
+   <<Run_time_panics,panik runtime>>
    akan terjadi
 *  `a[x]` adalah nilai byte bukan konstanta pada indeks `x` dan tipe dari
    `a[x]` adalah byte
 *  `a[x]` tidak bisa ditimpa bila `a` adalah konstanta
 
 Untuk `a` dari
-link:/ref/spec#Map_types[tipe map]
+<<Map_types,tipe map>>
 `M`:
 
 *  tipe `x` haruslah
-   link:/ref/spec#Assignability[bisa disimpan]
+   <<Assignability,bisa disimpan>>
    ke tipe key dari `M`
 *  jika map berisi sebuah nilai dengan key `x`, `a[x]` adalah elemen map
    dengan key `x` dan tipe dari `a[x]` yaitu tipe elemen dari `M`
 *  jika map adalah `nil` atau tidak mengandung nilai dengan key `x`, `a[x]`
    yaitu
-   link:/ref/spec#The_zero_value[nilai kosong]
+   <<The_zero_value,nilai kosong>>
    dari tipe elemen dari `M`.
 
 Selain itu `a[x]` adalah ilegal.
 
 Ekspresi indeks dapat sebuah map bertipe `map[K]V` yang digunakan dalam sebuah
-link:/ref/spec#Assignments[penempatan]
+<<Assignments,penempatan>>
 atau inisiasi dari bentuk khusus
 
 ----
@@ -2842,7 +2844,7 @@ Nilai dari `ok` adalah `true` jika key `x` ada dalam map, dan `false` jika
 tidak ada.
 
 Menempatkan ke elemen map yang `nil` akan mengakibatkan
-link:/ref/spec#Run_time_panics[panik _runtime_].
+<<Run_time_panics,panik runtime>>.
 
 
 [#Slice_expressions]
@@ -2900,23 +2902,23 @@ Untuk array atau string, indeks berada dalam rentang jika
 Untuk slice, batas atas dari indeks yaitu kapasitas slice `cap(a)` bukan
 panjangnya.
 Indeks berupa
-link:/ref/spec#Constants[konstanta]
+<<Constants,konstanta>>
 haruslah tidak negatif dan
-link:/ref/spec#Representability[dapat direpresentasikan]
+<<Representability,dapat direpresentasikan>>
 oleh nilai bertipe `int`;
 untuk array atau string konstanta, indeks dari konstanta haruslah berada dalam
 rentang.
 Jika kedua indeks adalah konstanta, keduanya haruslah memenuhi `low <= high`.
 Jika indeks-indeks di luar rentang pada saat _runtime_,
-link:/ref/spec#Run_time_panics[panik _runtime_]
+<<Run_time_panics,panik runtime>>
 terjadi.
 
 Kecuali untuk
-link:/ref/spec#Constants[string tak bertipe],
+<<Constants,string tak bertipe>>,
 jika operan pemotongan adalah sebuah string atau slice, hasil dari operasi
 pemotongan adalah nilai non-konstanta bertipe `string`.
 Jika opera pemotongan adalah sebuah array, maka harus dapat
-link:/ref/spec#Address_operators[memiliki alamat]
+<<Address_operators,memiliki alamat>>
 dan hasil dari operasi pemotongan yaitu sebuah slice dengan tipe elemen yang
 sama dengan array.
 
@@ -2966,21 +2968,21 @@ t[1] == 3
 Seperti pada ekspresi pemotongan sederhana, jika `a` adalah sebuah pointer ke
 array, `a[low : high : max]` adalah singkatan dari `(*a)[low : high :max]`.
 Jika operan pemotongan adalah sebuah array, maka haruslah
-link:/ref/spec#Address_operators[memiliki alamat].
+<<Address_operators,memiliki alamat>>.
 
 Indeks-indeksnya berada _dalam rentang_ jika
 `0 <= low <= high <= max <= cap(a)`,
 selain itu adalah _di luar rentang_.
 Indeks berupa
-link:/ref/spec#Constants[konstanta]
+<<Constants,konstanta>>
 haruslah tidak negatif dan
-link:/ref/spec#Representability[direpresentasikan]
+<<Representability,direpresentasikan>>
 oleh sebuah nilai bertipe `int`;
 untuk array, indeks konstanta haruslah juga berada dalam rentang.
 Jika beberapa indeks adalah konstanta, konstanta tersebut haruslah dalam
 rentang yang relatif terhadap satu sama lain.
 Jika indeks-indeks di luar rentang pada saat _runtime_,
-link:/ref/spec#Run_time_panics[panik _runtime_]
+<<Run_time_panics,panik runtime>>
 terjadi.
 
 
@@ -2988,7 +2990,7 @@ terjadi.
 ===  Asersi Tipe
 
 Untuk sebuah ekspresi `x` dari
-link:/ref/spec#Interface_types[tipe interface]
+<<Interface_types,tipe interface>>
 dan sebuah tipe `T`, ekspresi dasar berikut
 
 ----
@@ -3001,10 +3003,10 @@ Notasi `x.(T)` disebut dengan _asersi tipe_.
 
 Lebih tepatnya, jika `T` bukan bertipe interface, `x.(T)` menyatakan bahwa
 tipe dinamis dari `x` adalah
-link:/ref/spec#Type_identity[identik]
+<<Type_identity,identik>>
 dengan tipe `T`.
 Dalam kasus ini, `T` harus
-link:/ref/spec#Method_sets[mengimplementasikan]
+<<Method_sets,mengimplementasikan>>
 tipe (interface) dari `x`;
 sebaliknya asersi tipe tidak valid karena tidak mungkin bagi `x` untuk
 menyimpan nilai bertipe `T`.
@@ -3014,7 +3016,7 @@ mengimplementasikan interface `T`.
 Jika asersi tipe berhasil, nilai dari ekspresi tersebut yaitu nilai yang
 tersimpan dalam `x` dan tipenya yaitu `T`.
 Jika asersi tipe gagal,
-link:/ref/spec#Run_time_panics[panik _runtime_]
+<<Run_time_panics,panik runtime>>
 terjadi.
 Dengan kata lain, walaupun tipe dinamis dari `x` diketahui pada saat
 _runtime_, tipe dari `x.(T)` hanya diketahui sebagai `T` dalam program yang
@@ -3036,7 +3038,7 @@ func f(y I) {
 ----
 
 Asersi tipe yang digunakan dalam
-link:/ref/spec#Assignments[penempatan]
+<<Assignments,penempatan>>
 atau inisiasi dari bentuk khusus
 
 ----
@@ -3049,10 +3051,10 @@ var v, ok T1 = x.(T)
 menghasilkan nilai boolean tambahan.
 Nilai dari `ok` adalah `true` jika asersi berhasil.
 Sebaliknya ia akan `false` dan nilai dari `v` adalah
-link:/ref/spec#The_zero_value[nilai kosong]
+<<The_zero_value,nilai kosong>>
 untuk tipe `T`.
 Tidak ada
-link:/ref/spec#Run_time_panics[panik _runtime]
+<<Run_time_panics,panik _runtime>>
 yang akan terjadi dalam kasus ini.
 
 
@@ -3068,7 +3070,7 @@ f(a1, a2, … an)
 akan memanggil `f` dengan argumen `a1, a2, ... an`.
 Kecuali untuk kasus khusus, argumen-argumen haruslah ekspresi nilai-tunggal
 yang dapat
-link:/ref/spec#Assignability[disimpan]
+<<Assignability,disimpan>>
 ke tipe parameter dari `F` dan dievaluasi sebelum fungsi dipanggil.
 Tipe dari ekspresi adalah tipe kembalian dari `F`.
 Pemanggilan sebuah method mirip namun method itu sendiri ditentukan sebagai
@@ -3082,7 +3084,7 @@ pt.Scale(3.5)     // pemanggilan method dengan receiver pt
 ----
 
 Dalam pemanggilan sebuah fungsi, nilai fungsi dan argumennya dievaluasi dengan
-link:/ref/spec#Order_of_evaluation[urutan yang biasa].
+<<Order_of_evaluation,urutan yang biasa>>.
 Setelah mereka dievaluasi, parameter-parameter dari pemanggilan dikirim
 dengan nilai ke dalam fungsi dan fungsi yang dipanggil tersebut mulai
 dieksekusi.
@@ -3090,7 +3092,7 @@ Parameter kembalian dari fungsi dikirim dengan nilai ke pemanggil fungsi saat
 fungsi berakhir.
 
 Memanggil fungsi yang `nil` menyebabkan
-link:/ref/spec#Run_time_panics[panik _runtime_].
+<<Run_time_panics,panik runtime>>.
 
 Kasus khusus, jika nilai kembalian dari sebuah fungsi atau method `g` sama
 jumlahnya dan dapat ditempatkan pada parameter-parameter di fungsi atau method
@@ -3117,11 +3119,11 @@ if Join(Split(value, len(value)/2)) != value {
 ----
 
 Pemanggilan sebuah method `x.m()` valid jika
-link:/ref/spec#Method_sets[kumpulan method]
+<<Method_sets,kumpulan method>>
 dari (tipe) `x` memiliki `m` dan daftar argumen dapat diberikan ke daftar
 parameter dari `m`.
 Jika `x` adalah
-link:/ref/spec#Address_operators[alamat]
+<<Address_operators,alamat>>
 dan kumpulan method `&x` memiliki `m`, `x.m()` adalah singkatan untuk
 `(&x).m()`:
 
@@ -3137,14 +3139,14 @@ Tidak ada perbedaan tipe method dan tidak ada literal method.
 ===  Mengirim argumen ke parameter ...
 
 Jika `f` adalah
-link:/ref/spec#Function_types[_variadic_]
+<<Function_types,variadic>>
 dengan parameter terakhir bertipe `...T`, maka tipe dari `p` dalam `f` sama
 dengan tipe `[]T`.
 Jika `f` dipanggil tanpa argumen untuk `p`, maka nilai yang dikirim ke `p`
 adalah `nil`.
 Sebaliknya, nilai yang dikirim adalah slice baru bertipe `[]T` dengan array
 dasar yang elemennya adalah argumen-argumen aslinya, yang semuanya harus dapat
-link:/ref/spec#Assignability[disimpan]
+<<Assignability,disimpan>>
 ke `T`.
 Panjang dan kapasitas slice yaitu jumlah argumen dan bisa berbeda untuk
 setiap pemanggilan.
@@ -3195,24 +3197,24 @@ unary_op   = "+" | "-" | "!" | "^" | "*" | "&" | "<-" .
 ----
 
 Operator pembandingan didiskusikan
-link:/ref/spec#Comparison_operators[dibagian lain].
+<<Comparison_operators,dibagian lain>>.
 Untuk operator binari lainnya, tipe operan haruslah
-link:/ref/spec#Type_identity[identik]
+<<Type_identity,identik>>
 kecuali pada operasi _shift_ atau bila menggunakan
-link:/ref/spec#Constants[konstanta]
+<<Constants,konstanta>>
 tanpa tipe.
 Untuk operasi yang mengikutkan konstanta saja, lihat bagian pada
-link:/ref/spec#Constant_expressions[ekspresi konstanta].
+<<Constant_expressions,ekspresi konstanta>>.
 
 Kecuali untuk operasi _shift_, jika salah satu operan adalah
-link:/ref/spec#Constants[konstanta]
+<<Constants,konstanta>>
 dan operan lainnya bukan, konstanta tersebut secara implisit
-link:/ref/spec#Conversions[dikonversi]
+<<Conversions,dikonversi>>
 ke tipe operan lainnya.
 
 Operan sebelah kanan dalam ekspresi _shift_ haruslah tipe integer atau
 konstanta tak bertipe yang dapat
-link:/ref/spec#Representability[direpresentasikan] oleh sebuah
+<<Representability,direpresentasikan>> oleh sebuah
 nilai bertipe `uint`.
 Jika operan sebelah kiri dari ekspresi _shift_ adalah konstanta tanpa tipe,
 maka ia secara implisit dikonversi ke tipe yang diasumsikan jika ekspresi
@@ -3235,7 +3237,7 @@ var u1 = 1.0<<s != 0          // ilegal: 1.0 bertipe float64, tidak bisa shift
 var u2 = 1<<s != 1.0          // ilegal: 1 bertipe float64, tidak bisa shift
 var v float32 = 1<<s          // ilegal: 1 bertipe float32, tidak bisa shift
 var w int64 = 1.0<<33         // 1.0<<33 adalah ekspresi konstanta shift
-var x = a[1.0<<s]             // 1.0 bertipe int; x == a[0] jika int berukuran
+var x = a[1.0<<s]             // 1.0 bertipe int; x == a,0>> jika int berukuran
                               // 32bit
 var a = make([]byte, 1.0<<s)  // 1.0 bertipe int; len(a) == 0 jika int
                               // berukuran 32bit
@@ -3327,7 +3329,7 @@ https://en.wikipedia.org/wiki/Modulo_operation[(pembagian dibulatkan)].
 Satu-satunya pengecualian dari aturan ini yaitu jika sisa pembagian `x`
 adalah nilai negatif paling besar dari tipe `x`, persamaan `q = x / -1` sama
 dengan `x` (dan `r = 0`) dikarenakan
-link:/ref/spec#Integer_overflow[integer overflow]
+<<Integer_overflow,integer overflow>>
 dengan dua-komplemen:
 
 ----
@@ -3339,10 +3341,10 @@ int64    -9223372036854775808
 ----
 
 Jika penyebut adalah sebuah
-link:/ref/spec#Constants[konstanta],
+<<Constants,konstanta>>,
 ia tidak boleh nol.
 Jika penyebut adalah nol pada saat _runtime_,
-link:/ref/spec#Run_time_panics[panik _runtime_]
+<<Run_time_panics,panik runtime>>
 terjadi.
 Jika pembilang tidak negatif dan penyebut adalah sebuah konstanta kelipatan 2,
 maka pembagian bisa diganti dengan _shift_ kanan, dan penghitungan sisa
@@ -3357,7 +3359,7 @@ x     x / 4     x % 4     x >> 2     x & 3
 Operator _shift_ menggeser operan sebelah kiri sebanyak jumlah yang
 disebutkan pada operan sebelah kanan, yang haruslah positif.
 Jika bagian kanan operan _shift_ negatif pada saat _runtime_,
-link:/ref/spec#Run_time_panics[panik _runtime_]
+<<Run_time_panics,panik runtime>>
 terjadi.
 Operator _shift_ menerapkan penggeseran aritmetika jika operan kiri adalah
 signed integer dan logika penggeseran jika ia adalah unsigned integer.
@@ -3382,7 +3384,7 @@ sebagai berikut:
 
 Untuk nilai unsigned integer, operasi `+`, `-`, `*`, dan `<<` dihitung
 _modulo_ 2^n, yang mana `n` adalah lebar bit dari tipe
-link:/ref/spec#Numeric_types[unsigned integer].
+<<Numeric_types,unsigned integer>>.
 Dengan kata lain, operasi unsigned integer menghilangkan bit paling tinggi
 saat overflow terjadi.
 
@@ -3390,7 +3392,7 @@ Untuk signed integer, operasi `+`, `-`, `*`, `/` dan `<<` bisa saja
 _overflow_ dan memiliki hasil yang secara deterministik didefinisikan oleh
 representasi signed integer, operasi, dan operannya.
 _Overflow_ tidak menyebabkan
-link:/ref/spec#Run_time_panics[panik _runtime_].
+<<Run_time_panics, panik runtime>>.
 _Compiler_ bisa saja tidak mengoptimalkan sebuah kode dengan asumsi bahwa
 _overflow_ tidak akan terjadi.
 Misalnya, _compiler_ tidak mengasumsikan bahwa `x < x + 1` selalu bernilai
@@ -3404,13 +3406,13 @@ Untuk bilangan _floating-point_ dan _complex_, `+x` sama dengan `x`, sementara
 Hasil pembagian dari _floating-point_ atau complex dengan nol tidak
 dispesifikasikan oleh standar IEEE-754;
 apakah
-link:/ref/spec#Run_time_panics[panik _runtime_]
+<<Run_time_panics, panik runtime>>
 terjadi adalah spesifik pada implementasi.
 
 Implementasi bisa menggabungkan beberapa operasi _floating-point_ menjadi
 sebuah operasi gabungan, kemungkinan antara beberapa perintah, dan
 menghasilkan nilai yang berbeda bila dieksekusi dan dibulatkan masing-masing.
-link:/ref/spec#Conversions[Konversi]
+<<Conversions, Konversi>>
 tipe _floating-point_ secara eksplisit membulatkan ke presisi dari tipe
 target, menghindari penggabungan yang menyebabkan pembulatan.
 
@@ -3449,7 +3451,7 @@ Penambahan string menghasilkan string yang baru dengan menggabungkan
 operan-operannya.
 
 
-[#Comparison_operators
+[#Comparison_operators]
 ===  Operator pembandingan
 
 Operator pembandingan membandingkan dua opera dan menghasilkan nilai boolean
@@ -3487,15 +3489,15 @@ Berikut definisi aturan-aturan dan hasil dari pembandingan:
    Dua nilai pointer adalah sama jika ia menunjuk ke variabel yang sama atau
    jika keduanya bernilai `nil`.
    Pointer ke variabel dengan
-   link:/ref/spec#Size_and_alignment_guarantees[ukuran nol]
+   <<Size_and_alignment_guarantees, ukuran nol>>
    bisa jadi sama atau tidak.
 *  Nilai channel dapat dibandingkan.
    Dua channel adalah sama jika keduanya dibuat oleh pemanggilan
-   link:/ref/spec#Making_slices_maps_and_channels[make]
+   <<Making_slices_maps_and_channels, make>>
    yang sama atau jika keduanya bernilai `nil`.
 *  Nilai interface dapat dibandingkan.
    Dua interface dikatakan sama jika keduanya memiliki tipe dinamis yang
-   http://127.0.0.1:6060/ref/spec#Type_identity[identik]
+   <<Type_identity, identik>>
    dan memiliki nilai dinamis yang sama atau jika keduanya bernilai `nil`.
 *  Nilai `x` bertipe bukan interface `X` dan nilai `t` bertipe interface `T`
    dapat dibandingkan bila nilai dari tipe `X` dapat dibandingkan dan `X`
@@ -3504,14 +3506,14 @@ Berikut definisi aturan-aturan dan hasil dari pembandingan:
    `t` sama dengan `x`.
 *  Nilai struct dapat dibandingkan jika semua field dapat dibandingkan.
    Dua nilai struct adalah sama jika setiap field yang bukan
-   link:/ref/spec#Blank_identifier[kosong]
+   <<Blank_identifier, kosong>>
    adalah sama.
 *  Nilai array dapat dibandingkan jika nilai dari tipe elemen array dapat
    dibandingkan.
    Dua nilai array adalah sama jika kedua elemen array adalah sama.
 
 Pembandingan dua nilai interface dengan tipe dinamis yang identik menyebabkan
-link:/ref/spec#Run_time_panics[panik _runtime_]
+<<Run_time_panics,panik runtime>>
 jika nilai dari tipe tersebut tidak bisa dibandingkan.
 Perilaku ini berlaku tidak saja pada pembandingan nilai interface langsung
 namun juga saat membandingkan array dari nilai interface atau struct dengan
@@ -3542,7 +3544,7 @@ var (
 ===  Operator logika
 
 Operator logika berlaku untuk nilai
-http://127.0.0.1:6060/ref/spec#Boolean_types[boolean]
+<<Boolean_types,boolean>>
 dan menghasilkan tipe yang sama dengan operan.
 Operan kanan dievaluasi berdasarkan kondisi.
 
