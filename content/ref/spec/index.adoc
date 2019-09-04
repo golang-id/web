@@ -3467,7 +3467,7 @@ tak bertipe.
 ----
 
 Dalam setiap pembandingan, operan pertama haruslah
-http://127.0.0.1:6060/ref/spec#Assignability[dapat disimpan]
+<<Assignability, dapat disimpan>>
 ke tipe dari operan kedua, atau sebaliknya.
 
 Operator persamaan `==` dan `!=` berlaku untuk operan-operan yang dapat
@@ -3553,3 +3553,437 @@ Operan kanan dievaluasi berdasarkan kondisi.
 ||    kondisi OR     p || q  yaitu  "jika p maka true selainnya q"
 !     NOT                !p  yaitu  "bukan p"
 ----
+
+
+[#Address_operators]
+===  Operator alamat
+
+Untuk sebuah operan `x` bertipe `T`, operasi alamat `&x` mengembalikan sebuah
+pointer bertipe `*T` ke `x`.
+Operan tersebut haruslah memiliki alamat, yaitu, sebuah variabel, pointer
+ke pointer, atau operasi pengindeksan slice;
+atau sebuah _selector_ field dari operan struct yang memiliki alamat;
+atau sebuah operasi pengindeksan array dari array yang memiliki alamat;.
+Salah satu pengecualian dari kebutuhan alamat ini yaitu `x` mungkin bisa
+sebuah (dalam tanda kurung)
+<<Composite_literals, literal komposit>>.
+Jika evaluasi dari `x` menyebabkan
+<<Run_time_panics,panik runtime>>,
+maka evaluasi dari `&x` juga akan panik.
+
+Untuk sebuah operan `x` berupa pointer bertipe `*T`, pointer ke pointer dari
+`*x` menyatakan
+<<Variables, variabel>>
+bertipe `T` yang ditunjuk oleh `x`.
+Jika `x` adalah `nil`, evaluasi dari `*x` akan menyebabkan
+<<Run_time_panics,panik runtime>>.
+
+----
+&x
+&a[f(2)]
+&Point{2, 3}
+*p
+*pf(x)
+
+var x *int = nil
+*x   // menyebabkan panik runtime
+&*x  // menyebabkan panik runtime
+----
+
+
+[#Receive_operator]
+===  Operator terima
+
+Untuk sebuah operan `ch` <<Channel_types, bertipe channel>>,  nilai dari
+operasi terima `<-ch` adalah nilai yang diterima dari channel `ch`.
+Arah dari channel haruslah membolehkan operasi terima, dan tipe kembalian dari
+operasi terima yaitu tipe elemen dari channel.
+Ekspresi dari `<-ch` akan diblok sampai sebuah nilai tersedia.
+Operasi terima dari channel yang `nil` akan diblok selamanya.
+Operasi terima dari channel yang telah <<Close, ditutup>> akan selalu
+diproses langsung, menghasilkan <<The_zero_value, nilai kosong>> dari tipe
+elemen setelah semua nilai yang sebelumnya dikirim ke channel telah diterima
+semuanya.
+
+----
+v1 := <-ch
+v2 = <-ch
+f(<-ch)
+<-strobe  // tunggu sampai waktu habis dan hiraukan nilai yang diterima
+----
+
+Ekspresi terima yang digunakan dalam <<Assignments, penempatan>> atau inisiasi
+dari bentuk khusus
+
+----
+x, ok = <-ch
+x, ok := <-ch
+var x, ok = <-ch
+var x, ok T = <-ch
+----
+
+menghasilkan nilai boolean yang melaporkan apakah komunikasi sukses atau
+tidak.
+Nilai dari `ok` adalah `true` jika nilai yang diterima dikirim oleh
+sebuah operasi pengiriman ke channel yang sukses, atau `false` jika
+nilainya adalah nilai kosong karena channel telah ditutup dan kosong.
+
+
+[#Conversions]
+===  Konversi
+
+Sebuah konversi mengubah <<Types, tipe>> dari sebuah ekspresi ke tipe yang
+ditentukan oleh konversi.
+Sebuah konversi bisa muncul secara literal dalam sumber kode, atau ia bisa
+diimplikasikan oleh konteks di mana ekspresi muncul.
+
+Konversi eksplisit yaitu ekspresi dalam bentuk `T(x)` dengan `T` adalah sebuah
+tipe dan `x` adalah sebuah ekspresi yang dapat dikonversi ke tipe `T`.
+
+----
+Conversion = Type "(" Expression [ "," ] ")" .
+----
+
+Jika tipe diawali dengan operator `*` atau `<-`, atau jika tipe dimulai dengan
+kata kunci `func` dan tidak memiliki daftar kembalian, maka ia haruslah diberi
+tanda kurung bila diperlukan untuk menghindari kebingungan:
+
+----
+*Point(p)        // sama dengan *(Point(p))
+(*Point)(p)      // p dikonversi ke *Point
+<-chan int(c)    // sama dengan <-(chan int(c))
+(<-chan int)(c)  // c dikonversi ke <-chan int
+func()(x)        // penanda fungsi func() x
+(func())(x)      // x dikonversi ke func()
+(func() int)(x)  // x dikonversi ke func() int
+func() int(x)    // x dikonversi ke func() int (tidak ambigu)
+----
+
+Sebuah <<Constants, konstanta>> bernilai `x` dapat dikonversi ke tipe `T` jika
+`x` dapat <<Representability, direpresentasikan>> oleh nilai dari `T`.
+Untuk kasus khusus, nilai konstanta `x` dapat secara eksplisit dikonversi ke
+sebuah <<String_types, tipe string>> menggunakan
+<<Conversions_to_and_from_a_string_type, aturan yang sama>>
+dengan nilai non-konstanta `x`.
+
+Mengonversi sebuah konstanta menghasilkan konstanta bertipe.
+
+----
+uint(iota)               // nilai iota bertipe uint
+float32(2.718281828)     // 2.718281828 dengan tipe float32
+complex128(1)            // 1.0 + 0.0i bertipe complex128
+float32(0.49999999)      // 0.5 bertipe float32
+float64(-1e-1000)        // 0.0 bertipe float64
+string('x')              // "x" bertipe string
+string(0x266c)           // "♬" bertipe string
+MyString("foo" + "bar")  // "foobar" bertipe MyString
+string([]byte{'a'})      // bukan konstanta: []byte{'a'} bukan konstanta
+(*int)(nil)              // bukan konstanta: nil bukan konstanta, *int bukan
+                         // sebuah tipe boolean, numerik, atau string
+int(1.2)                 // ilegal: 1.2 tidak dapat direpresentasikan sebagai int
+string(65.0)             // ilegal: 65.0 bukan konstanta integer
+----
+
+Sebuah nilai yang bukan konstanta `x` dapat dikonversi ke tipe `T` dalam
+kasus-kasus berikut:
+
+*  `x` dapat <<Assignability, disimpan>> ke `T`
+*  mengindahkan tag dari struct (lihat bagian bawah), tipe `x` dan `T`
+   memiliki <<Types, tipe dasar>> yang <<Type_identity, identik>>..
+*  mengindahkan tag dari struct (lihat bagian bawah), tipe `x` dan `T` adalah
+   tipe pointer yang bukan <<Type_definitions, tipe terdefinisi>>, dan tipe
+   dasar pointer keduanya memiliki tipe dasar yang identik.
+*  tipe `x` dan `T` adalah tipe integer atau _floating point_.
+*  tipe `x` dan `T` adalah tipe complex.
+*  `x` adalah integer atau slice byte atau rune dan `T` bertipe string
+*  `x` adalah string dan `T` adalah sebuah slice byte atau rune.
+
+<<Struct_types, tag dari struct>> diindahkan saat membanding tipe struct untuk
+identitas untuk tujuan konversi:
+
+----
+type Person struct {
+	Name    string
+	Address *struct {
+		Street string
+		City   string
+	}
+}
+
+var data *struct {
+	Name    string `json:"name"`
+	Address *struct {
+		Street string `json:"street"`
+		City   string `json:"city"`
+	} `json:"address"`
+}
+
+var person = (*Person)(data)  // mengindahkan tag, tipe dasarnya identik
+----
+
+Aturan-aturan spesifik berlaku untuk konversi (non-konstanta) antara tipe
+numerik atau dari dan ke tipe string.
+Konversi ini bisa mengubah representasi dari `x` dan membutuhkan biaya pada
+saat _runtime_.
+Konversi yang lainnya hanya mengubah tipe tetapi tidak representasi dari `x`.
+
+Tidak ada mekanisme linguistik untuk mengonversi antara pointer dan integer.
+Paket
+<<Package_unsafe, unsafe>>
+mengimplementasikan fungsionalitas tersebut dengan batasan-batasan tertentu.
+
+====  Konversi antara tipe numerik
+
+Untuk konversi nilai numerik yang bukan konstanta, aturan-aturan berikut
+berlaku:
+
+1. Saat mengonversi antara tipe integer, jika nilai adalah signed integer,
+   maka _sign_ -nya diperpanjang menjadi presisi tanpa batas;
+   selain dari itu dinolkan.
+   Nilainya kemudian dipotong untuk sesuai dengan ukuran tipe tujuan.
+   Sebagai contohnya, jika `v := uint16(0x10F0)`, maka `uint32(int8(v)) ==
+   0xFFFFFFF0`.
+   Konversi selalu menghasilkan nilai yang valid;
+   tidak ada indikasi _overflow_.
+2. Saat mengonversi bilangan _floating point_ ke sebuah integer, maka
+   pecahannya diindahkan (dibulatkan ke nol).
+3. Saat mengonversi sebuah bilangan integer atau _floating-point_ ke tipe
+   _floating-point_, atau sebuah bilangan complex ke tipe complex lainnya,
+   nilai akhirnya dibulatkan ke presisi yang ditentukan oleh tipe tujuan.
+   Misalnya, nilai variabel `x` bertipe `float32` disimpan menggunakan
+   presisi tambahan diluar bilangan IEEE-754 32-bit, namun `float32(x)`
+   merepresentasikan hasil dari pembulatan nilai `x` ke presisi 32-bit.
+   Hal yang sama, `x + 0.1` bisa memakai presisi lebih dari 32 bit, namun
+   `float32(x + 0.1)` tidak.
+
+Dalam semua konversi non-konstanta yang mengikutkan nilai _floating-point_
+atau complex, jika tipe tujuan tidak dapat merepresentasikan nilai maka
+konversi akan sukses namun nilai akhirnya bergantung pada implementasi.
+
+[#Conversions_to_and_from_a_string_type]
+====  Konversi ke dan dari tipe string
+
+(1) Mengonversi nilai signed atau unsigned integer ke tipe string menghasilkan
+sebuah string yang berisi representasi UTF-8 dari integer.
+Nilai di luar rentang kode Unicode yang valid dikonversi ke "\uFFFD".
+
+----
+string('a')       // "a"
+string(-1)        // "\ufffd" == "\xef\xbf\xbd"
+string(0xf8)      // "\u00f8" == "ø" == "\xc3\xb8"
+type MyString string
+MyString(0x65e5)  // "\u65e5" == "日" == "\xe6\x97\xa5"
+----
+
+(2) Mengonversi sebuah slice byte ke tipe string menghasilkan sebuah string
+yang setiap rangkaian byte adalah elemen dari slice.
+
+----
+string([]byte{'h', 'e', 'l', 'l', '\xc3', '\xb8'})   // "hellø"
+string([]byte{})                                     // ""
+string([]byte(nil))                                  // ""
+
+type MyBytes []byteConstant_expressions
+string(MyBytes{'h', 'e', 'l', 'l', '\xc3', '\xb8'})  // "hellø"
+----
+
+(3) Mengonversi sebuah slice rune ke tipe string menghasilkan sebuah string
+yang merupakan penggabungan dari setiap nilai rune yang dikonversi ke
+string.
+
+----
+string([]rune{0x767d, 0x9d6c, 0x7fd4})   // "\u767d\u9d6c\u7fd4" == "白鵬翔"
+string([]rune{})                         // ""
+string([]rune(nil))                      // ""
+
+type MyRunes []rune
+string(MyRunes{0x767d, 0x9d6c, 0x7fd4})  // "\u767d\u9d6c\u7fd4" == "白鵬翔"
+----
+
+(4) Mengonversi sebuah nilai bertipe string ke slice byte menghasilkan sebuah
+slice yang rangkaian elemen-elemennya adalah byte dari string.
+
+----
+[]byte("hellø")   // []byte{'h', 'e', 'l', 'l', '\xc3', '\xb8'}
+[]byte("")        // []byte{}
+
+MyBytes("hellø")  // []byte{'h', 'e', 'l', 'l', '\xc3', '\xb8'}
+----
+
+(5)  Mengonversi nilai bertipe string ke slice rune menghasilkan sebuah slice
+yang berisi setiap individu kode point Unicode dari string.
+
+----
+[]rune(MyString("白鵬翔"))  // []rune{0x767d, 0x9d6c, 0x7fd4}
+[]rune("")                 // []rune{}
+
+MyRunes("白鵬翔")           // []rune{0x767d, 0x9d6c, 0x7fd4}
+----
+
+
+[#Constant_expressions]
+===  Ekspresi konstanta
+
+Ekspresi konstanta bisa berisi hanya operan-operan
+<<Constants, konstanta>>
+dan dievaluasi saat di-_compile_.
+
+Konstanta tanpa tipe dari boolean, numerik, dan string bisa digunakan sebagai
+operan di mana pun selama legal menggunakan operan bertipe boolean, numerik,
+atau string.
+
+<<Comparison_operators, Pembandingan>>
+konstanta selalu menghasilkan konstanta boolean tak bertipe.
+Jika operan kiri dari
+<<Operators, ekspresi shift>>
+adalah konstanta tak bertipe, hasilnya adalah konstanta integer;
+sebaliknya jika operan kiri yaitu konstanta bertipe maka hasilnya konstanta
+dengan tipe yang sama dengan operan kiri, yang haruslah
+<<Numeric_types, bertipe integer>>.
+
+Operasi lain pada konstanta tanpa tipe menghasilkan konstanta tanpa tipe dari
+jenis yang sama: yaitu konstanta boolean, integer, _floating-point_, complex,
+atau string.
+Jika operan dari operasi binari tidak bertipe (selain _shift_) memiliki jenis
+yang berbeda, hasilnya yaitu jenis operan yang muncul terakhir dalam daftar:
+integer, rune, floating-point, complex.
+Misalnya, konstanta integer tanpa tipe dibagi dengan konstanta complex tanpa
+tipe menghasilkan konstanta complex tanpa tipe.
+
+----
+const a = 2 + 3.0          // a == 5.0   (konstanta floating-point tanpa tipe)
+const b = 15 / 4           // b == 3     (konstanta integer tanpa tipe)
+const c = 15 / 4.0         // c == 3.75  (konstanta floating-point tanpa tipe)
+const Θ float64 = 3/2      // Θ == 1.0   (tipe float64, 3/2 adalah pembagian integer)
+const Π float64 = 3/2.     // Π == 1.5   (tipe float64, 3/2 adalah pembagian integer)
+const d = 1 << 3.0         // d == 8     (konstanta integer tanpa tipe)
+const e = 1.0 << 3         // e == 8     (konstanta integer tanpa tipe)
+const f = int32(1) << 33   // illegal    (konstanta 8589934592 overflow int32)
+const g = float64(2) >> 1  // illegal    (float64(2) adalah konstanta bertipe floating-point)
+const h = "foo" > "bar"    // h == true  (konstanta boolean tanpa tipe)
+const j = true             // j == true  (konstanta boolean tanpa tipe)
+const k = 'w' + 1          // k == 'x'   (konstanta rune tanpa tipe)
+const l = "hi"             // l == "hi"  (konstanta string tanpa tipe)
+const m = string(k)        // m == "x"   (tipe string)
+const Σ = 1 - 0.707i       //            (konstanta complex tanpa tipe)
+const Δ = Σ + 2.0e-4       //            (konstanta complex tanpa tipe)
+const Φ = iota*1i - 1/1i   //            (konstanta complex tanpa tipe)
+----
+
+Menerapkan fungsi bawaan `complex` ke konstanta integer, rune, atau
+floating-point tanpa tipe menghasilkan konstanta complex tanpa tipe.
+
+----
+const ic = complex(0, c)   // ic == 3.75i  (konstanta complex tak bertipe)
+const iΘ = complex(0, Θ)   // iΘ == 1i     (tipe complex128)
+----
+
+Ekspresi konstanta selalu dievaluasi seperti yang tertulis;
+Nilai sementara dan konstanta itu sendiri bisa membutuhkan presisi yang lebih
+besar dari tipe yang didukung dalam bahasa.
+Berikut ini deklarasi yang legal:
+
+----
+const Huge = 1 << 100         // Huge == 1267650600228229401496703205376  (konstanta integer tak bertipe)
+const Four int8 = Huge >> 98  // Four == 4                                (tipe int8)
+----
+
+Penyebut dari pembagian sebuah konstanta atau operasi penyisaan haruslah nol:
+
+----
+3.14 / 0.0   // ilegal: pembagian dengan nol
+----
+
+Nilai dari konstanta bertipe haruslah selalu secara akurat
+<<Representability, direpresentasikan>>
+oleh nilai dari tipe konstanta.
+Ekspresi konstanta berikut adalah ilegal:
+
+----
+uint(-1)     // -1 tidak dapat direpresentasikan sebagai uint
+int(3.14)    // 3.14 tidak dapat direpresentasikan sebagai int
+int64(Huge)  // 1267650600228229401496703205376 tidak dapat direpresentasikan sebagaiint64
+Four * 300   // operan 300 tidak dapat direpresentasikan sebagai int8 (tipe Four)
+Four * 100   // hasil 400 tidak dapat direpresentasikan sebagai int8 (tipe Four)
+----
+
+_Mask_ yang digunakan oleh operator komplemen _unary bitwise_ `^` cocok dengan
+aturan untuk non-konstanta: semua mask adalah 1 untuk konstanta integer dan -1
+untuk signed dan konstanta tak bertipe.
+
+----
+^1         // konstanta integer tak bertipe, sama dengan -2
+uint8(^1)  // ilegal: sama dengan uint8(-2), -2 tidak dapat direpresentasikan sebagai uint8
+^uint8(1)  // konstanta uint8 bertipe, sama dengan 0xFF ^ uint8(1) = uint8(0xFE)
+int8(^1)   // sama dengan int8(-2)
+^int8(1)   // sama dengan -1 ^ int8(1) = -2
+----
+
+Batasan implementasi: _compiler_ bisa melakukan pembulatan saat menghitung
+ekspresi konstanta floating-point atau complex yang tak bertipe;
+lihat batasan implementasi dalam bagian <<Constants, konstanta>>.
+Pembulatan ini bisa menyebabkan ekspresi konstanta floating-point menjadi
+tidak valid dalam konteks integer, walaupun menjadi integral saat dihitung
+menggunakan presisi tanpa batas, dan sebaliknya.
+
+
+[#Order_of_evaluation]
+===  Urutan evaluasi
+
+Pada tingkat paket,
+<<Packet_initialization, inisiasi kebergantungan>>
+menentukan urutan evaluasi dari
+ekspresi inisiasi individu dalam
+<<Variable_declarations, deklarasi variabel>>.
+Sebaliknya, saat mengevaluasi
+<<Operands, operan>>
+dari sebuah ekspresi, penempatan, atau
+<<Return_statements, perintah kembalian>>,
+semua pemanggilan fungsi, pemanggilan method, dan operasi
+komunikasi dievaluasi secara leksikal terurut dari kiri-ke-kanan.
+
+Contohnya, pada penempatan
+
+----
+y[f()], ok = g(h(), i()+x[j()], <-c), k()
+----
+
+pemanggilan fungsi dan komunikasi terjadi dengan urutan f(), h(), i(), j(),
+`<-c`, dan `k()`.
+Namun, urutan dari even-even tersebut dibandingkan dengan evaluasi dan
+pengindeksan dari `x` dan evaluasi dari `y` tidak dispesifikasikan.
+
+----
+a := 1
+f := func() int { a++; return a }
+x := []int{a, f()}            // x bisa jadi [1, 2] atau [2, 2]: urutan
+                              // evaluasi antara a dan f() tidak ditentukan.
+m := map[int]int{a: 1, a: 2}  // m bisa jadi {2: 1} atau {2: 2}: urutan
+                              // evaluasi antara kunci dan nilai tidak ditentukan.
+n := map[int]int{a: f()}      // n bisa jadi {2: 3} atau {3: 3}: urutan
+                              // evaluasi antara kunci dan nilai tidak ditentukan.
+----
+
+Pada tingkat paket, inisiasi dependensi menimpa aturan kiri-ke-kanan untuk
+ekspresi inisiasi individu, tetapi tidak untuk operan-operan dalam setiap
+ekspresi:
+
+----
+var a, b, c = f() + v(), g(), sqr(u()) + v()
+
+func f() int        { return c }
+func g() int        { return a }
+func sqr(x int) int { return x*x }
+
+// fungsi u dan v independen terhadap semua variabel dan fungsi lainnya.
+----
+
+Pemanggilan fungsi terjadi dengan urutan `u()`, `sqr()`, `v()`, `f()`, `v()`,
+dan `g()`.
+
+Operasi _floating-point_ dalam sebuah ekspresi dievaluasi menurut asosiatif
+dari operator.
+Tanda kurung secara eksplisit mempengaruhi evaluasi dengan menimpa asosiatif
+baku.
+Dalam ekspresi `x+(y+z)` penambahan `y+z` dilakukan sebelum menambahkan
+dengan `x`.
