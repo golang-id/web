@@ -1,0 +1,82 @@
+=  Daftar Perubahan
+
+Dokumen ini mencatat perubahan dari hasil pengembangan situs golang-id.org.
+
+==  2019.08
+
+Daftar terjemahan yang telah dilakukan,
+
+*  https://golang-id.org/blog/go-imagedraw-package[Paket image/draw pada Go] -
+   fundamental dari paket "image/draw".
+*  https://golang-id.org/blog/defer-panic-and-recover[Defer, Panic, dan
+   Recover] - membahas penggunaan perintah "defer", "panic", dan "recover".
+*  https://golang-id.org/blog/go-concurrency-patterns-timing-out-and[Pola
+   konkurensi Go: pewaktuan dan terus berjalan].
+*  https://golang-id.org/blog/go-slices-usage-and-internals[Slice pada Go:
+   penggunaan dan internal].
+*  https://golang-id.org/blog/gif-decoder-exercise-in-go-interfaces[Membaca
+   GIF: latihan interface pada Go].
+*  https://golang-id.org/blog/error-handling-and-go/[Penanganan error dan Go]
+*  https://golang-id.org/ref/spec[Spesifikasi Bahasa Pemrograman Go]
+   (rintisan).
+
+
+==  2019.07
+
+Daftar terjemahan yang telah dilakukan,
+
+*  https://golang-id.org/blog/json-and-go[JSON dan Go], menelaah cara
+   menggunakan paket "json".
+*  https://golang-id.org/blog/gobs-of-data[Gob dari data], rancangan dan
+   penggunaan paket "gob".
+*  https://golang-id.org/blog/laws-of-reflection[Hukum-hukum refleksi] -
+   fundamental dari paket "reflect".
+*  https://golang-id.org/blog/go-image-package[Paket image pada Go] -
+   fundamental dari paket "image".
+*  https://golang-id.org/ref/spec[Spesifikasi Bahasa Pemrograman Go]
+   (rintisan).
+
+
+==  2019.06
+
+Daftar terjemahan yang telah dilakukan,
+
+*  https://golang-id.org/ref/spec[Spesifikasi Bahasa Pemrograman Go]
+   (rintisan).
+
+
+==  2019.05
+
+Daftar terjemahan yang telah dilakukan,
+
+*  https://golang-id.org/doc/diagnostics.html[Diagnostik], berisi
+   ringkasan perkakas dan metodologi untuk mendiagnosis permasalahan dalam
+   program Go.
+*  https://golang-id.org/doc/faq[Tanya Jawab], berisi jawaban dari
+   pertanyaan yang sering diajukan tentang Go.
+
+
+Daftar halaman tambahan,
+
+*  https://golang-id.org/wicara[Wicara], halaman ini berisi _podcast_ dan
+   video tentang Go yang dibawakan oleh komunitas Go Indonesia.
+
+
+==  2019.04
+
+Daftar terjemahan yang telah dilakukan,
+
+*  https://golang-id.org/doc/code.html[Cara menulis kode Go], halaman
+   yang menjelaskan cara menulis kode Go bagi pemula.
+*  https://golang-id.org/doc/install[Memasang dari Awal], menjelaskan
+   cara memasang Go.
+*  https://golang-id.org/doc/editors.html[Plugin untuk editor dan IDE],
+   berisi daftar _plugin_ yang tersedia untuk editor dan IDE yang terkenal.
+*  https://golang-id.org/doc/effective_go.html[Efektif Go], berisi
+   dokumen yang memberikan petunjuk untuk menulis kode Go yang bersih dan
+   idiomatis.
+
+Daftar halaman tambahan,
+
+*  link:https://golang-id.org/berkontribusi.html[Cara berkontribusi] yaitu
+   halaman yang menjelaskan cara berkontribusi pada situs golang-id.org
