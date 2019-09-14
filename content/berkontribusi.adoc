@@ -31,13 +31,6 @@ bagian:
 
 ** https://golang.org/doc/install/gccgo => /doc/install/gccgo/index.adoc
 
-*  Belajar Go
-
-* Artikel
-
-**  https://golang.org/doc/articles/defer_panic_recover.html =>
-/doc/articles/defer_panic_recover.adoc
-
 *  Wiki
 
 ** https://github.com/golang/go/wiki/Modules => /wiki/Modules/index.adoc
