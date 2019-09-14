@@ -16,5 +16,9 @@ build: generate
 serve: generate
 	DEBUG=1 go run ./cmd/golangid
 
-deploy: build
+deploy: build-deploy
 	rsync --progress ./golangid gcp-webserver:~/bin/
+
+build-deploy: generate
+	unset CGO_ENABLED; \
+	GOOS=linux GOARCH=amd64 go build ./cmd/golangid
