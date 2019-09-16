@@ -1,0 +1,138 @@
+=  Mengorganisasi Kode Go
+:author: Andrew Gerrand
+:date: 16 Agustus 2012
+:stylesheet: /assets/style.css
+
+====  Pendahuluan
+
+Kode Go diorganisasi secara berbeda dengan bahasa pemrograman lainnya.
+Artikel ini mendiskusikan bagaimana cara menamakan dan membuat paket dari
+elemen-elemen program Go untuk melayani pengguna.
+
+
+====  Pilih nama yang bagus
+
+Nama yang kita pilih memengaruhi bagaimana cara kita berpikir tentang kode
+kita, jadi perhatikanlah penamaan paket dan pengidentifikasi yang diekspor.
+
+Nama dari paket menyediakan konteks bagi isinya.
+Misalnya,
+https://golang.org/pkg/bytes/[paket bytes]
+pada pustaka standar mengekspor tipe `Buffer`.
+Tanpa ada nama paket, nama `Buffer` itu sendiri tidak begitu deskriptif, namun
+saat digabungkan dengan nama paket maknanya menjadi jelas: `bytes.Buffer`.
+Jika sebuah paket memiliki nama yang kurang deskriptif, seperti `util`, maka
+_buffer_ akan memperoleh nama yang lebih panjang dan canggung
+`util.BytesBuffer`.
+
+Jangan segan untuk mengganti nama saat bekerja.
+Saat kita menghabiskan waktu dengan membuat program, kita akan memahami
+bagaimana bagian-bagian tersebut saling terhubung dan, oleh karena itu,
+bagaimana nama mereka seharusnya.
+Tidak perlu membatasi diri kita sendiri pada saat awal-awal.
+(https://golang.org/cmd/gofmt/[Perintah `gofmt`] memiliki opsi `-r` yang
+menyediakan pencarian dan penggantian secara sintaksis, membuat perubahan
+dalam skala besar menjadi mudah.)
+
+Nama yang bagus adalah bagian paling penting dari sebuah antarmuka perangkat
+lunak: nama adalah hal pertama yang dilihat oleh setiap klien dari kode kita.
+Nama yang dipilih dengan bagus merupakan titik awal untuk dokumentasi yang
+bagus.
+Banyak praktis berikut dihasilkan secara alami dari penamaan yang bagus.
+
+
+====  Pilih path impor yang bagus (buat paket supaya bisa di "go get")
+
+Sebuah path impor yaitu string untuk user mengimpor sebuah paket.
+Ia menentukan direktori (relatif terhadap `$GOROOT/src/pkg` atau
+`$GOPATH/src`) tempat sumber kode paket disimpan.
+
+Path dari impor secara global harus unik, jadi gunakan path dari sumber
+repositori sebagai dasarnya.
+Misalnya, paket `websocket` dari sub-repositori `go.net` memiliki path impor
+"golang.org/x/net/websocket".
+Proyek Go menguasai path "github.com/golang", sehingga path tersebut tidak
+bisa digunakan oleh pengembang lain untuk paket yang berbeda.
+Secara URL repositori dan path impor adalah satu dan sama, maka perintah
+`go get` dapat mengambil dan memasang paket secara otomatis.
+
+Jika kita tidak menggunakan repositori sumber yang disimpan diinternet,
+pilihlah prefiks yang unik seperti nama domain, perusahaan, atau proyek.
+Sebagai contohnya, path impor dari semua kode Go internal di Google dimulai
+dengan string "google".
+
+Elemen terakhir dari path impor biasanya sama dengan nama paket.
+Misalnya, path impor "net/http" berisi paket `http`.
+Hal ini bukanlah keharusan - kita bisa membuatnya berbeda jika ingin -
+namun sebaiknya kita harus mengikuti konvensi demi kemudahan diprediksi:
+pengguna akan terkejut bila impor "foo/bar" ternyata memiliki nama paket
+`quux`.
+
+Terkadang orang menset `GOPATH` ke akar dari repositori sumber dan menaruh
+paket-paket mereka dalam direktori relatif terhadap repositori akar, seperti
+"src/my/package".
+Di satu sisi, hal ini membuat path impor singkat ("my/package" bukan
+"github.com/me/project/my/package"), namun bagi orang lain hal ini akan
+merusak `go get` dan memaksa pengguna untuk menset ulang `GOPATH` mereka
+supaya dapat menggunakan paket tersebut.
+Jangan lakukan hal seperti ini.
+
+
+====  Kurangi mengekspor interface
+
+Kode kita kemungkinan terdiri dari bagian-bagian kecil kode yang berguna, dan
+sangat menggoda untuk mengekspos hampir semua fungsionalitas dalam interface
+paket yang diekspor.
+Tahan godaan tersebut!
+
+Semakin besar interface yang kita sediakan, semakin banyak yang harus kita
+dukung.
+Pengguna akan semakin bergantung pada setiap tipe, fungsi, variabel, dan
+konstanta yang kita ekspor, membuat kontrak implisit yang harus dipatuhi demi
+keberlangsungan atau risiko mengganggu pengguna program kita.
+Dalam menyiapkan Go 1 kami secara berhati-hati mengkaji interface yang
+diekspor pada pustaka standar dan menghapus bagian yang kita tidak siap untuk
+didukung.
+Kita juga harus memperhatikan hal yang sama saat mendistribusikan
+pustaka-pustaka kita sendiri.
+
+Jika ragu, tinggalkan seperti sedianya!
+
+
+====  Apa yang ditaruh dalam sebuah paket
+
+Sangat mudah menaruh semua hal dalam paket "util", namun hal ini mengaburkan
+makna dari nama paket (karena ia harus menampung banyak fungsionalitas) dan
+memaksa pengguna yang memakai sebagian kecil dari paket untuk mengompilasi
+dan _link_ banyak kode yang tidak berhubungan.
+
+Di sisi lain, juga sangat mudah memecah kode menjadi paket-paket kecil,
+sehingga kita menghabiskan waktu dalam merancang interface, bukannya
+menyelesaikan pekerjaan dengan cepat.
+
+Lihatlah pustaka standar Go sebagai panduan.
+Beberapa dari paketnya sangat besar dan beberapa sangat kecil.
+Misalnya,
+https://golang.org/pkg/net/http/[paket http]
+terdiri dari 17 berkas Go (tidak termasuk tes) dan mengekspor 109
+pengidentifikasi, dan
+https://golang.org/pkg/hash/[paket hash]
+terdiri dari satu berkas yang mengekspor hanya tiga deklarasi.
+Tidak ada aturan yang cepat dan baku, kedua pendekatan tersebut sesuai dengan
+konteksnya.
+
+Maka dari itu, paket `main` terkadang lebih besar dari paket-paket lainnya.
+Perintah-perintah yang kompleks mengandung banyak kode yang sedikit gunanya
+di luar konteks dari _executable_, dan terkadang lebih simpel menyimpan
+semuanya di satu tempat.
+Misalnya, perkakas go lebih dari 12000 baris yang tersebar dalam
+https://golang.org/src/cmd/go/[34 berkas].
+
+
+====  Dokumentasikan kode kita
+
+Dokumentasi yang bagus adalah kualitas yang penting untuk kode yang berguna
+dan mudah dipelihara.
+Bacalah artikel
+link:/blog/godoc_documenting_go_code[Godoc: mendokumentasikan kode Go]
+untuk belajar bagaimana menulis dokumentasi kode yang bagus.
