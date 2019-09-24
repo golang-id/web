@@ -1,7 +1,6 @@
 =  JSON dan Go
 :author: Andrew Gerrand
 :date: 25 Januari 2011
-:stylesheet: /assets/style.css
 :package-json: https://golang.org/pkg/encoding/json
 
 ==  Pendahuluan

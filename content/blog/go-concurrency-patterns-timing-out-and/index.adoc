@@ -1,7 +1,6 @@
 =  Pola konkurensi Go: pewaktuan dan terus berjalan
 :author: Andrew Gerrand
 :date: 23 September 2010
-:stylesheet: /assets/style.css
 
 Pemrograman konkuren memiliki idiom tersendiri.
 Salah satu contoh idiom tersebut yaitu penggunaan pewaktuan (_timeout_).

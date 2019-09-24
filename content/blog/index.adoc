@@ -1,5 +1,4 @@
 =  Blog
-:stylesheet: /assets/style.css
 
 
 ==  Bahasa

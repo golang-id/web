@@ -1,7 +1,6 @@
 =  Defer, Panic, dan Recover
 :author: Andrew Gerrand
 :date: 4 Agustus 2010
-:stylesheet: /assets/style.css
 
 Go memiliki mekanisme umum untuk alur kontrol: `if`, `for`, `switch`, dan
 `goto`.

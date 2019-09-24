@@ -1,5 +1,4 @@
 =  Selamat Datang
-:stylesheet: /assets/style.css
 
 Selamat datang di situs komunitas bahasa pemrograman Go Indonesia.
 

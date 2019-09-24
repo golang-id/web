@@ -1,5 +1,4 @@
 =  Tanya Jawab
-:stylesheet: /assets/style.css
 :toc:
 :talks-go-at-google: https://talks.golang.org/2012/splash.article
 

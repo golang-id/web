@@ -1,5 +1,4 @@
 =  Efektif Go
-:stylesheet: /assets/style.css
 :sectanchors:
 :toc:
 :en-ref-spec: https://golang.org/ref/spec

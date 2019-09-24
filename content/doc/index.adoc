@@ -1,5 +1,4 @@
 =  Dokumentasi
-:stylesheet: /assets/style.css
 :en-cmd-go: https://golang.org/cmd/go/
 
 Bahasa pemrograman Go adalah proyek _open source_ untuk menjadikan pemrograman

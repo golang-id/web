@@ -1,7 +1,6 @@
 =  Slice pada Go: penggunaan dan internal
 :author: Andrew Gerrand
 :date: 5 Januari 2011
-:stylesheet: /assets/style.css
 
 
 ==  Pendahuluan

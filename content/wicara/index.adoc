@@ -1,5 +1,4 @@
 =  Wicara
-:stylesheet: /assets/style.css
 :toc:
 
 ==  [GoJKT] Implementasi MapReduce

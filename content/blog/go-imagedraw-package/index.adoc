@@ -1,7 +1,6 @@
 =  Paket image/draw pada Go
 :author: Nigel Tao
 :date: 29 September 2011
-:stylesheet: /assets/style.css
 :toc:
 
 Catatan: blog ini membutuhkan pengetahuan dasar tentang konsep dan model

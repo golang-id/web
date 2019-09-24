@@ -1,5 +1,4 @@
 =  Diagnostik
-:stylesheet: /assets/style.css
 :toc:
 :link-google-pprof: https://github.com/google/pprof/blob/master/doc/README.md
 :blog-profiling-go-programs: https://blog.golang.org/profiling-go-programs

@@ -1,5 +1,4 @@
 =  Memulai dari Awal
-:stylesheet: /assets/style.css
 :go-dl: https://golang.org/dl
 :golang-doc-install-source: https://golang.org/doc/install/source
 :golang-doc-install-gccgo: https://golang.org/doc/install/gccgo

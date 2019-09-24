@@ -1,5 +1,4 @@
 =  Spesifikasi Bahasa Pemrograman Go
-:stylesheet: /assets/style.css
 :toc:
 
 ==  Versi 2018 November 16

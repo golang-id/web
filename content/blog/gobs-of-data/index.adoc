@@ -1,7 +1,6 @@
 =  Gob dari data
 :author: Rob Pike
 :date: 24 Maret 2011
-:stylesheet: /assets/style.css
 :toc:
 
 

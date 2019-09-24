@@ -1,5 +1,4 @@
 =  Dekoder GIF: latihan interface pada Go
-:stylesheet: /assets/style.css
 :author: Rob Pike
 :date: 25 Mei 2011
 

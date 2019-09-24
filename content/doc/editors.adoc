@@ -1,5 +1,4 @@
 =  Plugin untuk editor dan IDE
-:stylesheet: /assets/style.css
 :en-wiki-ides: https://golang.org/wiki/IDEsAndTextEditorPlugins
 
 [#introduction]

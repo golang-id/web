@@ -1,7 +1,7 @@
 =  Mengorganisasi Kode Go
 :author: Andrew Gerrand
 :date: 16 Agustus 2012
-:stylesheet: /assets/style.css
+
 
 ====  Pendahuluan
 

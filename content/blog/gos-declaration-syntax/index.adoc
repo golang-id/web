@@ -1,5 +1,4 @@
 =  Sintaksis deklarasi pada Go
-:stylesheet: /assets/style.css
 :author: Rob Pike
 :date: 7 July 2010
 

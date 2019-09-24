@@ -1,5 +1,4 @@
 =  Cara menulis kode Go
-:stylesheet: /assets/style.css
 :toc:
 :en-go-tool: https://golang.org/cmd/go/
 :en-gopath: https://golang.org/cmd/go/#hdr-GOPATH_environment_variable

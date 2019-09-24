@@ -1,7 +1,7 @@
 =  Penanganan kesalahan dan Go
 :author: Andrew Gerrand
 :date: 12 Juli 2011
-:stylesheet: /assets/style.css
+
 
 ===  Pendahuluan
 
