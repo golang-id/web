@@ -116,7 +116,6 @@ dd {
 	font-size: 1.25rem;
 	font-weight: normal;
 }
-
 .topbar .top-heading {
 	float: left;
 }
@@ -141,6 +140,10 @@ dd {
 	border: 0.0625rem solid #007d9c;
 	border-radius: 5px;
 }
+.topbar .menu form {
+	display: inline-block;
+}
+
 .page {
 	width: 100%;
 }

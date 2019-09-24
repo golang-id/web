@@ -8,6 +8,10 @@ Daftar terjemahan yang telah dilakukan,
 
 *  https://golang-id.org/blog/organizing-go-code[Mengorganisasi kode Go]
 
+===  Fitur
+
+*  Implementasi pencarian sederhana
+
 
 ==  2019.08
 
