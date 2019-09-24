@@ -3986,3 +3986,319 @@ Tanda kurung secara eksplisit mempengaruhi evaluasi dengan menimpa asosiatif
 baku.
 Dalam ekspresi `x+(y+z)` penambahan `y+z` dilakukan sebelum menambahkan
 dengan `x`.
+
+
+==  Perintah
+
+Perintah-perintah mengontrol eksekusi.
+
+----
+Statement =
+	Declaration | LabeledStmt | SimpleStmt |
+	GoStmt | ReturnStmt | BreakStmt | ContinueStmt | GotoStmt |
+	FallthroughStmt | Block | IfStmt | SwitchStmt | SelectStmt | ForStmt |
+	DeferStmt .
+
+SimpleStmt = EmptyStmt | ExpressionStmt | SendStmt | IncDecStmt | Assignment | ShortVarDecl .
+----
+
+
+[#Terminating_statements]
+===  Perintah penghenti
+
+Sebuah _perintah penghenti_ mencegah eksekusi dari semua perintah-perintah
+yang secara leksikal muncul setelah _perintah penghenti_ dalam <<Blocks,blok>>
+yang sama.
+Perintah-perintah berikut adalah penghenti:
+
+.  Sebuah perintah <<Return_statements,"return">> atau
+   <<Goto_statements,"goto">>
+.  Sebuah pemanggilan ke fungsi bawaan <<Handling_panic, panic>>
+.  Sebuah <<Blocks,blok>> yang mana daftar perintahnya berakhir dengan
+   perintah penghenti.
+.  Sebuah <<If_statements, perintah "if">> yang mana:
+..  cabang "else" ada, dan
+..  kedua cabang adalah perintah penghenti.
+.  Sebuah <<For_statements, perintah "for">> yang mana:
+..  tidak ada perintah "break" yang mengacu ke perintah "for", dan
+..  kondisi pengulangan tidak ada.
+.  Sebuah <<Switch_statements, perintah "switch">> yang mana:
+..  tidak ada perintah "break" yang mengacu ke perintah "switch",
+..  ada pilihan "default", dan
+..  daftar perintah di setiap pilihan, termasuk "default", berakhir dengan
+    sebuah perintah penghenti, atau bisa saja memiliki label
+    <<Fallthrough_statements,perintah "fallthrough">>.
+.  Sebuah <<Select_statements, perintah "select">> yang mana:
+..  tidak ada perintah "break" yang mengacu ke perintah "select", dan
+..  daftar perintah di setiap pilihan, termasuk "default" jika ada, berakhir
+    dengan perintah penghenti.
+.  Sebuah <<Labeled_statements,perintah berlabel>> yang melabelkan perintah
+   penghentian.
+
+Semua perintah selain itu bukanlah penghenti.
+
+Sebuah <<Blocks,daftar perintah>> berakhir dalam sebuah perintah penghenti
+jika daftar tersebut tidak kosong dan perintah terakhirnya adalah penghenti.
+
+
+[#Empty_statements]
+===  Perintah kosong
+
+Perintah kosong tidak melakukan apa pun.
+
+----
+EmptyStmt = .
+----
+
+
+[#Labeled_statements]
+===  Perintah berlabel
+
+Sebuah perintah berlabel bisa menjadi target dari sebuah perintah `goto`,
+`break`, atau `continue`.
+
+----
+LabeledStmt = Label ":" Statement .
+Label       = identifier .
+----
+
+----
+Error: log.Panic("error encountered")
+----
+
+
+[#Expression_statements]
+===  Perintah ekspresi
+
+Dengan pengecualian dari fungsi bawaan khusus, <<Calls,pemanggilan>> fungsi
+dan method dan <<Receive_operator, operasi menerima>> dapat muncul dalam
+konteks perintah.
+Perintah-perintah tersebut bisa diberi tanda kurung.
+
+----
+ExpressionStmt = Expression .
+----
+
+Fungsi-fungsi bawaan berikut tidak dibolehkan dalam konteks perintah:
+
+----
+append cap complex imag len make new real
+unsafe.Alignof unsafe.Offsetof unsafe.Sizeof
+----
+
+----
+h(x+y)
+f.Close()
+<-ch
+(<-ch)
+len("foo")  // ilegal jika len adalah fungsi bawaan
+----
+
+
+[#Send_statements]
+===  Perintah kirim
+
+Sebuah perintah kirim mengirim sebuah nilai ke sebuah channel.
+Ekspresi channel haruslah <<Channel_types, bertipe channel>>, arah channel
+haruslah membolehkan operasi kirim, dan tipe dari nilai yang akan dikirim
+haruslah <<Assignability, bisa disimpan>> ke tipe elemen dari channel.
+
+----
+SendStmt = Channel "<-" Expression .
+Channel  = Expression .
+----
+
+Kedua ekspresi channel dan nilai dievaluasi sebelum komunikasi dimulai.
+Komunikasi akan ditahan sampai pengirim dan dilanjutkan.
+Sebuah pengiriman pada channel tanpa buffer dapat dilanjutkan jika sebuah
+penerima telah sedia.
+Sebuah pengiriman ke channel dengan buffer dapat dilanjutkan selama ada ruang
+dalam buffer.
+Sebuah pengiriman ke channel yang telah ditutup dilanjutkan dengan
+mengakibatkan <<Run_time_panics, panik runtime>>.
+Sebuah pengiriman terhadap channel yang `nil` akan ditahan selamanya.
+
+----
+ch <- 3  // kirim nilai 3 ke channel ch
+----
+
+
+[#IncDec_statements]
+===  Perintah IncDec
+
+Perintah "++" dan "--" menambah dan mengurangi operannya dengan
+<<Constants,konstanta>> tanpa tipe 1.
+Seperti halnya penempatan, operan tersebut haruslah
+<<Address_operators,beralamat>> atau ekspresi indeks dari sebuah map.
+
+----
+IncDecStmt = Expression ( "++" | "--" ) .
+----
+
+<<Assignments,perintah penempatan>> berikut secara semantik sama:
+
+----
+Perintah IncDec     Assignment
+x++                 x += 1
+x--                 x -= 1
+----
+
+
+[#Assignment]
+===  Penempatan
+
+----
+Assignment = ExpressionList assign_op ExpressionList .
+
+assign_op = [ add_op | mul_op ] "=" .
+----
+
+Setiap operan sisi kiri haruslah <<Address_operators,beralamat>>, sebuah
+ekspresi indeks dari sebuah map, atau (hanya untuk penempatan =)
+<<Blank_identifier,pengidentifikasi kosong>>.
+Operan-operan bisa diberi tanda kurung.
+
+----
+x = 1
+*p = f()
+a[i] = 23
+(k) = <-ch  // sama dengan: k = <-ch
+----
+
+Sebuah _operasi penempatan_ x op= y yang mana _op_ yaitu
+<<Arithmetic_operators,operator aritmetika>> binari yaitu sama dengan
+`x = x` _op_ `(y)` namun hanya mengevaluasi `x` sekali saja.
+Konstruksi _op=_ yaitu sebuah token tunggal.
+Dalam operasi penempatan, kedua daftar ekspresi kiri dan kanan haruslah berisi
+ekspresi tunggal dengan nilai, dan ekspresi bagian kiri haruslah bukan
+pengidentifikasi kosong.
+
+----
+a[i] <<= 2
+i &^= 1<<n
+----
+
+Penempatan tuple memberi setiap individu elemen dari sebuah operasi
+multi-nilai ke sebuah daftar variabel.
+Ada dua bentuk.
+Bentuk pertama, operan bagian kanan yaitu ekspresi multi-nilai seperti
+pemanggilan fungsi, operasi <<Channel_types, channel>> atau <<Map_types,map>>,
+atau sebuah <<Type_assertions,tipe asersi>>.
+Jumlah operan pada sisi kiri harus sesuai dengan jumlah nilai.
+Misalnya, jika `f` adalah sebuah fungsi yang mengembalikan dua nilai,
+
+----
+x, y = f()
+----
+
+menempatkan nilai pertama ke `x` dan yang kedua ke `y`.
+Dalam bentuk kedua, jumlah operan pada sisi kiri haruslah sama dengan jumlah
+ekspresi di sisi kanan, setiap-tiapnya haruslah bernilai tunggal, dan ekspresi
+ke-n di sisi kanan ditempatkan ke operan ke-n di sisi kiri:
+
+----
+one, two, three = '一', '二', '三'
+----
+
+<<Blank_identifier,Pengidentifikasi kosong>> menyediakan cara untuk
+mengindahkan nilai di sisi kanan dalam sebuah penempatan:
+
+----
+_ = x       // mengevaluasi x namun mengindahkan nilainya
+x, _ = f()  // mengevaluasi f() namun mengindahkan nilai kembalian kedua
+----
+
+Penempatan diproses dengan dua fase.
+Pertama, operan dari <<Index_expressions,ekspresi indeks>> dan
+<<Address_operators,pembalikan pointer>> (termasuk pembalikan pointer implisit
+dalam <<Selectors,selector>>) pada sisi kiri dan ekspresi di sisi kanan
+<<Order_of_evaluation,dievaluasi dengan urutan yang biasa>>.
+Kedua, penempatan dilakukan dengan urutan kiri-ke-kanan.
+
+----
+a, b = b, a  // tukar nilai a dan b
+
+x := []int{1, 2, 3}
+i := 0
+i, x[i] = 1, 2  // set i = 1, x[0] = 2
+
+i = 0
+x[i], i = 2, 1  // set x[0] = 2, i = 1
+
+x[0], x[0] = 1, 2  // set x[0] = 1, kemudian x[0] = 2 (sehingga x[0] == 2)
+
+x[1], x[3] = 4, 5  // set x[1] = 4, kemudian panic saat menset x[3] = 5.
+
+type Point struct { x, y int }
+var p *Point
+x[2], p.x = 6, 7  // set x[2] = 6, kemudian panic menset p.x = 7
+
+i = 2
+x = []int{3, 5, 7}
+for i, x[i] = range x {  // set i, x[2] = 0, x[0]
+	break
+}
+// setelah pengulangan, i == 0 and x == []int{3, 5, 3}
+----
+
+Dalam penempatan, setiap nilai haruslah <<Assignability,dapat ditempatkan>> ke
+tipe dari operan yang mana ia ditempatkan, dengan kasus-kasus khusus berikut:
+
+.  Setiap nilai bertipe bisa ditempatkan ke pengidentifikasi kosong.
+.  Jika konstanta tak bertipe ditempatkan ke sebuah variabel bertipe interface
+   atau pengidentifikasi kosong, maka konstanta tersebut secara implisit
+   <<Conversion,dikonversi>> ke <<Constants,tipe defaultnya>>.
+.  Jika nilai boolean tak bertipe ditempatkan ke sebuah variabel bertipe
+   interface atau pengidentifikasi kosong, maka pertama ia dikonversi secara
+   implisit ke tipe `bool`.
+
+
+[#If_statements]
+===  Perintah If
+
+Perintah "if" menentukan kondisi eksekusi dari dua cabang menurut nilai dari
+sebuah ekspresi boolean.
+Jika evaluasi ekspresi bernilai `true`, maka cabang "if" yang dieksekusi,
+sebaliknya, jika ada, cabang "else" yang dieksekusi.
+
+----
+IfStmt = "if" [ SimpleStmt ";" ] Expression Block [ "else" ( IfStmt | Block ) ] .
+----
+
+----
+if x > max {
+	x = max
+}
+----
+
+Ekspresi tersebut bisa didahului oleh perintah sederhana, yang dieksekusi
+sebelum ekspresi dievaluasi.
+
+----
+if x := f(); x < y {
+	return x
+} else if x > z {
+	return z
+} else {
+	return y
+}
+----
+
+
+[#Switch_statements]
+===  Perintah switch
+
+Perintah "switch" menyediakan eksekusi multi-cabang.
+Sebuah ekspresi atau spesifikasi tipe dibandingkan dengan setiap "case" dalam
+"switch" untuk menentukan cabang mana yang akan dieksekusi.
+
+----
+SwitchStmt = ExprSwitchStmt | TypeSwitchStmt .
+----
+
+Ada dua bentuk: switch dengan ekspresi dan switch dengan tipe.
+Pada switch dengan ekspresi, bagian "case" berisi ekspresi yang dibandingkan
+dengan nilai dari ekspresi switch.
+Pada switch dengan tipe, bagian "case" berisi tipe-tipe yang dibandingkan
+dengan tipe dari ekspresi switch.
+Ekspresi switch dievaluasi sekali dalam sebuah perintah switch.
