@@ -1,0 +1,281 @@
+=  Tentang Perintah Go
+:toc:
+
+Distribusi Go mengikutkan sebuah perintah, bernama
+link:/cmd/go/["go"],
+yang mengotomasi pengunduhan, pembangunan, pemasangan, dan pengujian dari
+paket-paket dan perintah-perintah Go.
+Dokumen ini membahas tentang kenapa kita menulis sebuah perintah baru, bentuk
+perintah tersebut, apa yang tidak bisa dilakukan perintah tersebut, dan
+bagaimana cara menggunakannya.
+
+
+==  Motivasi
+
+Anda mungkin pernah melihat wicara awal tentang Go yang mana Rob Pike bercanda
+bahwa ide dari Go muncul saat menunggu kompilasi dari sebuah program server
+yang besar untuk Google.
+Hal ini adalah motivasi dari Go: untuk membangun sebuah bahasa pemrograman
+yang bekerja baik untuk membangun perangkat lunak yang besar yang dibuat dan
+dijalankan oleh Google.
+Sangat jelas dari awal bahwa bahasa tersebut harus menyediakan sebuah cara
+untuk mengekspresikan dependensi antara pustaka-pustaka kode secara jelas,
+oleh karena itu perlu adanya pengelompokan paket dan blok impor yang
+eksplisit.
+Dan juga cukup jelas dari awal bahwa Anda mungkin ingin sintaksis yang dinamis
+untuk mendeskripsikan kode yang sedang diimpor;
+inilah kenapa path impor merupakan sebuah literal string.
+
+Tujuan eksplisit dari Go sejak mulanya adalah untuk mampu membangun kode
+dengan hanya menggunakan informasi yang ditemukan di dalam sumber kode itu
+sendiri, tidak perlu menulis sebuah _makefile_ atau salah satu pengganti
+terbaru dari _makefile_.
+Jika Go membutuhkan sebuah berkas konfigurasi untuk menjelaskan bagaimana
+membangun sebuah program, maka Go telah gagal.
+
+Pada awalnya, tidak ada _compiler_ Go, dan pengembangan awal berfokus pada
+pembangunan _compiler_ dan membangun pustaka-pustaka untuk digunakan.
+Demi kenyamanan, kami menunda otomatisasi pembangunan kode Go dengan
+menggunakan `make` dan menulis berkas _makefile_.
+Saat mengompilasi sebuah paket yang mengikutkan beragam pemanggilan _compiler_
+Go, kami bahkan menggunakan sebuah program untuk menulis _makefile_.
+Anda akan menemukan _makefile_ tersebut jika menggali sejarah repositori Go.
+
+Tujuan dari perintah go yang baru adalah untuk kembali ke idealisme ini;
+bahwa program Go seharusnya bisa di _compile_ tanpa perlu konfigurasi atau
+usaha tambahan di sisi pengembang selain menulis perintah-perintah impor yang
+diperlukan.
+
+
+==  Konfigurasi lawan konvensi
+
+Salah satu cara untuk mencapai kesederhanaan dari sistem yang bebas
+konfigurasi yaitu membentuk konvensi.
+Sistem akan bekerja hanya selama konvensi-konvensi tersebut diikuti.
+Saat kami meluncurkan Go pertama kali, banyak orang menerbitkan paket-paket
+yang harus dipasang di tempat tertentu, dengan nama tertentu, menggunakan
+perkakas tertentu, supaya dapat digunakan.
+Hal ini dapat dipahami: karena begitulah cara kerja pada umumnya pada bahasa
+pemrograman lainnya.
+Selama beberapa tahun terakhir kami secara konsisten mengingatkan orang
+tentang perintah `goinstall` (sekarang diganti dengan
+link:/cmd/go/#hdr-Download_and_install_packages_and_dependencies[go get])
+dan konvensi-konvensinya:
+pertama, path impor diturunkan dengan cara yang diketahui dari URL sumber
+kodenya;
+kedua, tempat penyimpanan sumber kode di dalam sistem berkas lokal diturunkan
+dari path impor;
+ketiga, setiap direktori dalam pohon berkas berkorespondensi dengan sebuah
+paket;
+dan keempat, paket dibangun hanya dari informasi dalam sumber kode.
+Sekarang, mayoritas paket mengikuti konvensi-konvensi ini.
+Hasilnya, ekosistem Go lebih sederhana dan lebih kuat.
+
+Kami menerima banyak permintaan untuk membolehkan sebuah _makefile_ dalam
+sebuah direktori paket untuk menyediakan konfigurasi tambahan selain apa yang
+tersedia dalam sumber kode.
+Namun hal ini akan menimbulkan aturan-aturan baru.
+Karena kami tidak mengabulkan permintaan tersebut, kami mampu menulis perintah
+go dan mengeliminasi penggunaan `make` atau sistem pembangun lainnya.
+
+Hal yang penting untuk dipahami bahwa perintah go bukanlah perkakas pembangun
+yang umum.
+Ia tidak bisa dikonfigurasi dan ia tidak membuat apa pun kecuali paket-paket
+Go.
+Hal-hal ini adalah asumsi-asumsi penyederhanaan yang penting: ia
+menyederhanakan tidak hanya implementasi namun juga, lebih penting lagi,
+penggunaan dari perkakas itu sendiri.
+
+
+==  Konvensi dari Go
+
+Perintah `go` membutuhkan kode yang mematuhi beberapa konvensi-konvensi
+penting yang telah terbentuk.
+
+Pertama, path impor diturunkan dari URL sumber kode.
+Untuk Bitbucket, Github, Google Code, dan Launchpad, direktori utama dari
+repositori diidentifikasi oleh URL repositori, tanpa prefiks "http://".
+Sub-sub direktori diberi nama sesuai dengan path.
+Sebagai contohnya, contoh program Go dapat diambil dengan menjalankan
+
+----
+git clone https://github.com/golang/example
+----
+
+maka path impor dari direktori utama dari repositori itu adalah
+"github.com/golang/example".
+Paket
+https://godoc.org/github.com/golang/example/stringutil[stringutil]
+di simpan dalam sebuah sub direktori, sehingga path impornya adalah
+"github.com/golang/example/stringutil".
+
+Path-path ini cukup panjang, namun kita mendapatkan nama yang secara
+otomatis teratur secara path impor dan kemampuan bagi perkakas seperti
+perintah `go` untuk mencari path impor yang tidak biasa dan memproses di mana
+mendapatkan sumber kodenya.
+
+Kedua, tempat menyimpan sumber kode dalam sistem berkas lokal diturunkan
+dengan cara tertentu dari path impor, khususnya `$GOPATH/src/<import-path>`.
+Jika tidak diset, `$GOPATH` secara bawaan diset ke subdirektori bernama `go`
+di dalam _home_ direktori dari user.
+Jika `$GOPATH` diset ke beberapa path, perintah `go` akan mencoba
+`<dir>/src/<import-path>` untuk setiap direktori dalam daftar tersebut.
+
+Setiap path tersebut mengandung, secara konvensi, sebuah direktori bernama
+"bin", untuk menyimpan hasil kompilasi yang bisa dieksekusi, dan sebuah
+direktori bernama "pkg", untuk menyimpan paket-paket yang telah dikompilasi
+sehingga dapat diimpor, dan direktori "src", untuk menyimpan berkas-berkas
+sumber paket.
+Dengan menggunakan struktur seperti ini membolehkan kita menjaga setiap
+pohon direktori tersebut mandiri: hasil kompilasi dan sumber kode selalu
+saling berdekatan satu sama lain.
+
+Konvensi penamaan ini juga membolehkan kita bekerja dengan arah berlawanan,
+dari sebuah nama direktori ke path impornya.
+Pemetaan ini sangat penting bagi banyak sub perintah `go`, seperti yang akan
+kita bahas nanti.
+
+Ketiga, setiap direktori dalam struktur pohon sumber berkorespondensi dengan
+sebuah paket.
+Dengan membatasi sebuah direktori dengan sebuah paket, kita tidak perlu
+membuat path impor yang bercampuran yang menspesifikasikan direktori dahulu
+dan paket dalam direktori.
+Kebanyakan perkakas manajemen berkas menggunakan direktori sebagai unit-unit
+dasar.
+Dengan mengikat unit fundamental Go -- paket -- ke struktur sistem berkas
+berarti perkakas sistem berkas menjadi perkakas paket Go.
+Menyalin, memindahkan, atau menghapus sebuah paket berkorespondensi dengan
+menyalin, memindahkan, atau menghapus sebuah direktori.
+
+Keempat, setiap paket dibangun menggunakan hanya informasi yang tersedia di
+dalam berkas-berkas sumber.
+Hal ini membuat perkakas lebih mudah beradaptasi terhadap perubahan
+kondisi dan lingkungan pembuatan.
+Sebagai contohnya, jika kita membolehkan konfigurasi tambahan seperti
+flag-flag _compiler_ atau resep baris perintah, maka konfigurasi tersebut
+perlu dibuah setiap kali perkakas pembangun berubah;
+ia juga secara tidak langsung tergantung pada penggunaan _toolchain_ yang
+khusus.
+
+
+==  Belajar menggunakan perintah go
+
+Terakhir, tur singkat tentang bagaimana menggunakan perintah go.
+Seperti yang telah dijelaskan di atas, nilai standar dari `$GOPATH` pada Unix
+adalah `$HOME/go`.
+Kita akan menyimpan program kita di sana.
+Untuk menggunakan lokasi yang berbeda anda dapat menset `$GOPATH`;
+link:/doc/code.html[Cara Menulis Kode Go]
+untuk lebih jelasnya.
+
+Pertama kita tambahkan beberapa sumber kode.
+Misalnya kita ingin menggunakan pustaka pengindeksan dari proyek codesearch
+bersamaan dengan pustaka _red-black tree_.
+Kita dapat memasang keduanya dengan sub perintah "go get":
+
+----
+$ go get github.com/google/codesearch/index
+$ go get github.com/petar/GoLLRB/llrb
+$
+----
+
+Kedua proyek tersebut sekarang telah diunduh dan dipasang ke dalam `$HOME/go`,
+yang berisi dua direktori `src/github.com/google/codesearch/index` dan
+`src/github.com/petar/GoLLRB/llrb/`, bersama dengan paket-paket yang telah
+dikompilasi (dalam `pkg/`) untuk kedua pustaka dan dependensinya.
+
+Karena kita menggunakan sistem kontrol versi (Mercurial dan Git) untuk
+mengambil sumber, maka sumber kode juga berisi berkas-berkas lain dalam
+repositori-repositori tersebut.
+Sub perintah "go list" menampilkan path impor yang berkorespondensi dengan
+argumennya, and pola "./..." berarti mulai dari direktori sekarang ("./") dan
+cari semua paket di bawah direktori tersebut ("..."):
+
+----
+$ cd $HOME/go/src
+$ go list ./...
+github.com/google/codesearch/cmd/cgrep
+github.com/google/codesearch/cmd/cindex
+github.com/google/codesearch/cmd/csearch
+github.com/google/codesearch/index
+github.com/google/codesearch/regexp
+github.com/google/codesearch/sparse
+github.com/petar/GoLLRB/example
+github.com/petar/GoLLRB/llrb
+$
+----
+
+Kita juga bisa menguji paket-paket tersebut:
+
+----
+$ go test ./...
+?   	github.com/google/codesearch/cmd/cgrep	[no test files]
+?   	github.com/google/codesearch/cmd/cindex	[no test files]
+?   	github.com/google/codesearch/cmd/csearch	[no test files]
+ok  	github.com/google/codesearch/index	0.203s
+ok  	github.com/google/codesearch/regexp	0.017s
+?   	github.com/google/codesearch/sparse	[no test files]
+?       github.com/petar/GoLLRB/example          [no test files]
+ok      github.com/petar/GoLLRB/llrb             0.231s
+$
+----
+
+Jika sebuah sub perintah go dipanggil tanpa path, ia beroperasi pada direktori
+sekarang:
+
+----
+$ cd github.com/google/codesearch/regexp
+$ go list
+github.com/google/codesearch/regexp
+$ go test -v
+=== RUN   TestNstateEnc
+--- PASS: TestNstateEnc (0.00s)
+=== RUN   TestMatch
+--- PASS: TestMatch (0.00s)
+=== RUN   TestGrep
+--- PASS: TestGrep (0.00s)
+PASS
+ok  	github.com/google/codesearch/regexp	0.018s
+$ go install
+$
+----
+
+Sub perintah "go install" memasang salinan terbaru dari paket ke dalam
+direktori `pkg/`.
+Karena perintah `go` dapat menganalisis grafik dependensi, "go install" juga
+memasang semua paket-paket yang diimpor oleh paket yang telah usang, secara
+rekursif.
+
+Perhatikan bahwa "go install" bisa menentukan nama path impor dari paket dalam
+direktori yang sekarang, karena konvensi dari penamaan direktori.
+Akan lebih mudah bila kita dapat mengambil nama direktori tempat kita
+menyimpan sumber kode, dan mungkin kita tidak perlu nama yang panjang, namun
+kemampuan tersebut akan membutuhkan konfigurasi dan kompleksitas tambahan bagi
+perkakas.
+Menulis satu atau dua buah nama direktori adalah harga yang harus dibayar demi
+meningkatkan kesederhanaan dan kekuatan.
+
+
+==  Batasan
+
+Seperti yang telah disebutkan juga di atas, perintah `go` bukanlah perkakas
+pembangun yang umum.
+Ia tidak memiliki fasilitas untuk menghasilkan berkas sumber Go _selama_
+pembangunan, walaupun ia menyediakan
+link:/cmd/go/#hdr-Generate_Go_files_by_processing_source[go generate],
+yang dapat mengotomasi pembuatan berkas Go _sebelum_ dibangun.
+Untuk pembangunan lebih lanjut, Anda mungkin perlu menulis sebuah _makefile_
+(atau berkas konfigurasi untuk perkakas pembangun yang Anda pilih) untuk
+menjalankan perkakas apa pun yang membuat berkas-berkas Go dan mengambil
+berkas-berkas tersebut ke dalam repositori Anda.
+Hal ini berarti lebih banyak kerja bagi Anda, penulis paket, namun secara
+signifikan sedikit kerja bagi pengguna paket Anda, yang dapat menggunakan "go
+get" tanpa perlu mendapatkan dan membangun perkakas tambahan.
+
+
+==  Informasi lebih lanjut
+
+Untuk informasi lebih lanjut, baca
+link:/doc/code.html[Cara Menulis Kode Go]
+dan lihat
+link:/cmd/go/[perintah go].

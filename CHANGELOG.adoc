@@ -6,6 +6,7 @@ Dokumen ini mencatat perubahan dari hasil pengembangan situs golang-id.org.
 
 Daftar terjemahan yang telah dilakukan,
 
+*  https://golang-id.org/doc/articles/go_command.html[Tentang Perintah Go]
 *  https://golang-id.org/blog/organizing-go-code[Mengorganisasi kode Go]
 
 ===  Fitur

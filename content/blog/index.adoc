@@ -32,3 +32,9 @@
 *  link:/blog/go-imagedraw-package/[Paket image/draw pada Go] - fundamental
    dari paket
    https://golang.org/pkg/image/draw/[image/draw].
+
+
+==  Perkakas
+
+*  link:/doc/articles/go_command.html[Tentang Perintah Go] - kenapa kita
+   membuatnya, apa saja kegunaannya, dan bagaimana menggunakannya.
