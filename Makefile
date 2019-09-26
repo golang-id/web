@@ -1,6 +1,6 @@
 .PHONY: clean all generate build deploy
 
-all: build
+all: install
 
 clean:
 	go clean -i ./cmd/golangid
@@ -12,6 +12,9 @@ generate:
 
 build: generate
 	go build ./cmd/golangid
+
+install: generate
+	go install ./cmd/golangid
 
 serve: generate
 	DEBUG=1 go run ./cmd/golangid
