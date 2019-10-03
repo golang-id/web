@@ -4006,8 +4006,8 @@ SimpleStmt = EmptyStmt | ExpressionStmt | SendStmt | IncDecStmt | Assignment | S
 [#Terminating_statements]
 ===  Perintah penghenti
 
-Sebuah _perintah penghenti_ mencegah eksekusi dari semua perintah-perintah
-yang secara leksikal muncul setelah _perintah penghenti_ dalam <<Blocks,blok>>
+Sebuah _perintah penghenti_ mencegah eksekusi dari semua perintah
+yang muncul setelah _perintah penghenti_ dalam <<Blocks,blok>>
 yang sama.
 Perintah-perintah berikut adalah penghenti:
 
@@ -4302,3 +4302,1129 @@ dengan nilai dari ekspresi switch.
 Pada switch dengan tipe, bagian "case" berisi tipe-tipe yang dibandingkan
 dengan tipe dari ekspresi switch.
 Ekspresi switch dievaluasi sekali dalam sebuah perintah switch.
+
+
+====  Switch ekspresi
+
+Dalam sebuah switch ekspresi, ekspresi switch dievaluasi dan ekspresi "case",
+yang tidak harus konstan, dievaluasi dari kiri-ke-kanan dan atas-ke-bawah;
+"case" yang pertama kali bernilai sama dengan ekspresi "switch" memulai
+eksekusi dari perintah-perintah yang berasosiasi dengan "case";
+"case" yang lain akan dilewati.
+Jika tidak ada "case" yang sama dan ada sebuah case "default", maka perintah
+pada "default" lah yang akan dieksekusi.
+Paling banyak hanya ada satu case "default" dan ia dapat ditulis dibagian
+manapun dalam perintah "switch".
+Ekspresi "switch" yang kosong sama dengan nilai boolean `true`.
+
+----
+ExprSwitchStmt = "switch" [ SimpleStmt ";" ] [ Expression ] "{" { ExprCaseClause } "}" .
+ExprCaseClause = ExprSwitchCase ":" StatementList .
+ExprSwitchCase = "case" ExpressionList | "default" .
+----
+
+Jika ekspresi "switch" bernilai konstanta tanpa tipe, maka pertama kali secara
+implisit <<Conversions, dikonversi>> ke <<Constants, tipe default>>-nya;
+jika nilainya ada boolean tanpa tipe, maka ia secara implisit dikonversi ke
+tipe `bool`.
+Nilai `nil` tidak bisa digunakan sebagai ekpsresi switch.
+
+Jika sebuah ekspresi "case" tak bertipe, maka ia dikonversi secara implisit ke
+tipe dari ekspresi "switch".
+Untuk setiap ekspresi "case" `x` dan nilai `t` dari ekspresi "switch",
+`x == t` haruslah <<Comparison_operators, pembandingan>> yang valid.
+
+Dengan kata lain, ekspresi "switch" diperlakukan untuk mendeklarasikan dan
+menginisiasi variabel sementara `t` tanpa tipe eksplisit;
+maka nilai dari `t` dibandingkan dengan setiap ekspresi "case" diuji untuk
+kesamaan.
+
+Dalam sebuah "case" atau klausa "default", perintah terakhir bisa berupa
+<<Fallthrough_statements. perintah fallthrough>> (bisa
+<<Labeled_statements, berlabel>>)
+untuk mengindikasikan bahwa kontrol harus mengalir dari akhir klausa ke
+perintah pertama dari klausa selanjutnya.
+Selain kontrol mengalir ke akhir perintah "switch".
+Perintah "fallthrough" bisa muncul sebagai perintah terakhir kecuali pada
+klausa terakhir dari sebuah ekspresi "switch".
+
+Ekspresi "switch" bisa diawali dengan perintah sederhana, yang dieksekusi
+sebelum ekspresi dievaluasi.
+
+----
+switch tag {
+default: s3()
+case 0, 1, 2, 3: s1()
+case 4, 5, 6, 7: s2()
+}
+
+switch x := f(); {  // missing switch expression means "true"
+case x < 0: return -x
+default: return x
+}
+
+switch {
+case x < y: f1()
+case x < z: f2()
+case x == 4: f3()
+}
+----
+
+Batasan implementasi:  _compiler_ bisa saja tidak membolehkan beberapa
+ekspresi "case" yang bernilai konstanta yang sama.
+Misalnya, _compiler_ yang sekarang tidak membolehkan konstanta integer,
+_floating-point_, atau string yang duplikat dalam ekspresi "case".
+
+
+====  Switch bertipe
+
+Switch bertipe membandingkan tipe bukannya nilai.
+Perilakunya mirip dengan switch berekspresi.
+Ia ditandai dengan sebuah ekspresi switch yang memiliki bentuk dari sebuah
+<<Type_assertions, asersi  tipe>>
+menggunakan kata kunci `type` bukan tipe sebenarnya:
+
+----
+switch x.(type) {
+// cases
+}
+----
+
+Case kemudian dibandingkan dengan tipe sebenarnya `T` dibandingkan dengan tipe
+dinamis dari ekspresi `x`.
+Seperti pada asersi tipe, `x` haruslah <<Interface_types, bertipe interface>>,
+dan setiap tipe `T` dalam setiap "case" harus mengimplementasikan tipe dari
+`x`.
+Tipe-tipe yang terdaftar dalam "case"-"case" dari switch bertipe semuanya
+harus <<Type_identity, berbeda>>/
+
+----
+TypeSwitchStmt  = "switch" [ SimpleStmt ";" ] TypeSwitchGuard "{" { TypeCaseClause } "}" .
+TypeSwitchGuard = [ identifier ":=" ] PrimaryExpr "." "(" "type" ")" .
+TypeCaseClause  = TypeSwitchCase ":" StatementList .
+TypeSwitchCase  = "case" TypeList | "default" .
+TypeList        = Type { "," Type } .
+----
+
+TypeSwitchGuard bisa mengikutkan sebuah <<Short_variable_declarations,
+deklarasi variabel singkat>>.
+Bila bentuk tersebut digunakan, variabel dideklarasikan di akhir dari
+TypeSwitchCase dalam <<Blocks, blok implisit>> dari setiap klausa.
+Dalam klausa-klausa dengan sebuah "case" yang berisi daftar hanya satu tipe,
+variabel memiliki tipe tersebut, sebaliknya, variabel memiliki tipe dari
+ekspresi dalam TypeSwitchGuard.
+
+Selain tipe, sebuah "case" bisa menggunakan pengidentifikasi `nil`;
+"case" tersebut dipilih saat ekspresi dalam TypeSwitchGuard adalah nilai
+interface bernilai `nil`.
+Setidaknya hanya ada satu "case" dengan `nil`.
+
+Diberikan sebuah ekspresi `x` bertipe `interface{}`, switch bertipe berikut:
+
+----
+switch i := x.(type) {
+case nil:
+	printString("x yaitu nil")             // tipe i yaitu tipe dari x (interface{})
+case int:
+	printInt(i)                            // tipe i yaitu int
+case float64:
+	printFloat64(i)                        // tipe i yaitu float64
+case func(int) float64:
+	printFunction(i)                       // tipe i yaitu func(int) float64
+case bool, string:
+	printString("type yaitu bool atau string")  // tipe i yaitu tipe x (interface{})
+default:
+	printString("type tidak diketahui")     // tipe i yaitu tipe x (interface{})
+}
+----
+
+dapat ditulis ulang:
+
+----
+v := x  // x dievaluasi sekali
+if v == nil {
+	i := v                                 // tipe i yaitu x (interface{})
+	printString("x yaitu nil")
+} else if i, isInt := v.(int); isInt {
+	printInt(i)                            // tipe i yaitu int
+} else if i, isFloat64 := v.(float64); isFloat64 {
+	printFloat64(i)                        // tipe i yaitu float64
+} else if i, isFunc := v.(func(int) float64); isFunc {
+	printFunction(i)                       // tipe i yaitu func(int) float64
+} else {
+	_, isBool := v.(bool)
+	_, isString := v.(string)
+	if isBool || isString {
+		i := v                         // tipe i yaitu tipe x (interface{})
+		printString("tipe yaitu bool atau string")
+	} else {
+		i := v                         // tipe i yaitu tipe x (interface{})
+		printString("tipe tidak diketahui")
+	}
+}
+----
+
+Penjaga switch bertipe bisa diawali dengan perintah sederhana, yang dieksekusi
+sebelum penjaga dievaluasi.
+
+Perintah "fallthrough" tidak dibolehkan dalam switch bertipe.
+
+[#For_statements]
+===  Perintah for
+
+Sebuah perintah "for" menentukan eksekusi berulang dari sebuah blok.
+Ada tiga bentuk: iterasi bisa dikontrol oleh kondisi tunggal, sebuah klausa
+"for", atau sebuah klausa "range".
+
+----
+ForStmt = "for" [ Condition | ForClause | RangeClause ] Block .
+Condition = Expression .
+----
+
+====  Perintah for dengan kondisi tunggal
+
+Dalam bentuk sederhana, sebuah perintah "for" menentukan eksekusi berulang
+dari sebuah blok selama kondisi boolean bernilai true.
+Kondisi tersebut dievaluasi sebelum tiap iterasi.
+Jika kondisi tidak ada, maka ia sama dengan nilai boolean `true`.
+
+----
+for a < b {
+	a *= 2
+}
+----
+
+====  Perintah For dengan klausa `for`
+
+Sebuah perintah "for" dengan ForClause juga dikontrol oleh kondisinya, namun
+sebagai tambahan bisa menspesifikasikan sebuah perintah _init_ dan sebuah
+_post_, seperti sebuah penempatan, perintah peningkatan dan pengurangan.
+Perintah _init_ bisa berupa sebuah
+<<Short_variable_declarations, deklarasi variabel singkat>>, namun perintah
+_post_ tidak.
+Variabel yang dideklarasikan oleh perintah _init_ digunakan pada setiap
+iterasi.
+
+----
+ForClause = [ InitStmt ] ";" [ Condition ] ";" [ PostStmt ] .
+InitStmt = SimpleStmt .
+PostStmt = SimpleStmt .
+----
+
+----
+for i := 0; i < 10; i++ {
+	f(i)
+}
+----
+
+Jika tidak kosong, perintah _init_ dieksekusi sekali sebelum mengevaluasi
+kondisi untuk iterasi pertama;
+perintah _post_ dieksekusi setelah setiap eksekusi dari blok (dan hanya bila
+blok dieksekusi).
+Elemen dari ForClause bisa kosong namun <<Semicolons, titik-koma>> dibutuhkan
+kecuali bila hanya ada sebuah kondisi.
+Jika kondisi tidak ada, maka ia sama dengan nilai boolean `true`.
+
+----
+for cond { S() }    is the same as    for ; cond ; { S() }
+for      { S() }    is the same as    for true     { S() }
+----
+
+====  Perintah For dengan klausa `range`
+
+Perintah "for" dengan klausa "range" mengiterasi semua isi dari array, slice,
+string atau map, atau nilai yang diterima pada channel.
+Untuk setiap isi ia akan menempatkan _nilai iterasi_ ke _variabel iterasi_
+jika ada dan kemudian mengeksekusi blok.
+
+----
+RangeClause = [ ExpressionList "=" | IdentifierList ":=" ] "range" Expression .
+----
+
+Ekspresi sebelah kanan dalam klausa "range" disebut _ekpsresi range_, yang
+bisa saja sebuah array, pointer ke array, slice, string, map, atau channel
+yang membolehkan <<Receive_operator, operasi menerima>>.
+Seperti halnya pada penempatan, jika ada maka operan sebelah kiri harusalah
+<<Address_operators, beralamat>> atau berupa ekspresi indeks map;
+ia menyatakan variabel iterasi.
+Jika ekspresi range adalah sebuah channel, maka hanya satu variabel iterasi
+yang dibolehkan, selain itu bisa jadi dua variabel.
+Jika variabel iterasi terakhir adalah
+<<Blank_identifier, pengidentifikasi kosong>>,
+klausa range sama dengan klausa tanpa pengidentifikasi tersebut.
+
+Ekspresi range `x` dievaluasi sekali sebelum memulai pengulangan, dengan satu
+pengecualian: jika paling tidak satu variabel iterasi ada dan `len(x)` adalah
+<<Length_and_capacity, konstanta>>, ekspresi range tidak dievaluasi.
+
+Pemanggilan fungsi pada bagian kiri dievaluasi sekali per iterasi.
+Untuk setiap iterasi, nilai iterasi dihasilkan sebagai berikut jika variabel
+iterasi ada:
+
+----
+Range expression                          1st value          2nd value
+
+array or slice  a  [n]E, *[n]E, or []E    index    i  int    a[i]       E
+string          s  string type            index    i  int    see below  rune
+map             m  map[K]V                key      k  K      m[k]       V
+channel         c  chan E, <-chan E       element  e  E
+----
+
+.  Untuk sebuah array, pointer ke array, atau slice bernilai `a`, nilai
+   iterasi indeks dihasilkan secara meningkat, dimulai dari elemen indeks 0.
+   Jika satu variabel iterasi ada, pengulangan range menghasilkan nilai
+   iterasi dari 0 sampai `len(a) - 1` dan tidak mengindeks pada array atau
+   slice itu sendiri.
+   Untuk slice yang `nil`, jumlah iterasi adalah 0.
+.  Untuk nilai string, klausa "range" mengiterasi poin Unicode dalam string
+   dimulai dari byte pada indeks ke 0.
+   Pada iterasi yang sukses, nilai indeks yaitu indeks dari byte pertama dari
+   kode poin UTF-8 dalam string, dan nilai kedua, bertipe `rune`, akan
+   bernilai kode poin yang berkorespondensi.
+   Jika iterasi menemui urutan UTF-8 yang tidak valid, nilai kedua yaitu
+   `0xFFFD`, yaitu karakter pengganti Unicode, dan iterasi selanjutnya akan
+   meloncati sebuah byte dalam string.
+.  Urutan iterasi terhadap map tidak ditentukan dan tidak dijamin selalu sama
+   dari satu iterasi dengan iterasi selanjutnya.
+   Jika isi map yang belum diiterasi dihapus selama iterasi, nilai iterasi
+   yang berkorespondensi tidak akan dihasilkan.
+   Jika sebuah isi map dibuat selama iterasi, entri tersebut bisa saja muncul
+   selama iterasi atau bisa saja dilewati.
+   Pilihannya bisa beragam untuk setiap entri yang dibuat dan dari satu
+   iterasi ke iterasi selanjutnya.
+   Jika map adalah `nil`, jumlah iterasi adalah 0.
+.  Untuk channel, nilai iterasi yang dihasilkan adalah nilai yang dikirim ke
+   channel sampai channel <<Close, ditutup>>.
+   Jika channel adalah `nil`, ekspresi range akan diblok selamanya.
+
+Nilai iterasi ditempatkan ke variabel iterasi seperti pada
+<<Assignments, perintah penempatan>>.
+
+Variabel iterasi bisa dideklarasikan oleh klausa "range" menggunakan sebuah
+bentuk <<Short_variable_declarations, deklarasi variabel singkat>> (`:=`).
+Dalam kasus ini tipenya diset ke tipe dari nilai iterasi dan
+<<Declarations_and_scope, skop>> nya adalah blok dari perintah "for";
+mereka dipergunakan dalam setiap iterasi.
+Jika variabel iterasi dideklarasikan di luar perintah "for", setelah eksekusi
+nilai mereka adalah nilai dari iterasi terakhir.
+
+----
+var testdata *struct {
+	a *[7]int
+}
+for i, _ := range testdata.a {
+	// testdata.a tidak pernah dievaluasi; len(testdata.a) adalah
+	// konstanta
+	// i memiliki rentang 0 to 6
+	f(i)
+}
+
+var a [10]string
+for i, s := range a {
+	// tipe dari i yaitu int
+	// tipe dari s yaitu string
+	// s == a[i]
+	g(i, s)
+}
+
+var key string
+var val interface {}  // tipe elemen dari m ditempatkan ke val
+m := map[string]int{"mon":0, "tue":1, "wed":2, "thu":3, "fri":4, "sat":5, "sun":6}
+for key, val = range m {
+	h(key, val)
+}
+// key == kunci map terakhir yang ditemukan dalam iterasi
+// val == map[key]
+
+var ch chan Work = producer()
+for w := range ch {
+	doWork(w)
+}
+
+// kosongkan channel
+for range ch {}
+----
+
+
+[#Go_statements]
+===  Perintah go
+
+Sebuah perintah "go" memulai eksekusi dari pemanggilan fungsi sebagai _thread_
+konkuren yang berdiri sendiri, atau disebut _goroutine, dalam ruang alamat
+yang sama.
+
+----
+GoStmt = "go" Expression .
+----
+
+_Expression_ haruslah sebuah pemanggilan fungsi atau method; tidak bisa dalam
+tanda kurung kurawal.
+Pemanggilan fungsi bawaan dibatasi untuk <<Expression_statements, perintah
+ekspresi>>.
+
+Nilai fungsi dan parameter <<Calls, dievaluasi seperti biasa>> dalam goroutine
+yang dipanggil, tetapi tidak seperti pemanggilan biasa, eksekusi program tidak
+menunggu fungsi yang dipanggil untuk selesai.
+Namun, fungsi tersebut mulai dieksekusi secara independen dalam sebuah
+goroutine yang baru.
+Saat fungsi selesai, goroutine-nya juga selesai.
+Jika fungsi memiliki nilai kembalian, nilainya akan diindahkan saat fungsi
+selesai.
+
+----
+go Server()
+go func(ch chan<- bool) { for { sleep(10); ch <- true }} (c)
+----
+
+
+[#Select_statements]
+===  Perintah select
+
+Sebuah perintah "select" memilih sekumpulan operasi
+<<Send_statements, pengiriman>> atau <<Receive_operator, penerimaan>> yang
+akan diproses.
+Ia mirip dengan perintah "<<Switch_statements, switch>>" namun dengan semua
+"case" mengacu pada operasi komunikasi.
+
+----
+SelectStmt = "select" "{" { CommClause } "}" .
+CommClause = CommCase ":" StatementList .
+CommCase   = "case" ( SendStmt | RecvStmt ) | "default" .
+RecvStmt   = [ ExpressionList "=" | IdentifierList ":=" ] RecvExpr .
+RecvExpr   = Expression .
+----
+
+Sebuah "case" dengan RecvStmt bisa menempatkan hasil dari RecvExpr ke satu
+atau dua variabel, yang bisa dideklarasikan menggunakan
+<<Short_variable_declarations, deklarasi variabel singkat>>.
+RecvExpr haruslah sebuah operasi menerima (bisa pakai tanda kurung).
+Hanya boleh ada satu case "default" dan ia bisa muncul di mana pun dalam
+daftar case.
+
+Eksekusi dari perintah "select" diproses dalam beberapa langkah:
+
+.  Untuk semua perintah case, operan channel dari operasi menerima dan
+   ekspresi sebelah-kanan dan channel dari perintah pengiriman dievaluasi
+   sekali, berurutan, saat memasuki perintah "select".
+   Hasilnya yaitu sekumpulan channel yang akan menerima atau mengirim, dan
+   nilai korespondensi yang akan dikirim.
+   Efek samping dari evaluasi tersebut akan terjadi tanpa memperhatikan
+   operasi komunikasi yang mana terpilih untuk diproses.
+   Ekspresi di sebelah-kiri dari RecvStmt dengan deklarasi variabel singkat
+   atau penempatan belum dievaluasi.
+
+.  Jika satu atau lebih komunikasi dapat diproses, salah satu dipilih secara
+   acak.
+   Sebaliknya, jika ada case "default", maka "default" lah yang dipilih.
+   Jika tidak ada "default", perintah "select" menahan sampai paling tidak
+   satu komunikasi dapat diproses.
+
+.  Kecuali bisa case yang terpilih adalah "default", operasi komunikasi yang
+   diproses dieksekusi.
+
+.  Jika case yang terpilih adalah sebuah RecvStmt dengan deklarasi variabel
+   singkat atau sebuah penempatan, ekspresi sebelah kiri dievaluasi dan nilai
+   penerima ditempatkan.
+
+.  Daftar perintah dari case terpilih dieksekusi.
+
+Secara komunikasi pada channel `nil` tidak pernah diproses, sebuah "select"
+dengan hanya channel-channel yang `nil` tanpa case "default" akan ditahan
+selamanya.
+
+----
+var a []int
+var c, c1, c2, c3, c4 chan int
+var i1, i2 int
+select {
+case i1 = <-c1:
+	print("menerima ", i1, " dari c1\n")
+case c2 <- i2:
+	print("mengirim ", i2, " ke c2\n")
+case i3, ok := (<-c3):  // sama dengan: i3, ok := <-c3
+	if ok {
+		print("menerima ", i3, " from c3\n")
+	} else {
+		print("c3 ditutup\n")
+	}
+case a[f()] = <-c4:
+	// sama dengan:
+	// case t := <-c4
+	//	a[f()] = t
+default:
+	print("tidak ada komunikasi\n")
+}
+
+for {  // kirim seurutan bit yang random ke c
+	select {
+	case c <- 0:  // catatan: tidak ada perintah, tidak ada fallthrough.
+	case c <- 1:
+	}
+}
+
+select {}  // ditahan selamanya
+----
+
+
+[#Return_statements]
+===  Perintah return
+
+Sebuah perintah "return" dalam sebuah fungsi `F` menghentikan eksekusi dari
+`F`, dan mengembalikan satu atau lebih nilai.
+Setiap fungsi <<Defer_statements, yang di-defer>> oleh `F` dieksekusi sebelum
+`F` kembali ke pemanggilnya.
+
+----
+ReturnStmt = "return" [ ExpressionList ] .
+----
+
+Dalam sebuah fungsi tanpa tipe kembalian, perintah "return" tidak boleh
+menspesifikasikan nilai kembalian.
+
+----
+func noResult() {
+	return
+}
+----
+
+Ada tiga cara untuk mengembalikan nilai dari sebuah fungsi dengan tipe
+kembalian:
+
+.  Nilai kembalian bisa secara eksplisit didaftarkan dalam perintah "return".
+   Setiap ekspresi haruslah bernilai tunggal dan
+   <<Assignability, dapat ditempatkan>> ke elemen yang berkorespondensi dengan
+   tipe kembalian dari fungsi.
++
+----
+func simpleF() int {
+	return 2
+}
+
+func complexF1() (re float64, im float64) {
+	return -7.0, -4.0
+}
+----
+
+.  Daftar ekspresi dalam perintah "return" bisa berupa sebuah pemanggilan ke
+   fungsi dengan banyak kembalian.
+   Efeknya adalah setiap nilai kembalian dari fungsi tersebut ditempatkan ke
+   variabel sementara dengan tipe yang sama, diikuti dengan perintah "return"
+   mendaftar variabel-variabel tersebut, yang mana aturan dari kasus
+   sebelumnya berlaku.
++
+----
+func complexF2() (re float64, im float64) {
+	return complexF1()
+}
+----
+
+.  Daftar ekspresi bisa kosong jika tipe kembalian fungsi memiliki nama untuk
+   <<Function_types, parameter kembalian>>.
+   Parameter kembalian berlaku sebagai variabel lokal dan fungsi bisa
+   menempatkan nilai kedalamnya bila diperlukan.
+   Perintah "return" mengembalikan nilai dari variabel tersebut.
++
+----
+func complexF3() (re float64, im float64) {
+	re = 7.0
+	im = 4.0
+	return
+}
+
+func (devnull) Write(p []byte) (n int, _ error) {
+	n = len(p)
+	return
+}
+----
+
+Bagaimanapun cara mereka dideklarasikan, semua nilai kembalian diinisiasi
+dengan <<The_zero_value, nilai kosong>> untuk tipe mereka saat memasuki
+fungsi.
+Sebuah perintah "return" yang menentukan kembalian menset parameter-parameter
+kembalian sebelum fungsi-fungsi yang di-defer dieksekusi.
+
+Batasan implementasi: _compiler_ bisa tidak membolehkan daftar eksepresi yang
+kosong dalam sebuah perintah "return" jika entitas yang berbeda (konstanta,
+tipe, atau variabel) dengan nama yang sama dengan parameter kembalian berada
+dalam <<Declarations_and_scope, skop>> ditempat yang di "return".
+
+----
+func f(n int) (res int, err error) {
+	if _, err := f(n-1); err != nil {
+		return  // invalid return statement: err is shadowed
+	}
+	return
+}
+----
+
+
+[#Break_statements]
+===  Perintah break
+
+Sebuah perintah "break" menghentikan eksekusi dari perintah
+<<For_statements, "for">>,
+<<Switch_statements, "switch">>,
+<<Select_statements, "select">>
+dalam fungsi yang sama.
+
+----
+BreakStmt = "break" [ Label ] .
+----
+
+Jika diberi label, ia haruslah yang mengurung perintah "for", "switch",
+"select", dan itulah yang eksekusinya akan dihentikan.
+
+----
+OuterLoop:
+	for i = 0; i < n; i++ {
+		for j = 0; j < m; j++ {
+			switch a[i][j] {
+			case nil:
+				state = Error
+				break OuterLoop
+			case item:
+				state = Found
+				break OuterLoop
+			}
+		}
+	}
+----
+
+
+[#Continue_statements]
+===  Perintah continue
+
+Sebuah perintah "continue" memulai iterasi selanjutnya dari
+<<For_statements, pengulangan "for">>
+di posisi perintah tersebut.
+Pengulangan "for" haruslah dalam fungsi yang sama.
+
+----
+ContinueStmt = "continue" [ Label ] .
+----
+
+Jika ada label, ia haruslah yang mengurung perintah "for", yang disanalah
+eksekusi akan dilanjutkan.
+
+----
+RowLoop:
+	for y, row := range rows {
+		for x, data := range row {
+			if data == endOfRow {
+				continue RowLoop
+			}
+			row[x] = data + bias(x, y)
+		}
+	}
+----
+
+[#Goto_statements]
+===  Perintah goto
+
+Sebuah perintah "goto" memindahkan kontrol ke perintah dengan label yang
+berkorespondensi dalam fungsi yang sama.
+
+----
+GotoStmt = "goto" Label .
+----
+
+----
+goto error
+----
+
+Mengeksekusi perintah "goto" tidak boleh menyebabkan variabel menjadi
+<<Declarations_and_scope, skop>> yang belum ada dalam skop saat goto terjadi.
+Misalnya, contoh berikut
+
+----
+	goto L  // BAD
+	v := 3
+L:
+----
+
+adalah eror karena saat meloncat ke label `L` melewati terbuatnya `v`.
+
+Sebuah perintah "goto" di luar <<Blocks, blok>> tidak bisa meloncat ke label
+di dalam blok tersebut.
+Misalnya, contoh berikut:
+
+----
+if n%2 == 1 {
+	goto L1
+}
+for n > 0 {
+	f()
+	n--
+L1:
+	f()
+	n--
+}
+----
+
+adalah eror karena label `L1` berada dalam blok perintah "for" namun `goto`
+tidak dalam blok yang sama.
+
+
+[#Fallthrough_statements]
+===  Perintah fallthrough
+
+Sebuah perintah "fallthrough" memindahkan kontrol ke perintah pertama dari
+klausa "case" selanjutnya dalam sebuah
+<<Expression_switches, ekspresi perintah "switch">>.
+Ia hanya bisa digunakan sebagai perintah terakhir dalam klausa tersebut.
+
+----
+FallthroughStmt = "fallthrough" .
+----
+
+[#Defer_statements]
+===  Perintah defer
+
+Sebuah perintah "defer" memanggil sebuah fungsi yang eksekusinya ditunda
+sampai fungsi yang mengurungnya selesai, baik karena fungsi tersebut
+mengeksekusi <<Return_statements, perintah "return">>, mencapai akhir dari
+<<Function_declarations, badan fungsi>>, atau karena goroutine tersebut
+<<Handling_panic, panik>>.
+
+----
+DeferStmt = "defer" Expression .
+----
+
+Si Expression haruslah sebuah pemanggilan fungsi atau method; tidak bisa
+di dalam tanda kurung.
+Pemanggilan fungsi bawaan terbatas untuk
+<<Expression_statements, perintah ekspresi>>.
+
+Setiap kali sebuah perintah "defer" dieksekusi, nilai dan parameter fungsi
+<<Calls, dievaluasi secara normal>> dan disimpan namun fungsi yang sebenarnya
+tidak dipanggil.
+Namun, fungsi yang ditunda dipanggil langsung sebelum fungsi kembali, dengan
+urutan terbalik dari saat mereka di-defer.
+Artinya, jika fungsi selesai lewat <<Return_statements, perintah "return">>,
+fungsi yang didefer dieksekusi _setelah_ parameter kembalian diset oleh
+perintah "return" tersebut namun _sebelum_ fungsi kembali ke pemanggilnya.
+Jika sebuah fungsi yang di-defer dievaluasi jadi `nil`, maka eksekusi akan
+<<Handling_panic, panik>> saat fungsi dipanggil, bukan saat perintah "defer"
+dieksekusi.
+
+Misalnya, jika fungsi yang di defer adalah sebuah
+<<Function_literals, literal fungsi>>
+dan fungsi yang mengurungnya memiliki
+<<Function_types, parameter kembalian bernama>>
+yang berada dalam skop dari literal fungsi, maka fungsi yang di-defer bisa
+mengakses dan mengubah parameter kembalian sebelum mereka dikembalikan.
+Jika fungsi yang ditunda memiliki nilai kembalian, mereka diindahkan saat
+fungsi selesai. (Lihat juga bagian tentang
+<<Handling_panic, penanganan panic>>.
+
+----
+lock(l)
+defer unlock(l)  // unlock terjadi sebelum fungsi selesai
+
+// cetak 3 2 1 0 sebelum fungsi selesai
+for i := 0; i <= 3; i++ {
+	defer fmt.Print(i)
+}
+
+// f mengembalikan 42
+func f() (result int) {
+	defer func() {
+		// result diakses setelah ia di set ke 6 oleh perintah return.
+		result *= 7
+	}()
+	return 6
+}
+----
+
+
+[#Built-in_functions]
+==  Fungsi-fungsi bawaan
+
+Fungsi-fungsi bawaan adalah <<Predeclared_identifiers, pradeklarasi>>.
+Mereka dipanggil seperti halnya fungsi lainnya namun beberapa menerima tipe
+bukan ekspresi sebagai argumen pertamanya.
+
+Fungsi-fungsi bawaan tidak memiliki tipe Go standar, jadi mereka hanya dapat
+muncul dalam <<Calls, ekspresi pemanggilan>>;
+mereka tidak bisa digunakan sebagai nilai fungsi.
+
+
+[#Close]
+===  Close
+
+Untuk sebuah channel `c`, fungsi bawaan `close(c)` mencatat bahwa tidak ada
+lagi nilai yang dapat dikirim ke channel.
+Fungsi `close` akan eror jika `c` adalah channel yang bersifat menerima saja.
+Mengirim ke atau menutup channel yang telah ditutup menyebabkan
+<<Run_time_panics, panik run-time>>.
+Menutup channel yang `nil` juga menyebabkan
+<<Run_time_panics, panik run-time>>.
+Setelah memanggil `close`, dan setelah nilai yang dikirim sebelumnya telah
+diterima, operasi menerima akan mengembalikan nilai kosong dari tipe channel
+tersebut tanpa ditangguhkan.
+<<Receive_operator, operasi menerima>> dengan beragam nilai mengembalikan
+nilai yang diterima berikut dengan indikasi tentang apakah channel telah
+ditutup.
+
+
+[#Length_and_capacity]
+===  Kapasitas dan panjang
+
+Fungsi bawaan `len` dan `cap` menerima argumen berupa tipe dan mengembalikan
+nilai bertipe `int`.
+Implementasi menjamin bahwa kembalian selalu masuk dengan `int`.
+
+----
+Pemanggilan      Tipe argumen    Kembalian
+
+len(s)           tipe string     panjang string dalam sekumpulan byte
+                 [n]T, *[n]T     panjang array (== n)
+                 []T             panjang slice
+                 map[K]T         panjang map (jumlah kunci terdefinisi)
+                 chan T          jumlah elemen antrean dalam buffer channel
+
+cap(s)           [n]T, *[n]T     panjang array (== n)
+                 []T             kapasitas slice
+                 chan T          kapasitas buffer channel buffer
+----
+
+Kapasitas dari slice yaitu jumlah elemen yang telah dialokasi dalam
+array dibelakangnya.
+Relasi berikut selalu berlaku kapanpun:
+
+----
+0 <= len(s) <= cap(s)
+----
+
+Panjang dari slice, map atau channel yang `nil` selalu 0.
+Kapasitas dari slice atau channel yang `nil` selalu 0.
+
+Ekspresi `len(s)` adalah <<Constants, konstanta>> jika `s` adalah konstanta
+string.
+Ekspresi `len(s)` dan `cap(s)` adalah konstanta jika tipe dari `s` adalah
+array atau pointer ke array dan ekspresi `s` tidak mengandung
+<<Receive_operator, penerimaan channel>>
+atau <<Calls, pemanggilan fungsi>> (yang bukan konstanta);
+dalam kasus tersebut `s` tidak dievaluasi.
+Sebaliknya, pemanggilan `len` dan `cap` bukanlah konstanta dan `s` tidak
+dievaluasi.
+
+----
+const (
+	c1 = imag(2i)                    // imag(2i) = 2.0 adalah konstanta
+	c2 = len([10]float64{2})         // [10]float64{2} tidak mengandung
+	                                 // pemanggilan fungsi
+	c3 = len([10]float64{c1})        // [10]float64{c1} tidak mengandung
+	                                 // pemanggilan fungsi
+	c4 = len([10]float64{imag(2i)})  // imag(2i) adalah konstanta dan
+                                         // tidak ada pemanggilan fungsi terjadi
+	c5 = len([10]float64{imag(z)})   // invalid: imag(z) adalah
+                                         // pemanggilan fungsi (bukan
+					 // konstanta)
+)
+var z complex128
+----
+
+
+[#Allocation]
+===  Alokasi
+
+Fungsi bawaan `new` menerima sebuah tipe `T`, mengalokasikan penyimpanan untuk
+sebuah <<Variables, variabel>> dengan tipe tersebut pada saat run-time, dan
+mengembalikan sebuah nilai bertipe `*T` <<Pointer_types, yang menunjuk>>
+kepadanya.
+Variabel tersebut diinisiasi seperti yang dijelaskan dalam bagian
+<<The_zero_value, nilai awal>>.
+
+----
+new(T)
+----
+
+Misalnya
+
+----
+type S struct { a int; b float64 }
+new(S)
+----
+
+mengalokasikan penyimpanan untuk sebuah variabel bertipe `S`, menginisiasinya
+(a=0, b=0.0), dan mengembalikan sebuah nilai bertipe `*S` yang berisi alamat
+dari alokasi.
+
+
+[#Making_slices_maps_and_channels]
+===  Membuat slice, map, dan channel
+
+Fungsi bawaan `make` menerima sebuah tipe `T`, yang haruslah bertipe slice,
+map, atau channel;
+diikuti oleh daftar ekspresi berdasarkan tipe.
+Ia mengembalikan sebuah nilai bertipe `T` (bukan `*T`).
+_Memory_ diinisiasi seperti yang dijelaskan dalam bagian
+<<The_zero_value, nilai awal>>.
+
+----
+Pemanggilan      Tipe T     Kembalian
+
+make(T, n)       slice      slice bertipe T dengan panjang n dan kapasitas n
+make(T, n, m)    slice      slice bertipe T dengan panjang n dan kapasitas m
+
+make(T)          map        map bertipe T
+make(T, n)       map        map bertipe T dengan alokasi mendekati n elemen
+
+make(T)          channel    channel tanpa buffer bertipe T
+make(T, n)       channel    channel dengan buffer bertipe T, buffer berukuran n
+----
+
+Setiap argumen ukuran `n` dan `m` haruslah bertipe integer atau
+<<Constants, konstanta>> tak bertipe.
+Argumen yang berupa konstanta haruslah tidak negatif dan
+<<Representability, dapat direpresentasikan>> oleh nilai bertipe `int`;
+jika ia berupa konstanta tak bertipe ia akan bertipe `int`.
+Jika `n` dan `m` diberikan dan keduanya adalah konstanta, maka `n` haruslah
+besar dari `m`.
+Jika `n` negatif atau besar dari `m` pada saat run-time, maka
+<<Run_time_panics, panik run-time>> akan terjadi.
+
+----
+s := make([]int, 10, 100)       // slice dengan len(s) == 10, cap(s) == 100
+s := make([]int, 1e3)           // slice dengan len(s) == cap(s) == 1000
+s := make([]int, 1<<63)         // ilegal: len(s) tidak dapat
+                                // direpresentasikan oleh nilai bertipe int
+s := make([]int, 10, 0)         // ilegal: len(s) > cap(s)
+c := make(chan int, 10)         // channel dengan buffer berukuran 10
+m := make(map[string]int, 100)  // map dengan ruang awal sekitar 100 elemen
+----
+
+Memanggil `make` dengan tipe map dan ukuran `n` akan membuat sebuah map dengan
+ruang awal yang dapat menyimpan `n` map elemen.
+Perilaku aslinya bergantung pada implementasi.
+
+
+[#Appending_and_copying_slices]
+===  Menambah dan menyalin slice
+
+Fungsi bawaan `append` dan `copy` membantu dalam operasi slice.
+Untuk kedua fungsi, hasilnya selalu independen walaupun memory yang diacu oleh
+argumen bertindihan.
+
+Fungsi <<Function_types, variadik>> `append` menambahkan kosong atau lebih
+nilai `x` ke `s` yang bertipe `S`, yang haruslah bertipe slice, dan
+mengembalikan hasil slice, yang juga bertipe `S`.
+Nilai `x` dikirim sebagai parameter bertipe `...T` yang mana `T` adalah
+<<Slice_types, tipe elemen>> dari `S` dan
+<<Passing_arguments_to_..._parameters, aturan pengiriman parameter>>
+berlaku.
+Sebagai kasus khusus, `append` juga menerima argumen pertama yang dapat
+ditempatkan ke tipe `[]byte` dengan argumen kedua bertipe string diikuti
+dengan `...`.
+Bentuk ini menambahkan sejumlah byte ke string.
+
+----
+append(s S, x ...T) S  // T adalah elemen bertipe S
+----
+
+Jika kapasitas `s` tidak cukup besar untuk menampung nilai-nilai tambahan,
+`append` mengalokasikan sebuah array dasar yang baru yang lebih besar yang
+dapat menampung slice elemen yang alam dan nilai yang baru.
+Sebaliknya, `append` menggunakan array dasar yang sama.
+
+----
+s0 := []int{0, 0}
+s1 := append(s0, 2)                // menambahkan sebuah element     s1 == []int{0, 0, 2}
+s2 := append(s1, 3, 5, 7)          // menambahkan beberapa element   s2 == []int{0, 0, 2, 3, 5, 7}
+s3 := append(s2, s0...)            // menambahkan slice              s3 == []int{0, 0, 2, 3, 5, 7, 0, 0}
+s4 := append(s3[3:6], s3[2:]...)   // menambahkan slice yang tumpang tindih  s4 == []int{3, 5, 7, 2, 3, 5, 7, 0, 0}
+
+var t []interface{}
+t = append(t, 42, 3.1415, "foo")   // t == []interface{}{42, 3.1415, "foo"}
+
+var b []byte
+b = append(b, "bar"...)            // menambahkan isi string b == []byte{'b', 'a', 'r' }
+----
+
+Fungsi `copy` menyalin elemen slice dari sumber `src` ke tujuan `dst` dan
+mengembalikan jumlah elemen yang disalin.
+Kedua argumen haruslah memiliki elemen yang
+<<Type_identity, identik>>
+bertipe `T` dan harus
+<<Assignability, dapat ditempatkan>>
+ke sebuah slice bertipe `[]T`.
+Jumlah elemen yang disalin yaitu minium dari `len(src)` dan `len(dst)`.
+Sebagai kasus khusus, `copy` juga menerima argumen tujuan yang dapat
+ditempatkan ke tipe `[]byte` dengan argumen sumber bertipe string.
+Bentuk ini menyalin byte dari string ke slice byte.
+
+----
+copy(dst, src []T) int
+copy(dst []byte, src string) int
+----
+
+Contoh:
+
+----
+var a = [...]int{0, 1, 2, 3, 4, 5, 6, 7}
+var s = make([]int, 6)
+var b = make([]byte, 5)
+n1 := copy(s, a[0:])            // n1 == 6, s == []int{0, 1, 2, 3, 4, 5}
+n2 := copy(s, s[2:])            // n2 == 4, s == []int{2, 3, 4, 5, 4, 5}
+n3 := copy(b, "Hello, World!")  // n3 == 5, b == []byte("Hello")
+----
+
+
+[#Deletion_of_map_elements]
+===  Penghapusan elemen pada map
+
+Fungsi bawaan `delete` menghapus elemen dengan kunci `k` dari sebuah
+<<Map_types>, map> `m`.
+Tipe dari `k` haruslah dapat
+<<Assignability, dapat ditempatkan>> ke tipe kunci dari `m`.
+
+----
+delete(m, k)  // hapus elemen m[k] dari map m
+----
+
+Jika map `m` adalah `nil` atau elemen `m[k]` tidak ada, `delete` adalah
+operasi kosong.
+
+
+[#Complex_numbers]
+===  Manipulasi bilangan complex
+
+Tiga fungsi menyusun dan mengurai bilangan complex.
+Fungsi bawaan `complex` membentuk sebuah nilai complex dari bagian real dan
+imajiner _floating-point_, sementara `real` dan `imag` mengekstrak bagian real
+dan imajiner dari sebuah nilai complex.
+
+----
+complex(realPart, imaginaryPart floatT) complexT
+real(complexT) floatT
+imag(complexT) floatT
+----
+
+Tipe dari argumen dan nilai kembalian saling berhubungan.
+Untuk `complex`, kedua argumen haruslah tipe _floating-point_ yang sama dan
+tipe kembalian yaitu salah satu tipe complex berikut: `complex64` untuk
+argumen bertipe `float32`, dan `complex128` untuk argumen bertipe `float64`.
+Jika salah satu argumen adalah konstanta tak bertipe, maka ia secara implisit
+<<Conversions, dikonversi>> ke tipe dari argumen lainnya.
+Jika kedua argumen dievaluasi ke konstanta tak bertipe, maka keduanya haruslah
+bilangan non-complex atau bagian imajinernya haruslah nol, dan nilai kembalian
+dari fungsi yaitu konstanta complex tak bertipe.
+
+Untuk `real` dan `imag`, argumen haruslah bertipe complex, dan tipe kembalian
+berkorespondensi dengan tipe _floating-point_: `float32` untuk argumen
+`complex64`, dan `float64` untuk argumen `complex128`.
+Jika argumen dievaluasi menjadi konstanta tak bertipe, maka ia haruslah berupa
+angka, dan nilai kembalian dari fungsi yaitu konstanta _floating-point_ tak
+bertipe.
+
+Fungsi `real` dan `imag` keduanya membentuk kebalikan dari `complex`, sehingga
+untuk nilai `z` dari tipe complex Z, `z == Z(complex(real(z), imag(z)))`.
+
+Jika operan dari fungsi-fungsi tersebut semuanya adalah konstanta, maka nilai
+kembaliannya adalah konstanta.
+
+----
+var a = complex(2, -2)             // complex128
+const b = complex(1.0, -1.4)       // konstanta complex tak bertipe 1 - 1.4i
+x := float32(math.Cos(math.Pi/2))  // float32
+var c64 = complex(5, -x)           // complex64
+var s int = complex(1, 0)          // konstanta complex tak bertipe 1 + 0i
+                                   // dapat dikonversi ke int
+_ = complex(1, 2<<s)               // ilegal: 2 diasumsikan bertipe
+                                   // floating-point, tidak bisa di- shift
+var rl = real(c64)                 // float32
+var im = imag(a)                   // float64
+const c = imag(b)                  // konstanta tak bertipe -1.4
+_ = imag(3 << s)                   // ilegal: 3 diasumsikan bertipe complex,
+                                   // tidak bisa di-shift
+----
+
+
+[#Handling_panics]
+===  Menangani panik
+
+Dua fungsi bawaan, `panic` dan `recover`, membantu dalam melaporkan dan
+menangani <<Run_time_panics, panik run-time>> dan kondisi eror yang
+terdefinisi pada program.
+
+----
+func panic(interface{})
+func recover() interface{}
+----
+
+Saat mengeksekusi sebuah fungsi `F`, pemanggilan `panic` yang eksplisit atau
+<<Run_time_panics, panik run-time>> menghentikan eksekusi dari `F`.
+Fungsi apa pun yang <<Defer_statements, ditunda>> oleh `F` kemudian
+dieksekusi.
+Selanjutnya, fungsi apa pun yang ditunda oleh pemanggil `F` dijalankan, dan
+begitu seterusnya sampai fungsi paling atas dalam goroutine.
+Di titik tersebut, program dihentikan dan kondisi eror dilaporkan, termasuk
+nilai argumen ke `panic`.
+Urutan penghentian ini disebut dengan _panicking_.
+
+----
+panic(42)
+panic("unreachable")
+panic(Error("cannot parse"))
+----
+
+Fungsi `recover` membolehkan sebuah program mengatur perilaku dari goroutine
+yang panik.
+Misalkan sebuah fungsi `G` menunda fungsi `D` yang memanggil `recover` dan
+panik terjadi dalam sebuah fungsi pada goroutine yang sama yang mana `G`
+dieksekusi.
+Saat menjalankan fungsi-fungsi yang ditunda mencapai `D`, nilai kembalian dari
+pemanggilan `recover` di dalam `D` akan berisi argumen yang dikirim pada saat
+`panic` dipanggil.
+Jika `D` kembali secara normal, tanpa memulai `panic` yang baru, maka urutan
+_panicking_ berhenti.
+Dalam kasus ini, status dari fungsi yang dipanggil antara `G` dan pemanggilan
+`panic` diindahkan, dan eksekusi normal dilanjutkan.
+Fungsi apa pun yang ditunda oleh `G` sebelum `D` maka kemudian dijalankan dan
+eksekusi dari `G` dihentikan dengan mengembalikan ke pemanggilnya.
+
+Nilai kembalian dari `recover` adalah `nil` jika salah satu kondisi berikut
+berlaku:
+
+*  argumen dari `panic` adalah `nil`;
+*  goroutine tersebut tidak panik;
+*  `recover` tidak secara langsung dipanggil oleh fungsi yang di-defer.
+
+Fungsi `protect` dalam contoh di bawah memanggil fungsi `g` dan melindungi
+pemanggil dari panik run-time yang disebabkan oleh `g`.
+
+----
+func protect(g func()) {
+	defer func() {
+		log.Println("done")  // Println dieksekusi secara normal
+		                     // bahkan jika ada panic
+		if x := recover(); x != nil {
+			log.Printf("run time panic: %v", x)
+		}
+	}()
+	log.Println("start")
+	g()
+}
+----
+
+
+[#Bootstrapping]
+===  Bootstrapping
+
+Implementasi yang sekarang menyediakan beberapa fungsi bawaan yang berguna
+selama _bootstrapping_.
+Fungsi-fungsi tersebut didokumentasikan demi kelengkapan namun tidak dijamin
+akan tetap ada dalam bahasa Go.
+Mereka tidak memiliki nilai kembalian.
+
+----
+Fungsi    Perilaku
+
+print     mencetak semua argumen; format dari argumen bergantung pada implementasi
+println   seperti print namun mencetak spasi antara argumen dan baris baru di akhir
+----
+
+Batasan implementasi: `print` dan `println` tidak perlu menerima tipe argumen
+yang beragam, namun mencetak <<Types, tipe-tipe>> boolean, numerik, dan string
+haruslah didukung.
