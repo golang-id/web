@@ -5426,5 +5426,519 @@ println   seperti print namun mencetak spasi antara argumen dan baris baru di ak
 ----
 
 Batasan implementasi: `print` dan `println` tidak perlu menerima tipe argumen
-yang beragam, namun mencetak <<Types, tipe-tipe>> boolean, numerik, dan string
-haruslah didukung.
+yang beragam, namun harus mendukung pencetakan <<Types, tipe>> boolean,
+numerik, dan string.
+
+
+[#Packages]
+==  Paket
+
+Program Go dibentuk dengan mengaitkan _paket-paket_.
+Sebuah paket dibentuk dari satu atau lebih berkas sumber yang berisi deklarasi
+konstanta, tipe, variabel, dan fungsi yang dimiliki oleh paket tersebut yang
+mana dapat diakses di semua berkas dari paket yang sama.
+Elemen-elemen tersebut bisa <<Exported_identifiers, diekspor>> dan digunakan
+di paket lainnya.
+
+
+[#Source_file_organization]
+===  Organisasi berkas sumber
+
+Setiap berkas sumber terdiri dari sebuah klausa paket yang mendefinisikan
+paket di mana ia berada, diikuti oleh deklarasi import yang bisa saja kosong
+yang mendeklarasikan paket-paket yang isinya akan digunakan, diikuti oleh
+sekumpulan deklarasi fungsi, tipe, variabel, dan konstanta.
+
+----
+SourceFile       = PackageClause ";" { ImportDecl ";" } { TopLevelDecl ";" } .
+----
+
+
+[#Package_clause]
+===  Klausa paket
+
+Sebuah klausa paket memulai berkas sumber dan mendefinisikan paket yang mana
+berkas tersebut berada.
+
+----
+PackageClause  = "package" PackageName .
+PackageName    = identifier .
+----
+
+PackageName tidak boleh berupa <<Blank_identifier, pengidentifikasi kosong>>.
+
+----
+package math
+----
+
+Sekumpulan berkas yang berbagi PackageName yang sama membentuk implementasi
+dari sebuah paket.
+Implementasi Go bisa saja mengharuskan semua berkas sumber untuk sebuah paket
+berada dalam direktori yang sama.
+
+
+[#Import_declarations]
+===  Deklarasi import
+
+Sebuah deklarasi import menyatakan bahwa berkas sumber yang berisi deklarasi
+tersebut bergantung pada fungsionalitas dari paket yang _diimpor_
+(<<Program_initialization_and_execution, Inisiasi dan eksekusi program>>)
+dan membolehkan akses ke pengidentifikasi yang
+<<Exported_identifiers, diekspor>> dari paket tersebut.
+Deklarasi import bisa memberi nama pada pengidentifikasi (PackageName) untuk
+digunakan sebagai akses dan ImportPath yang menentukan paket yang akan
+diimpor.
+
+----
+ImportDecl       = "import" ( ImportSpec | "(" { ImportSpec ";" } ")" ) .
+ImportSpec       = [ "." | PackageName ] ImportPath .
+ImportPath       = string_lit .
+----
+
+PackageName digunakan dalam
+<<Qualified_identifiers, pengidentifikasi nama>>
+untuk mengakses pengidentifikasi yang diekspor dari paket dalam berkas sumber
+yang mengimpor.
+Ia dideklarasikan dalam <<Blocks, blok berkas>>.
+Jika PackageName tidak ada, maka default-nya adalah pengidentifikasi yang
+dispesifikasikan dalam <<Package_clause, klausa paket>> dari paket yang
+diimpor.
+Jika tanda titik (.) digunakan bukan sebuah nama, semua pengidentifikasi yang
+diekspor yang dideklarasikan dalam <<Blocks, blok paket>> tersebut akan
+dideklarasikan dalam blok berkas sumber yang mengimpor dan harus diakses tanpa
+nama.
+
+Interpretasi dari ImportPath bergantung pada implementasi namun
+biasanya berupa sebuah substring dari nama berkas penuh dari paket yang
+di-compile dan bisa jadi relatif terhadap repositori dari paket yang dipasang.
+
+Batasan implementasi: _Compiler_ bisa membatasi ImportPath menjadi string yang
+tidak kosong menggunakan hanya karakter yang berada dalam kategori umum
+https://www.unicode.org/versions/Unicode6.3.0/[Unicode]
+L, M, N, P, dan S (karakter grafik tanpa spasi) dan bisa juga tidak
+mengikutkan karaketer `!"#$%&'()*,:;<=>?[\]^`{|}` dan karakter pengganti
+Unicode U+FFFD.
+
+Asumsi kita telah mengkompilasi sebuah paket yang berisi klausa paket
+`package math`, yang mengekspor fungsi Sin, dan memasang paket yang telah
+dikompilasi dalam berkas yang diidentifikasi dengan "lib/math".
+Tabel berikut mengilustrasikan bagaimana `Sin` diakses dalam berkas yang
+mengimpor paket tersebut setelah deklarasi impor yang beragam.
+
+----
+Deklarasi impor             Nama lokal dari Sin
+
+import   "lib/math"         math.Sin
+import m "lib/math"         m.Sin
+import . "lib/math"         Sin
+----
+
+Deklarasi import menyatakan sebuah relasi dependensi antara paket yang
+mengimpor dan yang diimpor.
+Paket tidak boleh mengimpor dirinya sendiri, baik secara langsung maupun tidak
+langsung, atau secara langsung mengimpor sebuah paket tanpa menggunakan
+pengidentifikasi yang diekspornya.
+Untuk mengimpor sebuah paket hanya untuk efek sampingnya saja (inisiasi),
+gunakan pengidentifikasi <<Blank_identifier, kosong>> sebagai nama paket yang
+eksplisit:
+
+----
+import _ "lib/math"
+----
+
+
+[#An_example_package]
+===  Sebuah contoh paket
+
+Berikut sebuah paket Go yang mengimplementasikan saringan bilangan prima
+secara konkuren.
+
+----
+package main
+
+import "fmt"
+
+// Send the sequence 2, 3, 4, … to channel 'ch'.
+func generate(ch chan<- int) {
+	for i := 2; ; i++ {
+		ch <- i  // Send 'i' to channel 'ch'.
+	}
+}
+
+// Copy the values from channel 'src' to channel 'dst',
+// removing those divisible by 'prime'.
+func filter(src <-chan int, dst chan<- int, prime int) {
+	for i := range src {  // Loop over values received from 'src'.
+		if i%prime != 0 {
+			dst <- i  // Send 'i' to channel 'dst'.
+		}
+	}
+}
+
+// The prime sieve: Daisy-chain filter processes together.
+func sieve() {
+	ch := make(chan int)  // Create a new channel.
+	go generate(ch)       // Start generate() as a subprocess.
+	for {
+		prime := <-ch
+		fmt.Print(prime, "\n")
+		ch1 := make(chan int)
+		go filter(ch, ch1, prime)
+		ch = ch1
+	}
+}
+
+func main() {
+	sieve()
+}
+----
+
+
+[#Program_initialization_and_execution]
+==  Inisiasi dan eksekusi program
+
+[#The_zero_value]
+===  Nilai kosong
+
+Saat tempat dialokasikan untuk sebuah <<Variables, variabel>>, baik lewat
+deklarasi atau pemanggilan `new`, atau saat sebuah nilai baru dibuat, baik
+lewat literal komposit atau sebuah pemanggilan ke `make`, dan tidak ada
+inisiasi eksplisit yang diberikan, maka variabel atau nilai diberikan nilai
+_default_.
+Setiap elemen dari variabel tersebut di set ke _nilai kosong_ bagi tipenya:
+`false` untuk boolean, `0` untuk tipe numerik, `""` untuk string, dan `nil`
+untuk pointer, fungsi, interface, slice, channel, dan map.
+Inisiasi ini berlaku secara rekursif, jadi misalkan setiap elemen dari struct
+array akan memiliki field-filed yang di-nolkan jika tidak ada nilai yang
+dispesifikasikan.
+
+Dua deklarasi berikut adalah sama:
+
+----
+var i int
+var i int = 0
+----
+
+Setelah
+
+----
+type T struct { i int; f float64; next *T }
+t := new(T)
+----
+
+hal berikut berlaku:
+
+----
+t.i == 0
+t.f == 0.0
+t.next == nil
+----
+
+Hal yang sama juga benar untuk
+
+----
+var t T
+----
+
+
+[#Packet_initialization]
+===  Inisiasi paket
+
+Dalam sebuah paket, inisiasi variabel di tingkat paket diproses secara
+bertahap, dengan setiap tahap memilih variabel paling awal dalam
+_urutan deklarasi_ yang tidak memiliki dependensi terhadap variabel-variabel
+yang belum diinisiasi.
+
+Lebih tepatnya, variabel di tingkat paket dianggap _siap untuk inisiasi_ jika
+ia belum diinisiasi dan juga tidak punya
+<<Variable_declarations, ekspresi inisiasi>> atau ekspresi inisiasinya tidak
+memiliki _kebergantungan_ terhadap variabel yang belum diinisiasi.
+Inisiasi diproses dengan secara berulang menginisiasi variabel tingkat-paket
+selanjutnya yang dideklarasikan di awal dan siap untuk inisiasi, sampai tidak
+ada lagi variabel siap untuk diinisiasi.
+
+Jika ada variabel yang tetap belum diinisiasi saat proses selesai, variabel
+tersebut adalah bagian dari satu atau lebih putaran inisiasi, dan program
+tidak valid.
+
+Sejumlah variabel pada bagian kiri dari sebuah deklarasi variabel yang
+diinisiasi oleh ekspresi tunggal (multi-nilai) pada bagian kanan, diinisiasi
+secara bersamaan: Jika ada variabel di sisi kiri diinisiasi, maka semua
+variabel tersebut diinisiasi dalam tahap yang sama.
+
+----
+var x = a
+var a, b = f() // a dan b diinisiasi bersamaan, sebelum x diinisiasi.
+----
+
+Variabel <<Blank_identifier, kosong>> diperlakukan seperti halnya variabel
+lainnya dalam deklarasi.
+
+Urutan deklarasi dari variabel yang dideklarasikan dalam beberapa berkas
+ditentukan oleh urutan yang mana berkas tersebut diberikan ke _compiler_:
+Variabel yang dideklarasikan dalam berkas yang pertama dideklarasikan sebelum
+variabel lain dideklarasikan di berkas yang kedua, dan seterusnya.
+
+Analisis dependensi tidak bergantung pada nilai sebenarnya dari variabel,
+hanya pada _referensi_ leksikal dalam sumber berkas, dianalisis secara
+transitif.
+Misalnya, jika ekspresi inisiasi variabel `x` mengacu ke sebuah fungsi yang
+isinya mengacu pada variabel `y`, maka `x` bergantung pada `y`.
+Secara spesifik:
+
+*  Sebuah referensi ke sebuah variabel atau fungsi adalah sebuah
+   pengidentifikasi yang menyatakan variabel atau fungsi tersebut.
+*  Sebuah referensi ke sebuah method `m` yaitu sebuah
+   <<Method_values, nilai method>> atau
+   <<Method_expressions, ekspresi method>>
+   dalam bentuk `t.m`, yang mana tipe (statik) dari `t` bukanlah tipe
+   interface, dan method `m` berada dalam <<Method_sets, kumpulan method>>
+   dari `t`.
+   Apakah nilai fungsi yang dihasilkan dari `t.m` dipanggil tidak dipedulikan.
+*  Sebuah variabel, fungsi, atau method `x` bergantung pada sebuah variabel
+   `y` jika ekspresi inisiasi `x` atau badan (untuk fungsi dan method) berisi
+   referensi ke `y` atau ke fungsi atau method yang bergantung ke `y`.
+
+Sebagai contoh, diberikan deklarasi berikut
+
+----
+var (
+	a = c + b  // == 9
+	b = f()    // == 4
+	c = f()    // == 5
+	d = 3      // == 5 after initialization has finished
+)
+
+func f() int {
+	d++
+	return d
+}
+----
+
+urutan inisiasi adalah `d`, `b`, `c`, `a`.
+Ingatlah bahwa urutan sub-ekspresi dalam ekspresi inisiasi tidak penting:
+`a = c + b` dan `a = b + c` menghasilkan urutan inisiasi yang sama dalam
+contoh tersebut.
+
+Analisis dependensi dilakukan per paket;
+hanya referensi yang mengacu ke variabel, fungsi, dan method (bukan interface)
+yang dideklarasikan dalam paket yang sekarang yang diperhatikan.
+Jika ada kebergantungan data tersembunyi ada antara variabel, urutan inisiasi
+antara variabel tersebut tidak ditentukan.
+
+Misalnya, diberikan deklarasi berikut
+
+----
+var x = I(T{}).ab()   // x memiliki dependensi tersembunyi pada a dan b
+var _ = sideEffect()  // tidak berkaitan dengan x, a, atau b
+var a = b
+var b = 42
+
+type I interface      { ab() []int }
+type T struct{}
+func (T) ab() []int   { return []int{a, b} }
+----
+
+Variabel `a` akan diinisiasi setelah `b` namun apakah `x` diinisiasi sebelum
+`b`, antara `b` dan `a`, atau setelah `a`, atau pada saat `sideEffect()`
+dipanggil (sebelum atau setelah `x` diinisiasi) tidak ditentukan.
+
+Variabel juga dapat diinisiasi menggunakan fungsi bernama `init` yang
+dideklarasikan dalam blok paket, tanpa argumen dan parameter kembalian.
+
+----
+func init() { ... }
+----
+
+Satu atau lebih fungsi tersebut bisa didefinisikan per paket, bahkan dalam
+berkas sumber yang sama.
+Dalam blok paket, pengidentifikasi `init` hanya dapat digunakan untuk
+mendeklarasikan fungsi `init`, namun pengidentifikasi tersebut tidak
+<<Declarations_and_scope, dideklarasikan>>.
+Oleh sebab itu fungsi `init` tidak dapat diacu di mana pun dalam sebuah
+program.
+
+Sebuah paket tanpa import diinisiasi dengan menempatkan nilai awal ke semua
+variabel di tingkat paket diikuti oleh pemanggilan fungsi `init` dengan urutan
+sebagaimana mereka muncul dalam sumber, bisa jadi dalam banyak berkas, saat
+diberikan kepada _compiler_.
+Jika sebuah paket memiliki import, paket-paket yang diimpor diinisiasi sebelum
+menginisiasi paket itu sendiri.
+Jika banyak paket mengimpor sebuah paket, maka paket yang diimpor hanya
+diinisiasi sekali.
+Saat mengimpor paket, secara konstruksi, menjamin bahwa tidak ada
+dependensi siklis.
+
+Inisiasi paket --inisiasi variabel dan pemanggilan fungsi `init`-- terjadi
+dalam sebuah goroutine, secara sekuensial, satu paket satu per satu.
+Fungsi `init` bisa meluncurkan goroutine yang lain, yang dapat berjalan secara
+konkuren dengan kode inisiasi.
+Namun, inisiasi selalu berurutan untuk fungsi `init`: ia tidak akan memanggil
+`init` selanjutnya sebelum yang sebelumnya selesai.
+
+Untuk memastikan perilaku inisiasi yang dapat direproduksi, sistem pembangunan
+dianjurkan memberikan beberapa berkas dalam paket yang sama dengan urutan nama
+berkas secara leksikal kepada _compiler_.
+
+
+[#Program_execution]
+===  Eksekusi program
+
+Sebuah program yang lengkap dibuat dengan mengaitkan sebuah paket yang tidak
+diimpor bernama _paket main_ dengan semua paket yang diimpornya, secara
+transitif.
+Paket main haruslah memiliki nama paket `main` dan mendeklarasikan sebuah
+fungsi `main` yang tidak menerima argumen dan tidak memiliki kembalian.
+
+----
+func main() { … }
+----
+
+Eksekusi program dimulai dengan menginisiasi paket main dan kemudian memanggil
+fungsi `main`.
+Bila pemanggilan fungsi tersebut selesai, maka program keluar.
+Ia tidak menunggu goroutine yang lain untuk selesai.
+
+
+[#Errors]
+==  Eror
+
+Tipe `error` pradeklarasi didefinisikan sebagai
+
+----
+type error interface {
+	Error() string
+}
+----
+
+Interface `error` adalah konvensi untuk merepresentasikan kondisi eror, dengan
+nilai `nil` merepresentasikan tidak ada eror.
+Misalnya, sebuah fungsi yang membaca data dari sebuah berkas bisa
+didefinisikan:
+
+----
+func Read(f *File, b []byte) (n int, err error)
+----
+
+
+[#Run_time_panics]
+==  Panik run-time
+
+Eror eksekusi seperti mencoba membaca indeks array diluar batas memicu _panik
+run-time_ sama seperti dengan memanggil fungsi bawaan
+<<Handling_panics, panic>> dengan nilai tipe interface `runtime.Error`.
+Tipe tersebut memenuhi tipe interface pradeklarasi
+<<Errors, error>>.
+Nilai error sebenarnya yang merepresentasikan kondisi eror run-time tidak
+ditentukan.
+
+----
+package runtime
+
+type Error interface {
+	error
+	// dan mungkin method-method lainnya.
+}
+----
+
+
+[#System_considerations]
+==  Konsiderasi sistem
+
+[#Package_unsafe]
+===  Packet `unsafe`
+
+Paket bawaan `unsafe`, dikenal oleh _compiler_ dan dapat diakses lewat
+<<Import_declarations, path import>> "unsafe", menyediakan fasilitas untuk
+pemrograman tingkat-rendah termasuk operasi yang melanggar sistem tipe.
+Sebuah paket yang menggunakan `unsafe` haruslah diperiksa secara manual demi
+keamanan tipe dan bisa jadi tidak portabel.
+Paket tersebut menyediakan interface berikut:
+
+----
+package unsafe
+
+type ArbitraryType int  // singkatan untuk tipe Go beragam; bukan tipe sebenarnya.
+type Pointer *ArbitraryType
+
+func Alignof(variable ArbitraryType) uintptr
+func Offsetof(selector ArbitraryType) uintptr
+func Sizeof(variable ArbitraryType) uintptr
+----
+
+Sebuah `Pointer` adalah <<Pointer_types, tipe pointer>> namun nilai `Pointer`
+tidak boleh <<Address_operators, di-acu ulang>>.
+Pointer atau nilai dari <<Types, tipe dasar>> `uintptr` dapat dikonversi ke
+tipe dari tipe dasar `Pointer` dan sebaliknya.
+Efek dari mengonversi antara `Pointer` dan `uintptr` adalah terdefinisi secara
+implementasi.
+
+----
+var f float64
+bits = *(*uint64)(unsafe.Pointer(&f))
+
+type ptr unsafe.Pointer
+bits = *(*uint64)(ptr(&f))
+
+var p ptr = nil
+----
+
+Fungsi `Alignof` dan `Sizeof` menerima sebuah ekspresi `x` dengan tipe apa pun
+dan mengembalikan ukuran tipe dari sebuah variabel hipotesis `v` seolah-olah
+`v` dideklarasikan lewat `var v = x`.
+
+Fungsi `Offsetof` menerima sebuah <<Selectors, selector>> `s.f`, menandakan
+field `f` dari struct yang bernotasi `s` atau `*s`, dan mengembalikan posisi
+dari field dalam byte yang relatif terhadap alamat struct.
+Jika `f` adalah <<Struct_types, field yang ditanam>>, ia haruslah dapat
+diakses tanpa pointer lewat field-field dari struct.
+Untuk sebuah struct `s` dengan field `f`:
+
+----
+uintptr(unsafe.Pointer(&s)) + unsafe.Offsetof(s.f) == uintptr(unsafe.Pointer(&s.f))
+----
+
+Arsitektur komputer bisa jadi membutuhkan alamat _memory_ supaya _diratakan_;
+supaya alamat sebuah variabel merupakan kelipatan dari sebuah faktor,
+_perataan_ tipe dari variabel.
+Fungsi `Alignof` menerima ekspresi yang menyatakan sebuah variabel tipe apa
+pun dan mengembalikan perataan dari (tipe dari) variabel dalam sekumpulan
+byte.
+Untuk sebuah variabel `x`:
+
+----
+uintptr(unsafe.Pointer(&x)) % unsafe.Alignof(x) == 0
+----
+
+Pemanggilan dari `Alignof`, `Offsetof`, dan `Sizeof` adalah ekspresi konstanta
+saat kompilasi bertipe `uintptr`.
+
+
+[#Size_and_alignment_guarantees]
+===  Jaminan perataan dan ukuran
+
+Untuk <<Numeric_types, tipe-tipe numerik>>, ukuran-ukuran berikut dijamin:
+
+----
+tipe                                  ukuran dalam byte
+
+byte, uint8, int8                     1
+uint16, int16                         2
+uint32, int32, float32                4
+uint64, int64, float64, complex64     8
+complex128                           16
+----
+
+Properti perataan minimum berikut selalu berlaku:
+
+.  Untuk sebuah variabel `x` tipe apa pun: `unsafe.Alignof(x)` paling tidak 1.
+.  Untuk sebuah variabel `x` bertipe struct: `unsafe.Alignof(x)` adalah nilai
+   terbesar dari semua `unsafe.Alignof(x.f)` untuk setiap field `f` dari `x`,
+   namun paling tidak 1.
+.  Untuk sebuah variabel `x` bertipe array: `unsafe.Alignof(x)` sama dengan
+   perataan dari variabel dari tipe elemen dari array.
+
+Sebuah tipe struct atau array memiliki ukuran nol jika ia tidak mengandung
+field (atau elemen) yang memiliki ukuran lebih besar dari nol.
+Dua variabel berukuran nol yang berbeda bisa saja memiliki alamat yang sama di
+_memory_.
