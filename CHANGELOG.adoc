@@ -2,6 +2,13 @@
 
 Dokumen ini mencatat perubahan dari hasil pengembangan situs golang-id.org.
 
+==  2019.10
+
+Daftar terjemahan,
+
+*  https://golang-id.org/ref/spec/[Spesifikasi Bahasa Pemrograman Go]
+
+
 ==  2019.09
 
 Daftar terjemahan yang telah dilakukan,
