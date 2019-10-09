@@ -2794,8 +2794,8 @@ Jika `a` bukan sebuah map:
    <<Representability,dapat direpresentasikan>>
    oleh sebuah nilai bertipe `int`
 *  indeks berupa konstanta yang tidak bertipe akan diberikan tipe `int`
-*  indeks `x` berada _dalam rentang_ jika `0 <= x < len(a)`, selain itu _di
-   luar rentang_
+*  indeks `x` berada _dalam rentang_ jika `0 <= x < len(a)`, selain itu
+   _di luar rentang_
 
 Untuk `a` dengan
 <<Array_types,tipe Array>>
@@ -3841,7 +3841,7 @@ yang berisi setiap individu kode point Unicode dari string.
 
 ----
 []rune(MyString("白鵬翔"))  // []rune{0x767d, 0x9d6c, 0x7fd4}
-[]rune("")                 // []rune{}
+[]rune("")                  // []rune{}
 
 MyRunes("白鵬翔")           // []rune{0x767d, 0x9d6c, 0x7fd4}
 ----
@@ -3928,7 +3928,7 @@ Ekspresi konstanta berikut adalah ilegal:
 ----
 uint(-1)     // -1 tidak dapat direpresentasikan sebagai uint
 int(3.14)    // 3.14 tidak dapat direpresentasikan sebagai int
-int64(Huge)  // 1267650600228229401496703205376 tidak dapat direpresentasikan sebagaiint64
+int64(Huge)  // 1267650600228229401496703205376 tidak dapat direpresentasikan sebagai int64
 Four * 300   // operan 300 tidak dapat direpresentasikan sebagai int8 (tipe Four)
 Four * 100   // hasil 400 tidak dapat direpresentasikan sebagai int8 (tipe Four)
 ----
@@ -4367,7 +4367,7 @@ maka nilai dari `t` dibandingkan dengan setiap ekspresi "case" diuji untuk
 kesamaan.
 
 Dalam sebuah "case" atau klausa "default", perintah terakhir bisa berupa
-<<Fallthrough_statements. perintah fallthrough>> (bisa
+<<Fallthrough_statements, perintah fallthrough>> (bisa
 <<Labeled_statements, berlabel>>)
 untuk mengindikasikan bahwa kontrol harus mengalir dari akhir klausa ke
 perintah pertama dari klausa selanjutnya.
@@ -4385,7 +4385,7 @@ case 0, 1, 2, 3: s1()
 case 4, 5, 6, 7: s2()
 }
 
-switch x := f(); {  // missing switch expression means "true"
+switch x := f(); {  // tanpa ada ekspresi switch berarti "true"
 case x < 0: return -x
 default: return x
 }
@@ -4423,7 +4423,7 @@ Seperti pada asersi tipe, `x` haruslah <<Interface_types, bertipe interface>>,
 dan setiap tipe `T` dalam setiap "case" harus mengimplementasikan tipe dari
 `x`.
 Tipe-tipe yang terdaftar dalam "case"-"case" dari switch bertipe semuanya
-harus <<Type_identity, berbeda>>/
+harus <<Type_identity, berbeda>>.
 
 ----
 TypeSwitchStmt  = "switch" [ SimpleStmt ";" ] TypeSwitchGuard "{" { TypeCaseClause } "}" .
@@ -5257,10 +5257,14 @@ Sebaliknya, `append` menggunakan array dasar yang sama.
 
 ----
 s0 := []int{0, 0}
-s1 := append(s0, 2)                // menambahkan sebuah element     s1 == []int{0, 0, 2}
-s2 := append(s1, 3, 5, 7)          // menambahkan beberapa element   s2 == []int{0, 0, 2, 3, 5, 7}
-s3 := append(s2, s0...)            // menambahkan slice              s3 == []int{0, 0, 2, 3, 5, 7, 0, 0}
-s4 := append(s3[3:6], s3[2:]...)   // menambahkan slice yang tumpang tindih  s4 == []int{3, 5, 7, 2, 3, 5, 7, 0, 0}
+s1 := append(s0, 2)                // menambahkan sebuah element
+                                   // s1 == []int{0, 0, 2}
+s2 := append(s1, 3, 5, 7)          // menambahkan beberapa element
+                                   // s2 == []int{0, 0, 2, 3, 5, 7}
+s3 := append(s2, s0...)            // menambahkan slice
+                                   // s3 == []int{0, 0, 2, 3, 5, 7, 0, 0}
+s4 := append(s3[3:6], s3[2:]...)   // menambahkan slice yang tumpang tindih
+                                   // s4 == []int{3, 5, 7, 2, 3, 5, 7, 0, 0}
 
 var t []interface{}
 t = append(t, 42, 3.1415, "foo")   // t == []interface{}{42, 3.1415, "foo"}
@@ -5302,7 +5306,7 @@ n3 := copy(b, "Hello, World!")  // n3 == 5, b == []byte("Hello")
 ===  Penghapusan elemen pada map
 
 Fungsi bawaan `delete` menghapus elemen dengan kunci `k` dari sebuah
-<<Map_types>, map> `m`.
+<<Map_types, map>> `m`.
 Tipe dari `k` haruslah dapat
 <<Assignability, dapat ditempatkan>> ke tipe kunci dari `m`.
 
@@ -5585,27 +5589,27 @@ package main
 
 import "fmt"
 
-// Send the sequence 2, 3, 4, … to channel 'ch'.
+// Kirim seurutan 2, 3, 4, … ke channel 'ch'.
 func generate(ch chan<- int) {
 	for i := 2; ; i++ {
 		ch <- i  // Send 'i' to channel 'ch'.
 	}
 }
 
-// Copy the values from channel 'src' to channel 'dst',
-// removing those divisible by 'prime'.
+// Salin nilai dari channel 'src' ke channel 'dst',
+// menghapus angka yang dapat dibagi dengan 'prime'.
 func filter(src <-chan int, dst chan<- int, prime int) {
-	for i := range src {  // Loop over values received from 'src'.
+	for i := range src {  // Pengulangan terhadap nilai yang diterima dari 'src'.
 		if i%prime != 0 {
-			dst <- i  // Send 'i' to channel 'dst'.
+			dst <- i  // Kirim 'i' ke channel 'dst'.
 		}
 	}
 }
 
-// The prime sieve: Daisy-chain filter processes together.
+// Penyaring bilangan prima: Proses filter Daisy-chain berjalan bersamaan.
 func sieve() {
-	ch := make(chan int)  // Create a new channel.
-	go generate(ch)       // Start generate() as a subprocess.
+	ch := make(chan int)  // Buat channel baur.
+	go generate(ch)       // Jalankan generate() sebagai goroutine.
 	for {
 		prime := <-ch
 		fmt.Print(prime, "\n")
@@ -5851,8 +5855,8 @@ func Read(f *File, b []byte) (n int, err error)
 [#Run_time_panics]
 ==  Panik run-time
 
-Eror eksekusi seperti mencoba membaca indeks array diluar batas memicu _panik
-run-time_ sama seperti dengan memanggil fungsi bawaan
+Eror eksekusi seperti mencoba membaca indeks array di luar batas memicu
+_panik run-time_ sama seperti dengan memanggil fungsi bawaan
 <<Handling_panics, panic>> dengan nilai tipe interface `runtime.Error`.
 Tipe tersebut memenuhi tipe interface pradeklarasi
 <<Errors, error>>.
