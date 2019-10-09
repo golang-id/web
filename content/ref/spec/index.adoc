@@ -1,7 +1,8 @@
 =  Spesifikasi Bahasa Pemrograman Go
+:author: The Go Authors
+:date: 4 September 2019
 :toc:
 
-==  Versi 2018 November 16
 
 [#Introduction]
 ==  Pendahuluan
@@ -1079,16 +1080,15 @@ Tipe tersebut dikatakan _mengimplementasikan interface_.
 Nilai dari variabel interface yang tidak diinisiasi adalah `nil`.
 
 ----
-InterfaceType      = "interface" "{" { MethodSpec ";" } "}" .
-MethodSpec         = MethodName Signature | InterfaceTypeName .
+InterfaceType      = "interface" "{" { ( MethodSpec | InterfaceTypeName ) ";" } "}" .
+MethodSpec         = MethodName Signature .
 MethodName         = identifier .
 InterfaceTypeName  = TypeName .
 ----
 
-Dalam tipe interface, setiap method haruslah memiliki nama yang
-<<Uniqueness_of_identifiers,unik>>
-dan tidak-
-<<Blank_identifier,kosong>>.
+Sebuah tipe interface bisa menspesifikasikan beberapa method
+_secara eksplisit_ lewat spesifikasi method, atau ia bisa _menanam_
+method-method dari interface yang lain lewat nama tipe interface.
 
 ----
 // Sebuah interface berkas sederhana.
@@ -1099,13 +1099,26 @@ interface {
 }
 ----
 
+Nama dari setiap method yang secara eksplisit dispesifikasikan haruslah
+<<Uniqueness_of_identifiers,unik>>
+dan tidak
+<<Blank_identifier,kosong>>.
+
+----
+interface {
+	String() string
+	String() string  // ilegal: String tidak unik
+	_(x int)         // ilegal: nama method tidak boleh kosong
+}
+----
+
 Satu atau lebih tipe yang berbeda dapat mengimplementasikan sebuah interface.
 Misalnya, jika dua tipe `S1` dan `S2` memiliki sekumpulan method
 
 ----
-func (p T) Read(b Buffer) bool { return … }
-func (p T) Write(b Buffer) bool { return … }
-func (p T) Close() { … }
+func (p T) Read(b Buffer) bool
+func (p T) Write(b Buffer) bool
+func (p T) Close()
 ----
 
 (yang mana `T` bisa `S1` atau `S2`) maka interface `File` dikatakan
@@ -1141,30 +1154,44 @@ maka mereka juga mengimplementasikan interface `Locker` dan juga interface
 `File`.
 
 Sebuah interface `T` bisa menanam tipe interface bernama `E`.
-Hal ini disebut _penanaman_ interface `E` dalam `T`;
-penanaman interface berarti menambahkan semua method (yang diekspor dan tidak
-diekspor) dari `E` ke interface `T`.
+Hal ini disebut _penanaman_ interface `E` dalam `T`.
+<<Method_sets, Kumpulan method>> dari `T` adalah _gabungan_ dari kumpulan
+method `T` yang secara eksplisit dan interface-interface yang tertanam pada
+`T`.
 
 ----
+type Reader interface {
+	Read(p []byte) (n int, err error)
+	Close() error
+}
+
+type Writer interface {
+	Write(p []byte) (n int, err error)
+	Close() error
+}
+
+// ReadWriter's methods are Read, Write, and Close.
 type ReadWriter interface {
-	Read(b Buffer) bool
-	Write(b Buffer) bool
-}
-
-type File interface {
-	ReadWriter  // sama dengan menambahkan method-method dari ReadWriter
-	Locker      // sama dengan menambahkan method-method dari Locker
-	Close()
-}
-
-type LockedFile interface {
-	Locker
-	File        // ilegal: Lock, Unlock tidak unik
-	Lock()      // ilegal: Lock tidak unik
+	Reader  // includes methods of Reader in ReadWriter's method set
+	Writer  // includes methods of Writer in ReadWriter's method set
 }
 ----
 
-Interface bertipe `T` tidak bisa secara rekursi menanam dirinya sendiri atau
+_Gabungan_ dari kumpulan method berisi method-method (yang diekspor atau tidak
+diekspor) yang mana setiap method di set sekali saja, dan method-method dengan
+nama yang
+<<Uniqueness_of_identifiers, sama>>
+haruslah memiliki penanda yang
+<<Type_identity, identik>>.
+
+----
+type ReadCloser interface {
+	Reader   // mengikutkan method-method Reader dalam ReadCloser
+	Close()  // ilegal: penanda dari Reader.Close dan Close berbeda
+}
+----
+
+Interface bertipe `T` tidak bisa secara rekursif menanam dirinya sendiri atau
 interface lain yang menanam `T`.
 
 ----
@@ -3356,7 +3383,7 @@ x     x / 4     x % 4     x >> 2     x & 3
 ----
 
 Operator _shift_ menggeser operan sebelah kiri sebanyak jumlah yang
-disebutkan pada operan sebelah kanan, yang haruslah positif.
+disebutkan pada operan sebelah kanan, yang haruslah non-negatif.
 Jika bagian kanan operan _shift_ negatif pada saat _runtime_,
 <<Run_time_panics,panik runtime>>
 terjadi.
@@ -5911,11 +5938,12 @@ uintptr(unsafe.Pointer(&x)) % unsafe.Alignof(x) == 0
 ----
 
 Pemanggilan dari `Alignof`, `Offsetof`, dan `Sizeof` adalah ekspresi konstanta
-saat kompilasi bertipe `uintptr`.
+bertipe `uintptr`.
 
 
 [#Size_and_alignment_guarantees]
-===  Jaminan perataan dan ukuran
+===  Jaminan ukuran dan perataan
+//{{{
 
 Untuk <<Numeric_types, tipe-tipe numerik>>, ukuran-ukuran berikut dijamin:
 
@@ -5938,7 +5966,27 @@ Properti perataan minimum berikut selalu berlaku:
 .  Untuk sebuah variabel `x` bertipe array: `unsafe.Alignof(x)` sama dengan
    perataan dari variabel dari tipe elemen dari array.
 
+----
+type T struct {}
+
+type T2 struct {
+	b byte
+	i int64
+}
+
+var t T
+fmt.Println(unsafe.Alignof(t))  // 1
+
+var t2 T2
+fmt.Println(unsafe.Alignof(t2)) // 8, ukuran terbesar yaitu dari field i.
+
+var si []int32
+fmt.Println(unsafe.Alignof(si)) // 4, ukuran elemen dari si yaitu int32.
+----
+
 Sebuah tipe struct atau array memiliki ukuran nol jika ia tidak mengandung
 field (atau elemen) yang memiliki ukuran lebih besar dari nol.
 Dua variabel berukuran nol yang berbeda bisa saja memiliki alamat yang sama di
 _memory_.
+
+//}}}
