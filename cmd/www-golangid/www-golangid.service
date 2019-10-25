@@ -1,0 +1,9 @@
+[Unit]
+Description=www-golangid
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/www-golangid
+
+[Install]
+WantedBy=default.target

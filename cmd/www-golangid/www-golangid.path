@@ -1,0 +1,9 @@
+[Unit]
+Description="Watch /usr/local/bin/www-golangid"
+
+[Path]
+PathChanged=/usr/local/bin/www-golangid
+Unit=systemctl-restart@%p.service
+
+[Install]
+WantedBy=multi-user.target

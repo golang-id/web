@@ -11,6 +11,5 @@ import (
 )
 
 func main() {
-	ciigo.Generate("./content", "cmd/golangid/static.go",
-		"./templates/html.tmpl")
+	ciigo.Generate("./content", "cmd/www-golangid/static.go", "./templates/html.tmpl")
 }
