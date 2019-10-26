@@ -1,0 +1,11 @@
+#put: cmd/{{.Val "service:www:name"}}/{{.Val "service:www:name"}}.path     /tmp
+#put: cmd/{{.Val "service:www:name"}}/{{.Val "service:www:name"}}.service  /tmp
+#put: ./{{.Val "service:www:name"}} /tmp
+
+sudo mv /tmp/{{.Val "service:www:name"}}.path    /etc/systemd/system/
+sudo mv /tmp/{{.Val "service:www:name"}}.service /etc/systemd/system/
+sudo mv /tmp/{{.Val "service:www:name"}}         /usr/local/bin/
+
+sudo systemctl daemon-reload
+sudo systemctl enable {{.Val "service:www:name"}}
+sudo systemctl start {{.Val "service:www:name"}}
