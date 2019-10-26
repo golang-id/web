@@ -1,0 +1,28 @@
+=  Dokumentasi Perintah
+
+Ada sekumpulan program untuk membangun dan memproses sumber kode Go.
+Program-program tersebut tidak dijalankan secara langsung, namun dipanggil
+oleh program link:/doc/cmd/go/[go].
+
+Cara paling umum untuk menjalankan program tersebut yaitu sebagai sub-perintah
+dari program go, misalnya `go fmt`.
+Bila dijalankan, perintah tersebut beroperasi pada keseluruhan paket dari
+sumber kode Go, dengan program go memanggil _binary_ dengan argumen yang
+sesuai untuk pemrosesan tingkat paket.
+
+Program-program tersebut juga dapat dijalankan secara sendiri, tanpa perubahan
+argumen, menggunakan sub-perintah go `tool`, seperti `go tool cgo`.
+Untuk perintah pada umumnya hal ini biasanya berguna untuk _debuggin_ saja.
+Beberapa perintah, seperti `pprof`, hanya bisa diakses lewat sub-perintah go
+`tool`.
+
+Terakhir, perintah `fmt` dan `godoc` dipasang sebagai program biasa yang
+bernama `gofmt` dan `godoc` karena sering kali digunakan.
+
+Klik pada tautan berikut untuk membaca dokumentasi lebih lanjut, metode
+pemanggilan, dan detail penggunaan.
+
+link:/cmd/go/[go]
+
+Program `go` mengatur sumber kode Go and menjalankan perintah lainnya.
+Lihat dokumentasi perintah untuk penggunaan lebih detail.

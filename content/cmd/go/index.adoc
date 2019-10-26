@@ -1,0 +1,637 @@
+=  Perintah go
+:toc:
+
+Go adalah sebuah perkakas untuk mengatur sumber kode Go.
+
+Penggunaan:
+
+----
+go <perintah> [argumen]
+----
+
+Perintah-perintahnya adalah:
+
+----
+bug         jalankan pelaporan bug
+build       kompilasi paket-paket dan dependensi
+clean       hapus berkas-berkas objek dan cache
+doc         tampilkan dokumentasi dari paket atau simbol
+env         cetak informasi lingkungan dari Go
+fix         ubah paket untuk menggunakan API yang baru
+fmt         gofmt (format ulang) sumber-sumber paket
+generate    buat berkas Go dengan memproses sumber
+get         tambah dan pasang dependensi ke modul yang sekarang
+install     kompilasi dan pasang paket dan dependensi
+list        cetak daftar paket atau modul
+mod         pemeliharaan modul
+run         kompilasi dan jalankan program Go
+test        tes paket-paket
+tool        jalankan perkakas go tertentu
+version     cetak versi Go
+vet         laporkan kemungkinan kesalahan dalam paket-paket
+----
+
+Gunakan "go help <perintah>" untuk informasi tentang perintah.
+
+Beberapa topik bantuan tambahan:
+
+----
+buildmode      mode pembangunan
+c              pemanggilan antara Go dan C
+cache          cache pada pembangunan dan tes
+environment    variabel-variabel lingkungan
+filetype       tipe-tipe berkas
+go.mod         berkas go.mod
+gopath         variabel lingkungan GOPATH
+gopath-get     legasi GOPATH menggunakan go get
+goproxy        protokol proxy pada modul
+importpath     sintaksis untuk path impor
+modules        modul, versi modul, dan banyak lagi
+module-get     go get dengan menggunakan modul
+module-auth    autentikasi modul menggunakan go.sum
+module-private konfigurasi modul untuk modul yang tidak publik
+packages       daftar dan pola paket
+testflag       opsi-opsi untuk tes
+testfunc       fungsi-fungsi untuk tes
+----
+
+Gunakan "go help <topik>" untuk informasi lanjut tentang topik tersebut.
+
+[#hdr-Start_a_bug_report]
+==  Jalankan pelaporan bug
+
+Penggunaan:
+
+----
+go bug
+----
+
+Perintah `bug` membuka peramban dan menjalankan laporan _bug_ yang baru.
+Laporan tersebut mengikutkan informasi sistem.
+
+
+[#hdr-Compile_packages_and_dependencies]
+==  Kompilasi paket-paket dan dependensi
+
+Penggunaan:
+
+----
+go build [-o output] [-i] [flag build] [paket]
+----
+
+Perintah `build` mengompilasi paket-paket berdasarkan nama dari path import,
+bersama dengan dependensinya, namun tidak memasang hasilnya.
+
+Jika argumennya adalah daftar berkas .go dari sebuah direktori, maka `build`
+menganggapnya sebagai daftar berkas sumber dari paket yang sama.
+
+Saat mengompilasi paket, `build` mengindahkan berkas yang berakhiran
+`_test.go`.
+
+Saat mengompilasi paket main, `build` menulis hasil program ke sebuah berkas
+yang namanya diambil dari berkas sumber pertama (`go build ed.go rx.go`
+menulis `ed` atau `ed.exe`) atau direktori sumber kode
+(`go build unix/sam` menulis `sam` atau `sam.exe`).
+Akhiran '.exe' ditambahkan bila menulis program untuk Windows.
+
+Saat mengompilasi beberapa paket atau paket yang bukan `main`, `build`
+mengompilasi paket-paket tersebut namun mengindahkan objek hasilnya,
+cara ini untuk memeriksa bahwa paket dapat dibangun.
+
+Opsi "-o" memaksa `build` untuk menulis hasil program atau objek dengan nama
+atau direktori yang diberikan, bukan dengan perilaku seperti yang dijelaskan
+pada dua paragraf sebelumnya.
+Jika nama keluaran adalah direktori yang sudah ada, maka hasil program akan
+ditulis di dalam direktori tersebut.
+
+Opsi "-i" memasang paket-paket dependensi dari target.
+
+Opsi-opsi dari `build` berikut dapat digunakan pada perintah `clean`, `get`,
+`install`, `list`, `run`, dan `test`:
+
+----
+-a
+	buat ulang semua paket bahkan yang sudah terbarukan.
+-n
+	cetak perintah-perintah tetapi jangan jalankan.
+-p n
+	jumlah program, seperti perintah build atau tes, yang dapat berjalan
+	secara paralel.
+	Nilai baku dari n yaitu jumlah CPU yang tersedia.
+-race
+	izinkan deteksi data race.
+	Hanya didukung pada linux/amd64, freebsd/amd64, darwin/amd64,
+	windows/amd64, linux/ppc64le, dan linux/arm64 (hanya untuk 48-bit
+	VMA).
+-msan
+	izinkan operasi dengan pembersih memory.
+	Hanya didukung pada linux/amd64, linux/arm64 dan hanya lewat
+	Clang/LLVM sebagai compiler C.
+	Pada linux/arm64, mode build "pie" akan digunakan.
+-v
+	cetak nama-nama paket saat mereka dikompilasi.
+-work
+	cetak nama dari direktori sementara dan jangan hapus saat selesai.
+-x
+	cetak perintah-perintah.
+
+-asmflags '[pattern=]arg list'
+	argumen yang dikirim ke setiap pemanggilan `go tool asm`.
+-buildmode mode
+	mode pembangunan yang akan digunakan.  lihat 'go help buildmode' untuk
+	lebih lanjut.
+-compiler name
+	nama compiler yang akan digunakan, seperti dalam runtime.Compiler
+	(gccgo atau gc).
+-gccgoflags '[pattern=]arg list'
+	argumen yang akan dikirim setiap pemanggilan compiler/linker gccgo.
+-gcflags '[pattern=]arg list'
+	argumen yang akan dikirim setiap pemanggilan "go tool compile"
+-installsuffix suffix
+	Sufiks yang digunakan sebagai nama direktori pemasangan paket, dengan
+	tujuan untuk menjaga keluaran terpisah dengan pembangunan biasa.
+	Jika menggunakan opsi -race, maka akhiran pada pemasangan secara
+	otomatis di set ke race atau, jika di set secara eksplisit, akan
+	ditambahkan _race.
+	Hal yang sama juga berlaku pada opsi -msan.
+	Menggunakan opsi -buildmode yang membutuhkan opsi-opsi yang tidak
+	biasa akan mendapatkan efek yang sama.
+-ldflags '[pattern=]arg list'
+	argumen yang akan dikirim ke setiap pemanggilan "go tool link"
+-linkshared
+	link dengan pustaka yang dibuat sebelumnya dengan -buildmode=shared.
+-mod mode
+	mode pengunduhan modul yang digunakan: readonly atau vendor.
+	Lihat 'go help modules' untuk lebih lanjut.
+-modcacherw
+	direktori yang baru dibuat dalam modul _cache_ akan di set read-write
+	bukan read-only
+.-pkgdir dir
+	pasang dan muat semua paket dari "dir" sebagai ganti dari lokasi
+	biasa.
+	Contohnya, saat membangun dengan konfigurasi non-standar, gunakan
+	-pkgdir untuk menghasilkan paket di lokasi yang berbeda.
+-tags tag,list
+	daftar tag dari build yang terpisah dengan koma yang akan dipenuhi
+	selama pembangunan.
+	Untuk informasi lebih lanjut tentang build tag, lihat deskripsi dari
+	batasan-batasan build dalam dokumentasi untuk paket go/build.
+	(Versi dahulu dari Go menggunakan daftar yang terpisah dengan spasi,
+	dan bentuk tersebut sudah tidak digunakan lagi namun masih tetap
+	dikenali.
+-trimpath
+	hapus semua path-path sistem dari hasil program.
+	Nama berkas yang tercatat akan dimulai dengan "go" (untuk pustaka
+	standar), atau module path@version (bila menggunakan modul), atau path
+	import biasa (bila menggunakan GOPATH).
+-toolexec 'cmd args'
+	program yang digunakan untuk memanggil program toolchain seperti vet
+	dan asm.
+	Misalnya, alih-alih menjalankan asm, perintah go akan menjalankan
+	'cmd args /path/to/asm <argumen untuk asm>'.
+----
+
+Opsi -asmflags, -gccgoflags, -gcflags, dan -ldflags menerima daftar argumen
+yang dipisahkan oleh spasi untuk dikirim ke perkakas yang dijalankan
+dibelakangnya selama pembangunan.
+Untuk menambah spasi dalam elemen dalam daftar tersebut, kurung dengan tanda
+kutip tunggal atau ganda.
+Daftar argumen bisa diawali dengan sebuah pola paket dan tanda sama dengan
+("="), yang membatasi penggunaan dari daftar argumen tersebut ke pembangunan
+paket-paket yang cocok dengan pola (lihat 'go help packages' untuk deskripsi
+dari pola paket).
+Tanpa pola, daftar argumen hanya berlaku untuk paket yang diberikan pada
+perintah baris.
+Opsi-opsi tersebut bisa berulang dengan pola yang berbeda dengan tujuan untuk
+menentukan argumen yang berbeda untuk sekumpulan paket.
+Jika sebuah pola pencocokan paket diberikan dalam beberapa opsi, kecocokan
+yang terakhir akan digunakan.
+Sebagai contohnya, 'go build -gcflags=-S fmt' mencetak _disassembly_ hanya
+untuk paket fmt, sementara 'go build -gcflags=all=-S fmt' mencetak
+_disassembly_ untuk fmt dan semua dependensinya.
+
+Untuk lebih tahu tentang cara menspesifikasikan paket, lihat 'go help
+packages'.
+Untuk mengetahui lebih lanjut tentang di mana paket dan program dipasang,
+jalankan 'go help gopath'.
+Untuk mengetahui lebih lanjut tentang pemanggilan antara Go dan C/C++,
+jalankan 'go help c'.
+
+Catatan: Perintah `build` mengikuti beberapa konvensi seperti yang dijelaskan
+oleh 'go help gopath'.
+Tidak semua proyek dapat mengikuti konvensi tersebut.
+Pemasangan yang memiliki konvensinya sendiri atau yang menggunakan sistem
+pembangunan perangkat lunak yang terpisah bisa memilih untuk menggunakan
+pemanggilan tingkat-rendah seperti 'go tool compile' dan 'go tool link' untuk
+menghindari beberapa beban dan rancangan dari perkakas build.
+
+Lihat juga: go install, go get, go clean.
+
+
+[#hdr-Remove_object_files_and_cached_files]
+==  Hapus berkas-berkas objek dan _cache_
+
+Penggunaan:
+
+----
+go clean [clean flags] [build flags] [packages]
+----
+
+Perintah `clean` menghapus berkas objek dari direktori sumber paket.
+Perintah go menulis objek dalam sebuah direktori sementara, sehingga
+'go clean' biasanya berguna untuk berkas objek sisa dari perkakas lain atau
+dari pemanggilan manual dari go build.
+
+Jika argumen sebuah paket diberikan atau opsi -i atau -r di set, `clean`
+menghapus berkas-berkas berikut dari setiap direktori sumber yang
+berkorespondensi dengan path impor:
+
+----
+_obj/            direktori objek yang lama, sisa dari Makefiles
+_test/           direktori tes yang lama, sisa dari Makefiles
+_testmain.go     berkas gotest lama, sisa dari Makefiles
+test.out         log tes lama, sisa dari Makefiles
+build.out        log tes lama, sisa dari Makefiles
+*.[568ao]        berkas object, sisa dari Makefiles
+
+DIR(.exe)        dari go build
+DIR.test(.exe)   dari go test -c
+MAINFILE(.exe)   dari go build MAINFILE.go
+*.so             dari SWIG
+----
+
+Dalam daftar tersebut, DIR merepresentasikan elemen path terakhir dari
+direktori, dan MAINFILE adalah nama dasar dari sumber kode Go dalam direktori
+tersebut yang tidak diikutkan saat membangun paket.
+
+Opsi -i membuat perintah `clean` untuk menghapus arsip dan binary yang
+terpasang (yang dibuat oleh 'go install').
+
+Opsi -n membuat perintah `clean` untuk mencetak perintah penghapusan yang
+akan dieksekusi, namun tidak menjalankannya.
+
+Opsi -r membuat perintah `clean` menerapkan secara rekursif ke semua
+dependensi dari paket dari path impor.
+
+Opsi -x membuat perintah `clean` mencetak perintah penghapus saat ia
+dieksekusi.
+
+Opsi -cache membuat `clean` menghapus semua _cache_ dari go build.
+
+Opsi -testcache menyuruh supaya `clean` untuk kedaluwarsa semua hasil tes
+dalam _cache_ go build.
+
+Opsi -modcache menyebabkan `clean` menghapus semua _cache_ unduhan modul
+termasuk sumber kode dari dependensi yang memiliki versi.
+
+Untuk lebih lanjut tentang opsi build, lihat 'go help build'.
+
+Untuk lebih lanjut tentang menentukan paket, lihat 'go help packages'.
+
+
+[#hdr-Show_documentation_for_package_or_symbol]
+==  Tampilkan dokumentasi dari paket atau simbol
+
+Penggunaan:
+
+----
+go doc [-u] [-c] [package|[package.]symbol[.methodOrField]]
+----
+
+Perintah `doc` mencetak komentar dokumentasi yang berasosiasi dengan item yang
+diidentifikasi lewat argumen-argumen (sebuah paket, const, func, type, var,
+method, atau field dari struct) diikuti dengan sebuah ringkasan satu-baris
+dari setiap item tingkat-pertama "di bawah" item tersebut (deklarasi
+tingkat-paket untuk sebuah paket, method untuk sebuah tipe, dan seterusnya.).
+
+Perintah `doc` menerima argumen kosong, satu, atau dua.
+
+Bila argumen tidak ada, yaitu, bila dijalankan seperti
+
+----
+go doc
+----
+
+ia akan mencetak dokumentasi paket dalam direktori yang sekarang.
+Jika paket adalah sebuah program (package main), simbol-simbol yang diekspor
+oleh paket tidak ditampilkan kecuali bila opsi -cmd diberikan.
+
+Bila dijalankan dengan satu argumen, maka argumen tersebut dianggap sebagai
+representasi mirip sintaksis Go dari item yang didokumentasikan.
+Apa yang argumen pilih bergantung pada apa yang dipasang dalam GOROOT dan
+GOPATH, sebagaimana juga bentuk dari argumen, yang secara semantik adalah satu
+dari hal berikut:
+
+----
+go doc <pkg>
+go doc <sym>[.<methodOrField>]
+go doc [<pkg>.]<sym>[.<methodOrField>]
+go doc [<pkg>.][<sym>.]<methodOrField>
+----
+
+Item pertama dalam daftar di atas yang sesuai dengan argumen akan dicetak
+dokumentasinya.
+(Lihat contoh di bawah).
+Namun jika argumen dimulai dengan huruf besar maka diasumsikan sebagai simbol
+atau method dari direktori yang sekarang.
+
+Untuk paket, urutan pencarian ditentukan secara leksikal dengan cara
+_breadth-first order_.
+Yaitu, paket yang ditampilkan adalah yang cocok dengan pencarian dan terdekat
+dengan root dan yang pertama secara leksikal di tingkat hirarkinya.
+Pohon GOROOT selalu dicari pertama kali sebelum GOPATH.
+
+Jika tidak ada paket yang diberikan atau cocok, maka paket di direktori
+sekarang yang dipilih, sehingga "go doc Foo" memperlihatkan dokumentasi untuk
+simbol Foo dalam paket yang sekarang.
+
+Path dari paket bisa secara penuh atau cukup sufiks dari path saja.
+Mekanisme umum dari go tool tidak berlaku: elemen path paket seperti . dan ...
+tidak diimplementasikan oleh `go doc`.
+
+Bila dijalankan dengan dua argumen, yang pertama haruslah path penuh dari
+paket (tidak hanya sufiks saja), dan yang kedua adalah simbol, atau simbol
+dengan method atau field struct.
+Hal ini sama dengan sintaksis yang diterima oleh godoc:
+
+----
+go doc <pkg> <sym>[.<methodOrField>]
+----
+
+Dalam semua bentuk, saat mencocokan simbol, huruf kecil dalam argumen
+menyesuaikan dengan huruf kecil atau besar namun huruf besar dicocokan persis.
+Hal ini berarti akan ada beberapa kecocokan dari argumen dengan huruf kecil
+dalam sebuah paket jika simbol yang berbeda memiliki huruf yang berbeda.
+Jika hal ini terjadi, dokumentasi untuk semua kecocokan dicetak.
+
+Contoh:
+
+----
+go doc
+	Tampilkan dokumentasi dari paket yang sekarang.
+go doc Foo
+	Tampilkan dokumentasi dari Foo dalam paket sekarang.
+	(Foo dimulai dengan huruf besar sehingga tidak sesuai dengan path
+	paket.)
+go doc encoding/json
+	Tampilkan dokumentasi dari paket encoding/json.
+go doc json
+	Cara cepat untuk encoding/json.
+go doc json.Number (or go doc json.number)
+	Tampilkan dokumentasi dan ringkasan method untuk json.Number.
+go doc json.Number.Int64 (or go doc json.number.int64)
+	Tampilkan dokumentasi untuk method json.Number Int64.
+go doc cmd/doc
+	Tampilkan dokumentasi paket untuk perintah doc.
+go doc -cmd cmd/doc
+	Tampilkan dokumentasi dan simbol-simbol yang diekspor dalam perintah
+	doc.
+go doc template.new
+	Tampilkan dokumentasi untuk fungsi html/template New.
+	(html/template secara leksikal sebelum text/template).
+go doc text/template.new # Satu argumen
+	Tampilkan dokumentasi untuk fungsi text/template New.
+go doc text/template new # Dua argumen
+	Tampilkan dokumentasi untuk fungsi text/template New.
+
+Paling tidak, pemanggilan berikut mencetak dokumentasi untuk method
+json.Decoder Decode:
+
+go doc json.Decoder.Decode
+go doc json.decoder.decode
+go doc json.decode
+cd go/src/encoding/json; go doc decode
+----
+
+Opsi-opsi:
+
+----
+-all
+	Tampilkan semua dokumentasi dari paket.
+-c
+	Perhatikan huruf besar/kecil saat mencari simbol.
+-cmd
+	Perlakukan sebuah perintah (paket main) seperti paket biasa.
+	Sebaliknya simbol-simbol yang diekspor paket main disembunyikan saat
+	menampilkan dokumentasi paket tingkat-atas.
+-short
+	Tampilkan satu-baris representasi untuk setiap simbol.
+-src
+	Tampilkan keseluruhan sumber kode dari simbol.  Cara ini
+	memperlihatkan seluruh sumber Go dari deklarasi dan definisi, seperti
+	sebuah definisi fungsi (termasuk badannya), deklarasi tipe atau blok
+	const.  Keluarannya bisa mengikutkan rincian yang tidak diekspor.
+-u
+	Tampilkan dokumentasi untuk simbol, method, field yang tidak diekspor
+	dan yang diekspor.
+----
+
+
+[#hdr-Print_Go_environment_information]
+==  Cetak informasi lingkungan dari Go
+
+Penggunaan:
+
+----
+go env [-json] [-u] [-w] [var ...]
+----
+
+Perintah `env` mencetak informasi lingkungan Go.
+
+Secara baku env mencetak informasi sebagai skrip _shell_ (pada Windows, sebuah
+berkas _batch_).
+Jika satu atau lebih variabel diberikan sebagai argumen, env mencetak nilai
+dari setiap variabel per baris.
+
+Opsi -json mencetak nilai variabel dalam format JSON.
+
+Opsi -u membutuhkan satu atau lebih argumen dan akan menghapus pengaturan baku
+dari variabel lingkungan tersebut, jika sebelumnya telah diset dengan
+'go env -w'.
+
+Opsi -w membutuhkan satu atau lebih argumen dengan bentuk NAME=VALUE dan
+mengubah pengaturan baku dari variabel lingkungan yang diberikan sesuai dengan
+nilainya.
+
+Untuk lebih lanjut tentang variabel lingkungan, lihat 'go help environment'.
+
+
+[#hdr-Update_packages_to_use_new_APIs]
+==  Ubah paket untuk menggunakan API yang baru
+
+Penggunaan:
+
+----
+go fix [packages]
+----
+
+Perintah `fix` menjalankan perintah perbaikan Go terhadap nama paket-paket
+yang diberikan lewat path impor.
+
+Untuk lebih lanjut tentang fix, lihat 'go doc cmd/fix'.
+Untuk lebih lanjut tentang argumen paket, lihat 'go help packages'.
+
+Untuk menjalankan fix dengan opsi-opsi tertentu, jalankan 'go tool fix'.
+
+Lihat juga: go fmt, go vet.
+
+
+[#hdr-Gofmt__reformat__package_sources]
+==  Gofmt (format ulang) sumber-sumber paket
+
+Penggunaan:
+
+----
+go fmt [-n] [-x] [packages]
+----
+
+Fmt menjalankan program 'gofmt -l -w' pada paket-paket berdasarkan nama dari
+path import.
+Ia akan mencetak nama berkas yang diubah.
+
+Untuk informasi lebih lanjut tentang gofmt, lihat 'go doc cmd/gofmt'.
+Untuk informasi tentang menentukan paket, lihat 'go help packages'.
+
+Opsi -n mencetak perintah yang akan dieksekusi.
+Opsi -x mencetak perintah saat dieksekusi.
+
+Opsi -mod menset mode unduhan yang akan digunakan: baca-saja atau vendor.
+Lihat 'go help modules' untuk lebih lanjut.
+
+Untuk menjalankan gofmt dengan opsi tertentu, jalankan gofmt itu sendiri.
+
+Lihat juga: go fix, go vet.
+
+
+[#hdr-Generate_Go_files_by_processing_source]
+==  Buat berkas Go dengan memproses sumber
+
+Penggunaan:
+
+----
+go generate [-run regexp] [-n] [-v] [-x] [build flags] [file.go... | packages]
+----
+
+Generate menjalankan perintah yang dijelaskan oleh petunjuk dalam berkas.
+Perintah tersebut dapat menjalankan proses apa saja namun tujuannya yaitu
+membuat atau memperbarui sumber berkas Go.
+
+Go generate tidak pernah dijalankan secara otomatis oleh go build, go get, go
+test, and seterusnya.
+Ia harus dijalankan secara eksplisit.
+
+Go generate memindai petunjuk dalam berkas, yang berupa baris dalam bentuk,
+
+----
+//go:generate perintah argumen...
+----
+
+(catatan: tidak ada spasi awal dan spasi dalam "//go") yang mana "perintah"
+adalah generator yang akan dijalankan, yang berkorespondensi dengan nama
+berkas program yang dapat dijalankan di lokal.
+Program tersebut harus ada dalam PATH dari _shell_, path penuh
+(/usr/you/bin/mytool), atau sebuah alias dari perintah, yang dijelaskan di
+bawah.
+
+Untuk memberitahu ke manusia atau mesin bahwa kode tersebut hasil generate,
+sumber hasil generate seharusnya memiliki baris yang sesuai dengan _regular
+expression_ (dalam sintaksis Go):
+
+----
+^// Code generated .* DO NOT EDIT\.$
+----
+
+Baris tersebut bisa muncul di mana pun dalam berkas Go, namun biasanya berada
+di awal supaya mudah dicari.
+
+Ingat bahwa go generate tidak mem-_parse_ berkas, sehingga baris-baris yang
+mirip dengan _directive_ dalam komentar atau string akan dianggap sebagai
+_directive_.
+
+Argumen dari _directive_ adalah token yang dipisahkan oleh koma atau string
+dengan kutip ganda yang dikirim sebagai sebuah argumen saat ia dijalankan.
+
+String dengan tanda kutip menggunakan sintaksis Go dan dievaluasi sebelum
+dieksekusi;
+String dengan tanda kutip dianggap sebagai sebuah argumen oleh _generator_.
+
+Go generate men-set beberapa variabel saat ia berjalan:
+
+----
+$GOARCH
+	Arsitektur dari eksekusi (arm, amd64, dll.)
+$GOOS
+	Sistem operasi dari eksekusi (linux, windows, dll.)
+$GOFILE
+	Nama dari berkas.
+$GOLINE
+	Nomor baris dari directive dalam sumber kode
+$GOPACKAGE
+	Nama dari paket dari bekas yang berisi directive.
+$DOLLAR
+	Karaketer dolar.
+----
+
+Selain penggantian variabel dan evaluasi string berkutip, tidak ada lagi
+pemrosesan khusus yang dilakukan, seperti "globbing", dalam baris perintah.
+
+Sebagai langkah terakhir sebelum menjalankan perintah, pemanggilan variabel
+lingkungan apa pun dengan nama alfa-numerik, seperti $GOFILE atau $HOME, akan
+diganti lewat baris perintah.
+Sintaksis dari penggatian variabel yaitu $NAME pada semua sistem operasi.
+Dikarenakan urutan evaluasi, variabel diganti bahkan di dalam string berkutip.
+Jika variabel NAME tidak diset, $NAME akan akan diganti dengan string kosong.
+
+Sebuah _directive_ dengan bentuk,
+
+----
+//go:generate -command xxx args...
+----
+
+menspesifikasikan, untuk berkas itu saja, bahwa string xxx merepresentasikan
+perintah yang diidentifikasi oleh argumennya.
+Hal ini bisa digunakan untuk membuat alias atau menangani generator dengan
+banyak kata.
+Sebagai contohnya,
+
+----
+//go:generate -command foo go tool foo
+----
+
+menentukan bahwa perintah "foo" merepresentasikan "go tool foo".
+
+Perintah generate memproses paket-paket dengan urutan sesuai dengan yang
+diberikan pada baris perintah, satu per satu.
+Jika baris perintah berisi berkas .go dari sebuah direktori, mereka akan
+diperlakukan sebagai satu paket.
+Dalam sebuah paket, generate memproses sumber berkas dalam paket berurutan
+sesuai nama, satu per satu.
+Dalam sebuah berkas, generate menjalankan generator dengan urutan kemunculan
+dalam berkas, satu per satu.
+Perkakas "go generate" juga men-set tag build "generate" sehingga
+berkas-berkas bisa diperiksa oleh "go generate" namun diindahkan selama
+pembangunan.
+
+Jika salah satu generator berhenti karena eror, "go generate" melewati semua
+pemrosesan selanjutnya untuk paket tersebut.
+
+Si generator berjalan dalam sumber direktori paket.
+
+Go generate menerima satu opsi khusus:
+
+----
+-run=""
+	Jika tidak kosong, menspesifikasikan regular expression untuk memilih
+	directive yang keseluruhan teksnya (kecuali spasi dan baris baru)
+	cocok dengan ekspresi.
+----
+
+Go generate juga dapat menerima opsi "build" termasuk -v, -n, dan -x.
+Opsi -v mencetak nama-nama paket dan berkas saat proses berjalan.
+Opsi -n mencetak perintah yang akan dieksekusi.
+Opsi -x mencetak perintah saat mereka dieksekusi.
+
+Untuk lebih lanjut tentang opsi "build", lihat 'go help build'.
+
+Untuk lebih lanjut tentang cara menspesifikasikan paket, lihat 'go help
+packages'.

@@ -83,6 +83,10 @@ Dokumen ini berisi jawaban dari pertanyaan yang sering diajukan tentang Go.
 
 Dokumentasi untuk pustaka bawaan Go.
 
+===  link:/cmd/[Dokumentasi perintah]
+
+Dokumentasi untuk perkakas Go.
+
 ===  link:/ref/spec[Spesifikasi Bahasa]
 
-Spesifikasi bahasa resmi.
+Spesifikasi bahasa Go yang resmi.
