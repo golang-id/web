@@ -1,0 +1,128 @@
+=  Ulang tahun Go ke 10
+:author: Russ Cox, untuk tim Go
+:date: 8 November 2019
+
+Selamat ulang tahun, Go!
+
+Akhir pekan ini kami merayakan peringatan ke 10 dari
+https://opensource.googleblog.com/2009/11/hey-ho-lets-go.html[rilisnya Go],
+menandakan ulang tahun ke 10 dari Go sebagai bahasa pemrograman sumber terbuka
+dan ekosistem untuk membangun perangkat lunak jaringan yang modern.
+
+Untuk menandai peristiwa ini,
+https://twitter.com/reneefrench[Reene French],
+pencipta logo
+https://blog.golang.org/gopher[Go gopher],
+melukiskan kejadian menggembirakan ini:
+
+image:https://blog.golang.org/10years/gopher10th-small.jpg[gopher 10th,500]
+
+Merayakan 10 tahun Go membuat saya membayangkan kembali pada awal November
+2009, saat kami bersiap membagikan Go dengan dunia.
+Kita tidak tahu reaksi yang akan kita terima, apakah orang lain akan peduli
+atau tidak dengan bahasa kecil ini.
+Saya berharap bahwa bahkan jika tidak ada orang yang menggunakan Go, kami
+paling tidak telah menarik perhatian orang terhadap beberapa ide bagus,
+terutama pendekatan Go terhadap konkurensi dan interface, yang mungkin dapat
+mempengaruhi bahasa-bahasa selanjutnya.
+
+Saat sudah jelas bahwa orang-orang sangat senang dengan Go, saya melihat
+sejarah dari bahasa-bahasa terkenal seperti C, C++, Perl, Python, dan Ruby,
+melihat berapa lama setiap bahasa tersebut mencapai tingkat adopsi yang luas.
+Sebagai contohnya, Perl seingat saya muncul sepenuhnya di pertengahan-akhir
+1990-an, dengan skrip CGI dan web, namun di rilis pertama kali tahun 1987.
+Pola ini berulang untuk hampir semua bahasa yang saya kenali: tampaknya hampir
+perlu satu dekade dengan peningkatan yang mantap dan penyebaran yang tenang
+sebelum sebuah bahasa baru benar-benar meluncur.
+
+Saya membayangkan: di manakah Go setelah satu tahun?
+
+Hari ini, kita dapat menjawab pertanyaan tersebut: Go ada di mana saja,
+digunakan paling tidak
+https://research.swtch.com/gophercount[satu juga pengembang diseluruh dunia].
+
+Target awal Go adalah infrastruktur sistem jaringan, yang kita sebut sekarang
+sebagai perangkat lunak _cloud_.
+Setiap penyedia _cloud_ yang besar menggunakan infrastruktur yang ditulis
+dalam Go, seperti Docker, Etcd, Istio, Kubernetes, Prometheus, dan Terraform;
+mayoritas dari
+https://www.cncf.io/projects/[proyek _Cloud Native Computing Foundation_]
+ditulis dalam Go.
+Tidak terhitung banyaknya perusahaan menggunakan Go untuk memindahkan
+pekerjaannya ke _cloud_, dari _startup_ yang dibangun dari awal sampai
+perusahaan yang memodernkan perangkat lunak mereka.
+Go juga telah diadopsi di luar target awalnya, digunakan untuk mengontrol
+sistem tertanam dengan
+https://gobot.io/[GoBot]
+dan
+https://tinygo.org/[TinyGo]
+sampai mendeteksi kanker lewat
+https://medium.com/grail-eng/bigslice-a-cluster-computing-system-for-go-7e03acd2419b[pembelajaran
+mesin dan analisis data besar di GRAIL],
+dan apa pun di antaranya.
+
+Semua ini bisa dikatakan Go telah sukses di luar mimpi kita.
+Dan kesuksesan Go tidak saja karena bahasa.
+Ia sukses karena bahasa, ekosistem, dan terutama komunitas yang bekerja
+bersama-sama.
+
+Di tahun 2009, bahasa Go adalah sebuah gagasan yang bagus dengan implementasi
+yang masih kasar.
+Perintah `go` belum ada: kami menjalankan perintah seperti `6g` untuk
+mengkompilasi dan `6l` untuk menautkan binary, diotomasi dengan berkas
+makefile.
+Kami menulis titik-koma disetiap akhir perintah.
+Program berhenti selama _garbage collection_ berjalan, dan kesusahan
+memanfaatkan CPU dengan dua _core_.
+Go hanya berjalan di Linux dan Mac, di 32 dan 64 bit x86, dan 32-bit ARM.
+
+Selama satu dekade terakhir, dengan bantuan pengembang Go di seluruh dunia,
+kita telah mengembangkan ide dan sketsa menjadi bahasa yang produktif dengan
+peralatan yang fantastis, implementasi dengan kualitas produksi,
+https://blog.golang.org/ismmkeynote[garbage collector yang terbaru], dan
+https://golang.org/doc/install/source#introduction[penggunaan ke 12 sistem
+operasi dan 10 arsitektur].
+
+Setiap bahasa pemrograman membutuhkan bantuan dari ekosistem untuk tumbuh.
+Rilis sumber terbuka adalah benih dari ekosistem tersebut, namun sejak itu,
+banyak orang telah membagikan waktu dan talenta mereka untuk memenuhi
+ekosistem Go dengan tutorial, buku, kursus, blog, _podcast_, perkakas,
+integrasi, dan tentu saja paket-paket Go yang dapat digunakan dan di impor
+dengan `go get`.
+Go tidak akan pernah sukses tanpa dukungan ekosistem ini.
+
+Tentu saja, ekosistem butuh dukungan dari komunitas.
+Di tahun 2019 ada berlusin konferensi Go di seluruh dunia, bersama dengan
+https://www.meetup.com/pro/go[lebih dari 150 grup meetup dengan lebih dari
+90.000 anggota].
+https://golangbridge.org/[GoBridge]
+dan
+https://medium.com/@carolynvs/www-loves-gobridge-ccb26309f667[Women Who Go]
+membantu membawa suara baru ke komunitas Go, lewat bimbingan, pelatihan, dan
+beasiswa konferensi.
+Di tahun ini saja, mereka telah mengajarkan ratusan orang dari kelompok
+tradisional yang kurang terwakili dalam lokakarya yang mana anggota komunitas
+saling mengajar dan membimbing yang baru.
+
+Ada lebih dari
+https://research.swtch.com/gophercount[satu juta pengembang Go]
+di seluruh dunia, dan perusahaan-perusahaan mencari dan mempekerjakan lebih
+banyak lagi.
+Pada kenyataannya, orang-orang terkadang memberitahu kita bahwa dengan belajar
+Go membantu mereka mendapatkan pekerjaan yang pertama dalam industri
+teknologi.
+Pada akhirnya, apa yang paling kami banggakan dari Go bukanlah fitur yang
+dirancang sempurna atau kode yang pintar namun impak positif yang telah Go
+berikan kepada banyak kehidupan orang.
+Kami mencoba membuat bahasa yang membantu kita menjadi pengembang yang lebih
+baik, dan kami senang bahwa Go telah membantu banyak orang lainnya.
+
+Saat
+https://twitter.com/search?q=%23GoTurns10[#GoTurns10],
+saya berharap setiap orang mengambil kesempatan untuk merayakan komunitas Go
+dan semua yang telah kita capai.
+Sebagai wakil dari tim Go di Google, terima kasih kepada semua orang yang
+telah bergabung dengan kita selama satu dekade ini.
+Mari buat dekade berikutnya lebih luar biasa!
+
+image:https://blog.golang.org/10years/gopher10th-pin-small.jpg[GoTurns10,200]

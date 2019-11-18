@@ -1,9 +1,11 @@
 =  Blog
 
 *  link:/blog/go.dev[Go.dev: pusat kegiatan baru untuk pengembang Go], 13
-   November 2019
+   November 2019.
    _Steve Francia dan Julie Qiu_
 
+*  link:/blog/10years[Ulang tahun Go ke 10], 8 November 2019.
+   _Russ Cox, untuk tim Go_
 
 ==  Bahasa
 
