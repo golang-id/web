@@ -1,0 +1,50 @@
+=  Go.dev: pusat kegiatan baru untuk pengembang Go
+:author: Steve Francia dan Julie Qiu
+:date: 13 November 2019
+
+Selama dua tahun terakhir, setelah berbicara dengan para pengguna Go di
+perusahaan yang beragam ukurannya, kita menerima tiga pertanyaan yang
+sama: siapa saja yang menggunakan Go, apa yang mereka buat dengan Go, dan
+bagaimana cara saya menemukan paket Go yang berguna?
+
+Hari ini kita meluncurkan
+https://go.dev[go.dev],
+sebuah pusat kegiatan baru untuk pengembang Go, untuk membantu menjawab
+pertanyaan-pertanyaan tersebut.
+Di sana Anda akan menemukan banyak sumber pembelajaran bahasa Go,
+contoh-contoh kasus, dan studi kasus dari perusahaan yang menggunakan Go.
+
+image:https://blog.golang.org/go.dev/home.png[,600]
+
+(Ingat bahwa
+https://golang.org[golang.org]
+masih merupakan rumah bagi proyek sumber terbuka dan distribusi dari Go.
+Go.dev adalah situs pembantu yang menyediakan sumber-sumber pendukung
+tersebut.)
+
+Dengan membuka "Explore" Anda akan dibawa ke
+https://pkg.go.dev[pkg.go.dev],
+sebuah pusat sumber informasi tentang paket-paket dan modul-modul Go.
+Seperti
+https://godoc.org[godoc.org],
+pkg.go.dev melayani dokumentasi Go.
+Namun, situs ini juga mengenal modul dan memiliki informasi tentang semua
+versi dari sebuah paket, termasuk
+https://pkg.go.dev/std?tab=versions[semua rilis dari pustaka standard]!
+Dan ia juga dapat mendeteksi dan menampilkan lisensi dan memiliki algoritme
+pencarian yang lebih baik.
+Anda dapat mengikuti
+https://golang.org/issue/33654[Go isu 33654]
+untuk pengembangan selanjutnya.
+
+image:https://blog.golang.org/go.dev/http.png[,600]
+
+Peluncuran hari ini adalah produk minimum untuk go.dev, sehingga kita dapat
+membagi apa yang telah kita bangun untuk membantu komunitas dan mendapatkan
+umpan balik.
+Kita bertujuan untuk mengembangkan situs tersebut seterusnya.
+Jika Anda memiliki gagasan, saran atau masalah, mohon beritahu kami lewat
+tautan "Share Feedback" dan "Report an Issue" pada bagian bawah setiap
+halaman.
+Atau Anda dapat mengirim _bug_, gagasan, permintaan fitur, dan pertanyaan ke
+mailto:go-discovery-feedback@google.com[go-discovery-feedback@google.com].

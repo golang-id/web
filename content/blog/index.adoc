@@ -1,5 +1,9 @@
 =  Blog
 
+*  link:/blog/go.dev[Go.dev: pusat kegiatan baru untuk pengembang Go], 13
+   November 2019
+   _Steve Francia dan Julie Qiu_
+
 
 ==  Bahasa
 
