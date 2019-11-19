@@ -35,11 +35,11 @@ Pola ini berulang untuk hampir semua bahasa yang saya kenali: tampaknya hampir
 perlu satu dekade dengan peningkatan yang mantap dan penyebaran yang tenang
 sebelum sebuah bahasa baru benar-benar meluncur.
 
-Saya membayangkan: di manakah Go setelah satu tahun?
+Saya membayangkan: di manakah Go setelah satu dekade?
 
 Hari ini, kita dapat menjawab pertanyaan tersebut: Go ada di mana saja,
 digunakan paling tidak
-https://research.swtch.com/gophercount[satu juga pengembang diseluruh dunia].
+https://research.swtch.com/gophercount[satu juga pengembang di seluruh dunia].
 
 Target awal Go adalah infrastruktur sistem jaringan, yang kita sebut sekarang
 sebagai perangkat lunak _cloud_.
