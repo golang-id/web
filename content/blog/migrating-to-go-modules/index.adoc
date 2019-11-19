@@ -1,0 +1,382 @@
+=  Migrasi ke Go Modul
+:author: Jean de Klerk
+:date: 21 Agustus 2019
+
+==  Pendahuluan
+
+Tulisan ini adalah bagian ke 2 dari sebuah seri.
+
+*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul]
+*  Bagian 2 - Migrasi ke Go Modul (tulisan ini)
+*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul]
+*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya]
+
+Proyek-proyek Go menggunakan beragam strategi manajemen dependensi.
+Perkakas
+https://golang.org/cmd/go/#hdr-Vendor_Directories[vendor]
+seperti
+https://github.com/golang/dep[dep]
+dan
+https://github.com/Masterminds/glide[glide]
+cukup terkenal, namun mereka memiliki perbedaan yang luas dalam perilaku dan
+tidak saling bekerja satu sama lain.
+Beberapa proyek bahkan menyimpan semua sumber kode di GOPATH dalam sebuah
+repositori Git.
+Yang lainnya bergantung kepada "go get" dan menggunakan versi terbaru dari
+dependensi yang terpasang di GOPATH.
+
+Sistem Go modul, yang diperkenalkan sejak Go 1.11, menyediakan solusi
+manajemen dependensi dalam perintah "go".
+Artikel ini menjelaskan perkakas dan teknik-teknik untuk mengonversi sebuah
+proyek menjadi Go modul.
+
+Mohon diingat: jika proyek Anda telah di tag v2.0.0 atau lebih tinggi, Anda
+perlu mengubah path modul Anda saat menambahkan berkas "go.mod".
+Kita akan menjelaskan bagaimana melakukan hal tersebut tanpa mengganggu
+pengguna modul Anda di masa depan di artikel selanjutnya yang berfokus pada v2
+dan seterusnya.
+
+
+==  Migrasi ke Go modul dalam proyek Anda
+
+Sebuah proyek bisa berada dalam salah satu situasi berikut sebelum memulai
+transisi ke Go modul:
+
+*  Proyek Go yang baru.
+*  Proyek Go yang telah ada dengan manajemen dependensi bukan Go modul
+*  Proyek Go yang telah ada tanpa ada manajemen dependensi
+
+Kasus yang pertama telah diulas dalam
+link:/blog/using-go-modules[Menggunakan Go Modul];
+kita akan menelaah kedua kasus terakhir dalam artikel ini.
+
+
+==  Dengan sebuah manajemen dependensi
+
+Untuk mengonversi sebuah proyek yang sudah menggunakan sebuah perkakas
+manajemen dependensi, cukup jalankan perintah berikut:
+
+----
+$ git clone https://github.com/my/project
+[...]
+$ cd project
+$ cat Godeps/Godeps.json
+{
+    "ImportPath": "github.com/my/project",
+    "GoVersion": "go1.12",
+    "GodepVersion": "v80",
+    "Deps": [
+        {
+            "ImportPath": "rsc.io/binaryregexp",
+            "Comment": "v0.2.0-1-g545cabd",
+            "Rev": "545cabda89ca36b48b8e681a30d9d769a30b3074"
+        },
+        {
+            "ImportPath": "rsc.io/binaryregexp/syntax",
+            "Comment": "v0.2.0-1-g545cabd",
+            "Rev": "545cabda89ca36b48b8e681a30d9d769a30b3074"
+        }
+    ]
+}
+$ go mod init github.com/my/project
+go: creating new go.mod: module github.com/my/project
+go: copying requirements from Godeps/Godeps.json
+$ cat go.mod
+module github.com/my/project
+
+go 1.12
+
+require rsc.io/binaryregexp v0.2.1-0.20190524193500-545cabda89ca
+$
+----
+
+"go mod init" membuat berkas "go.mod" yang baru dan secara otomatis mengimpor
+dependensi dari "Godeps.json", "Gopkg.lock", atau sejumlah
+https://go.googlesource.com/go/+/362625209b6cd2bc059b6b0a67712ddebab312d9/src/cmd/go/internal/modconv/modconv.go#9[format
+lain yang didukung].
+Argumen dari "go mod init" adalah path modul, lokasi di mana modul dapat
+ditemukan.
+
+Setelah itu jalankan "go build ./..." dan "go test ./..." sebelum melanjutkan.
+Langkah-langkah selanjutnya bisa saja mengubah berkas "go.mod" Anda, jadi jika
+Anda lebih suka pendekatan yang bertahap, tahap ini menghasilkan berkas
+"go.mod" yang paling sesuai dengan spesifikasi dependensi pra-modul.
+
+----
+$ go mod tidy
+go: downloading rsc.io/binaryregexp v0.2.1-0.20190524193500-545cabda89ca
+go: extracting rsc.io/binaryregexp v0.2.1-0.20190524193500-545cabda89ca
+$ cat go.sum
+rsc.io/binaryregexp v0.2.1-0.20190524193500-545cabda89ca h1:FKXXXJ6G2bFoVe7hX3kEX6Izxw5ZKRH57DFBJmHCbkU=
+rsc.io/binaryregexp v0.2.1-0.20190524193500-545cabda89ca/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
+$
+----
+
+"go mod tidy" mencari semua paket-paket yang secara transitif diimpor oleh
+paket-paket dalam modul Anda.
+Ia akan menambahkan modul baru untuk paket-paket yang tidak disediakan oleh
+modul lain, dan ia juga menghapus dependensi modul dari paket-paket yang tidak
+diimpor.
+Jika sebuah modul menyediakan paket-paket yang hanya diimpor oleh proyek yang
+belum dimigrasi ke modul, maka dependensi modul tersebut akan ditandai dengan
+komentar "// indirect".
+Praktik yang disarankan yaitu menjalankan "go mod tidy" sebelum menambahkan
+"go.mod" ke dalam _version control_.
+
+Mari kita selesaikan dengan memastikan bahwa kode dapat dibangun dan melewati
+pengujian:
+
+----
+$ go build ./...
+$ go test ./...
+[...]
+$
+----
+
+Ingatlah bahwa manajemen dependensi lain bisa saja menspesifikasikan
+dependensi pada tingkat individu dari paket-paket atau secara keseluruhan
+repositori (bukan modul), dan pada umumnya mereka tidak mengenali dependensi
+yang dispesifikasikan dalam berkas "go.mod".
+Akibatnya, Anda bisa saja mendapatkan versi yang tidak sama dengan paket yang
+sebelumnya, dan ada risiko pembaruan yang bisa menimbulkan kerusakan.
+Oleh karena itu, sangat penting mengikuti perintah di atas bersamaan dengan
+audit dari hasil dependensi.
+Untuk melakukan hal tersebut, jalankan
+
+----
+$ go list -m all
+go: finding rsc.io/binaryregexp v0.2.1-0.20190524193500-545cabda89ca
+github.com/my/project
+rsc.io/binaryregexp v0.2.1-0.20190524193500-545cabda89ca
+$
+----
+
+dan bandingkan versi keluarannya dengan berkas manajemen dependensi yang lama
+untuk memastikan bahwa versi yang terpilih adalah sesuai.
+Jika Anda menemukan versi yang tidak diinginkan, Anda bisa mencari tahu
+penyebabnya menggunakan "go mod why -m" dan/atau "go mod graph", dan
+memperbarui atau _downgrade_ ke versi yang sesuai menggunakan "go get".
+(Jika versi yang Anda minta lebih lama dari versi yang terpilih, "go get" juga
+akan men-_downgrade_ dependensi lainnya bila diperlukan untuk menjaga
+kompatibilitas.)
+Sebagai contohnya,
+
+----
+$ go mod why -m rsc.io/binaryregexp
+[...]
+$ go mod graph | grep rsc.io/binaryregexp
+[...]
+$ go get rsc.io/binaryregexp@v0.2.0
+$
+----
+
+
+==  Tanpa manajemen dependensi
+
+Untuk sebuah proyek Go tanpa sistem manajemen dependensi, mulailah dengan
+membuat berkas "go.mod":
+
+----
+$ git clone https://go.googlesource.com/blog
+[...]
+$ cd blog
+$ go mod init golang.org/x/blog
+go: creating new go.mod: module golang.org/x/blog
+$ cat go.mod
+module golang.org/x/blog
+
+go 1.12
+$
+----
+
+Tanpa adanya berkas konfigurasi dari manajemen dependensi lainnya,
+"go mod init" hanya akan membuat berkas "go.mod" yang berisi _directive_
+"module" dan "go".
+Dalam contoh ini, kita men-set path modul ke "golang.org/x/blog" karena itulah
+https://golang.org/cmd/go/#hdr-Remote_import_paths[path impornya].
+Pengguna bisa mengimpor paket-paket dengan path tersebut, dan pemilik modul
+harus berhati-hati supaya tidak mengubahnya sewaktu-waktu.
+
+Perintah _directive_ "module" dalam "go.mod" mendeklarasikan path modul, dan
+_directive_ "go" mendeklarasikan versi bahasa Go yang digunakan untuk
+mengompilasi kode dalam modul.
+
+Selanjutnya, jalankan "go mod tidy" untuk menambahkan dependensi dari modul:
+
+----
+$ go mod tidy
+go: finding golang.org/x/website latest
+go: finding gopkg.in/tomb.v2 latest
+go: finding golang.org/x/net latest
+go: finding golang.org/x/tools latest
+go: downloading github.com/gorilla/context v1.1.1
+go: downloading golang.org/x/tools v0.0.0-20190813214729-9dba7caff850
+go: downloading golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
+go: extracting github.com/gorilla/context v1.1.1
+go: extracting golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
+go: downloading gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
+go: extracting gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
+go: extracting golang.org/x/tools v0.0.0-20190813214729-9dba7caff850
+go: downloading golang.org/x/website v0.0.0-20190809153340-86a7442ada7c
+go: extracting golang.org/x/website v0.0.0-20190809153340-86a7442ada7c
+$ cat go.mod
+module golang.org/x/blog
+
+go 1.12
+
+require (
+    github.com/gorilla/context v1.1.1
+    golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
+    golang.org/x/text v0.3.2
+    golang.org/x/tools v0.0.0-20190813214729-9dba7caff850
+    golang.org/x/website v0.0.0-20190809153340-86a7442ada7c
+    gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637
+)
+$ cat go.sum
+cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
+cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
+git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
+git.apache.org/thrift.git v0.0.0-20181218151757-9b75e4fe745a/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
+github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
+[...]
+$
+----
+
+Perintah "go mod tidy" menambah dependensi modul untuk semua paket-paket yang
+secara transitif diimpor oleh paket dalam modul Anda dan membuat sebuah berkas
+"go.sum" yang berisi _checksum_ dari setiap pustaka pada versi tertentu.
+Mari kita selesaikan dengan memastikan bahwa kode dapat dibangun dan tes
+berjalan dengan sukses:
+
+----
+$ go build ./...
+$ go test ./...
+ok      golang.org/x/blog    0.335s
+?       golang.org/x/blog/content/appengine    [no test files]
+ok      golang.org/x/blog/content/cover    0.040s
+?       golang.org/x/blog/content/h2push/server    [no test files]
+?       golang.org/x/blog/content/survey2016    [no test files]
+?       golang.org/x/blog/content/survey2017    [no test files]
+?       golang.org/x/blog/support/racy    [no test files]
+----
+
+Ingatlah bahwa saat "go mod tidy" menambahkan dependensi, ia akan menggunakan
+versi terakhir dari dependensi tersebut.
+Jika GOPATH Anda berisi versi lama dari dependensi yang ternyata memiliki
+perubahan, Anda akan mendapatkan eror saat menjalankan "go mod tidy",
+"go build", atau "go test".
+Jika hal ini terjadi, cobalah men-_downgrade_ ke versi yang lama dengan
+"go get" (misalnya, "go get github.com/broken/module@v1.1.0"), atau buat modul
+Anda kompatibel dengan versi terbaru dari setiap dependensi.
+
+
+==  Pengujian dengan mode modul
+
+Beberapa pengujian bisa saja membutuhkan beberapa perubahan setelah migrasi ke
+Go modul.
+
+Jika sebuah tes perlu menulis berkas dalam direktori paket, ia akan gagal bila
+direktori paket berada dalam modul _cache_, yang mana hanya _read-only_.
+Secara khusus, hal ini bisa menyebabkan "go test all" menjadi gagal.
+Pengujian seharusnya menyalin berkas yang ia butuhkan ke direktori khusus yang
+sementara.
+
+Jika sebuah tes bergantung pada path relatif (misalnya,
+"../paket-dalam-modul-lain") untuk mencari dan membaca berkas di paket lain,
+maka ia akan gagal jika paket tersebut berada dalam modul yang berbeda, yang
+bisa saja berada dalam lokasi sub-direktori dengan versi dari modul _cache_
+atau dari sebuah path yang dispesifikasikan oleh _directive_ "replace".
+Jika kasus ini terjadi, maka Anda perlu menyalin input pengujian ke dalam
+modul Anda, atau ubah tes input dari berkas mentah menjadi data yang ditanam
+ke dalam berkas sumber kode ".go".
+
+Jika sebuah tes membutuhkan perintah "go" dijalankan dengan mode GOPATH, ia
+juga akan gagal.
+Jika hal ini terjadi, Anda perlu menambahkan berkas "go.mod" ke dalam sumber
+yang akan diuji, atau set "GO111MODULE=off" secara eksplisit.
+
+
+==  Menerbitkan sebuah rilis
+
+Terakhir, Anda sebaiknya memberi tag dan merilis versi baru dari modul Anda.
+Hal ini adalah opsional bila Anda belum pernah merilis versi sebelumnya, namun
+tanpa adanya rilis resmi, pengguna lain akan bergantung pada _commit_ tertentu
+menggunakan
+https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo],
+yang mungkin lebih sukar untuk didukung.
+
+----
+$ git tag v1.2.0
+$ git push origin v1.2.0
+----
+
+Berkas "go.mod" Anda yang baru mendefinisikan path impor yang kanonis bagi
+modul Anda dan menambahkan kebutuhan versi minimum yang baru.
+Jika pengguna modul Anda sudah menggunakan path impor yang benar, dan
+dependensi Anda belum banyak berubah, maka menambahkan berkas "go.mod" adalah
+sebuah _backward-compatible_ (modul Anda masih bisa digunakan oleh pengguna
+lain tanpa adanya kerusakan di sisi mereka) -- namun hal ini adalah perubahan
+yang signifikan, dan bisa saja menimbulkan permasalahan nantinya.
+Jika Anda sudah memiliki tag dengan versi, Anda harus meningkatkan
+https://semver.org/lang/id/spec/v2.0.0.html#spec-item-7[versi minor].
+Lihat
+link:/blog/publishing-go-modules[Menerbitkan Go Modul]
+untuk belajar bagaimana meningkatkan dan menerbitkan versi.
+
+
+==  Path impor dan path modul
+
+Setiap modul mendeklarasikan path modul-nya dalam berkas "go.mod".
+Setiap perintah "import" yang mengacu ke sebuah paket dalam modul haruslah
+memiliki prefiks path modul.
+Namun, perintah "go" bisa menemukan sebuah repositori yang berisi modul lewat
+banyak
+https://golang.org/cmd/go/#hdr-Remote_import_paths[path impor remote]
+yang berbeda.
+Sebagai contohnya, "golang.org/x/lint" dan "github.com/golang/lint" mengacu
+pada repositori yang sama yang disimpan di
+https://go.googlesource.com/lint[go.googlesource.com/lint].
+https://go.googlesource.com/lint/+/refs/heads/master/go.mod[Berkas go.mod]
+di dalam repositori tersebut mendeklarasikan path-nya ke "golang.org/x/lint",
+jadi hanya path tersebut lah yang berkorespondensi ke modul yang valid.
+
+Go 1.4 menyediakan mekanisme untuk mendeklarasikan path impor kanonis
+menggunakan
+https://golang.org/cmd/go/#hdr-Import_path_checking[komentar "// import"],
+namun pembuat paket tidak selalu menuliskannya.
+Akibatnya, kode yang ditulis sebelum adanya modul bisa saja menggunakan path
+impor yang tidak kanonis tanpa menimbulkan kesalahan penamaan.
+Bila menggunakan modul, path impor harus sama dengan path modul, jadi Anda
+perlu mengubah perintah "import": sebagai contohnya, Anda perlu mengubah
+`import "github.com/golang/lint"` menjadi `import "golang.org/x/lint"`.
+
+Skenario lain yang mana path kanonis dari modul bisa berbeda dengan path
+repositori terjadi pada Go modul dengan versi 2 atau lebih.
+Sebuah Go modul dengan versi mayor di atas 1 haruslah menambahkan sufiks
+versi-mayor pada path modul-nya: sebagai contoh, versi v2.0.0 haruslah
+diberikan sufiks "/v2".
+Namun, perintah "import" bisa mengacu ke paket-paket dalam modul tersebut
+_tanpa_ sufiks tersebut.
+Sebagai contohnya, pengguna non-modul dari
+"github.com/russross/blackfriday/v2" pada versi v2.0.1 bisa saja mengimpornya
+sebagai "github.com/russross/blackfriday" saja, dan perlu mengubah path
+impor-nya untuk menambahkan sufiks "/v2".
+
+
+==  Kesimpulan
+
+Proses mengonversi Go modul seharusnya mudah bagi kebanyakan pengguna.
+Masalah-masalah khusus bisa muncul disebabkan path impor yang tidak kanonis
+atau _breaking changes_ disebabkan karena dependensi.
+Artikel selanjutnya akan mengeksplorasi bagaimana
+link:/blog/publishing-go-modules[menerbitkan versi baru], v2 dan seterusnya,
+dan cara-cara untuk men-_debug_ situasi-situasi yang aneh.
+
+Bila ada tanggapan dan bantuan untuk membantu manajemen dependensi di Go,
+silakan kirim
+https://golang.org/issue/new[laporan kesalahan]
+atau
+https://golang.org/wiki/ExperienceReports[laporan pengalaman].
+
+Terima kasih untuk semua tanggapan dan bantuan yang telah menjadikan Go modul
+lebih baik.

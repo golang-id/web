@@ -54,3 +54,7 @@
 *  link:/blog/using-go-modules[Bagian 1 - Menggunakan Go modul], 19 Maret
    2019.
    _Tyler Bui-Palsulich dan Eno Compton_
+
+*  link:/blog/migrating-to-go-modules[Bagian 2 - Migrasi ke Go modul], 21
+   Agustus 2019.
+   _Jean de Klerk_
