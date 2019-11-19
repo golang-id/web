@@ -1,0 +1,613 @@
+=  Menggunakan Go Modul
+:author: Tyler Bui-Palsulich dan Eno Compton
+:date: 19 Maret 2019
+
+==  Pendahuluan
+
+Tulisan ini adalah bagian pertama dari sebuah seri.
+
+*  Bagian 1 - Menggunakan Go Modul (tulisan ini)
+*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul]
+*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul]
+*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya]
+
+Go 1.11 dan 1.12 mengikutkan
+https://golang.org/doc/go1.11#modules[dukungan awal untuk modul],
+https://blog.golang.org/versioning-proposal[sistem manajemen dependensi baru]
+dari Go yang membuat versi informasi dependensi eksplisit dan mudah diatur.
+Artikel ini adalah pengenalan dari operasi dasar yang dibutuhkan untuk memulai
+menggunakan modul.
+
+Sebuah modul adalah kumpulan dari
+link:/ref/spec#Packages[paket-paket Go]
+yang disimpan dalam sebuah pohon berkas dengan berkas `go.mod` di atasnya.
+Berkas `go.mod` mendefinisikan _module path_ dari modul, yang juga merupakan
+path impor yang digunakan pada direktori teratas, dan _kebutuhan dependensi_
+nya, yang merupakan modul-modul lain yang dibutuhkan untuk pembangunan supaya
+berhasil.
+Setiap kebutuhan dependensi ditulis sebagai sebuah path modul dan sebuah
+http://semver.org/[versi semantik].
+
+Pada Go 1.11, perintah `go` membolehkan penggunaan modul saat direktori yang
+digunakan sekarang atau direktori di atasnya memiliki sebuah `go.mod`, selama
+direktori tersebut berada _di luar_ `$GOPATH/src`.
+(Di dalam `$GOPATH/src`, untuk kompatibilitas, perintah `go` masih tetap
+berjalan dengan mode GOPATH lama, walaupun `go.mod` ditemukan.
+Lihat
+link:/cmd/go/#hdr-Preliminary_module_support[dokumentasi perintah go]
+untuk lebih detil.)
+Mulai dari Go 1.13, mode modul akan menjadi baku untuk semua pengembangan.
+
+Artikel ini membimbing melewati seurutan operasi umum yang muncul saat
+mengembangkan kode Go dengan modul:
+
+* Membuat modul baru
+* Menambahkan sebuah dependensi
+* Memperbarui dependensi
+* Menambahkan sebuah dependensi dengan versi mayor
+* Memperbarui dependensi ke versi mayor
+* Menghapus dependensi yang sudah tidak digunakan
+
+
+===  Membuat modul baru
+
+Mari kita buat sebuah modul baru.
+
+Buat sebuah direktori baru yang kosong, di luar `$GOPATH/src`, `cd` ke
+direktori tersebut, dan kemudian buat sebuah berkas sumber, `hello.go`:
+
+----
+package hello
+
+func Hello() string {
+	return "Hello, world."
+}
+----
+
+Mari kita tulis tes juga, dalam `hello_test.go`:
+
+----
+package hello
+
+import "testing"
+
+func TestHello(t *testing.T) {
+	want := "Hello, world."
+	if got := Hello(); got != want {
+		t.Errorf("Hello() = %q, want %q", got, want)
+	}
+}
+----
+
+Sekarang, direktori berisi sebuah paket, bukan sebuah modul, karena tidak ada
+berkas `go.mod`.
+Jika direktori sekarang yaitu `/home/gopher/hello` dan menjalankan `go test`,
+maka akan muncul:
+
+----
+$ go test
+PASS
+ok      _/home/gopher/hello    0.020s
+$
+----
+
+Baris terakhir menyimpulkan keseluruhan tes paket.
+Secara kita bekerja di luar $GOPATH dan juga di luar modul, perintah `go`
+tidak mengenali path impor untuk direktori sekarang sehingga dibuatlah sebuah
+path impor yang palsu berdasarkan nama direktori: `_/home/gopher/hello`.
+
+Mari kita buat direktori sekarang sebagai modul dengan menggunakan
+`go mod init` dan coba jalankan `go test` kembali:
+
+----
+$ go mod init example.com/hello
+go: creating new go.mod: module example.com/hello
+$ go test
+PASS
+ok      example.com/hello    0.020s
+$
+----
+
+Selamat! Anda telah menulis dan menguji modul pertama anda.
+
+Perintah `go mod init` membuat sebuah berkas `go.mod`:
+
+----
+$ cat go.mod
+module example.com/hello
+
+go 1.12
+$
+----
+
+Berkas "go.mod" hanya muncul di akar direktori dari modul.
+Paket-paket di dalam sub-direktori memiliki path impor yang terdiri dari path
+modul ditambah dengan path ke sub direktori.
+Sebagai contohnya, jika kita buat sub direktori "world", kita tidak perlu
+menjalankan "go mod init" di dalamnya.
+Paket tersebut akan secara otomatis dikenal sebagai bagian dari modul
+"example.com/hello", dengan path impor "example.com/hello/world".
+
+
+===  Menambahkan sebuah dependensi
+
+Motivasi utama dari Go modul adalah untuk meningkatkan pengalaman dari
+menggunakan (yaitu, menambahkan sebuah dependensi) kode yang ditulis oleh
+pengembang lainnya.
+
+Mari kita coba perbarui "hello.go" supaya mengimpor "rsc.io/quote" dan
+menggunakannya untuk mengimplementasikan fungsi Hello:
+
+----
+package hello
+
+import "rsc.io/quote"
+
+func Hello() string {
+	return quote.Hello()
+}
+----
+
+Sekarang mari kita jalankan tes kembali:
+
+----
+$ go test
+go: finding rsc.io/quote v1.5.2
+go: downloading rsc.io/quote v1.5.2
+go: extracting rsc.io/quote v1.5.2
+go: finding rsc.io/sampler v1.3.0
+go: finding golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c
+go: downloading rsc.io/sampler v1.3.0
+go: extracting rsc.io/sampler v1.3.0
+go: downloading golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c
+go: extracting golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c
+PASS
+ok      example.com/hello    0.023s
+$
+----
+
+Perintah `go` menangani impor dengan menggunakan versi dependensi modul
+tertentu yang didaftarkan dalam `go.mod`.
+Saat ia menemui sebuah `import` dari sebuah paket yang tidak ditemukan dalam
+`go.mod`, perintah `go` otomatis mencari modul yang berisi paket tersebut dan
+menambahkannya ke `go.mod`, menggunakan versi yang terakhir.
+("Terakhir" didefinisikan sebagai versi terakhir yang di tag sebagai stabil --
+https://semver.org/#spec-item-9[yang bukan pra-rilis],
+atau versi pra-release terakhir yang di tag, atau versi terakhir yang tidak di
+tag.)
+Dalam contoh di atas, "go test" menangani impor yang baru "rsc.io/quote" ke
+modul "rsc.io/quote v1.5.2".
+Ia juga mengunduh dua dependensi yang digunakan oleh "rsc.io/quote", yaitu
+"rsc.io/sampler" dan "golang.org/x/text".
+Hanya dependensi langsung saja yang dicatat dalam berkas "go.mod":
+
+----
+$ cat go.mod
+module example.com/hello
+
+go 1.12
+
+require rsc.io/quote v1.5.2
+$
+----
+
+Perintah "go test" berikutnya tidak akan mengulangi pekerjaan di atas, secara
+"go.mod" sekarang sudah terbarukan dan modul-modul yang diunduh telah
+di-_cache_ di lokal (dalam $GOPATH/pkg/mod):
+
+----
+$ go test
+PASS
+ok      example.com/hello    0.020s
+$
+----
+
+Ingatlah bahwa walaupun perintah `go` membuat penambahan dependensi baru
+dengan cepat dan mudah, ia ada "biaya"-nya.
+Modul anda sekarang benar-benar _bergantung_ pada dependensi baru dalam ruang
+yang rawan, beberapa hal harus diperhatikan seperti ketepatan, keamanan, dan
+lisensi.
+Untuk pertimbangan lebih lanjut, lihat artikel dari Russ Cox,
+https://research.swtch.com/deps["Our Software Dependency Problem"].
+
+Seperti yang telah kita lihat di atas, menambah satu dependensi secara
+langsung terkadang membawa dependensi tidak langsung juga.
+Perintah "go list -m all" menampilkan nama modul dan semua dependensinya.
+
+----
+$ go list -m all
+example.com/hello
+golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c
+rsc.io/quote v1.5.2
+rsc.io/sampler v1.3.0
+$
+----
+
+Dalam keluaran "go list" di atas, modul yang sekarang, atau dikenal juga
+dengan modul utama, selalu berada dalam baris pertama diikuti oleh dependensi
+yang diurut berdasar path modul.
+
+Baris "golang.org/x/text version v0.0.0-20170915032832-14c0d48ead0c" adalah
+sebuah contoh dari
+https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo],
+yang merupakan sintaksis untuk commit yang tidak ada tag-nya.
+
+Selain "go.mod", perintah go juga membuat sebuah berkas bernama "go.sum" yang
+berisi
+https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[hash
+kriptografi]
+dari isi modul pada versi tertentu:
+
+----
+$ cat go.sum
+golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c h1:qgOY6WgZO...
+golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:Nq...
+rsc.io/quote v1.5.2 h1:w5fcysjrx7yqtD/aO+QwRjYZOKnaM9Uh2b40tElTs3...
+rsc.io/quote v1.5.2/go.mod h1:LzX7hefJvL54yjefDEDHNONDjII0t9xZLPX...
+rsc.io/sampler v1.3.0 h1:7uVkIFmeBqHfdjD+gZwtXXI+RODJ2Wc4O7MPEh/Q...
+rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9...
+$
+----
+
+Perintah "go" menggunakan berkas "go.sum" untuk memastikan bahwa pengunduhan
+selanjutnya dari modul-modul tersebut menerima bit-bit yang sama seperti saat
+pertama kali diunduh, untuk memastikan bahwa modul yang proyek anda butuhkan
+tidak berubah tiba-tiba, baik karena sengaja, tidak sengaja, atau hal-hal
+lainnya.
+Kedua berkas tersebut, "go.mod" dan "go.sum" seharusnya dimasukan dalam
+sistem pengontrolan versi (misalnya, git).
+
+
+===  Memperbarui dependensi
+
+Dengan Go modul, versi-versi diacu dengan tag versi semantik.
+Sebuah versi semantik memiliki tiga bagian utama: mayor, minor, dan _patch_
+(tambalan).
+Misalnya, untuk v0.1.2, versi mayor adalah 0, versi minor adalah 1, dan
+versi tambalan adalah 2.
+Mari kita lihat bagaimana memperbarui beberapa versi minor.
+Dalam seksi selanjutnya, kita akan melihat bagaimana melakukan pembaruan versi
+mayor.
+
+Dari keluaran "go list -m all", kita menggunakan versi "golang.org/x/text"
+yang tidak di-tag.
+Mari kita perbarui ke tag terakhir dan uji kembali supaya semua masih berjalan
+dengan baik:
+
+----
+$ go get golang.org/x/text
+go: finding golang.org/x/text v0.3.0
+go: downloading golang.org/x/text v0.3.0
+go: extracting golang.org/x/text v0.3.0
+$ go test
+PASS
+ok      example.com/hello    0.013s
+$
+----
+
+Semua berjalan lancar.
+Mari kita lihat kembali "go list -m all" dan berkas "go.mod":
+
+----
+$ go list -m all
+example.com/hello
+golang.org/x/text v0.3.0
+rsc.io/quote v1.5.2
+rsc.io/sampler v1.3.0
+$ cat go.mod
+module example.com/hello
+
+go 1.12
+
+require (
+	golang.org/x/text v0.3.0 // indirect
+	rsc.io/quote v1.5.2
+)
+$
+----
+
+Modul "golang.org/x/text" telah terbarukan ke versi tag yang terakhir
+(v0.3.0).
+Berkas "go.mod" telah diperbarui sehingga menspesifikasikan v0.3.0 juga.
+Komentar "indirect" mengindikasikan bahwa dependensi tidak digunakan secara
+langsung oleh modul ini, namun secara tidak langsung oleh dependensi dari
+modul yang lain.
+Lihat "go help modules" untuk lebih rincinya.
+
+Sekarang mari kita coba perbarui "rsc.io/sampler" ke versi minor.
+Dimulai dengan cara yang sama, dengan menjalankan "go get" dan menjalankan
+tes:
+
+----
+$ go get rsc.io/sampler
+go: finding rsc.io/sampler v1.99.99
+go: downloading rsc.io/sampler v1.99.99
+go: extracting rsc.io/sampler v1.99.99
+$ go test
+--- FAIL: TestHello (0.00s)
+    hello_test.go:8: Hello() = "99 bottles of beer on the wall, 99 bottles of beer, ...", want "Hello, world."
+FAIL
+exit status 1
+FAIL    example.com/hello    0.014s
+$
+----
+
+Oo! Ternyata tes gagal, memperlihatkan bahwa versi terakhir dari
+"rsc.io/sampler" tidak kompatibel dengan kebutuhan kita.
+Mari kita coba lihat versi tag yang tersedia dari modul tersebut:
+
+----
+$ go list -m -versions rsc.io/sampler
+rsc.io/sampler v1.0.0 v1.2.0 v1.2.1 v1.3.0 v1.3.1 v1.99.99
+$
+----
+
+Kita telah menggunakan v1.3.0;
+v1.99.99 jelas tidak bisa digunakan.
+Mungkin kita bisa mencoba v1.3.1:
+
+----
+$ go get rsc.io/sampler@v1.3.1
+go: finding rsc.io/sampler v1.3.1
+go: downloading rsc.io/sampler v1.3.1
+go: extracting rsc.io/sampler v1.3.1
+$ go test
+PASS
+ok      example.com/hello    0.022s
+$
+----
+
+Perhatikan perintah eksplisit "@v1.3.1" pada argumen "go get".
+Pada umumnya, setiap argumen yang dikirim ke "go get" dapat menerima versi
+eksplisit;
+jika kosong maka dianggap sebagai "@latest", yang berarti akan diubah ke versi
+terakhir seperti yang telah dijelaskan sebelumnya.
+
+
+===  Menambahkan sebuah dependensi dengan versi mayor
+
+Mari tambahkan sebuah fungsi baru ke paket kita: "func Proverb" mengembalikan
+sebuah peribahasa tentang konkurensi pada Go, dengan memanggil
+"quote.Concurrency", yang disediakan oleh modul "rsc.io/quote/v3".
+Pertama, kita ubah "hello.go" untuk menambahkan fungsi:
+
+----
+package hello
+
+import (
+	"rsc.io/quote"
+	quoteV3 "rsc.io/quote/v3"
+)
+
+func Hello() string {
+	return quote.Hello()
+}
+
+func Proverb() string {
+	return quoteV3.Concurrency()
+}
+----
+
+Kemudian kita tambah sebuah berkas pengujian "hello_test.go":
+
+----
+func TestProverb(t *testing.T) {
+	want := "Concurrency is not parallelism."
+	if got := Proverb(); got != want {
+		t.Errorf("Proverb() = %q, want %q", got, want)
+	}
+}
+----
+
+Baru kita dapat uji kode kita:
+
+----
+$ go test
+go: finding rsc.io/quote/v3 v3.1.0
+go: downloading rsc.io/quote/v3 v3.1.0
+go: extracting rsc.io/quote/v3 v3.1.0
+PASS
+ok      example.com/hello    0.024s
+$
+----
+
+Sekarang modul kita bergantung pada "rsc.io/quote" dan "rsc.io/quote/v3":
+
+----
+$ go list -m rsc.io/q...
+rsc.io/quote v1.5.2
+rsc.io/quote/v3 v3.1.0
+$
+----
+
+Setiap versi mayor yang berbeda (v1, v2, dan seterusnya) dari sebuah Go modul
+menggunakan path modul yang berbeda:
+dimulai dari v2, path haruslah berakhir dengan versi mayor.
+Pada contoh di atas, v3 dari "rsc.io/quote" tidak lagi "rsc.io/quote":
+tetapi ia teridentifikasi oleh path modul "rsc.io/quote/v3".
+Konvensi ini disebut dengan
+https://research.swtch.com/vgo-import[semantic import versioning],
+yang membolehkan paket-paket yang tidak kompatibel (yang berbeda versi
+mayor) menggunakan nama yang berbeda.
+Sebaliknya, v1.6.0 dari "rsc.io/quote" seharusnya kompatibel dengan v1.5.2,
+sehingga ia tetap menggunakan nama "rsc.io/quote".
+(Dalam seksi sebelumnya, "rsc.io/sampler v1.99.99" _seharusnya_ tetap
+kompatibel dengan "rsc.io/sampler v1.3.0", namun karena _bug_ atau asumsi yang
+tidak tepat tentang perilaku modul, keduanya bisa saja terjadi.)
+
+Perintah go membolehkan pada saat "build" mengikutkan paling tidak satu versi
+dari path modul tertentu, artinya paling banyak satu versi mayor: satu
+"rsc.io/quote", satu "rsc.io/quote/v2", satu "rsc.io/quote/v3", dan
+seterusnya.
+Perilaku ini memberikan aturan yang jelas kepada penulis modul tentang
+boleh ada duplikasi dari path modul: namun tidak mungkin bagi sebuah program
+untuk dibangun dengan "rsc.io/quote v1.5.2" dan "rsc.io/quote v1.6.0".
+Pada saat bersamaan, membolehkan beberapa versi mayor yang berbeda (karena
+tiap-tiapnya memiliki path impor yang berbeda) membuat pengguna modul memiliki
+kemampuan untuk memperbarui ke versi mayor yang baru secara bertahap.
+Pada contoh ini, kita ingin menggunakan "quote.Concurrency" dari
+"rsc.io/quote/v3 v3.1.0" namun belum siap melakukan migrasi dari
+"rsc.io/quote v1.5.2".
+Dengan bisanya melakukan migrasi secara bertahap adalah hal yang sangat penting
+dalam program atau sumber kode yang besar.
+
+
+===  Memperbarui dependensi ke versi mayor
+
+Mari kita selesaikan konversi dari "rsc.io/quote" ke "rsc.io/quote/v3".
+Karena adanya perubahan versi mayor, kita bakal berhadapan dengan beberapa API
+yang bisa saja dihapus, diganti nama, atau berubah dengan cara yang tidak
+kompatibel.
+Dengan membaca dokumentasi, kita dapat melihat bahwa `Hello` telah berganti
+menjadi `HelloV3`:
+
+----
+$ go doc rsc.io/quote/v3
+package quote // import "rsc.io/quote"
+
+Package quote collects pithy sayings.
+
+func Concurrency() string
+func GlassV3() string
+func GoV3() string
+func HelloV3() string
+func OptV3() string
+$
+----
+
+(Keluaran di atas telah diketahui memiliki sebuah
+https://golang.org/issue/30778[_bug_];
+path impor ditampilkan tanpa ada "/v3")
+
+Kita dapat memperbarui penggunaan "quote.Hello()" dalam "hello.go" dengan
+"quoteV3.HelloV3()":
+
+----
+package hello
+
+import quoteV3 "rsc.io/quote/v3"
+
+func Hello() string {
+	return quoteV3.HelloV3()
+}
+
+func Proverb() string {
+	return quoteV3.Concurrency()
+}
+----
+
+Dengan perubahan ini, maka tidak perlu lagi memberi nama pada impor, sehingga
+kita dapat ubah juga menjadi:
+
+----
+package hello
+
+import "rsc.io/quote/v3"
+
+func Hello() string {
+	return quote.HelloV3()
+}
+
+func Proverb() string {
+	return quote.Concurrency()
+}
+----
+
+Mari kita jalankan kembali tes untuk memastikan semua berjalan:
+
+----
+$ go test
+PASS
+ok      example.com/hello       0.014s
+----
+
+
+===  Menghapus dependensi yang sudah tidak digunakan
+
+Kita telah menghapus penggunaan "rsc.io/quote", namun modul tersebut masih
+muncul dalam "go list -m -all" dan di dalam berkas "go.mod":
+
+----
+$ go list -m all
+example.com/hello
+golang.org/x/text v0.3.0
+rsc.io/quote v1.5.2
+rsc.io/quote/v3 v3.1.0
+rsc.io/sampler v1.3.1
+$ cat go.mod
+module example.com/hello
+
+go 1.12
+
+require (
+	golang.org/x/text v0.3.0 // indirect
+	rsc.io/quote v1.5.2
+	rsc.io/quote/v3 v3.0.0
+	rsc.io/sampler v1.3.1 // indirect
+)
+$
+----
+
+Kenapa?
+Karena membangun sebuah paket, baik dengan "go build" atau "go test", dapat
+secara mudah mengetahui apabila ada modul yang tidak ada dan perlu
+ditambahkan, namun tidak saat modul tertentu telah dihapus.
+Menghapus sebuah dependensi dapat dilakukan setelah memeriksa semua paket
+dalam modul, dan semua kemungkinan kombinasi tag untuk "build" bagi
+paket-paket tersebut.
+Perintah "go build" biasa tidak memuat informasi ini, sehingga ia tidak bisa
+secara aman menghapus dependensi.
+
+Perintah "go mod tidy" dapat menghapus dependensi yang tidak digunakan
+tersebut:
+
+----
+$ go mod tidy
+$ go list -m all
+example.com/hello
+golang.org/x/text v0.3.0
+rsc.io/quote/v3 v3.1.0
+rsc.io/sampler v1.3.1
+$ cat go.mod
+module example.com/hello
+
+go 1.12
+
+require (
+	golang.org/x/text v0.3.0 // indirect
+	rsc.io/quote/v3 v3.1.0
+	rsc.io/sampler v1.3.1 // indirect
+)
+
+$ go test
+PASS
+ok      example.com/hello    0.020s
+$
+----
+
+
+==  Kesimpulan
+
+Go modul adalah masa depan dari manajemen dependensi dalam Go.
+Fungsionalitas modul sekarang telah tersedia di semua versi Go (yaitu, Go 1.11
+dan Go 1.12).
+
+Artikel ini memperkenalkan alur kerja menggunakan Go modul:
+
+*  "go mod init" membuat sebuah modul baru, menginisiasi berkas "go.mod"
+*  "go build", "go test" dan perintah pembangunan paket lainnya menambahkan
+   dependensi baru ke "go.mod" bila dibutuhkan.
+*  "go list -m all" mencetak dependensi dari modul
+*  "go get" mengubah versi dari sebuah dependensi (atau menambah dependensi
+   baru)
+*  "go mod tidy" menghapus dependensi yang tidak digunakan
+
+Kami menyarankan anda untuk mulai menggunakan modul dalam pengembangan dan
+menambahkan berkas "go.mod" dan "go.sum" ke dalam proyek anda.
+Bila Anda memiliki umpan balik dan bantuan dalam pengembangan manajemen
+dependensi di Go di masa depan, mohon kirim
+https://golang.org/issue/new[laporan _bug_]
+atau
+https://golang.org/wiki/ExperienceReports[laporan pengalaman].
+
+Terima kasih untuk semua saran dan bantuan Anda dalam meningkatkan modul.

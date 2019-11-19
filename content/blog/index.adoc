@@ -1,11 +1,14 @@
 =  Blog
 
+==  Indeks
+
 *  link:/blog/go.dev[Go.dev: pusat kegiatan baru untuk pengembang Go], 13
    November 2019.
    _Steve Francia dan Julie Qiu_
 
 *  link:/blog/10years[Ulang tahun Go ke 10], 8 November 2019.
    _Russ Cox, untuk tim Go_
+
 
 ==  Bahasa
 
@@ -44,3 +47,10 @@
 
 *  link:/doc/articles/go_command.html[Tentang Perintah Go] - kenapa kita
    membuatnya, apa saja kegunaannya, dan bagaimana menggunakannya.
+
+
+==  Modul
+
+*  link:/blog/using-go-modules[Bagian 1 - Menggunakan Go modul], 19 Maret
+   2019.
+   _Tyler Bui-Palsulich dan Eno Compton_
