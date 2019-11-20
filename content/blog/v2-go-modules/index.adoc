@@ -1,0 +1,225 @@
+= Go Modul: v2 dan Seterusnya
+:author: Jean de Klerk and Tyler Bui-Palsulich
+:date: 7 November 2019
+
+==  Pendahuluan
+
+Tulisan ini adalah bagian ke 4 dari sebuah seri.
+
+*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul]
+*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul]
+*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul]
+*  Bagian 4 - Go Modul: v2 dan seterusnya (tulisan ini)
+
+Saat sebuah proyek semakin matang dan kebutuhan-kebutuhan yang baru terus
+ditambahkan,
+rancangan dan fitur sebelumnya mungkin bisa jadi tidak masuk akal lagi.
+Pengembang bisa jadi mengintegrasikan pelajaran yang mereka dapatkan dengan
+menghapus fungsi-fungsi yang tidak digunakan lagi, mengubah nama tipe, atau
+memecah paket-paket yang kompleks menjadi bagian-bagian yang lebih muda
+dikelola.
+Perubahan besar seperti ini membutuhkan usaha bagi pengguna untuk melakukan
+migrasi kode mereka ke API yang baru, sehingga hal tersebut seharusnya tidak
+dilakukan tanpa pertimbangan yang hati-hati supaya keuntungan yang didapatkan
+(dari menggunakan paket yang baru) tidak lebih berharga dari biaya (migrasi).
+
+Untuk proyek-proyek yang masih eksperimental -- masih pada versi mayor v0 --
+perubahan besar masih bisa dianggap wajar oleh pengguna.
+Untuk proyek yang telah dideklarasikan stabil -- pada versi mayor v1 atau
+lebih tinggi -- perubahan besar harus dilakukan pada versi mayor yang
+baru.
+Artikel ini mengeksplorasi semantik dari versi mayor, bagaimana membuat dan
+menerbitkan versi mayor yang baru, dan bagaimana menjaga versi-versi mayor
+yang berbeda pada sebuah modul.
+
+
+==  Versi mayor dan path modul
+
+Modul adalah prinsip yang penting dalam Go,
+https://research.swtch.com/vgo-import[aturan kompatibilitas impor]:
+
+----
+Jika sebuah paket yang lama dan sebuah paket yang baru memiliki path impor
+yang sama, maka paket yang baru haruslah kompatibel dengan paket yang lama.
+----
+
+Secara definisi, versi mayor yang baru dari sebuah paket tidak lah kompatibel
+dengan versi sebelumnya.
+Hal ini berarti versi mayor yang baru dari modul haruslah memiliki path modul
+yang berbeda dari versi yang sebelumnya.
+Dimulai dari v2, versi mayor harus muncul pada akhir dari path modul
+(dideklarasikan dalam perintah "module" dalam berkas "go.mod").
+Misalnya, saat penulis modul "github.com/googleapis/gax-go" mengembangkan v2,
+mereka menggunakan path modul baru "github.com/googleapis/gax-go/v2".
+Pengguna yang mau menggunakan v2 harus mengubah paket impor mereka dan
+dependensi modul ke "github.com/googleapis/gax-go/v2".
+
+Kebutuhan dari adanya sufiks versi mayor adalah salah satu cara dari Go modul
+yang berbeda dengan kebanyakan sistem manajemen dependensi.
+Sufiks dibutuhkan untuk menghadapi
+https://research.swtch.com/vgo-import#dependency_story[permasalahan dependensi
+_diamond_].
+Sebelum adanya Go modul,
+http://gopkg.in/[gopkg.in]
+membolehkan penulis paket untuk mengikuti apa yang sekarang kita sebut sebagai
+aturan kompatibilitas impor.
+Dalam gopkg.in, jika Anda bergantung pada sebuah paket yang mengimpor
+"gopkg.in/yaml.v1" dan paket lain mengimpor "gopkg.in/yaml.v2", maka tidak
+akan ada konflik karena kedua paket "yaml" tersebut memiliki path impor yang
+berbeda -- mereka menggunakan versi sufiks, seperti pada Go modul.
+Secara gopkg.in menggunakan metodologi versi sufiks yang sama dengan Go modul,
+maka perintah Go menerima ".v2" dalam "gopkg.in/yaml.v2" sebagai sufiks dari
+versi mayor.
+Hal ini adalah kasus khusus dari kompatibilitas dengan gopkg.in: modul-modul
+yang disimpan pada domain yang lain butuh sufiks dengan _slash_ seperti "/v2".
+
+
+==  Strategi untuk versi mayor
+
+Strategi yang dianjurkan untuk mengembangkan modul v2 ke atas (v2+) yaitu
+dengan membuat sumber kode baru dalam sebuah direktori yang namanya sama
+dengan sufiks dari versi mayor.
+
+----
+github.com/googleapis/gax-go @ master branch
+/go.mod    → module github.com/googleapis/gax-go
+/v2/go.mod → module github.com/googleapis/gax-go/v2
+----
+
+Pendekatan ini kompatibel dengan perkakas yang tidak kenal dengan Go modul:
+path-path berkas dalam repositori sesuai dengan path yang diharapkan oleh
+"go get" dengan mode GOPATH.
+Strategi ini juga membolehkan semua versi mayor dikembangkan secara bersamaan
+di dalam direktori yang berbeda.
+
+Strategi lain yaitu menyimpan versi mayor di dalam cabang (_branch_) yang
+terpisah.
+Namun, jika sumber kode v2+ berada dalam cabang bawaan repositori (biasanya
+"master"), perkakas yang tidak paham dengan konsep versi -- termasuk perintah
+"go" yang menggunakan mode GOPATH -- bisa jadi tidak bisa membedakan antara
+versi-versi mayor.
+
+Contoh-contoh pada artikel ini akan menggunakan strategi versi mayor
+menggunakan sub direktori, secara ia menyediakan kompatibilitas yang paling
+baik.
+Kami menyarankan para penulis modul mengikuti strategi ini selama mereka
+memiliki pengguna yang masih menggunakan mode GOPATH.
+
+
+==  Menerbitkan v2 dan seterusnya
+
+Artikel ini menggunakan "github.com/googleapis/gax-go" sebagai contoh:
+
+----
+$ pwd
+/tmp/gax-go
+$ ls
+CODE_OF_CONDUCT.md  call_option.go  internal
+CONTRIBUTING.md     gax.go          invoke.go
+LICENSE             go.mod          tools.go
+README.md           go.sum          RELEASING.md
+header.go
+$ cat go.mod
+module github.com/googleapis/gax-go
+
+go 1.9
+
+require (
+    github.com/golang/protobuf v1.3.1
+    golang.org/x/exp v0.0.0-20190221220918-438050ddec5e
+    golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3
+    golang.org/x/tools v0.0.0-20190114222345-bf090417da8b
+    google.golang.org/grpc v1.19.0
+    honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099
+)
+$
+----
+
+Untuk memulai pengembangan v2 dari "github.com/googleapis/gax-go", kita akan
+membuat direktori baru "v2/" dan menyalin paket kita ke dalamnya.
+
+----
+$ mkdir v2
+$ cp *.go v2/
+building file list ... done
+call_option.go
+gax.go
+header.go
+invoke.go
+tools.go
+
+sent 10588 bytes  received 130 bytes  21436.00 bytes/sec
+total size is 10208  speedup is 0.95
+$
+----
+
+Sekarang, mari kita buat berkas "go.mod" untuk v2 dengan menyalin berkas
+"go.mod" yang sudah ada dan menambahkan sufiks "v2" ke path modul:
+
+----
+$ cp go.mod v2/go.mod
+$ go mod edit -module github.com/googleapis/gax-go/v2 v2/go.mod
+$
+----
+
+Ingatlah bahwa versi v2 diperlakukan sebagai modul terpisah dari versi v0 atau
+v1: keduanya bisa saja dibangun secara bersamaan.
+Jadi, jika modul v2+ Anda memiliki beberapa paket, Anda harus mengubahnya
+menggunakan path impor yang baru "/v2": kalau tidak, modul v2+ Anda akan tetap
+bergantung pada modul v0 atau v1.
+Misalnya, untuk mengubah semua "github.com/my/project" supaya mengacu ke
+"github.com/my/project/v2", Anda bisa menggunakan `find` dan `sed`:
+
+----
+$ find . -type f \
+    -name '*.go' \
+    -exec sed -i -e 's,github.com/my/project,github.com/my/project/v2,g' {} \;
+$
+----
+
+Sekarang kita telah punya modul v2, tetapi kita ingin bereksperimen dan
+membuat perubahan sebelum menerbitkan rilis.
+Sampai kita merilis v2.0.0 (atau versi apa pun tanpa sufiks pra-rilis), kita
+dapat mengembangkan dan membuat perubahan yang kita inginkan pada API yang
+baru.
+Jika kita ingin para pengguna untuk mencoba API yang baru sebelum kita
+secara resmi merilis API baru yang stabil, kita dapat menerbitkan versi
+pra-rilis untuk v2:
+
+----
+$ git tag v2.0.0-alpha1
+$ git push origin v2.0.0-alpha1
+$
+----
+
+Saat kita telah puas dengan API v2 yang baru dan yakin kita tidak akan membuat
+perubahan lagi, kita dapat memberikan tag v2.0.0:
+
+----
+$ git tag v2.0.0
+$ git push origin v2.0.0
+$
+----
+
+Pada saat ini, ada dua versi mayor yang harus dirawat.
+Perubahan yang kompatibel dan perbaikan _bug_ akan menyebabkan rilis dengan
+versi MINOR dan PATCH yang baru (misalnya, v1.1.0, v2.0.1, dan seterusnya).
+
+
+==  Kesimpulan
+
+Perubahan pada versi mayor menyebabkan biaya pengembangan dan perawatan
+tambahan dan membutuhkan investasi juga bagi pengguna untuk bermigrasi.
+Semakin besar suatu proyek, semakin besar biaya tersebut.
+Sebuah versi mayor seharusnya terjadi setelah mengidentifikasi alasan yang
+sangat jelas.
+Setelah alasan yang jelas tersebut teridentifikasi untuk perubahan yang dapat
+_merusak_, kami menyarankan mengembangkan beberapa versi mayor pada cabang
+"master" karena ia lebih kompatibel untuk perkakas yang ada sekarang.
+
+Perubahan besar pada modul v1+ seharusnya terjadi dalam modul yang baru vN+1.
+Saat sebuah modul baru dirilis, itu artinya tambahan pekerjaan bagi pengembang
+dan bagi pengguna yang perlu melakukan migrasi ke paket yang baru.
+Pengembang sebaiknya memvalidasi API mereka sebelum membuat rilis stabil, dan
+mempertimbangkan secara hati-hati apakah perubahan besar benar-benar
+diperlukan di atas v1.

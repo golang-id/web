@@ -61,3 +61,7 @@
 
 *  link:/blog/publishing-go-modules[Bagian 3 - Menerbitkan Go Modul],
    26 September 2019.  _Tyler Bui-Palsulich_
+
+*  link:/blog/v2-go-modules[Bagian 4 - Go Modul: v2 dan Seterusnya], 7
+   November 2019.
+   _Jean de Klerk and Tyler Bui-Palsulich_
