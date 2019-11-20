@@ -58,3 +58,6 @@
 *  link:/blog/migrating-to-go-modules[Bagian 2 - Migrasi ke Go modul], 21
    Agustus 2019.
    _Jean de Klerk_
+
+*  link:/blog/publishing-go-modules[Bagian 3 - Menerbitkan Go Modul],
+   26 September 2019.  _Tyler Bui-Palsulich_

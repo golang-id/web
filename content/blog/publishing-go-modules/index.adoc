@@ -1,0 +1,294 @@
+=  Menerbitkan Go Modul
+:author: Tyler Bui-Palsulich
+:date: 26 September 2019
+
+Tulisan ini adalah bagian ke 3 dari sebuah seri.
+
+*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul]
+*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul]
+*  Bagian 3 - Menerbitkan Go Modul (tulisan ini)
+*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya]
+
+Artikel ini mendiskusikan bagaimana cara menulis dan menerbitkan modul supaya
+modul lain dapat menggunakannya.
+
+Catatan: artikel membahas pengembangan sampai ke v1 saja.
+Jika Anda ingin mengembangkan modul untuk v2, lihat
+link:/blog/v2-go-modules[Go Modul: v2 dan Seterusnya].
+
+Artikel ini menggunakan
+https://git-scm.com/[Git] sebagai contoh.
+https://www.mercurial-scm.org/[Mercurial],
+http://wiki.bazaar.canonical.com/[Bazaar],
+dan perkakas sistem kontrol versi lainnya juga didukung.
+
+
+==  Persiapan proyek
+
+Dalam artikel ini, Anda membutuhkan sebuah proyek yang sudah ada sebagai
+latihan.
+Jadi, mari kita mulai dengan berkas-berkas dari artikel
+link:/blog/using-go-modules[Menggunakan Go Modul]:
+
+----
+$ cat go.mod
+module example.com/hello
+
+go 1.12
+
+require rsc.io/quote/v3 v3.1.0
+
+$ cat go.sum
+golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c h1:qgOY6WgZOaTkIIMiVjBQcw93ERBE4m30iBm00nkL0i8=
+golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+rsc.io/quote/v3 v3.1.0 h1:9JKUTTIUgS6kzR9mK1YuGKv6Nl+DijDNIc0ghT58FaY=
+rsc.io/quote/v3 v3.1.0/go.mod h1:yEA65RcK8LyAZtP9Kv3t0HmxON59tX3rD+tICJqUlj0=
+rsc.io/sampler v1.3.0 h1:7uVkIFmeBqHfdjD+gZwtXXI+RODJ2Wc4O7MPEh/QiW4=
+rsc.io/sampler v1.3.0/go.mod h1:T1hPZKmBbMNahiBKFy5HrXp6adAjACjK9JXDnKaTXpA=
+
+$ cat hello.go
+package hello
+
+import "rsc.io/quote/v3"
+
+func Hello() string {
+	return quote.HelloV3()
+}
+
+func Proverb() string {
+	return quote.Concurrency()
+}
+
+$ cat hello_test.go
+package hello
+
+import (
+	"testing"
+)
+
+func TestHello(t *testing.T) {
+	want := "Hello, world."
+	if got := Hello(); got != want {
+		t.Errorf("Hello() = %q, want %q", got, want)
+	}
+}
+
+func TestProverb(t *testing.T) {
+	want := "Concurrency is not parallelism."
+	if got := Proverb(); got != want {
+		t.Errorf("Proverb() = %q, want %q", got, want)
+	}
+}
+
+$
+----
+
+Selanjutnya, buat repositori git yang baru dan tambahkan sebuah _commit_.
+Jika Anda ingin menerbitkan proyek Anda sendiri, pastikan untuk mengikutkan
+berkas LICENSE.
+Pindah lah ke direktori yang berisi "go.mod" dan buatlah sebuah repositori baru:
+
+----
+$ git init
+$ git add LICENSE go.mod go.sum hello.go hello_test.go
+$ git commit -m "hello: initial commit"
+$
+----
+
+
+==  Versi semantik dan modul
+
+Setiap modul di dalam "go.mod" memiliki
+https://semver.org/lang/id/spec/v2.0.0.html[versi semantik],
+versi minimum dari dependensi yang digunakan untuk membangun modul.
+
+Sebuah versi semantik memiliki bentuk vMAJOR.MINOR.PATCH.
+
+*  Tingkatkan versi MAJOR bila Anda membuat perubahan yang
+   https://golang.org/doc/go1compat[tidak kompatibel] pada API dari modul
+   Anda.
+   Hal ini sebaiknya dilakukan bila sangat diperlukan.
+*  Tingkatkan versi MINOR bila Anda membuat perubahan yang kompatibel pada
+   API, seperti mengganti dependensi atau menambahkan sebuah fungsi,
+   method, struct field, atau tipe baru.
+*  Tingkatkan versi PATCH setelah membuat perubahan minor yang tidak
+   mempengaruhi publik API dari modul atau dependensi, seperti perbaikan
+   _bug_.
+
+Anda bisa membuat versi pra-rilis dengan menambahkan strip dan titik yang
+memisahkan pengidentifikasi (misalnya, v1.0.1-alpha atau v2.2.2-beta.2).
+Rilis yang normal lebih disukai oleh perintah "go" dibandingkan versi
+pra-rilis, sehingga pengguna harus memilih versi pra-rilis secara eksplisit
+(misalnya, "go get example.com/hello@v1.0.1-alpha") jika modul Anda memiliki
+rilis yang normal.
+
+Versi mayor v0 dan versi pra-rilis tidak menjamin kompatibilitas.
+Versi v0 membolehkan Anda merombak API sebelum membuatnya menjadi stabil.
+Sebaliknya, versi mayor v1 dan seterusnya membutuhkan kompatibilitas di setiap
+versi mayor tersebut.
+
+Versi yang diacu dalam "go.mod" bisa jadi sebuah rilis eksplisit yang di tag
+dalam repositori (misalnya, v1.5.2), atau ia bisa berupa
+https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo]
+berdasarkan pada sebuah _commit_ tertentu (misalnya,
+v0.0.0-20170915032832-14c0d48ead0c).
+Versi-pseudo adalah tipe khusus dari versi pra-rilis.
+Versi-pseudo berguna bila pengguna butuh pada proyek yang belum pernah
+menerbitkan tag dengan versi semantik, atau menggunakan sebuah _commit_ yang
+belum di tag, namun pengguna sebaiknya tidak mengasumsikan bahwa versi-pseudo
+menyediakan API yang stabil dan teruji.
+Dengan men-tag modul Anda dengan versi yang eksplisit berarti memberitahu
+pengguna bahwa versi tertentu telah secara penuh teruji dan siap untuk
+digunakan.
+
+Setelah Anda mulai memberi tag pada repo Anda dengan versi, akan sangatlah
+penting untuk terus memberi tag pada setiap rilis selama pengembangan modul
+Anda.
+Saat pengguna meminta versi baru dari modul Anda (dengan "go get -u" atau
+"go get example.com/hello"), perintah "go" akan memilih versi rilis semantik
+yang paling besar, walaupun versi tersebut telah berumur beberapa tahun dan
+memiliki banyak perubahan di cabang (_branch_) utama.
+Dengan terus menerus memberi tag pada rilis yang baru akan membuat perbaikan
+berkelanjutan tersedia bagi pengguna Anda.
+
+Jangan pernah menghapus tag versi dari repositori Anda.
+Jika Anda menemukan _bug_ atau masalah keamanan pada sebuah versi, rilis lah
+versi yang baru.
+Jika orang bergantung pada sebuah versi yang Anda hapus, maka pembangunan
+program mereka mungkin akan gagal.
+Hal yang sama, sekali Anda merilis sebuah versi, jangan pernah mengubah atau
+menimpanya.
+https://blog.golang.org/module-mirror-launch[Salinan modul dan basisdata
+_checksum_] menyimpan modul, versi, dan hash _cryptographic_ untuk memastikan
+bahwa pembangunan dari versi tersebut dapat direproduksi ulang terus menerus.
+
+
+==  v0: versi awal, belum stabil
+
+Mari kita tag modul dengan versi semantik v0.
+Sebuah versi v0 tidak menjamin stabilitas, sehingga hampir semua proyek
+sebaiknya dimulai dengan v0 sehingga publik API masih bisa diubah.
+
+Memberi tag pada versi baru memiliki langkah-langkah berikut:
+
+1. Jalankan "go mod tidy", untuk menghapus dependensi dari modul yang mungkin
+   tidak digunakan lagi.
+2. Jalankan "go test ./..." untuk terakhir kalinya untuk memastikan semuanya
+   bekerja.
+3. Beri tag pada proyek dengan versi baru menggunakan
+   https://git-scm.com/docs/git-tag[git-tag].
+4. Simpan tag baru tersebut ke repositori "origin".
+
+----
+$ go mod tidy
+$ go test ./...
+ok      example.com/hello       0.015s
+$ git add go.mod go.sum hello.go hello_test.go
+$ git commit -m "hello: changes for v0.1.0"
+$ git tag v0.1.0
+$ git push origin v0.1.0
+$
+----
+
+Sekarang proyek lain dapat bergantung pada v0.1.0 dari modul
+"example.com/hello".
+Untuk modul Anda sendiri, Anda dapat menjalankan
+"go list -m example.com/hello@v0.1.0" untuk memastikan versi terakhir
+tersedia (contoh modul ini tidak ada, sehingga tidak akan ada versi yang
+tersedia akan ditampilkan).
+Jika Anda tidak mendapatkan versi terakhir dan Anda menggunakan _proxy_ Go
+modul (yang aktif secara otomatis sejak Go 1.13), coba kembali dalam beberapa
+menit untuk memberi waktu pada _proxy_ supaya dapat memuat versi yang baru.
+
+Jika Anda menambahkan API publik yang baru, membuat perubahan pada modul v0,
+atau meng-_upgrade_ versi mayor atau minor dari dependensi Anda, maka cukup
+tingkatkan versi MINOR untuk rilis selanjutnya.
+Misalnya, rilis selanjutnya setelah v0.1.0 adalah v0.2.0.
+
+Jika Anda memperbaiki sebuah _bug_ pada versi yang sekarang, tingkatkan versi
+PATCH saja.
+Misalnya, rilis selanjutnya setelah v0.1.0 adalah v0.1.1.
+
+
+==  v1: versi stabil yang pertama
+
+Saat Anda sudah yakin bahwa API dari modul Anda stabil, Anda dapat merilis
+v1.0.0.
+Versi mayor v1 memberitahu pengguna bahwa tidak akan ada perubahan yang
+mempengaruhi kompatibilitas akan terjadi pada modul API.
+Mereka dapat meng-_upgrade_ ke rilis MINOR dan PATCH dari v1, dan kode mereka
+seharusnya tetap akan berjalan dan dapat dibangun dengan benar.
+Fungsi dan method tidak akan berubah, tipe-tipe yang diekspor tidak akan
+dihapus, dan seterusnya.
+Jika ada perubahan pada API, perubahan tersebut akan tetap menjaga
+kompatibilitas (misalnya, menambahkan field baru ke dalam sebuah struct) dan
+akan dimasukan sebagai rilis minor yang baru.
+Jika ada satu atau lebih _bug_ (misalnya, perbaikan keamanan), mereka akan
+diikutkan pada rilis PATCH (atau sebagai bagian dari rilis minor).
+
+Terkadang, menjaga kompatibilitas bisa menyebabkan API yang aneh.
+Hal ini wajar.
+API yang tidak sempurna lebih baik daripada merusak kode pengguna yang sudah
+ada.
+
+Paket "strings" pada pustaka bawaan adalah sebuah contoh menjaga
+kompatibilitas dengan biaya konsistensi dari API.
+
+*  https://pkg.go.dev/strings#Split[Split] membagi sebuah string menjadi
+   sub-string yang dipisahkan oleh sebuah pemisah dan mengembalikan sebuah
+   slice dari sub-string di antara pemisah tersebut.
+*  https://pkg.go.dev/strings#SplitN[SplitN] dapat mengontrol jumlah
+   sub-string yang dikembalikan.
+
+Namun, https://pkg.go.dev/strings#Replace[Replace] menerima nilai berapa
+banyak jumlah string yang akan diganti dari awal (tidak seperti "Split").
+
+Dari "Split" dan "SplitN", Anda akan berharap bahwa ada fungsi seperti
+"Replace" dan "ReplaceN".
+Namun, kita tidak dapat mengubah fungsi "Replace" yang sudah ada tanpa
+mengakibatkan kerusakan pada pemanggilan, yang mana hal tersebut telah kita
+janjikan tidak akan dilakukan.
+Sehingga, dalam Go 1.12, kami menambahkan fungsi baru,
+https://pkg.go.dev/strings#ReplaceAll[ReplaceAll].
+Hasil dari API sedikit aneh, secara "Split" dan "Replace" memiliki perilaku
+yang berbeda, namun ketidak-konsistenan ini lebih baik daripada perubahan
+yang merusak.
+
+Katakanlah Anda senang dengan API dari "example.com/hello" dan Anda ingin
+merilis v1 sebagai versi stabil yang pertama.
+
+Memberi tag v1 menggunakan proses yang sama dengan memberi tag v0: jalankan
+"go mod tidy" dan "go test ./...", beri versi tag, dan simpan ke repositori
+"origin":
+
+----
+$ go mod tidy
+$ go test ./...
+ok      example.com/hello       0.015s
+$ git add go.mod go.sum hello.go hello_test.go
+$ git commit -m "hello: changes for v1.0.0"
+$ git tag v1.0.0
+$ git push origin v1.0.0
+$
+----
+
+Pada saat ini, v1 dari API "example.com/hello" telah dibekukan.
+Hal ini memberitahu semua orang bahwa API kita telah stabil dan mereka merasa
+nyaman menggunakannya.
+
+
+==  Kesimpulan
+
+Artikel ini membimbing proses pemberian tag pada modul dengan versi semantik
+dan kapan sebaiknya merilis v1.
+Artikel selanjutnya akan membahas bagaimana menjaga dan menerbitkan modul
+untuk v2 dan seterusnya.
+
+Bila ada tanggapan dan bantuan untuk membantu manajemen dependensi di Go,
+silakan kirim
+https://golang.org/issue/new[laporan kesalahan]
+atau
+https://golang.org/wiki/ExperienceReports[laporan pengalaman].
+
+Terima kasih untuk semua tanggapan dan bantuan yang telah menjadikan Go modul
+lebih baik.
