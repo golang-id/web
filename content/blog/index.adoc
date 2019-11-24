@@ -62,6 +62,10 @@
 *  link:/blog/modules2019[Go Modul di 2019], 19 Desember 2018.
    _Russ Cox_
 
+*  link:/blog/module-mirror-launch[Peluncuran Modul _Mirror_ dan Basisdata
+   _Checksum_], 29 Agustus 2019.
+   _Katie Hockman_
+
 *  link:/blog/using-go-modules[Bagian 1 - Menggunakan Go modul], 19 Maret
    2019.
    _Tyler Bui-Palsulich dan Eno Compton_

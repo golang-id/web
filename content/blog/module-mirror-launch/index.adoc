@@ -1,0 +1,178 @@
+=  Peluncuran Modul _Mirror_ dan Basisdata _Checksum_
+:author: Katie Hockman
+:date: 29 Agustus 2019
+
+Kami sangat senang memberitahu bahwa modul
+https://proxy.golang.org/[_mirror_],
+https://index.golang.org/[indeks],
+dan
+https://sum.golang.org/[basisdata _checksum_]
+telah diluncurkan!
+Perintah go akan menggunakan modul _mirror_ dan basisdata _checksum_ secara
+baku untuk
+https://golang.org/doc/go1.13#introduction[pengguna Go 1.13 modul].
+Lihat
+https://proxy.golang.org/privacy[halaman privasi]
+untuk informasi privasi penggunaan layanan tersebut dan
+https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[dokumentasi
+perintah go]
+untuk detail konfigurasi, termasuk cara mematikan fitur modul tanpa
+menggunakan server tersebut atau menggunakan server yang berbeda.
+Jika Anda bergantung pada modul yang tidak publik, lihat
+https://golang.org/cmd/go/#hdr-Module_configuration_for_non_public_modules[dokumentasi
+konfigurasi untuk lingkungan Anda].
+
+Artikel ini akan menjelaskan tentang layanan-layanan ini and keuntungan dari
+menggunakan mereka, dan menyimpulkan beberapa poin dari wicara
+https://youtu.be/KqTySYYhPUE[_Go Module Proxy: Life of a Query_]
+di Gophercon 2019.
+Lihat wicara tersebut jika Anda tertarik melihat keseluruhan diskusi.
+
+==  Modul _mirror_
+
+link:/blog/versioning-proposal[Modul]
+adalah sekumpulan paket-paket Go yang diberi versi, dan isi dari setiap versi
+tersebut adalah _immutable_ (kekal).
+Sifat kekekalan tersebut membuatnya bisa di-_cache_ dan diautentikasi.
+Bila "go get" berjalan dengan mode modul, ia harus mengambil modul yang berisi
+paket yang diminta, berikut dengan dependensinya, mengubah berkas
+https://golang.org/cmd/go/#hdr-The_go_mod_file[go.mod]
+dan
+https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[go.sum]
+bila diperlukan.
+Mengambil modul langsung lewat _version control_ sangat membutuhkan biaya,
+baik secara latensi atau penyimpanan, dalam sistem Anda:
+perintah `go` dipaksa untuk menarik semua histori _commit_ dari sebuah
+repositori yang berisi dependensi transitif, bahkan yang tidak dibutuhkan,
+hanya supaya dapat memeriksa versinya.
+
+Solusinya yaitu menggunakan sebuah modul _proxy_, yang memiliki API yang cocok
+dengan kebutuhan perintah `go` (lihat "go help goproxy").
+Saat "go get" berjalan dalam mode modul dengan sebuah _proxy_, ia akan
+berjalan lebih cepat dengan hanya meminta metadata modul tertentu atau sumber
+kode yang ia butuhkan, dan tidak perlu khawatir dengan hal-hal lainnya.
+Berikut ini sebuah contoh bagaimana perintah `go` menggunakan _proxy_ lewat
+"go get" yang meminta daftar versi, kemudian informasi, berkas mod, dan zip
+untuk versi yang di tag terakhir kali.
+
+image:https://blog.golang.org/module-mirror-launch/proxy-protocol.png[,700]
+
+Sebuah modul _mirror_ adalah sebuah modul _proxy_ khusus yang men-_cache_
+metadata dan sumber kode di dalam sistem penyimpanannya sendiri, yang
+membolehkan _mirror_ melayani sumber kode yang tidak ada lagi pada lokasi
+aslinya.
+Hal ini bisa mempercepat pengunduhan dan melindungi Anda dari dependensi yang
+hilang.
+Lihat
+link:/blog/modules2019[Go Modul di 2019] untuk informasi lebih lanjut.
+
+Tim Go menjaga sebuah modul _mirror_, di
+https://proxy.golang.org/[proxy.golang.org],
+yang mana akan digunakan oleh perintah `go` secara baku untuk pengguna modul
+sejak Go 1.13.
+Jika Anda menggunakan versi terdahulu dari perintah `go`, maka Anda dapat
+menggunakan layanan ini dengan menset GOPROXY=https://proxy.golang.org di
+dalam lingkungan lokal Anda.
+
+==  Basisdata _checksum_
+
+Modul memperkenalkan berkas `go.sum`, yang berisi daftar _hash_ SHA-256 dari
+sumber kode, dan berkas `go.mod` dari setiap dependensi saat ia pertama kali
+diunduh.
+Perintah `go` dapat menggunakan _hash_ tersebut untuk mendeteksi perilaku
+jahat dari server asli atau _proxy_ yang memberikan Anda kode yang berbeda
+untuk versi yang sama.
+
+Batasan dari berkas `go.sum` ini adalah ia bekerja sepenuhnya berdasarkan
+kepercayaan _Anda_ pada saat pertama kali digunakan.
+Saat Anda menambahkan sebuah versi dari dependensi yang Anda belum pernah
+gunakan sebelumnya ke modul Anda (bisa juga lewat memperbarui dependensi yang
+sudah ada), perintah `go` mengambil kode dan menambahkan baris ke berkas
+`go.sum` secara langsung.
+Permasalahannya adalah baris baru pada `go.sum` tersebut tidak diperiksa
+dengan yang lainnya: ia bisa saja berbeda dengan baris `go.sum` yang perintah
+`go` hasilkan buat orang lain, mungkin karena sebuah _proxy_ secara sengaja
+memberikan kode jahat yang ditargetkan kepada Anda.
+
+Solusi Go yaitu sebuah sumber global dari baris-baris `go.sum`, yang disebut
+https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md#checksum-database[basisdata
+_checksum_],
+yang memastikan supaya perintah `go` selalu menghasilkan baris yang sama untuk
+setiap berkas `go.sum`.
+Setiap kali perintah `go` menerima sumber kode baru, ia dapat memverifikasi
+_hash_ dari kode tersebut dengan basisdata global untuk memastikan bahwa
+_hash_-nya sama, memastikan bahwa semua orang menggunakan kode yang sama untuk
+versi tertentu.
+
+Basisdata _checksum_ dilayani oleh https://sum.golang.org/[sum.golang.org],
+dan dibangun di atas
+https://research.swtch.com/tlog[_Transparent Log_]
+(atau "Merkle tree") dari hash-hash yang didukung oleh
+https://github.com/google/trillian[Trillian].
+Keuntungan utama dari _Merkle tree_ yaitu tahan rusak dan memiliki properti
+yang tidak membolehkan perilaku jahat tidak terdeteksi, yang membuatnya lebih
+dipercaya daripada hanya basisdata biasa.
+Perintah `go` menggunakan _tree_ ini untuk memeriksa bukti "inclusion"
+(bahwa sebuah catatan tertentu ada dalam _log_) dan bukti "konsistensi" (bahwa
+_tree_ belum pernah dirusak) sebelum menambahkan baris go.sum yang baru ke
+dalam berkas `go.sum` modul Anda.
+Berikut ini adalah sebuah contoh dari sebuah _tree_ tersebut.
+
+image:https://blog.golang.org/module-mirror-launch/tree.png[,700]
+
+Basisdata _chekcsum_ mendukung
+https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md#checksum-database[sekumpulan
+_endpoint_]
+yang digunakan oleh perintah `go` untuk meminta dan memverifikasi baris-baris
+`go.sum`.
+_Endpoint_ `/lookup` menyediakan sebuah "signed tree head" (STH) dan
+baris-baris `go.sum` yang diminta.
+_Endpoint_ `/tile` menyediakan bagian dari _tree_ yang disebut _tiles_ yang
+mana perintah `go` dapat gunakan untuk pembuktian.
+Berikut ini adalah sebuah contoh bagaimana perintah `go` berinteraksi dengan
+basisdata _checksum_ dengan melakukan `/lookup` dari sebuah versi modul,
+kemudian meminta _tiles_ yang dibutuhkan untuk pembuktian.
+
+image:https://blog.golang.org/module-mirror-launch/sumdb-protocol.png[,700]
+
+Basisdata _checksum_ ini membolehkan perintah `go` secara aman menggunakan
+_proxy_ yang tidak dipercaya.
+Karena ada lapisan keamanan yang teraudit berdiri di atasnya, sebuah _proxy_
+atau server asli tidak akan dapat secara sengaja, atau tidak sengaja,
+memberikan Anda kode yang salah tanpa terdeteksi.
+Bahkan penulis dari sebuah modul tidak dapat memindahkan _tag_ begitu saja
+atau suatu hari mengubah kode pada versi tertentu tanpa terdeteksi.
+
+Jika Anda menggunakan Go 1.12 atau sebelumnya, Anda dapat secara manual
+memeriksa berkas "go.sum" dengan basisdata _checksum_ dengan
+https://godoc.org/golang.org/x/mod/gosumcheck[gosumcheck]:
+
+----
+$ go get golang.org/x/mod/gosumcheck
+$ gosumcheck /path/to/go.sum
+----
+
+Selain verifikasi yang dilakukan oleh perintah `go`, auditor pihak ketiga
+dapat memeriksa apakah basisdata _checksum_ dapat dipercaya dengan membaca
+_log_ satu per satu untuk mencari catatan yang salah.
+Mereka dapat bekerja bersama-sama dan berkomunikasi tentang status dari _tree_
+saat ia terus bertambah untuk memastikan ia tetap aman, dan kami harap
+komunitas Go akan menjalankannya.
+
+==  Modul indeks
+
+Modul indeks dilayani oleh
+https://index.golang.org/[index.golang.org],
+yang berisi daftar versi modul yang baru yang tersedia dalam
+https://proxy.golang.org/[proxy.golang.org].
+Hal ini sangat berguna bagi pengembang perkakas yang ingin menyimpan _cache_
+https://proxy.golang.org/[proxy.golang.org]
+buat mereka sendiri, atau untuk selalu tetap mutakhir dengan modul-modul
+terbaru yang orang gunakan.
+
+==  Umpan balik atau _bug_
+
+Kami berharap layanan-layanan ini meningkatkan pengalaman Anda dengan modul,
+dan mendukung Anda untuk
+https://github.com/golang/go/issues/new?title=proxy.golang.org[melaporkan isu]
+jika Anda menemukan masalah atau memiliki umpan balik!
