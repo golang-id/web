@@ -2,6 +2,10 @@
 
 ==  Indeks
 
+*  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019], 20 November
+   2019.
+   _Todd Kulesza_
+
 *  link:/blog/go.dev[Go.dev: pusat kegiatan baru untuk pengembang Go], 13
    November 2019.
    _Steve Francia dan Julie Qiu_
