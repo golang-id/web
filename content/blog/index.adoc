@@ -55,6 +55,9 @@
    Maret 2018.
    _Russ Cox_
 
+*  link:/blog/modules2019[Go Modul di 2019], 19 Desember 2018.
+   _Russ Cox_
+
 *  link:/blog/using-go-modules[Bagian 1 - Menggunakan Go modul], 19 Maret
    2019.
    _Tyler Bui-Palsulich dan Eno Compton_

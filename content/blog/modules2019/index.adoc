@@ -1,0 +1,239 @@
+=  Go Modul di 2019
+:author: Russ Cox
+:date: 19 Desember 2018
+
+==  Tahun yang luar biasa!
+
+Tahun 2018 adalah tahun yang luar biasa bagi ekosistem Go, dengan manajemen
+paket sebagai salah satu fokus utama kita.
+Pada bulan Februari, kami memulai diskusi dengan komunitas tentang bagaimana
+mengintegrasikan manajemen paket secara langsung lewat perkakas Go, dan pada
+bulan Agustus kami mengeluarkan implementasi pertama dari fitur tersebut, yang
+disebut Go modul, lewat Go 1.11.
+Migrasi ke Go modul menjadi perubahan yang paling besar dari ekosistem Go
+semenjak Go 1.
+Mengonversi keseluruhan ekosistem--kode, pengguna, perkakas, dan
+seterusnya--dari GOPATH ke modul membutuhkan kerja di banyak wilayah.
+Sistem modul selanjutnya akan membantu kita melakukan autentikasi dan
+mempercepat pembangunan ekosistem Go.
+
+Artikel ini adalah pratinjau dari apa yang tim Go rencanakan untuk modul di
+tahun 2019.
+
+==  Rilis
+
+Go 1.11, dirilis pada Agustus 2018, memperkenalkan
+https://golang.org/doc/go1.11#modules[dukungan awal untuk modul].
+Pada saat sekarang, dukungan modul dapat digunakan bersamaan dengan mekanisme
+tradisional berbasis GOPATH.
+Perintah `go` akan menggunakan mode modul secara baku saat dijalankan di
+luar GOPATH/src dan ditandai dengan adanya berkas "go.mod".
+Pengaturan ini dapat ditimpa dengan men-set variabel lingkungan `$GO111MODULE`
+ke `on` atau `off`; perilaku baku yaitu mode `auto`.
+Kami telah melihat adanya adopsi yang signifikan dari modul di antara
+komunitas Go, bersama dengan saran-saran dan laporan _bug_ yang membantu kita
+meningkatkan modul.
+
+Go 1.12, dijadwalkan pada Februari 2019, akan memperbaiki dukungan modul namun
+masih menggunakan mode `auto` secara baku.
+Selain perbaikan _bug_ dan peningkatan minor, mungkin perubahan yang paling
+signifikan dalam Go 1.12 adalah perintah seperti "go run x.go" atau "go get
+rsc.io/2fa@v1.1.0" dapat beroperasi dengan mode "GO111MODULE=on" tanpa adanya
+berkas "go.mod".
+
+Target kita adalah Go 1.13, dijadwalkan pada Agustus 2019, dengan membuat mode
+modul menjadi baku (yaitu membuat nilai baku dari `auto` ke `on`) dan membuat
+mode GOPATH menjadi usang.
+Supaya dapat melakukan hal tersebut, kami sedang bekerja membuat perkakas yang
+mendukung penggunaan modul dan membantu ekosistem modul di komunitas
+_open-source_.
+
+
+==  Integrasi perkakas dan IDE
+
+Selama delapan tahun kita telah menggunakan GOPATH, dan sejumlah perkakas
+telah dibuat yang mengasumsikan sumber kode Go disimpan dalam GOPATH.
+Berpindah ke modul membutuhkan perubahan semua kode yang menggunakan asumsi
+tersebut.
+Kami telah merancang sebuah paket baru,
+https://godoc.org/golang.org/x/tools/go/packages[golang.org/x/tools/go/packages],
+yang mengabstraksikan operasi pencarian dan pemuatan informasi tentang sumber
+kode Go untuk sebuah target yang diberikan.
+Paket baru ini secara otomatis mengadopsi mode modul dan GOPATH dan ia juga
+dapat dikembangkan untuk susunan kode yang khusus, seperti yang digunakan oleh
+Bazel.
+Kami telah bekerja sama dengan pembuat perkakas di komunitas Go untuk
+membantu mereka menggunakan "golang.org/x/tools/go/packages" dalam perkakas
+mereka.
+
+Sebagai bagian dari usaha ini, kami juga telah bekerja menggabungkan berbagai
+perkakas pencari sumber kode seperti gocode, godef, dan go-outline menjadi
+sebuah perkakas tunggal yang dapat digunakan lewat _command line_ (baris
+perintah) dan juga mendukung
+https://langserver.org/[protokol server bahasa]
+yang digunakan oleh IDE modern.
+
+Transisi ke modul dan perubahan dalam pemuatan paket juga mengakibatkan
+perubahan yang signifikan pada analisis program Go.
+Selain membuat ulang `go vet` supaya mendukung modul, kami memperkenalkan
+sebuah kerangka kerja umum untuk analisis bertahap dari program-program Go,
+yang mana sebuah alat analisis dipanggil untuk satu paket satu-per-satu.
+Dalam kerangka ini, analisis dari sebuah paket dapat menulis fakta-fakta yang
+dapat digunakan untuk menganalisis paket-paket lainnya yang meng-impor yang
+pertama.
+Misalnya, analisis `go vet` terhadap
+https://pkg.go.dev/pkg/log/[paket log]
+menentukan dan mencatat fakta bahwa `log.Printf` adalah sebuah pembungkus dari
+`fmt.Printf`.
+Kemudian `go vet` dapat memeriksa string format bergaya printf dalam
+paket-paket lain yang memanggil `log.Printf`.
+Kerangka ini seharusnya membantu banyak perkakas analisis program yang baru
+dan canggih untuk membantu pengembang menemukan _bug_ lebih awal dan memahami
+kode lebih baik.
+
+==  Modul indeks
+
+Salah satu bagian paling penting dari rancangan awal dari `go get` adalah
+supaya ia _desentralisasi_: kami percaya--sampai sekarang--bahwa siapa pun
+dapat menyimpan kode mereka di server mana pun, terbalik dengan pusat
+registrasi seperti CPAN-nya Perl, Maven-nya Java, atau NPM-nya Node.
+Menggunakan nama domain sebagai awal dari path impor, `go get` menggunakan
+sistem desentralisasi yang telah ada dan menghindari permasalahan
+siapa-yang-memutuskan menggunakan-nama-apa.
+Hal ini juga membolehkan perusahaan untuk mengimpor kode pada server pribadi
+bersamaan dengan server publik.
+Sangat lah penting menjaga desentralisasi ini saat berganti menggunakan Go
+modul.
+
+Desentralisasi dari dependensi Go memiliki banyak keuntungan, namun juga
+membawa beberapa kerugian yang signifikan.
+Pertama, sangat sulit mencari semua paket-paket Go yang tersedia.
+Semua situs yang ingin membagi informasi tentang paket-paket harus melakukan
+_crawling_-nya sendiri, atau menunggu sampai pengguna meminta paket tersebut
+sebelum dapat mengambilnya.
+
+Kami sedang membuat sebuah layanan, Go modul indeks, yang akan menyediakan
+sebuah catatan publik dari paket-paket yang memasuki ekosistem Go.
+Situs-situs seperti godoc.org dan goreportcard.com akan mampu memantau catatan
+tersebut untuk entri yang baru bukan dengan mengimplementasikan kode secara
+tersendiri untuk mencari paket-paket baru.
+Kami juga ingin supaya layanan tersebut dapat mencari paket-paket menggunakan
+_query_ yang sederhana, membolehkan `goimports` menambahkan imports untuk
+paket-paket yang belum diunduh ke sistem lokal.
+
+
+==  Autentikasi modul
+
+Sekarang, `go get` bergantung pada autentikasi tingkat-koneksi (HTTPS atau
+SSH) untuk memeriksa apakah ia berkomunikasi dengan server yang benar untuk
+mengunduh kode.
+Tidak ada pemeriksaan tambahan dari kode itu sendiri, membuka adanya serangan
+_man-in-the-middle_ jika mekanisme HTTPS atau SSH terganggu dengan satu atau
+lain cara.
+Desentralisasi artinya bahwa kode yang digunakan untuk membangun diambil dari
+banyak server yang berbeda, yang artinya pembangunan bergantung pada banyak
+sistem untuk melayani kode yang benar.
+
+Rancangan Go modul meningkatkan autentikasi kode dengan menyimpan berkas
+"go.sum" dari setiap modul;
+berkas tersebut berisi daftar _hash_ kriptografi dari setiap dependensi modul.
+Saat menggunakan modul, perintah `go` menggunakan "go.sum" untuk memverifikasi
+bahwa dependensi identik dengan versi yang diharapkan sebelum menggunakannya
+dalam pembangunan.
+Namun berkas "go.sum" hanya berisi daftar _hash_ bagi dependensi tertentu pada
+modul tersebut.
+Jika Anda menambahkan dependensi baru atau mengubah dependensi lewat
+`go get -u`, tidak ada entri korespondensi dalam "go.sum" dan oleh karena itu
+tidak ada autentikasi langsung dari berkas modul yang diunduh.
+
+Untuk modul yang publik, kami menjalankan sebuah layanan yang kita sebut
+_notary_ yang mengikuti catatan modul indeks, mengunduh modul baru, dan
+menandai secara kriptografi pernyataan dalam bentuk "modul M pada versi V
+memiliki hash H."
+Layanan _notary_ ini akan menerbitkan _hash_ yang telah disahkan yang dapat
+di-_query_ dengan
+https://www.certificate-transparency.org/[Transparansi Sertifikat]
+http://static.usenix.org/event/sec09/tech/full_papers/crosby.pdf[tamper-proof
+log],
+supaya orang lain dapat menverifikasi bahwa notaris bekerja secara benar.
+Catatan tersebut akan tersedia secara publik, seperti berkas "go.sum" global
+yang dapat digunakan `go get` untuk autentikasi modul saat menambah atau
+mengubah dependensi.
+
+Kami menargetkan supaya perintah `go` memeriksa _hash_ yang telah disahkan
+untuk modul yang tersedia secara publik yang belum tercatat dalam "go.sum"
+dimulai dari Go 1.13.
+
+
+==  Modul _mirror_
+
+Karena desentralisasi, `go get` mengambil kode dari berbagai server,
+pengambilan kode akan cepat pada server yang cepat dan lambat pada server yang
+lambat dan kurang dapat diandalkan.
+Salah satu cara keamanan yang tersedia sebelum adanya Go modul adalah dengan
+memasukkan semua dependensi ke dalam direktori "vendor" di dalam repositori.
+Sementara mekanisme "vendor" masih akan terus didukung, kami lebih menyukai
+sebuah solusi yang bekerja untuk semua modul--tidak hanya modul yang Anda
+sudah gunakan--dan tidak membutuhkan duplikasi dependensi ke setiap repositori
+yang menggunakannya.
+
+Rancangan Go modul memperkenalkan ide dari sebuah modul _proxy_, yaitu sebuah
+server yang mana perintah "go" akan meminta modul lewat _proxy_ tersebut,
+bukan server aslinya.
+Salah satu fitur penting dari _proxy_ adalah modul _mirror_, yang menerima
+permintaan modul dengan mengambilnya dari server asli dan menyimpannya dalam
+_cache_ untuk digunakan pada permintaan selanjutnya.
+Server _mirror_ yang berjalan dengan baik seharusnya cepat dan handal bahkan
+saat server asli sedang mati.
+Kami berencana meluncurkan layanan _mirror_ untuk tersedia secara publik pada
+2019.
+Proyek-proyek lainnya, seperti GoCenter dan Athens, berencana melakukan
+modul _mirror_ juga.
+(Kami mengantisipasi perusahaan-perusahaan akan memiliki opsi beragam untuk
+menjalankan server _mirror_ mereka masing-masing, namun artikel ini lebih
+berfokus pada layanan _mirror_ yang publik).
+
+Salah satu potensi permasalahan dengan server _mirror_ yaitu mereka adalah
+server yang berada di tengah, membuatnya sebagai target untuk diserang.
+Pengembang Go butuh sebuah jaminan bahwa server _mirror_ menyediakan berkas
+yang sama dengan yang server aslinya punya.
+Proses _notary_ yang kita jelaskan pada bagian sebelumnya mengatasi masalah
+ini, dan ia akan diterapkan untuk modul yang diunduh lewat server _mirror_
+maupun lewat server aslinya.
+Server _mirror_ itu sendiri seharusnya tidak perlu dipercaya.
+
+Kami menargetkan supaya Google siap menjalankan modul _mirror_ dalam perintah
+"go" mulai dari Go 1.13.
+Untuk menggunakan _mirror_ lainnya, atau tanpa _mirror_ sama sekali, akan
+cukup mudah dikonfigurasi.
+
+
+==  Pencarian modul
+
+Terakhir, seperti yang telah kita bahas sebelumnya bahwa modul indeks akan
+mempermudah membangun situs seperti godoc.org.
+Bagian dari kerja kita di tahun 2019 yaitu perubahan besar dari godoc.org
+untuk membuatnya lebih berguna bagi pengembang yang perlu mencari modul-modul
+yang tersedia dan kemudian memutuskan apakah bergantung pada modul tersebut
+atau tidak.
+
+
+==  Gambaran besar
+
+Diagram berikut memperlihatkan bagaimana modul bergerak lewat rancangan yang
+dipaparkan dalam tulisan ini.
+
+image:https://blog.golang.org/modules2019/code.png[,500]
+
+Sebelumnya, semua pengguna sumber kode Go--perintah "go" dan semua situs
+seperti godoc.org--mengambil kode langsung dari setiap _host_.
+Sekarang kode tersebut dapat diambil lewat _cache_ yang cepat, server _mirror_
+yang dapat diandalkan, yang meng-autentikasi supaya kode yang diunduh adalah
+benar.
+Dan layanan indeks membuat hal-hal tersebut menjadi mudah bagi server
+_mirror_, godoc.org, dan situs sejenis lainnya supaya selaras dengan semua
+kode baru yang ditambahkan ke dalam ekosistem Go setiap hari.
+
+Kami sangat senang tentang masa depan dari Go modul di tahun 2019, dan kami
+harap Anda juga begitu.
+Selamat tahun baru!
