@@ -629,9 +629,305 @@ Go generate menerima satu opsi khusus:
 Go generate juga dapat menerima opsi "build" termasuk -v, -n, dan -x.
 Opsi -v mencetak nama-nama paket dan berkas saat proses berjalan.
 Opsi -n mencetak perintah yang akan dieksekusi.
-Opsi -x mencetak perintah saat mereka dieksekusi.
+Opsi -x mencetak perintah saat dieksekusi.
 
 Untuk lebih lanjut tentang opsi "build", lihat 'go help build'.
 
 Untuk lebih lanjut tentang cara menspesifikasikan paket, lihat 'go help
 packages'.
+
+
+==  Tambah dan pasang dependensi ke modul yang sekarang
+
+Penggunaan:
+
+----
+go get [-d] [-t] [-u] [-v] [-insecure] [build flags] [packages]
+----
+
+Perintah "get" menambahkan dependensi ke modul pengembangan yang sekarang dan
+kemudian membangun dan memasangnya.
+
+Langkah pertama yaitu menyelesaikan dependensi apa yang ditambahkan.
+
+Untuk setiap paket atau pola paket, "get" harus memutuskan versi mana dari
+modul yang akan digunakan.
+Secara baku, "get" mencari _tag_ dari versi rilis _tag_ yang terakhir, seperti
+v0.4.5 atau v1.2.3.
+Jika versi rilis tidak memiliki _tag_, "get" mencari versi _tag_ pra-rilis
+yang terakhir, seperti v0.0.1-pre1.
+Jika tidak ada versi _tag_ sama sekali, "get" mencari _commit_ terakhir.
+Jika modul belum dibutuhkan (misalnya, pra-rilis lebih baru dan rilis
+terakhir), "get" akan menggunakan versi yang dicarinya.
+Selain itu, "get" akan menggunakan versi yang sekarang dibutuhkan.
+
+Pemilihan versi ini dapat ditimpa dengan menambahkan sufiks @version pada
+argumen paket, seperti 'go get golang.org/x/text@v0.3.0'.
+Versi tersebut bisa berupa prefiks: @v1 berarti versi terakhir yang tersedia
+mulai dari v1.
+Lihat 'go help modules' pada 'Module queries' untuk sintaks keseluruhan.
+
+Untuk modul yang disimpan dalam repositori dengan _version control system_
+(sistem kontrol versi, atau disingkat VCS), sufiks di versi bisa berupa _hash_
+dari _commit_, nama _branch_, atau sintaks lainnya yang dikenal oleh VCS
+tersebut, seperti 'go get golang.org/x/text@master'.
+Ingat bahwa nama _branch_ yang sama dengan sintaks _query_ modul tidak dapat
+dipilih secara eksplisit.
+Contohnya, sufiks @v2 artinya versi terakhir mulai dari v2, bukan _branch_
+yang bernama v2.
+
+Jika sebuah modul yang diinginkan sudah menjadi dependensi dari modul
+pengembangan sekarang, maka "get" akan memperbarui versi yang dibutuhkan.
+Menspesifikasikan sebuah versi yang lebih awal dari versi yang dibutuhkan
+sekarang adalah valid dan akan men-_downgrade_ dependensi.
+Versi dengan sufiks @none mengindikasikan bahwa dependensi harus dihapus
+sepenuhnya, di-_downgrade_ atau menghapus modul yang bergantung kepadanya.
+
+Versi dengan sufiks @latest secara eksplisit meminta rilis minor terakhir dari
+modul yang diberikan pada path argumen.
+Sufiks @upgrade seperti @latest namun tidak akan men-_downgrade_ modul jika ia
+sudah dibutuhkan pada versi tertentu atau versi pra-rilis lebih baru dari pada
+versi rilis terbaru.
+Sufiks @patch meminta rilis _patch_ terbaru: versi rilis terbaru dengan angka
+mayor dan minor yang sama dengan yang dibutuhkan sekarang.
+Seperti halnya dengan @upgrade, @path tidak akan men-_downgrade_ sebuah modul
+yang sudah dibutuhkan pada versi terbaru.
+Jika path tertentu belum diperlukan, @upgrade dan @path sama dengan @latest.
+
+Walaupun "get" secara bawaan menggunakan versi terakhir dari modul yang beris
+nama paket, ia tidak menggunakan versi terakhir dari dependensi modul.
+Namun ia menggunakan versi dependensi tertentu yang diminta oleh modul
+tersebut.
+Misalnya, jika A butuh modul B v1.2.3, sementara B v1.2.4 dan v1.3.1 juga
+tersedia, maka 'go get A' akan menggunakan versi A yang terakhir namun
+menggunakan B v1.2.3, seperti yang diminta oleh A.
+(Jika ada kebutuhan yang saling bersaing untuk sebuah modul tertentu, 'go
+get' menyelesaikan kebutuhan mereka dengan memilih versi maksimum yang
+diminta.)
+
+Opsi -t menyuruh 'get' supaya mengunduh modul-modul yang dibutuhkan untuk
+pengujian paket yang dispesifikasikan pada baris perintah.
+
+Opsi -u menyuruh 'get' untuk memperbarui modul-modul sebagai dependensi dari
+nama paket pada baris perintah supaya menggunakan rilis minor atau patch
+terbaru bila ada.
+Melanjutkan contoh sebelumnya, 'go get -u A' akan menggunakan versi A yang
+terakhir dengan B v1.3.1 (bukan B v1.2.3).
+Jika B membutuhkan modul C, namun C tidak menyediakan paket apa pun yang
+dibutuhkan untuk membangun paket di A, maka C tidak akan diperbarui.
+
+Opsi -u=patch (bukan '-u patch') juga menyuruh 'get' untuk memperbarui
+dependensi, namun dengan menggunakan rilis patch saja.
+Melanjutkan contoh sebelumnya, 'go get -u=patch A@latest' akan menggunakan
+versi A yang terakhir dengan B v1.2.4 (bukan B v1.2.3), namun untuk
+'go get -u=patch A' akan menggunakan rilis patch dari A.
+
+Bila opsi -t dan -u digunakan bersamaan, 'get' akan memperbarui dependensi tes
+juga.
+
+Pada umumnya, menambahkan dependensi baru membutuhkan pembaruan dependensi
+yang ada supaya pembangunan dapat berjalan, dan 'go get' akan melakukan hal
+ini secara otomatis.
+Hal yang sama, menurunkan versi salah satu dependensi bisa jadi menurunkan
+dependensi yang lain, dan 'go get' juga menangani ini secara otomatis.
+
+Opsi -insecure membolehkan pengambilan dari repositori yang menggunakan skema
+tidak aman seperti HTTP.
+Gunakan dengan hati-hati.
+
+Langkah kedua yaitu mengunduh (bila perlu), membangun, dan memasang paket yang
+diminta.
+
+Jika argumen berupa modul bukan paket (karena tidak ada sumber kode Go dalam
+direktori akar dari modul), maka langkah pemasangan dilewati, bukan
+menyebabkan gagal pembangunan.
+Misalnya, 'go get golang.org/x/perf' akan sukses walaupun tidak ada kode di
+dalam path impor tersebut.
+
+Ingat bahwa pola paket dibolehkan dan dikembangkan setelah versi modul
+diselesaikan.
+Misalnya, 'go get golang.org/x/perf/cmd/...' menambahkan versi
+'golang.org/x/perf' yang terakhir dan kemudian memasang perintah-perintah pada
+versi yang terakhir juga.
+
+Opsi -d membuat 'get' mengunduh kode yang dibutuhkan untuk membangun paket,
+termasuk mengunduh dependensi yang dibutuhkan, namun tidak membangun dan
+memasang mereka.
+
+Tanpa ada argumen, 'go get' berlaku terhadap paket Go di direktori yang
+sekarang, jika ada.
+Terutama, 'go get -u' dan 'go get -u=patch' memperbarui semua dependensi dari
+paket tersebut.
+Jika tidak ada argumen paket dan juga tanpa -u, 'go get' hampir sama dengan
+'go install', dan 'go get -d' hampir sama dengan 'go list'.
+
+Untuk lebih tentang modul, lihat 'go help modules'.
+
+Untuk lebih lanjut tentang argumen paket, lihat 'go help packages'.
+
+Tulisan ini menjelaskan perilaku dari 'get' pada modul untuk mengatur kode dan
+dependensi.
+Jika perintah 'go' berjalan dalam mode GOPATH, opsi dari 'get' berubah,
+sebagaimana juga 'go help get'.
+Lihat 'go help modules' dan 'go help gopath-get'.
+
+Lihat juga: go build, go install, go clean, go mod.
+
+
+==  Kompilasi dan pasang paket dan dependensi
+
+Penggunaan:
+
+----
+go install [-i] [build flags] [packages]
+----
+
+Perintah 'install' mengompilasi dan memasang paket berdasarkan path impor.
+
+Program _executable_ dipasang dalam direktori GOBIN dari variabel lingkungan,
+yang bila kosong akan diset ke $GOPATH/bin atau $HOME/go/bin.
+Program dalam $GOROOT dipasang di $GOROOT/bin atau $GOTOOLDIR bukan $GOBIN.
+
+Jika mode modul tidak aktif, paket-paket lain dipasang dalam direktori
+$GOPATH/pkg/$GOOS_$GOARCH.
+Jika mode modul aktif, paket-paket dibangun dan di-_cache_ tapi tidak
+dipasang.
+
+Opsi -i memasang dependensi dari paket juga.
+
+Untuk informasi lebih lanjut tentang opsi pembangunan, lihat 'go help build'.
+Untuk informasi lebih lanjut tentang penamaan paket, lihat 'go help packages'.
+
+Lihat juga: go build, go get, go clean.
+
+
+==  Cetak daftar paket atau modul
+
+Penggunaan:
+
+----
+go list [-f format] [-json] [-m] [list flags] [build flags] [packages]
+----
+
+Perintah 'list' mencetak nama paket, per baris.
+Opsi yang sering digunakan yaitu -f dan -json, yang mengatur pencetakan dari
+setiap paket.
+Opsi 'list' lainnya, mengontrol detail yang lebih khusus.
+
+Keluaran bakunya mencetak path impor dari paket:
+
+----
+bytes
+encoding/json
+github.com/gorilla/mux
+golang.org/x/net/html
+----
+
+Opsi -f menentukan format alternatif dari daftar tersebut, menggunakan
+sintaksis dari templat paket.
+Keluaran bakunya sama dengan -f '{{.ImportPath}}'.
+Struct yang dikirim ke templat yaitu:
+
+----
+type Package struct {
+    Dir           string   // direktori yang berisi sumber paket
+    ImportPath    string   // path impor dari paket dalam direktori
+    ImportComment string   // path dalam komentar impor di perintah 'package'
+    Name          string   // nama paket
+    Doc           string   // dokumentasi paket
+    Target        string   // path pemasangan
+    Shlib         string   // pustaka yang berisi paket ini (hanya di set saat -linkshared)
+    Goroot        bool     // apakah paket ini ada di Go root?
+    Standard      bool     // apakah paket ini bagian dari pustaka standar Go?
+    Stale         bool     // apakah 'go install' melakukan sesuatu pada paket ini?
+    StaleReason   string   // penjelasan untuk Stale==true
+    Root          string   // direktori Go root atau Go path yang berisi paket ini
+    ConflictDir   string   // direktori ini menutup direktori dalam $GOPATH
+    BinaryOnly    bool     // paket yang binari saja (tidak lagi didukung)
+    ForTest       string   // paket hanya digunakan pada tes
+    Export        string   // berkas berisi data ekspor (saat menggunakan -export)
+    Module        *Module  // info tentang paket berisi modul, jika ada (bisa nil)
+    Match         []string // pola baris-perintah yang sesuai dengan paket ini
+    DepOnly       bool     // paket ini hanya lah dependensi, tidak terdaftar secara eksplisit
+
+    // Berkas-berkas sumber
+    GoFiles         []string // berkas-berkas .go (kecuali CgoFiles, TestGoFiles, XTestGoFiles)
+    CgoFiles        []string // berkas-berkas .go yang mengimpor "C"
+    CompiledGoFiles []string // berkas-berkas .go yang diberikan ke compiler (bila menggunakan -compiled)
+    IgnoredGoFiles  []string // berkas-berkas .go yang diindahkan karena batasan pembangunan
+    CFiles          []string // berkas-berkas .c
+    CXXFiles        []string // berkas-berkas .cc, .cxx and .cpp
+    MFiles          []string // berkas-berkas .m
+    HFiles          []string // berkas-berkas .h, .hh, .hpp and .hxx
+    FFiles          []string // berkas-berkas .f, .F, .for dan .f90 Fortran
+    SFiles          []string // berkas-berkas .s
+    SwigFiles       []string // berkas-berkas .swig
+    SwigCXXFiles    []string // berkas-berkas .swigcxx
+    SysoFiles       []string // berkas-berkas objek .syso yang ditambahkan ke arsip
+    TestGoFiles     []string // berkas-berkas _test.go dalam paket
+    XTestGoFiles    []string // berkas-berkas _test.go di luar paket
+
+    // Cgo directives
+    CgoCFLAGS    []string // cgo: opsi untuk C compiler
+    CgoCPPFLAGS  []string // cgo: opsi untuk C preprocessor
+    CgoCXXFLAGS  []string // cgo: opsi untuk C++ compiler
+    CgoFFLAGS    []string // cgo: opsi untuk Fortran compiler
+    CgoLDFLAGS   []string // cgo: opsi untuk linker
+    CgoPkgConfig []string // cgo: nama-nama pkg-config
+
+    // Dependency information
+    Imports      []string          // path impor yang digunakan oleh paket ini
+    ImportMap    map[string]string // map dari impor ke ImportPath (identitas dihilangkan)
+    Deps         []string          // semua (rekursif) dependensi yang diimpor
+    TestImports  []string          // impor dari TestGoFiles
+    XTestImports []string          // impor dari XTestGoFiles
+
+    // Error information
+    Incomplete bool            // paket ini atau dependensinya memiliki eror
+    Error      *PackageError   // eror pada pemuatan paket
+    DepsErrors []*PackageError // eror pada pemuatan dependensi
+}
+----
+
+Paket yang disimpan dalam direktori vendor melaporkan ImportPath yang
+mengikutkan path ke direktori vendor (misalnya, "d/vendor/p" bukan "p"),
+sehingga ImportPath secara unik mengidentifikasi salinan dari sebuah paket.
+Daftar pada Imports, Deps, TestImports, dan XTestImports juga berisi path
+impor yang diperluas ini.
+Lihat golang.org/s/go15vendor untuk lebih lanjut tentang "vendor".
+
+Informasi eror, jika ada, yaitu
+
+----
+type PackageError struct {
+    ImportStack   []string // path terpendek dari nama paket pada baris-perintah ke paket yang sekarang
+    Pos           string   // posisi eror (jika ada, berkas:baris:kolom)
+    Err           string   // eror itu sendiri
+}
+----
+
+Informasi modul yaitu struct Module, didefinisikan dalam diskusi dari daftar
+-m di bawah.
+
+Fungsi templat "join" memanggil strings.Join.
+
+Fungsi templat "context" mengembalikan context pembangunan, didefinisikan
+sebagai:
+
+----
+type Context struct {
+    GOARCH        string   // target arsitektur
+    GOOS          string   // target sistem operasi
+    GOROOT        string   // Go root
+    GOPATH        string   // Go path
+    CgoEnabled    bool     // apakah cgo dapat digunakan
+    UseAllFiles   bool     // gunakan berkas, mengindahkan baris +build lines, nama berkas
+    Compiler      string   // compiler yang digunakan untuk path target
+    BuildTags     []string // batasan build sesuai baris +build
+    ReleaseTags   []string // rilis yang sekarang tidak kompatibel
+    InstallSuffix string   // sufiks yang digunakan dalam direktori pemasangan
+}
+----
+
+Untuk informasi lebih lanjut tentang makna dari field-field tersebut lihat
+dokumentasi paket go/build untuk tipe Context.
