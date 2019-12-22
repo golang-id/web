@@ -1,0 +1,445 @@
+=  Menggunakan Errors pada Go 1.13
+:original: https://blog.golang.org/go1.13-errors
+:author: Damien Niel dan Jonathan Amsterdam
+:date: 17 Oktober 2019
+:toc:
+
+
+==  Pendahuluan
+
+Perlakuan Go terhadap
+https://blog.golang.org/errors-are-values[error sebagai nilai]
+telah melayani kita dengan baik selama dekade terakhir ini.
+Walaupun dukungan pustaka standar untuk error masih minimal--hanya fungsi
+`errors.New` dan `fmt.Errorf`, yang menghasilkan error yang berisi hanya sebuah
+pesan--interface `error` bawaan membolehkan pemrogram Go untuk menambahkan
+informasi apa pun yang mereka butuhkan.
+Yang dibutuhkan hanyalah supaya sebuah tipe yang mengimplementasikan method
+`Error`:
+
+----
+type QueryError struct {
+	Query string
+	Err   error
+}
+
+func (e *QueryError) Error() string { return e.Query + ": " + e.Err.Error() }
+----
+
+Tipe-tipe error seperti di atas sering kita temui, dan informasi yang disimpan
+bisa beragam, dari _timestamp_ sampai nama berkas sampai alamat server.
+Terkadang, informasi tersebut mengikutkan error tingkat rendah lainnya untuk
+menyediakan konteks tambahan.
+
+Pola-pola dari sebuah error yang berisi informasi tambahan begitu banyak
+digunakan dalam kode Go, setelah
+https://golang.org/issue/29934[diskusi yang mendalam],
+Go 1.13 menambahkan dukungan eksplisit untuk hal tersebut.
+Artikel ini menjelaskan penambahan-penambahan ke pustaka bawaan tersebut: tiga
+fungsi baru dalam paket `errors`, dan sebuah format baru pada `fmt.Errorf`.
+
+Sebelum menjelaskan perubahan ini lebih detail, mari kita lihat bagaimana
+error diperiksa dan dibuat dalam versi bahasa sebelumnya.
+
+
+==  Error sebelum Go 1.13
+
+===  Pemeriksaan error
+
+Error pada Go adalah nilai.
+Program membuat keputusan berdasarkan nilai-nilai tersebut dalam beberapa
+cara.
+Hal yang paling umum yaitu dengan membandingkan sebuah error dengan `nil`
+untuk melihat apakah sebuah operasi gagal.
+
+----
+if err != nil {
+	// kesalahan terjadi
+}
+----
+
+Terkadang kita membandingkan error dengan sebuah nilai _sentinel_, untuk
+melihat apakah error tertentu terjadi.
+
+----
+var ErrNotFound = errors.New("not found")
+
+if err == ErrNotFound {
+	// sesuatu tidak ditemukan
+}
+----
+
+Sebuah nilai error bisa saja bertipe apa pun selama memenuhi interface
+`error`.
+Sebuah program dapat menggunakan
+link:/doc/effective_go.html#interface_conversions[konversi tipe]
+atau
+link:/doc/effective_go.html#type_switch[switch bertipe] untuk
+mengubah atau mendapatkan nilai error menjadi tipe yang diinginkan.
+
+----
+type NotFoundError struct {
+	Name string
+}
+
+func (e *NotFoundError) Error() string { return e.Name + ": not found" }
+
+if e, ok := err.(*NotFoundError); ok {
+	// e.Name tidak ditemukan
+}
+----
+
+
+===  Menambahkan informasi
+
+Sering kali sebuah fungsi mengembalikan sebuah error ke si pemanggil fungsi
+dengan menambahkan informasi tambahan, seperti deskripsi singkat dari apa yang
+terjadi saat error muncul.
+Salah satu cara sederhana melakukan hal ini yaitu membentuk sebuah error yang
+baru yang mengikutkan teks dari error sebelumnya:
+
+----
+if err != nil {
+	return fmt.Errorf("decompress %v: %v", name, err)
+}
+----
+
+Membuat sebuah nilai error baru dengan `fmt.Errorf` mengindahkan semua
+informasi yang ada dalam error yang asli kecuali representasi teks dari error
+asli.
+Seperti yang kita lihat sebelumnya dengan `QueryError`, kita mungkin 
+ingin mendefinisikan sebuah tipe error yang baru yang berisi error
+sebelumnya, menjaganya supaya dapat diinspeksi oleh kode.
+Sekali lagi berikut `QueryError`,
+
+----
+type QueryError struct {
+	Query string
+	Err   error
+}
+----
+
+Program dapat melihat nilai di dalam `*QueryError` untuk membuat keputusan
+berdasarkan error di dalamnya.
+Hal seperti ini sering disebut sebagai "membuka" error.
+
+----
+if e, ok := err.(*QueryError); ok && e.Err == ErrPermission {
+	// kueri gagal karena permasalahan akses
+}
+----
+
+Tipe
+https://pkg.go.dev/os?tab=doc#PathError[`os.PathError`]
+dalam pustaka standar adalah contoh lain dari sebuah error yang berisi error
+lainnya.
+
+
+==  Error pada Go 1.13
+
+===  Method `Unwrap`
+
+Go 1.13 memperkenalkan beberapa fitur baru pada pustaka standar `errors` dan
+`fmt` untuk memudahkan bekerja dengan error yang berisi error lainnya.
+Hal yang paling signifikan yaitu adanya sebuah konvensi bukan sebuah
+perubahan: sebuah error yang berisi error lainnya bisa mengimplementasikan
+sebuah method `Unwrap` yang mengembalikan error di dalamnya.
+Jika `e1.Unwrap()` mengembalikan `e2`, maka kita bisa mengatakan `e1`
+membungkus `e2`, dan kita bisa _membuka_ `e1` untuk mendapatkan `e2`.
+
+Dengan mengikuti konvensi ini, kita dapat menambahkan method `Unwrap` pada
+tipe `QueryError` yang mengembalikan error di dalamnya:
+
+----
+func (e *QueryError) Unwrap() error { return e.Err }
+----
+
+Nilai error dari hasil pembukaan sebuah error bisa jadi memiliki method
+`Unwrap` juga;
+kita menyebut urutan error-error yang dihasilkan oleh pembukaan yang berulang
+ini disebut dengan _error chain_ (rangkaian error).
+
+
+===  Memeriksa error dengan `Is` dan `As`
+
+Paket `errors` pada Go 1.13 mengikutkan dua fungsi baru untuk memeriksa error:
+`Is` dan `As`.
+
+Fungsi `errors.Is` membandingkan sebuah error dengan sebuah nilai.
+
+----
+// Sama dengan:
+//   if err == ErrNotFound { … }
+if errors.Is(err, ErrNotFound) {
+	// error karena sesuatu tidak ditemukan.
+}
+----
+
+Fungsi `As` memeriksa apakah sebuah error adalah tipe tertentu, dan
+mengonversinya ke tipe tersebut jika berhasil.
+
+----
+// Sama dengan:
+//   if e, ok := err.(*QueryError); ok { … }
+var e *QueryError
+if errors.As(err, &e) {
+	// err adalah *QueryError, dan e di set menjadi nilai dari error.
+}
+----
+
+Pada kasus sederhana, fungsi `errors.Is` berlaku seperti sebuah
+pembandingan ke error sentinel, dan fungsi `errors.As` berlaku seperti
+konversi tipe.
+Saat beroperasi pada error yang dibungkus, fungsi-fungsi tersebut melihat
+semua error di dalam rangkaian error.
+Mari kita lihat kembali contoh sebelumnya saat membuka sebuah
+`QueryError` untuk memeriksa error di dalamnya:
+
+----
+if e, ok := err.(*QueryError); ok && e.Err == ErrPermission {
+	// kueri gagal karena permasalahan akses.
+}
+----
+
+Dengan menggunakan fungsi `errors.Is`, kita dapat menulisnya dengan:
+
+----
+if errors.Is(err, ErrPermission) {
+	// err, atau error yang dibungkusnya, adalah kesalahan akses.
+}
+----
+
+Paket `error` juga mengikutkan fungsi baru `Unwrap` yang mengembalikan
+hasil dari pemanggilan method `Unwrap` pada error, atau `nil` bila error tidak
+memiliki method `Unwrap`.
+Pada umumnya lebih baik menggunakan `errors.Is` atau `errors.As` saja, secara
+fungsi-fungsi tersebut akan memeriksa semua rangkaian error dalam sekali
+pemanggilan.
+
+
+===  Membungkus error dengan %w
+
+Seperti yang telah disebutkan sebelumnya, sangat umum menggunakan fungsi
+`fmt.Errorf` untuk menambahkan informasi tambahkan ke dalam sebuah error.
+
+----
+if err != nil {
+	return fmt.Errorf("decompress %v: %v", name, err)
+}
+----
+
+Pada Go 1.13, fungsi `fmt.Errorf` mendukung sebuah format baru `%w`.
+Bila format ini digunakan, maka error yang dikembalikan oleh fungsi
+`fmt.Errorf` akan memiliki method `Unwrap` yang mengembalikan argumen yang
+diberikan pada `%w`,
+yang haruslah berupa sebuah tipe error.
+Pada kasus selain itu, `%w` sama saja dengan `%v` (misalnya, apabila argumen
+yang diberikan pada `%w` tidak mengimplementasikan interface `error`.)
+
+----
+if err != nil {
+	// Mengembalikan sebuah error yang membungkus err.
+	return fmt.Errorf("decompress %v: %w", name, err)
+}
+----
+
+Membungkus sebuah error dengan `%w` membuatnya dapat diakses dengan
+`errors.Is` dan `errors.As`.
+
+----
+err := fmt.Errorf("access denied: %w", ErrPermission)
+...
+if errors.Is(err, ErrPermission) ...
+----
+
+
+===  Membungkus error atau tidak?
+
+Saat menambahkan konteks tambahan ke dalam sebuah error, baik dengan
+`fmt.Errorf` atau dengan mengimplementasikan tipe kostum, kita harus
+memutuskan apakah error yang baru membungkus error yang asli.
+Tidak ada jawaban yang tunggal untuk pertanyaan ini;
+ia bergantung pada konteks di mana error yang baru dibuat.
+Bungkus lah sebuah error untuk mengekspose ke pemanggilnya.
+Jangan membungkus sebuah error bila melakukan hal tersebut akan mengekspose
+detail implementasi internal.
+
+Sebagai salah satu contoh, bayangkan sebuah fungsi `Parse` yang membaca sebuah
+struktur data yang kompleks dari `io.Reader`.
+Jika sebuah error terjadi, kita ingin melaporkan nomor baris dan kolom tempat
+ia terjadi.
+Jika error terjadi saat membaca dari `io.Reader`, kita akan membungkus error
+tersebut supaya permasalahan di dalamnya dapat diperiksa.
+Secara yang memanggil `Parse` yang memberikan `io.Reader` ke fungsi, maka
+masuk akal untuk mengekspose error yang dihasilkan ke yang memanggil.
+
+Kebalikannya, sebuah fungsi yang melakukan beberapa kali pemanggilan ke
+database seharusnya tidak mengembalikan error yang membungkus kesalahan pada
+database.
+Jika database yang digunakan oleh fungsi adalah detail dari implementasi, maka
+mengekspose error-error tersebut adalah sebuah pelanggaran dari abstraksi.
+Misalnya, jika fungsi `LookupUser` dari sebuah paket `pkg` menggunakan paket
+`database/sql`, maka ia mungkin akan mengembalikan error `sql.ErrNoRows`.
+Jika kita mengembalikan error tersebut dengan
+`fmt.Errorf("akses DB: %v", err)`
+maka si pemanggil tidak bisa melihat ke dalam untuk menemukan `sql.ErrNoRows`.
+Namun bila fungsi mengembalikan `fmt.Errorf("akses DB: %w", err)`, maka si
+pemanggil dapat menulis
+
+----
+err := pkg.LookupUser(...)
+if errors.Is(err, sql.ErrNoRows) …
+----
+
+Pada titik ini, fungsi tersebut harus selalu mengembalikan `sql.ErrNoRows`
+jika kita tidak ingin merusak kode dari program yang menggunakan paket kita,
+bahkan bila kita mengganti ke paket database yang berbeda.
+Dengan kata lain, membungkus sebuah error membuat error tersebut menjadi
+bagian dari API kita.
+Jika kita tidak ingin membuat error tersebut sebagai bagian dari API, kita
+seharusnya tidak membungkus error tersebut.
+
+Hal yang penting untuk diingat, baik untuk error yang dibungkus atau tidak,
+teks yang dihasilkan dari error seharusnya tetap sama.
+_Seseorang_ yang mencoba memahami error akan memiliki informasi yang sama;
+pilihan untuk membungkus error atau tidak bergantung pada apakah kita ingin
+memberikan _program_ suatu informasi tambahan supaya mereka dapat melakukan
+keputusan berdasarkan informasi yang tersedia, atau menyembunyikan informasi
+tersebut untuk menjaga lapisan dari abstraksi.
+
+
+===  Kustomisasi pengujian error dengan method `Is` dan `As`
+
+Fungsi `errors.Is` memeriksa setiap error dalam sebuah rangkaian untuk
+kecocokan dengan nilai target.
+Secara bawaan, sebuah error cocok dengan target jika keduanya sama.
+Sebagai tambahan, sebuah error dalam rangkaian error bisa mendeklarasikan
+bahwa ia cocok dengan sebuah target dengan mengimplementasikan method `Is`.
+
+Sebagai contoh, pertimbangkan error berikut yang terinspirasi oleh
+https://commandcenter.blogspot.com/2017/12/error-handling-in-upspin.html[paket
+error pada Upspin]
+yang membandingkan sebuah error dengan sebuah templat, dengan mempertimbangkan
+hanya field-field yang tidak nol di dalam templat:
+
+----
+type Error struct {
+	Path string
+	User string
+}
+
+func (e *Error) Is(target error) bool {
+	t, ok := target.(*Error)
+	if !ok {
+		return false
+	}
+	return (e.Path == t.Path || t.Path == "") &&
+		(e.User == t.User || t.User == "")
+}
+
+if errors.Is(err, &Error{User: "someuser"}) {
+	// field User pada err adalah "someuser".
+}
+----
+
+Fungsi `errors.As` dengan cara yang sama memeriksa method `As` bila ada.
+
+
+===  Error dan paket API
+
+Sebuah paket yang mengembalikan error (dan pada kebanyakan memang begitu)
+seharusnya menjelaskan properti-properti dari error-error tersebut yang mana
+para pemrogram dapat bergantung kepadanya.
+Paket yang dirancang dengan baik akan menghindari mengembalikan error dengan
+properti-properti yang tidak bisa diandalkan.
+
+Spesifikasi yang paling sederhana menyatakan bahwa sebuah operasi bisa sukses
+atau gagal, mengembalikan nilai error yang nil atau tidak nil.
+Pada kebanyakan kasus, tidak ada lagi informasi yang diperlukan selain itu.
+
+Jika kita menginginkan sebuah fungsi mengembalikan sebuah kondisi error yang
+dapat diidentifikasi, seperti "item tidak ditemukan", kita bisa mengembalikan
+sebuah error yang membungkus sebuah sentinel.
+
+----
+var ErrNotFound = errors.New("not found")
+
+// FetchItem mengembalikan item yang bernama.
+//
+// Jika nama item tidak ditemukan, FetchItem mengembalikan sebuah error.
+// yang membungkus ErrNotFound.
+func FetchItem(name string) (*Item, error) {
+	if itemNotFound(name) {
+		return nil, fmt.Errorf("%q: %w", name, ErrNotFound)
+	}
+	// ...
+}
+----
+
+Ada pola-pola lain yang menyediakan error yang secara semantik dapat diperiksa
+oleh si pemanggil, seperti dengan mengembalikan nilai sentinel secara
+langsung, mengembalikan tipe tertentu, atau sebuah nilai yang dapat diperiksa
+dengan sebuah fungsi.
+
+Pada semua kasus tersebut, haruslah diperhatikan supaya tidak mengekspose
+detail internal kepada pengguna.
+Seperti yang telah kita bahas pada bagian "Membungkus error atau tidak?" di
+atas, saat kita mengembalikan sebuah error dari paket lain kita seharusnya
+mengonversi error ke bentuk yang tidak mengekpose error di belakangnya,
+kecuali kalau kita ingin mengembalikan error spesifik tersebut nantinya.
+
+----
+f, err := os.Open(filename)
+if err != nil {
+	// *os.PathError yang dikembalikan oleh os.Open adalah detail internal.
+	// Untuk menghindari pengeksposan keluar, bungkus lah ia sebagai
+	// sebuah error yang baru dengan teks yang sama.
+	// Kita menggunakan format %v, secara %w akan membolehkan pemanggil
+	// membuka *os.PathError yang asli.
+	return fmt.Errorf("%v", err)
+}
+----
+
+Jika sebuah fungsi didefinisikan mengembalikan sebuah error yang membungkus
+sentinel atau tipe, jangan kembalikan error di belakangnya secara langsung.
+
+----
+var ErrPermission = errors.New("permission denied")
+
+// DoSomething mengembalikan sebuah error yang membungkus ErrPermission jika
+// user tidak memiliki akses.
+func DoSomething() error {
+    if !userHasPermission() {
+        // Jika kita langsung mengembalikan ErrPermission, si pemanggil bisa
+	// jadi bergantung pada nilai error, menulis kode seperti berikut:
+        //
+        //	if err := pkg.DoSomething(); err == pkg.ErrPermission { … }
+        //
+        // Hal ini akan menimbulkan masalah jika kita ingin menambah konteks
+	// terhadap error nantinya.
+	// Untuk menghindari ini, kita kembalikan error yang membungkus
+	// sentinel supaya user selalu dapat membukanya:
+        //
+        //	if err := pkg.DoSomething(); errors.Is(err, pkg.ErrPermission) { ... }
+        return fmt.Errorf("%w", ErrPermission)
+    }
+    // ...
+}
+----
+
+
+==  Kesimpulan
+
+Meskipun jumlah perubahan yang kita diskusikan hanya tiga fungsi dan sebuah
+format, kami berharap mereka dapat meningkatkan penanganan error dalam program
+Go.
+Kami mengharapkan pembungkusan error yang menyediakan konteks tambahan menjadi
+hal yang umum, membantu program membuat keputusan yang lebih baik dan
+membantu pemrogram menemukan _bug_ lebih cepat.
+
+Seperti yang Russ Cox katakan dalam
+https://blog.golang.org/experiment[GopherCon 2019],
+untuk mencapai Go 2 kita bereksperimen, menyederhanakan dan merilis (yang
+baru).
+Sekarang karena kita telah merilis perubahan ini, kita menantikan
+eksperimen-eksperimen yang menggunakannya.

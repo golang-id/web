@@ -13,6 +13,13 @@
 *  link:/blog/10years[Ulang tahun Go ke 10], 8 November 2019.
    _Russ Cox, untuk tim Go_
 
+*  link:/blog/v2-go-modules[Bagian 4 - Go Modul: v2 dan Seterusnya], 7
+   November 2019.
+   _Jean de Klerk and Tyler Bui-Palsulich_
+
+*  link:/blog/go1.13-errors[Menggunakan Errors pada Go 1.13], 17 Oktober
+   2019, _Damien Niel_ dan _Jonathan Amsterdam_
+
 
 ==  Bahasa
 
