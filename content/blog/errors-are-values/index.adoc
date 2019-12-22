@@ -1,0 +1,282 @@
+=  Error adalah nilai
+:original: https://blog.golang.org/errors-are-values
+:author: Rob Pike
+:date: 12 Januari 2015
+
+Poin diskusi paling sering di antara para pemrogram Go, khususnya yang baru
+dengan bahasa, yaitu bagaimana cara menangani error.
+Pembahasan sering kali menjadi keluhan saat beberapa urutan kode
+
+----
+if err != nil {
+	return err
+}
+----
+
+muncul.
+Kami baru-baru ini memindai semua proyek-proyek sumber terbuka yang dapat kami
+cari dan menemukan bahwa penggalan kode di atas terjadi hanya satu atau dua
+kali per halaman, lebih sedikit daripada apa yang orang percaya.
+Tetap saja, jika persepsi bahwa seseorang harus mengetik
+
+----
+if err != nil
+----
+
+setiap waktu, tampaknya ada sesuatu yang salah, dan biasanya target yang
+sering disalahkan adalah bahasa Go itu sendiri.
+
+Sayangnya hal ini tidak benar, dan mudah untuk dikoreksi.
+Mungkin yang terjadi adalah para pemrogram yang baru dengan Go bertanya,
+"Bagaimana cara menangani error?", memelajari polanya, dan berhenti di sana.
+Pada bahasa pemrograman yang lain, ada yang menggunakan blok _try-catch_ atau
+mekanisme lain untuk penanganan error.
+Oleh karena itu, pemrogram berpikir, saat saya menggunakan _try-catch_ dalam
+bahasa lama saya, saya akan tulis `if err != nil` dalam Go.
+Seiring waktu kode Go tersebut menjadi banyak pengecekan seperti itu, dan
+hasilnya tampak janggal.
+
+Apakah penjelasan tersebut benar atau tidak, cukup jelas bahwa pemrogram Go
+tersebut tidak memahami inti dasar tentang error: _Error adalah nilai_.
+
+Nilai dapat diprogram, dan secara error adalah nilai, maka error dapat
+diprogram.
+
+Tentu saja pernyataan yang sering berkaitan dengan nilai error yaitu
+pengecekan apakah ia nil, namun ada banyak hal lain yang dapat kita lakukan
+dengan nilai error, dan penerapan dari hal lain tersebut dapat membuat program
+kita lebih baik, mengeliminasi banyak kode yang bakal muncul bila setiap error
+di cek dengan perintah if.
+
+Berikut contoh sederhana dari tipe
+https://golang.org/pkg/bufio/#Scanner[Scanner]
+pada paket `bufio`.
+Method
+https://golang.org/pkg/bufio/#Scanner.Scan[Scan]
+melakukan _input/output_ (I/O), yang tentu saja dapat menyebabkan error.
+Namun method `Scan` tidak mengekspose error sama sekali.
+Method tersebut mengembalikan sebuah boolean, dan method yang terpisah yang
+dijalankan di akhir pemindaian, melaporkan apakah ada error atau tidak.
+Kode pada sisi klien akan seperti berikut:
+
+----
+scanner := bufio.NewScanner(input)
+for scanner.Scan() {
+	token := scanner.Text()
+	// proses token
+}
+if err := scanner.Err(); err != nil {
+	// proses error
+}
+----
+
+Tentu saja, ada pengecekan nil pada error, namun ia muncul dan dieksekusi
+sekali.
+Method `Scan` bisa saja didefinisikan sebagai
+
+----
+func (s *Scanner) Scan() (token []byte, error)
+----
+
+dan kemudian contoh kode bisa menjadi (tergantung bagaimana token diterima),
+
+----
+scanner := bufio.NewScanner(input)
+for {
+	token, err := scanner.Scan()
+	if err != nil {
+		return err // atau bisa pakai break
+	}
+	// proses token
+}
+----
+
+Hal ini tidak berbeda, tetapi ada satu keistimewaan penting.
+Dalam kode tersebut, klien harus memeriksa error di setiap iterasi, namun
+dalam API `Scanner`, penanganan error diabstraksikan dari elemen kunci API,
+yang mana mengiterasi token.
+Dengan API yang aslinya, kode pada klien tampak lebih alami: lakukan
+pengulangan sampai selesai, kemudian baru cek error.
+Penanganan error tidak menutupi alur kontrol.
+
+Di belakangnya yang terjadi, tentu saja, yaitu saat `Scan` mengalami error
+I/O, ia akan mencatatnya dan mengembalikan `false`.
+Method terpisah,
+https://golang.org/pkg/bufio/#Scanner.Err[Err],
+melaporkan nilai error saat klien membutuhkannya.
+Meskipun tampak sepele, hal ini tidak sama dengan menulis
+
+----
+if err != nil
+----
+
+di mana saja atau menanyakan klien untuk memeriksa error untuk setiap token.
+Ini adalah contoh pemrograman dengan nilai error.
+Pemrograman yang sederhana, ya, namun tetap saja pemrograman.
+
+Perlu ditekankan bahwa apa pun rancangannya, sangatlah penting supaya program
+memeriksa error saat mereka muncul.
+Diskusi saat ini bukan tentang bagaimana menghindari pengecekan error, namun
+tentang menggunakan bahasa untuk menangani error dengan apik.
+
+Topik tentang kode pengecekan-error yang berulang-ulang, muncul saat saya
+menghadiri GoCon 2014 di Tokyo.
+Seorang gopher antusias, menggunakan akun
+https://twitter.com/jxck_[@jxck_]
+di Twitter, mengeluhkan tentang pengecekan error.
+Dia memiliki kode yang secara semantik seperti ini:
+
+----
+_, err = fd.Write(p0[a:b])
+if err != nil {
+	return err
+}
+_, err = fd.Write(p1[c:d])
+if err != nil {
+	return err
+}
+_, err = fd.Write(p2[e:f])
+if err != nil {
+	return err
+}
+// dan seterusnya
+----
+
+Tampak sangat berulang.
+Dalam kode di dunia nyata, yang lebih panjang, banyak hal yang terjadi
+sehingga tidaklah mudah dengan mengganti hal ini dengan sebuah fungsi
+pembantu, namun dalam bentuk yang idealnya, sebuah fungsi yang berakhir dengan
+variabel error akan cukup membantu:
+
+----
+var err error
+write := func(buf []byte) {
+	if err != nil {
+		return
+	}
+	_, err = w.Write(buf)
+}
+write(p0[a:b])
+write(p1[c:d])
+write(p2[e:f])
+// dan seterusnya
+if err != nil {
+	return err
+}
+----
+
+Pola ini bekerja dengan baik, namun membutuhkan sebuah _closure_ di setiap
+fungsi saat melakukan penulisan (`write`);
+Sebuah fungsi pembantu terpisah lebih janggal digunakan karena variabel `err`
+perlu dijaga selama pemanggilan (coba lah).
+
+Kita dapat membuat hal ini lebih jelas, lebih umum, dan bisa digunakan ulang
+dengan meminjam ide dari method `Scan` di atas.
+Saya menulis teknik ini dalam diskusi kita tetapi `@jxck_` tidak tahu cara
+menggunakannya.
+Setelah berdiskusi lama, terhambat karena batasan bahasa, saya bertanya apakah
+dapat meminjam laptopnya dan memperlihatkannya dengan menulis beberapa kode.
+
+Saya mendefinisikan sebuah objek yang disebut `errWriter`, seperti ini:
+
+----
+type errWriter struct {
+	w   io.Writer
+	err error
+}
+----
+
+dan menambahkan sebuah method `write`.
+Method tersebut tidak perlu penanda `Write` yang standar, dan sengaja ditulis
+huruf kecil untuk memperlihatkan perbedaannya.
+Method `write` memanggil method `Write` dari `Writer` dan mencatat error
+yang pertama kali terjadi untuk referensi nantinya:
+
+----
+func (ew *errWriter) write(buf []byte) {
+	if ew.err != nil {
+		return
+	}
+	_, ew.err = ew.w.Write(buf)
+}
+----
+
+Saat error terjadi, method `write` menjadi _no-op_ (tidak beroperasi lagi)
+namun nilai error telah tersimpan.
+
+Dengan tipe `errWriter` dan method `write`-nya, kode di atas dapat ditulis
+ulang menjadi:
+
+----
+ew := &errWriter{w: fd}
+ew.write(p0[a:b])
+ew.write(p1[c:d])
+ew.write(p2[e:f])
+// dan seterusnya.
+if ew.err != nil {
+	return ew.err
+}
+----
+
+Kode ini lebih jelas, dibandingkan dengan penggunaan _closure_, dan juga
+membuat urutan `write` lebih mudah dilihat dalam satu halaman.
+Tidak ada lagi kekusutan.
+Pemrograman dengan nilai error (dan interface) telah membuat kode lebih bagus.
+
+Bisa saja bagian kode lain dalam paket yang sama dapat dibangun dengan ide
+ini, atau bahkan langsung menggunakan `errWriter`.
+
+Juga, sekali `errWriter` ada, banyak hal yang dapat dilakukannya.
+Misalnya, ia bisa digunakan untuk menghitung byte.
+Ia bisa menggabungkan beberapa penulisan ke sebuah buffer yang kemudian dapat
+dikirim secara terpisah.
+Dan banyak lagi.
+
+Pada kenyataannya, pola ini sering muncul dalam pustaka standar.
+Paket
+https://golang.org/pkg/archive/zip/[archive/zip]
+dan
+https://golang.org/pkg/net/http/[net/http]
+menggunakannya.
+Yang lebih menonjol,
+https://golang.org/pkg/bufio/[method Writer]
+pada paket `bufio` sebenarnya implementasi dari ide `errWriter`.
+Walaupun `bufio.Writer.Write` mengembalikan error, hal ini semata-mata demi
+mengikuti interface dari
+https://golang.org/pkg/io/#Writer[`io.Writer`].
+Method `Write` pada `bufio.Writer` mirip dengan method `errWriter.write` kita
+di atas, dengan `Flush` yang melaporkan error, sehingga contoh kita di atas
+dapat ditulis seperti:
+
+----
+b := bufio.NewWriter(fd)
+b.Write(p0[a:b])
+b.Write(p1[c:d])
+b.Write(p2[e:f])
+// dan seterusnya
+if b.Flush() != nil {
+	return b.Flush()
+}
+----
+
+Ada satu kelemahan dari pendekatan ini, setidaknya pada beberapa aplikasi:
+kita tidak bisa mengetahui berapa banyak pemrosesan selesai sebelum error
+terjadi.
+Jika informasi tersebut penting, pendekatan yang lebih halus diperlukan.
+Terkadang, pengecekan ada-atau-tidak nya error pada akhirnya sudah cukup.
+
+Kita telah melihat salah satu teknik untuk menghindari kode yang mengulang
+penanganan error.
+Ingatlah bahwa penggunakan `errWriter` atau `bufio.Writer` bukanlah
+satu-satunya cara untuk menyederhanakan penanganan error, dan pendekatan ini
+belum tentu sesuai dengan semua situasi.
+Pelajaran yang dapat diambil dari sini yaitu error adalah nilai dan kekuatan
+penuh dari bahasa pemrograman Go tersedia untuk memrosesnya.
+
+Gunakan bahasa untuk menyederhanakan penanganan error Anda.
+
+Namun ingat: Apa pun yang Anda lakukan, selalu periksa error!
+
+Terakhir, untuk cerita lengkap tentang interaksi saya dengan `@jxck_`,
+termasuk video singkat yang dia rekam, kunjungi
+http://jxck.hatenablog.com/entry/golang-error-handling-lesson-by-rob-pike[blognya].

@@ -20,6 +20,9 @@
 *  link:/blog/go1.13-errors[Menggunakan Errors pada Go 1.13], 17 Oktober
    2019, _Damien Niel_ dan _Jonathan Amsterdam_
 
+*  link:/blog/errors-are-values[Error adalah nilai], 12 Januari 2015,
+   _Rob Pike_
+
 
 ==  Bahasa
 
