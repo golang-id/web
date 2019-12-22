@@ -637,6 +637,7 @@ Untuk lebih lanjut tentang cara menspesifikasikan paket, lihat 'go help
 packages'.
 
 
+[#hdr-Add_dependencies_to_current_module_and_install_them]
 ==  Tambah dan pasang dependensi ke modul yang sekarang
 
 Penggunaan:
@@ -774,6 +775,7 @@ Lihat 'go help modules' dan 'go help gopath-get'.
 Lihat juga: go build, go install, go clean, go mod.
 
 
+[##hdr-Compile_and_install_packages_and_dependencies]
 ==  Kompilasi dan pasang paket dan dependensi
 
 Penggunaan:
@@ -801,6 +803,7 @@ Untuk informasi lebih lanjut tentang penamaan paket, lihat 'go help packages'.
 Lihat juga: go build, go get, go clean.
 
 
+[#hdr-List_packages_or_modules]
 ==  Cetak daftar paket atau modul
 
 Penggunaan:
@@ -931,3 +934,196 @@ type Context struct {
 
 Untuk informasi lebih lanjut tentang makna dari field-field tersebut lihat
 dokumentasi paket go/build untuk tipe Context.
+
+Opsi -json menyebabkan data paket dicetak dalam format JSON bukan menggunakan
+format templat.
+
+Opsi -compiled men-set CompiledGoFiles dengan berkas sumber Go yang diberikan
+kepada _compiler_.
+Biasanya hal ini berisi berkas dalam GoFiles dan juga menambahkan kode Go yang
+dihasilkan dari pemrosesan CgoFiles dan SwigFiles.
+Daftar impor berisi gabungan dari semua impor GoFiles dan CompiledGoFiles.
+
+Opsi `-deps` membuat perintah "list" melakukan iterasi tidak hanya pada paket
+tetapi juga semua dependensinya.
+Semua dependensi dikunjungi secara _depth-first post-order_, sehingga paket
+dicetak setelah semua dependensinya.
+Paket-paket yang secara eksplisit tidak dicantumkan pada baris perintah akan
+memiliki field `DepOnly` bernilai `true`.
+
+Opsi `-e` mengubah penanganan paket-paket yang eror, yaitu paket yang tidak
+bisa ditemukan atau salah format.
+Secara baku, perintah "list" mencetak kesalahan untuk setiap paket dan
+mengindahkan paket yang eror tersebut.
+Dengan opsi `-e`, perintah "list" tidak akan mencetak kesalahan namun
+memproses paket yang eror tersebut.
+Paket yang eror akan memiliki isi pada field `ImportPath` dan `Error`;
+informasi lainnya bisa saja kosong.
+
+Opsi `-export` membuat field `Export` di-set dengan nama berkas yang berisi
+informasi ekspor terbaru dari paket yang diberikan.
+
+Opsi `-find` membuat perintah "list" mengidentifikasi paket tetapi tidak
+mencari dependensinya: field `Imports` dan `Deps` akan kosong.
+
+Opsi `-test` melaporkan tidak hanya nama paket namun juga program pengujiannya
+(untuk paket-paket dengan tes), supaya perkakas analisis sumber kode tahu
+bagaimana program test dibangun.
+Path impor yang dilaporkan untuk sebuah program tes yaitu path import dari
+paket diikuti oleh sufiks ".test", seperti "math/rand.test".
+Saat membangun sebuah tes, terkadang perlu membangun ulang beberapa dependensi
+khusus untuk tes (umumnya paket tes itu sendiri).
+Path impor yang dilaporkan dari sebuah paket yang dikompilasi ulang untuk
+sebuah program tes tertentu yaitu diikuti dengan sebuah spasi dan nama dari
+program tes dalam tanda kurung siku, seperti "math/rand [math/rand.test]"
+atau "regexp [sort.test]".
+Field `ForTest` diisi dengan nama dari paket yang di tes ("math/rand" atau
+"sort" pada contoh sebelumnya).
+
+Path berkas pada `Dir`, `Target`, `Shlib`, `Root`, `ConflictDir`, dan `Export`
+adalah path absolut.
+
+Secara baku, daftar dalam `GoFiles`, `CgoFiles`, dan seterusnya berisi
+nama-nama berkas dalam `Dir` (yaitu path yang relatif terhadap `Dir`, bukan
+path absolut).
+Berkas-berkas yang ditambah saat menggunakan opsi `-compiled` dan `-test`
+adalah berupa path absolut yang mengacu ke salinan dari berkas sumber Go.
+Walaupun mereka adalah sumber berkas Go, path mereka sendiri bisa saja tidak
+diakhiri dengan ".go".
+
+Opsi `-m` mencetak daftar modul bukan paket-paket.
+
+Saat mencetak modul, opsi `-f` menentukan format templat yang diterapkan pada
+sebuah Go struct, yaitu Module struct:
+
+----
+type Module struct {
+    Path      string       // path modul
+    Version   string       // versi modul
+    Versions  []string     // versi modul yang tersedia (dengan -versions)
+    Replace   *Module      // ditimpa oleh modul ini
+    Time      *time.Time   // waktu saat versi dibuat
+    Update    *Module      // update yang tersedia, jika ada (dengan -u)
+    Main      bool         // apakah ini modul utama?
+    Indirect  bool         // apakah modul ini dependensi tidak langsung dari
+                           // modul utama?
+    Dir       string       // direktori tempat modul berada, jika ada
+    GoMod     string       // path ke berkas go.mod dari modul ini, jika ada
+    GoVersion string       // versi Go yang digunakan oleh modul
+    Error     *ModuleError // kesalahan yang terjadi saat memuat modul
+}
+
+type ModuleError struct {
+    Err string // eror itu sendiri
+}
+----
+
+Keluaran baku yaitu mencetak path modul dan informasi tentang versi dan
+penggantinya jika ada.
+Contohnya, 'go list -m all' mencetak:
+
+----
+my/main/module
+golang.org/x/text v0.3.0 => /tmp/text
+rsc.io/pdf v0.1.1
+----
+
+Struct `Module` memiliki method String yang membuat format baris keluaran di
+atas, sehingga format baku sama dengan `-f '{{.String}}'`.
+
+Ingatlah bahwa saat sebuah modul telah ditimpa, field `Replace` menjelaskan
+modul yang menggantinya, dan field `Dir` diisi dengan sumber kode pengganti,
+jika ada.
+(Jika `Replace` tidak kosong, maka `Dir` diisi dengan `Replace.Dir`, tanpa
+akses ke sumber kode yang menggantinya.)
+
+Opsi `-u` menambahkan informasi tambahan tentang adanya pembaruan.
+Bila versi terakhir dari sebuah modul lebih baru dari yang sekarang, opsi `-u`
+men-set field `Update` dengan informasi tentang modul terbaru.
+Method `String` pada `Module` mengindikasikan adanya pembaruan dengan mencetak
+versi terbaru dalam tanda kurung siku setelah versi yang sekarang.
+Misalnya, 'go list -m -u all' bisa mencetak:
+
+----
+my/main/module
+golang.org/x/text v0.3.0 [v0.4.0] => /tmp/text
+rsc.io/pdf v0.1.1 [v0.1.2]
+----
+
+(Untuk perkakas luar, 'go list -m -u -json all' mungkin lebih mudah untuk
+diurai.)
+
+Opsi `-versions` men-set field `Version` pada `Module` dengan daftar semua
+versi dari modul tersebut, diurut berdasarkan versi semantik, dari yang lama
+ke yang terbaru.
+Opsi ini mengubah format keluaran baku dengan menampilkan path modul diikuti
+daftar versi yang dipisahkan oleh spasi.
+Misalnya,
+----
+$ go list -m -versions github.com/shuLhan/share
+go: finding versions for github.com/shuLhan/share
+github.com/shuLhan/share v0.1.0 v0.2.0 v0.3.0 v0.4.0 v0.5.0 v0.6.0 v0.6.1
+$
+----
+
+Argumen yang diberikan ke `-m` adalah daftar modul, bukan paket.
+Modul utama yaitu modul yang berisi direktori sekarang.
+Modul aktif adalah modul utama dan dependensinya.
+Tanpa argumen, 'list -m' mencetak modul utama.
+Dengan argumen, 'list -m' mencetak modul yang diberikan pada argumen.
+Modul-modul yang aktif dapat dispesifikasikan dengan path modul mereka.
+Pola khusus seperti "all" menentukan semua modul aktif, pertama modul utama
+dan kemudian dependensinya diurut berdasarkan path modul.
+Pola yang berisi "..." menentukan modul aktif yang path modul-nya cocok dengan
+pola tersebut.
+Kueri dengan format "path@version" menentukan hasil dari pencarian
+tersebut, yang tidak dibatasi oleh modul aktif.
+Lihat 'go help modules' untuk lebih tentang kueri modul.
+
+Fungsi templat "module" menerima argumen sebuah string yang harus berupa path
+modul atau kueri dan mengembalikan modul tertentu sebagai struct `Module`.
+Jika terjadi kesalahan, hasilnya berupa struct `Module` dengan field `Error`
+yang berisi.
+
+Untuk lebih lanjut tentang opsi "build", lihat 'go help build'.
+
+Untuk lebih lanjut tentang penentuan paket, lihat 'go help packages'.
+
+Untuk lebih lanjut tentang modul, lihat 'go help modules'.
+
+[#hdr-Module_maintenance]
+==  Pemeliharaan modul
+
+Perintah 'go mod' menyediakan akses terhadap operasi-operasi pada modul.
+
+Ingatlah bahwa dukungan untuk modul tertanam pada semua perintah go, tidak
+hanya 'go mod'.
+Misalnya, penambahan, penghapusan, pembaruan, dan pemunduran dari dependensi
+seharusnya dilakukan menggunakan 'go get'.
+Lihat 'go help modules' untuk gambaran dari fungsionalitas modul.
+
+Penggunaan:
+
+----
+go mod <command> [arguments]
+----
+
+Argumen "command" adalah:
+
+----
+download    unduh modul ke lokal cache
+edit        sunting go.mod dengan perkakas atau skrip
+graph       cetak dependensi modul
+init        inisiasi modul baru di direktori sekarang
+tidy        tambah modul yang hilang atau hapus modul yang tidak digunakan
+vendor      salin semua dependensi ke direktori vendor
+verify      verifikasi dependensi sesuai dengan yang diharapkan
+why         jelaskan kenapa paket atau modul dibutuhkan
+----
+
+Gunakan "go help mod <command>" untuk informasi lebih lanjut tentang
+perintah-perintah tersebut.
+
+
+[#hdr-Download_modules_to_local_cache]
+===  Unduh modul ke lokal _cache_
