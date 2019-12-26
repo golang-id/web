@@ -2,6 +2,26 @@
 
 Dokumen ini mencatat perubahan dari hasil pengembangan situs golang-id.org.
 
+==  2019.12
+
+*  blog: terjemahkan "Errors are values"
+*  blog: Terjemahkan "Working with Errors in Go 1.13"
+*  blog: tambah terjemahan "Module Mirror and Checksum Database Launched"
+
+
+==  2019.11
+
+*  blog: tambah terjemahan "Announcing the 2019 Go Developer Survey"
+*  blog: tambah terjemahan "Go Modules in 2019"
+*  blog: tambah terjemahan "A Proposal for Package Versioning in Go"
+*  blog: tambah terjemahan "Go Modules: v2 and Beyond"
+*  blog: tambah terjemahan "Publishing Go Modules"
+*  blog: terjemahkan "Migrating to Go Modules"
+*  blog: tambah terjemahan "Using Go Modules"
+*  blog: terjemahkan "Go Turns 10"
+*  blog: terjemahkan "Go.dev: a new hub for Go developers"
+
+
 ==  2019.10
 
 Daftar terjemahan,
