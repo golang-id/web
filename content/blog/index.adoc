@@ -21,8 +21,9 @@
    November 2019.
    _Jean de Klerk and Tyler Bui-Palsulich_
 
-*  link:/blog/go1.13-errors[Menggunakan Errors pada Go 1.13], 17 Oktober
-   2019, _Damien Niel_ dan _Jonathan Amsterdam_
+*  link:/blog/go2-here-we-come[Go 2, kami datang!],
+   29 November 2018.
+   _Robert Griesemer_
 
 *  link:/blog/errors-are-values[Error adalah nilai], 12 Januari 2015,
    _Rob Pike_

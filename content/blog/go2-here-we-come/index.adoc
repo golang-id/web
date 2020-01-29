@@ -1,0 +1,249 @@
+= Go 2, kami datang!
+:author: Robert Griesemer
+:date: 29 November 2018
+
+==  Latar belakang
+
+Di GopherCon 2017, Russ Cox secara resmi mulai membayangkan versi besar
+selanjutnya dari Go dengan wicara tentang
+https://www.youtube.com/watch?v=0Zbh_vmAKvk[Masa depan Go]
+(https://blog.golang.org/toward-go2[blog]).
+Kita menyebut masa depan bahasa secara informal dengan Go 2, walaupun sekarang
+kita paham bahwa ia akan datang secara inkremental bukan dengan tiba-tiba
+dalam sebuah rilis mayor.
+Tetap saja, Go 2 adalah julukan yang berguna, sebagai suatu cara untuk
+membicarakan tentang masa depan bahasa, jadi mari kita tetap menggunakan
+istilah tersebut untuk saat sekarang.
+
+Perbedaan besar antara Go 1 dan Go 2 adalah siapa yang memengaruhi rancangan
+dan bagaimana keputusan akan dibuat.
+Go 1 adalah usaha dari tim kecil dengan sedikit pengaruh dari luar;
+Go 2 akan lebih dipengaruhi oleh komunitas.
+Setelah lebih dari 10 tahun, kita telah belajar banyak tentang bahasa dan
+pustaka-pustaka yang tidak kita ketahui sejak awal, dan hal ini bisa terjadi
+lewat umpan balik dari komunitas Go.
+
+Pada tahun 2015 kami memperkenalkan
+https://golang.org/s/proposal[proses proposal]
+untuk mengumpulkan umpan balik: proposal untuk perubahan bahasa dan pustaka.
+Sebuah komite yang terdiri dari anggota tim Go secara berkala telah mengulas,
+kategorisasi, dan menentukan proposal-proposal yang masuk.
+Cara ini bekerja cukup baik, namun sebagai bagian dari proses tersebut kami
+telah mengindahkan semua proposal yang tidak menjaga kompatibilitas, dengan
+memberi label Go 2.
+Di tahun 2017 kami juga telah berhenti membuat perubahan bahasa demi menjaga
+kompatibilitas bahasa secara inkremental, sekecil apa pun, dengan memilih
+rencana yang lebih komprehensif yang mendukung gambaran besar dari Go 2.
+
+Sekarang adalah saatnya beraksi terhadap proposal Go 2, namun untuk itu kita
+perlu sebuah rencana.
+
+
+==  Status
+
+Saat artikel ini ditulis, ada sebanyak 120
+https://github.com/golang/go/issues?page=1&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2&utf8=%E2%9C%93[isu
+terbuka berlabel Go 2 proposal].
+Setiap proposal mengajukan perubahan bahasa atau pustaka yang signifikan,
+sering kali ada yang tidak memenuhi
+https://golang.org/doc/go1compat[jaminan kompatibilitas Go 1].
+Ian Lance Taylor dan Saya telah melihat proposal-proposal tersebut dan
+mengategorikan mereka
+(https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2+label%3AGo2Cleanup[Go2Cleanup],
+https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2+label%3ANeedsDecision[NeedsDecision],
+dan lain-lain)
+untuk mendapatkan ide tentang apa saja yang ada di sana dan mempermudah
+bekerja dengan mereka nantinya.
+Kami juga menggabungkan beberapa proposal yang berkaitan dan menutup proposal
+yang jelas-jelas keluar dari skop Go, atau yang tidak bisa diterapkan.
+
+Ide-ide dari proposal yang tersisa bisa jadi memengaruhi bahasa dan pustaka
+dari Go 2.
+Dua tema utama muncul: dukungan untuk penanganan error yang lebih baik, dan
+generik.
+https://blog.golang.org/go2draft[Rancangan draf]
+untuk kedua area ini telah diterbitkan pada GopherCon tahun ini, dan lebih
+banyak eksplorasi dibutuhkan.
+
+Lalu bagaimana dengan sisanya?
+Kami
+https://blog.golang.org/toward-go2[dibatasi]
+oleh fakta bahwa kita sekarang punya jutaan pemrogram Go dan sejumlah besar
+kode Go, dan kita harus membawa semuanya secara bersamaan, mengurangi risiko
+terpecahnya ekosistem.
+Ini berarti kita tidak dapat membuat banyak perubahan, dan perubahan yang kita
+buat harus dipilih secara hati-hati.
+Supaya ada progres, kita mengimplementasikan sebuah proses evaluasi
+proposal yang baru untuk potensi perubahan yang signifikan ini.
+
+
+==  Proses evaluasi proposal
+
+Tujuan dari proses evaluasi proposal adalah untuk mengumpulkan umpan balik
+pada sejumlah proposal yang terpilih supaya keputusan terakhir dapat dibuat.
+Proses tersebut kurang lebih berjalan secara paralel dengan siklus rilis dan
+terdiri dari langkah-langkah berikut:
+
+1.  _Pemilihan proposal_.  Tim Go memilih sejumlah kecil
+https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3AGo2+label%3AProposal[Go
+2 proposal]
+yang layak diterima, tanpa membuat keputusan akhir.
+Lihat bagian bawah untuk kriteria pemilihan.
+
+2.  _Umpan balik proposal_.  Tim Go mengumumkan daftar dari proposal yang
+    terpilih.
+    Pengumuman ini menjelaskan kepada komunitas niat tentatif untuk maju ke
+    depan dengan proposal yang terpilih dan mengumpulkan umpan balik untuk
+    setiap proposal.
+    Hal ini memberi komunitas kesempatan untuk memberi saran dan
+    menyatakan kepedulian mereka.
+
+3.  _Implementasi_.  Berdasarkan umpan balik, proposal tersebut kemudian
+    diimplementasikan.
+    Target dari perubahan signifikan dari bahasa dan pustaka ini yaitu supaya
+    dapat dikirim di hari 1 pada siklus rilis.
+
+4.  _Umpan balik implementasi_.  Selama siklus pengembangan, tim dan komunitas
+    Go memiliki kesempatan bereksperimen dengan fitur-fitur baru dan
+    mengumpulkan umpan balik selanjutnya.
+
+5.  _Mengambil keputusan_.  Di akhir
+https://github.com/golang/go/wiki/Go-Release-Cycle[siklus pengembangan] tiga
+bulan (saat repositori dibekukan sebelum rilis), dan berdasarkan pengalaman
+dan umpan balik yang diterima selama siklus rilis, tim Go membuat keputusan
+terakhir tentang menerbitkan setiap perubahan.
+Hal ini menyediakan kesempatan untuk mempertimbangkan apakah perubahan telah
+mendapatkan keuntungan yang diharapkan atau menciptakan biaya yang tidak
+terduga.
+Sekali kita telah merilis, perubahan tersebut menjadi bagian dari bahasa dan
+pustaka.
+Proposal yang tidak diterima diperbaiki lagi atau mungkin ditolak demi
+kebaikan.
+
+Dengan dua ronde umpan balik, proses ini lebih condong ke penolakan proposal,
+yang semoga dapat mencegah fitur yang pincang dan membantu menjaga bahasa
+tetap kecil dan bersih.
+
+Kita tidak dapat menggunakan proses ini untuk setiap proposal Go 2, karena
+begitu banyaknya mereka.
+Karena itulah kriteria pemilihan digunakan.
+
+
+==  Kriteria pemilihan proposal
+
+Sebuah proposal setidaknya harus:
+
+1. _membahas isu penting untuk banyak orang_,
+2. _memiliki impak yang minim bagi orang lain_, dan
+3. _memiliki solusi yang jelas dan mudah dipahami_.
+
+Kebutuhan 1 menjamin bahwa setiap perubahan yang kita buat membantu sebanyak
+mungkin pemrogram Go (membuat kode mereka lebih kuat, mudah ditulis, lebih
+tepat, dan seterusnya), sementara kebutuhan 2 menjamin supaya kita
+menyakiti sedikit mungkin pengembang lainnya, baik dengan merusak program
+mereka atau menyebabkan kesalahan yang lain.
+Sebagai aturan praktis, kita harus dapat membantu paling tidak sepuluh kali
+pengembang yang kita sakiti dengan sebuah perubahan.
+Perubahan yang tidak memengaruhi penggunaan Go di dunia nyata adalah sebuah
+keuntungan kosong yang dibayar dengan biaya implementasi yang besar dan
+hal ini sebaiknya dihindari.
+
+Tanpa kebutuhan 3 kita tidak memiliki implementasi dari proposal.
+Misalnya, kami percaya bahwa suatu bentuk generik bisa jadi menyelesaikan isu
+penting bagi banyak orang, namun kami belum memiliki solusi yang jelas dan
+mudah dipahami.
+Tidak apa-apa, ini artinya proposal tersebut butuh perbaikan sebelum dapat
+dipertimbangkan.
+
+
+==  Proposal
+
+Kami merasakan bahwa rencana ini adalah hal baik yang dapat melayani kita
+namun penting juga dipahami bahwa ini hanyalah titik awal.
+Saat proses berjalan kita akan menemukan cara-cara yang mana ia gagal bekerja
+dengan baik dan kita akan memperbaikinya.
+Bagian kritisnya yaitu sampai kita dapat menggunakannya kita tidak akan tahu
+bagaimana cara memperbaikinya.
+
+Bagian yang aman untuk memulai yaitu dengan sejumlah kecil proposal bahasa
+yang tetap menjaga kompatibilitas.
+Kami sudah lama tidak melakukan perubahan besar pada bahasa dalam waktu lama,
+sehingga hal ini membuat kita kembali ke mode tersebut.
+Juga, perubahan tersebut tidak membuat kita khawatir tentang merusak kode yang
+sudah ada, oleh karena itu membuat mereka sebagai tempat percobaan yang
+sempurna.
+
+Dari semua yang telah kita bahas, kami mengajukan beberapa pilihan berikut
+dari proposal Go 2 untuk rilis Go 1.13 (langkah 1 dalam proses evaluasi
+proposal):
+
+1. https://github.com/golang/go/issues/20706[#20706] Identifikasi Unicode
+   umum berdasarkan
+   http://unicode.org/reports/tr31/[Unicode TR31]: Isu ini penting bagi
+   pemrogram Go yang menggunakan alfabet selain latin dan seharusnya memiliki
+   impak yang sedikit atau tidak sama sekali pada orang lain.
+   Ada beberapa pertanyaan normalisasi yang perlu kita jawab yang mana umpan
+   balik dari komunitas diperlukan, namun setelah itu implementasi akan mudah
+   dilakukan.
+   Perlu dicatat bahwa aturan pengidentifikasi ekspor tidak akan terpengaruh
+   oleh hal ini.
+
+2. https://github.com/golang/go/issues/19308[#19308],
+   https://github.com/golang/go/issues/28493[#28493] Binary integer
+   dan dukungan untuk _ pada angka:
+   Isu ini perubahan yang relatif kecil yang tampaknya sangat populer di
+   antara banyak pemrogram.
+   Isu ini mungkin tidak mencapai ambang batas dari menyelesaikan "isu
+   penting" (bilangan heksadesimal cukup bekerja baik selama ini) namun ia
+   membawa Go sejajar dengan bahasa pemrograman lain dan menyelesaikan
+   beberapa masalah bagi beberapa pemrogram.
+   Isu ini memiliki pengaruh kecil bagi pemrogram lain yang tidak begitu
+   peduli dengan integer atau format angka, dan implementasi cukup mudah
+   dipahami.
+
+3. https://github.com/golang/go/issues/19113[#19113] Membolehkan signed
+   integer untuk operasi _shift_.
+   Diperkirakan 38% dari semua operasi _shift_ membutuhkan konversi uint
+   (lihat halaman isu untuk penjelasan lebih rinci).
+   Proposal ini akan membersihkan banyak kode, membuat ekspresi _shift_ sama
+   dengan ekspresi indeks dan fungsi bawaan `cap` dan `len`.
+   Kemungkinan akan membawa impak yang positif pada kode.
+   Implementasinya cukup mudah dipahami.
+
+
+==  Langkah berikutnya
+
+Dengan blog ini kita telah mengeksekusi langkah pertama dan memulai langkah
+kedua dari proses evaluasi proposal.
+Sekarang terserah Anda, komunitas Go, untuk menyediakan umpan balik terhadap
+isu-isu yang disebutkan di atas.
+
+Untuk setiap proposal yang memiliki umpan balik yang jelas, kita akan bergerak
+maju dengan implementasi (langkah 3 dari proses).
+Karena kita ingin perubahan diimplementasi pada hari pertama dari siklus rilis
+selanjutnya (secara tentatif 1 Februari 2019) kita mungkin memulai
+implementasi sedikit lebih awal supaya punya waktu sekitar dua bulan untuk
+umpan balik (Desember 2019 sampai Januari 2019).
+
+Untuk siklus pengembangan 3 bulan (Feb. sampai Mei 2019) fitur-fitur yang
+terpilih diimplementasikan dan tersedia pada `tip` dan setiap orang akan punya
+kesempatan untuk mendapatkan pengalaman dengan fitur tersebut.
+Hal ini menyediakan kesempatan lain untuk umpan balik (langkah 4 dari proses).
+
+Terakhir, setelah repositori dibekukan (1 Mei 2019), tim Go membuat keputusan
+terakhir apakah tetap menjaga fitur tersebut (dan mengikutkan mereka dengan
+jaminan kompatibilitas Go 1), atau meninggalkan mereka (langkah terakhir dari
+proses).
+
+(Secara ada kesempatan bahwa sebuah fitur bisa jadi dihapus saat kita
+membekukan repositori, implementasi haruslah dijaga supaya fitur tersebut
+dapat dimatikan tanpa mengganggu keseluruhan sistem.
+Untuk perubahan bahasa hal ini berarti bahwa semua kode yang berkaitan dengan
+fitur dijaga oleh sebuah flag internal.)
+
+Ini pertama kalinya kita mengikuti proses ini, oleh karena itu pembekuan
+repositori menjadi momen yang baik untuk melihat proses and memperbaiki bila
+diperlukan.
+Mari kita lihat bagaimana ia berjalan.
+
+Selamat mengevaluasi!
