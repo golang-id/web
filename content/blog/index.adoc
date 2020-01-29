@@ -2,6 +2,10 @@
 
 ==  Indeks
 
+*  link:/blog/go1.15-proposals[Proposal untuk Go 1.15],
+   28 Januari 2020.
+   _Robert Griesemer_, untuk tim Go
+
 *  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019], 20 November
    2019.
    _Todd Kulesza_
