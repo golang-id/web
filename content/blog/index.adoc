@@ -28,6 +28,9 @@
 *  link:/blog/errors-are-values[Error adalah nilai], 12 Januari 2015,
    _Rob Pike_
 
+*  link:/blog/slices[Array, slice (dan string): Mekanisme 'append']
+   26 September 2013. _Rob Pike_
+
 
 ==  Bahasa
 

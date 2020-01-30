@@ -1,0 +1,931 @@
+=  Array, slice (dan string): Mekanisme 'append'
+:author: Rob Pike
+:date: 26 September 2013
+
+==  Pendahuluan
+
+Salah satu fitur paling umum dari bahasa pemrograman prosedural yaitu konsep
+dari sebuah _array_ (larik).
+Array tampak seperti hal yang simpel namun ada beberapa pertanyaan yang harus
+dijawab saat menambahkan array ke dalam sebuah bahasa pemrograman, seperti:
+
+* apakah ukuran array tetap atau dinamis?
+* apakah ukuran bagian dari tipe?
+* seperti apa bentuk dari array multi dimensi?
+* apakah array kosong ada maknanya?
+
+Jawaban dari pertanyaan tersebut memengaruhi apakah array adalah sebuah
+fitur atau bagian inti dari rancangan bahasa (pemrograman).
+
+Pada awal pengembangan Go, dibutuhkan sekitar setahun untuk memutuskan
+jawaban dari pertanyaan tersebut sebelum rancangannya dirasakan tepat.
+Langkah kuncinya adalah pengenalan dari _slice_, yang dibangun dari _array_
+yang berukuran tetap untuk memberikan struktur data yang fleksibel dan mudah
+dikembangkan.
+Sampai sekarang, pemrogram yang baru dengan Go sering kali terbentur dengan
+cara kerja slice, bisa jadi karena pengalaman dari bahasa pemrograman lain
+mengaburkan cara berpikir mereka.
+
+Dalam artikel ini, kita akan mencoba menjernihkan kebingungan ini,
+dengan cara membangun bagian-bagian tersebut untuk
+menjelaskan bagaimana fungsi bawaan `append` bekerja, dan kenapa ia bekerja
+seperti itu.
+
+==  Array
+
+Array adalah blok pembangun yang penting dalam Go, namun seperti halnya
+fondasi dalam sebuah bangunan mereka tersembunyi di bawah komponen-komponen
+yang lebih terlihat.
+Kita harus membahas array terlebih dahulu sebelum membahas tentang slice.
+
+Array tidak terlalu sering terlihat dalam program Go karena ukuran dari sebuah
+array adalah bagian dari tipenya, yang membatasi ekspresi array itu sendiri.
+
+Deklarasi
+
+----
+var buffer [256]byte
+----
+
+mendeklarasikan variabel `buffer` yang menyimpan 256 byte.
+Tipe dari `buffer` mengikutkan ukurannya, `[256]byte`.
+Sebuah array dengan 512 byte akan memiliki tipe berbeda yaitu `[512]byte`.
+
+Data yang berasosiasi dengan sebuah array yaitu: deretan dari elemen.
+Secara skematis, `buffer` tersebut bentuknya seperti ini dalam _memory_,
+
+----
+buffer: byte byte byte ... 256 kali ... byte byte byte
+----
+
+Variabel `buffer` dapat menampung sebanyak 256 byte data, tidak lebih.
+Kita dapat mengakses elemen array dengan sintaksis pengindeksan yang umum,
+`buffer[0]`, `buffer[1]`, dan seterusnya sampai `buffer[255]`.
+(Rentang indeks 0 sampai 255 melingkupi 256 elemen.)
+Mencoba mengakses indeks `buffer` dengan nilai di luar rentang tersebut akan
+menyebabkan program menjadi _crash_.
+
+Ada fungsi bawaan yang disebut dengan `len` yang mengembalikan jumlah elemen
+dari sebuah array atau slice dan beberapa tipe data lainnya.
+Untuk array, cukup jelas nilai kembalian dari `len`.
+Pada contoh di atas, `len(buffer)` mengembalikan nilai tetap 256.
+
+Array ada gunanya--misalnya mereka adalah representasi yang bagus untuk sebuah
+transformasi matriks--namun tujuan umum mereka dalam Go adalah sebagai tempat
+penyimpanan untuk sebuah slice.
+
+==  Slice: header dari slice
+
+Untuk menggunakan slice dengan benar kita harus memahami apa itu slice dan apa
+yang ia lakukan.
+
+Sebuah slice adalah sebuah struktur data yang berisi sebuah array yang
+tersimpan terpisah dari variabel slice itu sendiri.
+_Sebuah slice bukanlah sebuah array_.
+Slice berisi bagian dari array.
+
+Dari variabel array `buffer` sebelumnya, kita dapat mengambil elemen 100
+sampai 150 (lebih tepatnya, 100 sampai 149, secara inklusif) dengan _memotong_
+array tersebut:
+
+----
+var slice []byte = buffer[100:150]
+----
+
+Dalam potongan kode tersebut kita menggunakan deklarasi variabel supaya
+lebih eksplisit.
+Variabel bernama `slice` memiliki tipe `[]byte`, disebut dengan "slice dari
+byte", yang diinisiasi dari array bernama `buffer`, dengan memotong elemen
+100 (inklusif) sampai 150 (eksklusif).
+Sintaksis yang lebih idiomatis tanpa menggunakan tipe, ekspresinya adalah:
+
+----
+var slice = buffer[100:150]
+----
+
+Dalam sebuah fungsi kita dapat menggunakan bentuk deklarasi singkat,
+
+----
+slice := buffer[100:150]
+----
+
+Apa sebenarnya variabel slice ini?
+Penjelaskan kita belum lengkap saat ini, namun untuk sekarang bayangkan sebuah
+slice sebagai sebuah struktur data kecil dengan dua elemen: sebuah panjang dan
+sebuah pointer ke elemen dari sebuah array.
+Anda dapat membayangkan slice di belakangnya berbentuk seperti ini:
+
+----
+type sliceHeader struct {
+	Length        int
+	ZerothElement *byte
+}
+
+slice := sliceHeader{
+	Length:        50,
+	ZerothElement: &buffer[100],
+}
+----
+
+Tentu saja, bagian kode di atas hanyalah sebuah ilustrasi.
+Struct dari `sliceHeader` tidak terlihat oleh programmer, dan tipe dari elemen
+pointer bergantung pada tipe dari elemen yang ditunjuk, namun hal ini sudah
+cukup memberikan gambaran umum dari mekanisme slice.
+
+Sejauh ini kita telah menggunakan operasi slice pada sebuah array, namun kita
+juga dapat memotong sebuah slice, seperti berikut:
+
+----
+slice2 := slice[5:10]
+----
+
+Operasi ini membuat sebuah slice yang baru, dengan elemen 5 sampai 9
+(inklusif) dari slice aslinya, yang artinya elemen 105 sampai 109 dari array
+yang aslinya.
+Struct `sliceHeader` untuk variabel `slice2` bentuknya seperti berikut:
+
+----
+slice2 := sliceHeader{
+	Length:        5,
+	ZerothElement: &buffer[105],
+}
+----
+
+Perhatikan bahwa header tersebut masih menunjuk ke dasar array yang sama, yang
+disimpan dalam variabel `buffer`.
+
+Kita juga dapat _memotong ulang_, bisa dikatakan memotong sebuah slice dan
+menyimpan hasilnya kembali ke struktur slice aslinya.
+Setelah
+
+----
+slice = slice[5:10]
+----
+
+struktur dari `sliceHeader` untuk variabel `slice` akan seperti variabel
+`slice2`.
+Anda akan sering melihat bentuk pemotongan ulang slice ini digunakan, misalnya
+untuk menyingkat sebuah slice.
+Pernyataan berikut memotong elemen pertama dan terakhir dari slice:
+
+----
+slice = slice[1:len(slice)-1]
+----
+
+(Latihan: tulis lah bentuk struct dari `sliceHeader` setelah pernyataan
+tersebut.)
+
+Anda akan sering mendengar pemrogram Go yang berpengalaman berbicara tentang
+"header slice" karena itulah yang disimpan dalam sebuah variabel slice.
+Contohnya, saat Anda memanggil sebuah fungsi yang menerima sebuah slice
+sebagai argumen, seperti
+https://golang.org/pkg/bytes/#IndexRune[bytes.IndexRune],
+header itulah yang dikirim ke fungsi.
+Dalam pemanggilan berikut,
+
+----
+slashPos := bytes.IndexRune(slice, '/')
+----
+
+argumen `slice` yang dikirim ke fungsi `IndexRune` adalah sebuah "header
+slice".
+
+Ada sebuah data lagi dalam header dari slice, yang akan kita bahas di bawah,
+namun pertama mari kita lihat arti dari header slice saat membuat program
+dengan slice.
+
+
+==  Mengirim slice ke fungsi
+
+Sangatlah penting untuk memahami bahwa meskipun sebuah slice berisi sebuah
+pointer, slice itu sendiri adalah sebuah nilai.
+Di balik nilai tersebut adalah sebuah struct yang menyimpan sebuah pointer
+dan sebuah panjang (array).
+_Bukan_ sebuah pointer ke sebuah struct.
+
+Hal ini penting.
+
+Saat kita memanggil `IndexRune` pada contoh sebelumnya, slice dikirim sebagai
+sebuah _salinan_ dari header slice.
+Perilaku ini memiliki pengaruh yang penting.
+
+Pertimbangkan fungsi sederhana berikut:
+
+----
+func AddOneToEachElement(slice []byte) {
+	for i := range slice {
+		slice[i]++
+	}
+}
+----
+
+Fungsi tersebut mengiterasi sebuah slice lewat indeks (menggunakan pengulangan
+`for range`), dan meningkatkan nilai setiap elemennya dengan satu.
+
+Cobalah:
+
+----
+func main() {
+	slice := buffer[10:20]
+	for i := 0; i < len(slice); i++ {
+		slice[i] = byte(i)
+	}
+	fmt.Println("before", slice)
+	AddOneToEachElement(slice)
+	fmt.Println("after", slice)
+}
+----
+
+(Anda bisa mengubah dan mengeksekusi ulang potongan kode di atas jika Anda
+ingin eksplorasi lebih lanjut.)
+
+Walaupun _header_ dari slice dikirim secara nilai (_pass by value_), header
+tersebut mengandung sebuah pointer ke elemen dari array, sehingga header dari
+slice yang asli dan header yang dikirim ke fungsi menunjuk ke array yang
+sama.
+Oleh karena itu, saat fungsi selesai, elemen yang berubah dapat dilihat lewat
+variabel slice yang asli.
+
+Argumen pada fungsi adalah sebuah salinan, seperti yang diperlihatkan contoh
+berikut:
+
+----
+func SubtractOneFromLength(slice []byte) []byte {
+	slice = slice[0 : len(slice)-1]
+	return slice
+}
+
+func main() {
+	fmt.Println("Before: len(slice) =", len(slice))
+	newSlice := SubtractOneFromLength(slice)
+	fmt.Println("After:  len(slice) =", len(slice))
+	fmt.Println("After:  len(newSlice) =", len(newSlice))
+}
+----
+
+Di sini kita lihat bahwa _isi_ dari argumen slice dapat dimodifikasi oleh
+sebuah fungsi, namun header-nya tidak.
+Panjang yang tersimpan dalam variabel `slice` tidak bisa diubah oleh fungsi
+yang menerimanya, secara fungsi menerima salinan dari header slice,
+bukan yang aslinya.
+Sehingga jika kita ingin menulis sebuah fungsi yang memodifikasi header, kita
+harus mengembalikan hasilnya,  seperti yang kita lakukan di atas.
+Variabel `slice` tidak berubah namun nilai yang dikembalikan memiliki panjang
+yang baru, yang kemudian disimpan ke dalam `newSlice`.
+
+
+==  Pointer ke slice: method penerima
+
+Cara lain supaya fungsi dapat mengubah header slice yaitu dengan mengirim
+sebuah pointer.
+Berikut variasi dari contoh sebelumnya yang melakukan hal tersebut:
+
+----
+func PtrSubtractOneFromLength(slicePtr *[]byte) {
+	slice := *slicePtr
+	*slicePtr = slice[0 : len(slice)-1]
+}
+
+func main() {
+	fmt.Println("Before: len(slice) =", len(slice))
+	PtrSubtractOneFromLength(&slice)
+	fmt.Println("After:  len(slice) =", len(slice))
+}
+----
+
+Contoh tersebut tampak janggal, terutama dengan adanya variabel tambahan
+(sebuah variabel sementara membantu), namun ada satu kasus umum di mana kita
+dapat menggunakan pointer ke slice.
+Hal yang idiomatis menggunakan sebuah pointer penerima yaitu pada sebuah
+method yang memodifikasi sebuah slice.
+
+Katakanlah kita ingin sebuah method pada sebuah slice yang menyingkat isinya
+sampai _slash_ ("/") yang terakhir.
+Kita dapat menulisnya seperti ini:
+
+----
+type path []byte
+
+func (p *path) TruncateAtFinalSlash() {
+	i := bytes.LastIndex(*p, []byte("/"))
+	if i >= 0 {
+		*p = (*p)[0:i]
+	}
+}
+
+func main() {
+	pathName := path("/usr/bin/tso") // Conversion from string to path.
+	pathName.TruncateAtFinalSlash()
+	fmt.Printf("%s\n", pathName)
+}
+----
+
+Jika contoh tersebut kita jalankan akan terlihat bahwa ia bekerja dengan benar,
+mengubah slice dari sisi pemanggil.
+
+(Latihan: Ubah lah tipe dari penerima menjadi sebuah nilai bukan sebuah
+pointer dan jalankan kembali.
+Jelaskan apa yang terjadi.)
+
+Di sisi lain, jika kita ingin menulis sebuah method untuk `path` yang mengubah
+setiap huruf ASCII menjadi huruf besar (anggaplah semuanya menggunakan huruf
+latin), method tersebut dapat menggunakan penerima nilai karena penerima
+nilai akan tetap menunjuk ke array yang sama.
+
+----
+type path []byte
+
+func (p path) ToUpper() {
+	for i, b := range p {
+		if 'a' <= b && b <= 'z' {
+			p[i] = b + 'A' - 'a'
+		}
+	}
+}
+
+func main() {
+	pathName := path("/usr/bin/tso")
+	pathName.ToUpper()
+	fmt.Printf("%s\n", pathName)
+}
+----
+
+Di sini method `ToUpper` menggunakan dua variabel dalam konstruksi `for range`
+untuk mendapatkan indeks dan elemen slice.
+Bentuk pengulangan ini menghindari penulisan `p[i]` beberapa kali dalam badan
+fungsi.
+
+(Latihan: Konversi method `ToUpper` menggunakan penerima pointer dan lihat
+apakah perilaku fungsi tersebut berubah.)
+
+(Latihan lanjutan: Konversi method `ToUpper` supaya dapat menangani huruf
+Unicode, bukan hanya ASCII.)
+
+==  Kapasitas
+
+Lihat fungsi berikut yang mengembangkan argumen slice dari int dengan sebuah
+elemen:
+
+----
+func Extend(slice []int, element int) []int {
+	n := len(slice)
+	slice = slice[0 : n+1]
+	slice[n] = element
+	return slice
+}
+----
+
+(Kenapa ia harus mengembalikan slice yang dimodifikasi?)
+Sekarang jalankan:
+
+----
+func main() {
+	var iBuffer [10]int
+	slice := iBuffer[0:0]
+	for i := 0; i < 20; i++ {
+		slice = Extend(slice, i)
+		fmt.Println(slice)
+	}
+}
+----
+
+Lihat bagaimana slice tersebut berkembang sampai ... berhenti.
+
+Saatnya kita membahas tentang komponen ketiga dari header slice: kapasitas
+slice.
+Selain pointer ke array dan panjang, header dari slice juga menyimpan
+kapasitasnya.
+
+----
+type sliceHeader struct {
+	Length        int
+	Capacity      int
+	ZerothElement *byte
+}
+----
+
+Field `Capacity` menyimpan berapa banyak ruang dari array;
+ia adalah nilai maksimum dari `Length`.
+Mencoba mengembangkan slice melebihi kapasitasnya akan melangkah keluar dari
+limit dari array dan akan menimbulkan panic.
+
+Contoh slice yang dibuat dengan
+
+----
+slice := iBuffer[0:0]
+----
+
+bentuk header-nya seperti berikut:
+
+----
+slice := sliceHeader{
+	Length:        0,
+	Capacity:      10,
+	ZerothElement: &iBuffer[0],
+}
+----
+
+Field `Capacity` sama dengan panjang dari array, dikurangi indeks dari elemen
+pertama array yang ditunjuk oleh slice (dalam kasus ini yaitu nol).
+Jika kita ingin mengetahui berapa kapasitas dari sebuah slice, gunakan fungsi
+bawaan `cap`:
+
+----
+if cap(slice) == len(slice) {
+	fmt.Println("slice is full!")
+}
+----
+
+
+==  Make
+
+Bagaimana bila kita ingin mengembangkan slice melebihi kapasitasnya?
+Kita tidak bisa!
+Secara definisi, kapasitas adalah limit pertumbuhan slice.
+Namun kita dapat mengembangkan slice dengan mengalokasikan sebuah
+array yang baru, menyalin data, dan memodifikasi slice supaya menggunakan
+array baru.
+
+Mari mulai dengan alokasi.
+Kita dapat menggunakan fungsi bawaan `new` untuk mengalokasikan array yang
+lebih besar dan kemudian memotong hasilnya, namun akan lebih mudah menggunakan
+fungsi bawaan `make`.
+Fungsi `make` mengalokasikan sebuah array baru dan membuat sebuah header
+slice.
+Fungsi `make` menerima tiga argumen: tipe dari slice, panjang awal, dan
+kapasitas, yang merupakan panjang array yang dialokasikan oleh `make`
+untuk menyimpan data slice.
+Pemanggilan `make` berikut membuat sebuah slice dengan panjang 10 dengan sisa
+ruang 5 lagi (15-10), seperti yang dapat kita lihat bila menjalankan:
+
+----
+	slice := make([]int, 10, 15)
+	fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
+----
+
+Potongan kode berikut melipatgandakan kapasitas slice `int` namun tetap
+menjaga panjangnya:
+
+----
+	slice := make([]int, 10, 15)
+	fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
+	newSlice := make([]int, len(slice), 2*cap(slice))
+	for i := range slice {
+		newSlice[i] = slice[i]
+	}
+	slice = newSlice
+	fmt.Printf("len: %d, cap: %d\n", len(slice), cap(slice))
+----
+
+Setelah menjalankan kode di atas, slice akan punya banyak ruang untuk tumbuh
+sebelum butuh alokasi lagi.
+
+Saat membuat slice, terkadang panjang dan kapasitasnya akan sama.
+Fungsi `make` punya cara singkat untuk kasus umum ini.
+Argumen untuk panjang sama dengan kapasitas, sehingga kita dapat
+mengindahkan panjang supaya keduanya bernilai sama.
+Setelah
+
+----
+gophers := make([]Gopher, 10)
+----
+
+slice `gophers` akan memiliki panjang dan kapasitas di set ke 10.
+
+
+==  Copy
+
+Saat kita melipatgandakan kapasitas slice pada contoh sebelumnya, kita
+menulis sebuah pengulangan untuk menyalin data lama ke slice yang baru.
+Go memiliki fungsi bawaan, `copy`, untuk mempermudah hal ini.
+Argumen dari `copy` yaitu dua slice, dan ia menyalin data dari argumen sebelah
+kanan ke argumen sebelah kiri.
+Berikut penulisan ulang contoh di atas dengan menggunakan dengan `copy`:
+
+----
+	newSlice := make([]int, len(slice), 2*cap(slice))
+	copy(newSlice, slice)
+----
+
+Fungsi `copy` cukup pintar.
+Ia hanya menyalin apa yang ada, memperhatikan panjang dari kedua argumen.
+Dengan kata lain, jumlah elemen yang disalin yaitu panjang minimum dari kedua
+slice.
+Hal ini akan menyingkat beberapa kode.
+Fungsi `copy` mengembalikan nilai integer, jumlah elemen yang disalin, yang
+biasanya jarang diperiksa.
+
+Fungsi `copy` juga bekerja dengan baik bila sumber dan tujuan saling timpa,
+yang artinya ia dapat digunakan untuk men-_shift_ item dalam sebuah slice.
+Berikut cara menggunakan `copy` untuk menyisipkan sebuah nilai ke tengah
+slice.
+
+----
+// Insert menyisipkan value ke dalam slice indeks tertentu, yang harus berada
+// dalam rentang.
+// Argumen slice harus memiliki ruang yang cukup untuk elemen yang baru.
+func Insert(slice []int, index, value int) []int {
+	// Kembangkan slice dengan satu elemen.
+	slice = slice[0 : len(slice)+1]
+ 	// Gunakan copy untuk memindahkan bagian atas dari slice dan buka
+	// sebuah ruang.
+	copy(slice[index+1:], slice[index:])
+	// Simpan value yang baru.
+	slice[index] = value
+	// Kembalikan hasil penyisipan.
+	return slice
+}
+----
+
+Ada beberapa hal penting yang perlu diperhatikan dalam fungsi di atas.
+Pertama, ia harus mengembalikan slice yang diubah karena panjangnya telah
+berubah.
+Kedua, ia menggunakan cara singkat yang umum.
+Ekspresi
+
+----
+slice[i:]
+----
+
+sama dengan
+
+----
+slice[i:len(slice)]
+----
+
+Walaupun kita belum menggunakan trik tersebut, kita juga dapat mengindahkan
+elemen pertama dari ekspresi slice; nilai bawaannya adalah nol.
+Maka
+
+----
+slice[:]
+----
+
+artinya sama dengan slice itu sendiri, yang berguna saat memotong sebuah
+array.
+Ekspresi berikut adalah cara singkat untuk membuat "sebuah slice yang berisi
+semua elemen dari array":
+
+----
+array[:]
+----
+
+Sekarang sudah jelas, mari kita jalankan fungsi `Insert`.
+
+----
+	// Ingat kapasitas > panjang: ruang untuk menambahkan elemen.
+	slice := make([]int, 10, 20)
+	for i := range slice {
+		slice[i] = i
+	}
+	fmt.Println(slice)
+	slice = Insert(slice, 5, 99)
+	fmt.Println(slice)
+----
+
+
+==  Append: sebuah contoh
+
+Di beberapa bagian sebelumnya, kita menulis fungsi `Extend` yang mengembangkan
+sebuah slice dengan sebuah elemen.
+Fungsi tersebut ada _bug_-nya, karena bila kapasitas slice terlalu kecil,
+fungsi tersebut akan _crash_.
+(Contoh `Insert` kita juga punya masalah yang sama.)
+Sekarang kita punya bagian pengganti untuk memperbaiki hal tersebut, jadi mari
+kita tulis sebuah implementasi dari `Extend` untuk slice integer.
+
+----
+func Extend(slice []int, element int) []int {
+	n := len(slice)
+	if n == cap(slice) {
+		// Slice penuh; harus dikembangkan.
+		// Kita lipatgandakan ukurannya dan tambahkan 1, supaya bila
+		// ukurannya 0 masih dapat dikembangkan.
+		newSlice := make([]int, len(slice), 2*len(slice)+1)
+		copy(newSlice, slice)
+		slice = newSlice
+	}
+	slice = slice[0 : n+1]
+	slice[n] = element
+	return slice
+}
+----
+
+Dalam kasus ini sangat penting untuk mengembalikan slice, karena saat
+realokasi terjadi, slice yang dihasilkan memiliki array yang berbeda.
+Berikut potongan kode yang mendemonstrasikan apa yang terjadi saat slice
+penuh:
+
+----
+	slice := make([]int, 0, 5)
+	for i := 0; i < 10; i++ {
+		slice = Extend(slice, i)
+		fmt.Printf("len=%d cap=%d slice=%v\n", len(slice), cap(slice), slice)
+		fmt.Println("address of 0th element:", &slice[0])
+	}
+----
+
+Perhatikan realokasi saat inisial array berukuran 5 menjadi penuh.
+Kapasitas dan alamat dari elemen ke nol berubah saat array yang baru
+dialokasikan.
+
+Dengan fungsi `Extend` sebagai acuan, kita dapat menulis fungsi yang lebih
+bagus yang membolehkan kita mengembangkan slice dengan banyak elemen.
+Untuk melakukan hal tersebut, kita menggunakan kemampuan Go untuk mengubah
+beberapa argumen fungsi menjadi sebuah slice saat fungsi dipanggil.
+Yaitu, fasilitas fungsi _variadic_ pada Go.
+
+Katakanlah nama fungsinya `Append`.
+Untuk versi pertama, kita bisa memanggil `Extend` berulang kali supaya
+mekanisme dari fungsi _variadic_ cukup jelas.
+Penanda dari fungsi `Append` yaitu:
+
+----
+func Append(slice []int, items ...int) []int
+----
+
+Fungsi `Append` menerima sebuah argumen, sebuah slice, diikuti oleh nol atau
+lebih argumen bertipe `int`.
+Argumen tersebut sebenarnya adalah slice dari `int`, seperti yang dapat kita
+lihat:
+
+----
+// Append tambahkan item ke slice.
+// Versi pertama: lakukan pengulangan dengan memanggil Extend.
+func Append(slice []int, items ...int) []int {
+	for _, item := range items {
+		slice = Extend(slice, item)
+	}
+	return slice
+}
+----
+
+Perhatikan pengulangan `for loop` mengiterasi elemen dari argumen `items`,
+yang bertipe `[]int`.
+Juga perhatikan penggunakan pengidentifikasi kosong `_` untuk mengindahkan
+indeks dari pengulangan, yang tidak kita butuhkan dalam kasus ini.
+
+Cobalah:
+
+----
+	slice := []int{0, 1, 2, 3, 4}
+	fmt.Println(slice)
+	slice = Append(slice, 5, 6, 7, 8)
+	fmt.Println(slice)
+----
+
+Teknik baru lain dalam contoh tersebut adalah kita dapat menginisiasi slice
+dengan menulis literal komposit, yang terdiri dari tipe slice diikuti oleh
+elemennya dalam kurung kurawal:
+
+----
+	slice := []int{0, 1, 2, 3, 4}
+----
+
+Fungsi `Append` sangat menarik.
+Selain dapat menambahkan satu atau beberapa elemen, kita juga dapat
+menambahkan sebuah slice dengan "meledakkan" slice menjadi argumen-argumen
+menggunakan notasi `...` pada saat pemanggilan:
+
+----
+	slice1 := []int{0, 1, 2, 3, 4}
+	slice2 := []int{55, 66, 77}
+	fmt.Println(slice1)
+	slice1 = Append(slice1, slice2...) // Sintaksis '...' sangat penting!
+	fmt.Println(slice1)
+----
+
+Tentu saja, kita dapat membuat `Append` lebih efisien dengan melakukan alokasi
+tidak lebih dari satu kali, membangun berdasarkan dalaman dari `Extend`:
+
+----
+// Append tambahkan elemen ke dalam slice.
+// Versi yang efisien.
+func Append(slice []int, elements ...int) []int {
+	n := len(slice)
+	total := len(slice) + len(elements)
+	if total > cap(slice) {
+		// Realokasi.  Kembangkan 1.5 kali ukuran yang baru, supaya
+		// kita dapat terus tumbuh.
+		newSize := total*3/2 + 1
+		newSlice := make([]int, total, newSize)
+		copy(newSlice, slice)
+		slice = newSlice
+	}
+	slice = slice[:total]
+	copy(slice[n:], elements)
+	return slice
+}
+----
+
+Perhatikan bagaimana kita menggunakan `copy` dua kali, pertama untuk
+memindahkan data slice ke alokasi memori yang baru, dan kemudian untuk
+menyalin item-item yang ditambahkan ke akhir dari data lama.
+
+Cobalah; hasilnya sama dengan sebelumnya:
+
+----
+	slice1 := []int{0, 1, 2, 3, 4}
+	slice2 := []int{55, 66, 77}
+	fmt.Println(slice1)
+	slice1 = Append(slice1, slice2...) // The '...' is essential!
+	fmt.Println(slice1)
+----
+
+
+==  Append: fungsi bawaan
+
+Akhirnya kita sampai pada rancangan dari fungsi bawaan `append`.
+Perilakunya sama dengan contoh `Append` kita, dengan efisiensi yang sama,
+namun dapat digunakan untuk semua tipe slice.
+
+Kelemahan Go yaitu operasi yang bersifat generik haruslah disediakan oleh
+_run-time_.
+Suatu saat nanti mungkin akan berubah, namun untuk saat sekarang, supaya
+bekerja dengan slice lebih mudah, Go menyediakan fungsi bawaan generik
+`append`.
+Ia berlaku sama dengan versi slice `int` kita, namun untuk _semua_ tipe slice.
+
+Ingatlah, karena header slice selalu diubah oleh pemanggilan `append`, kita 
+harus menyimpan slice yang dikembalikan setelah pemanggilan.
+Pada kenyataannya, _compiler_ tidak membolehkan kita menggunakan `append`
+tanpa menyimpan hasilnya.
+
+Berikut beberapa baris contoh dengan perintah pencetakan.
+Cobalah, ubah, dan eksplorasi mereka:
+
+----
+	// Buat beberapa slice.
+	slice := []int{1, 2, 3}
+	slice2 := []int{55, 66, 77}
+	fmt.Println("Start slice: ", slice)
+	fmt.Println("Start slice2:", slice2)
+	
+	// Tambahkan sebuah item ke slice.
+	slice = append(slice, 4)
+	fmt.Println("Add one item:", slice)
+	
+	// Tambahkan slice ke slice yang lain.
+	slice = append(slice, slice2...)
+	fmt.Println("Add one slice:", slice)
+	
+	// Buat salinan dari slice.
+	slice3 := append([]int(nil), slice...)
+	fmt.Println("Copy a slice:", slice3)
+	
+	// Salin sebuah ke akhir dari dirinya sendiri.
+	fmt.Println("Before append to self:", slice)
+	slice = append(slice, slice...)
+	fmt.Println("After append to self:", slice)
+----
+
+Sangat penting untuk memikirkan mengenai baris terakhir dari contoh di atas
+dengan lebih rinci supaya paham bagaimana rancangan slice membuat perintah
+tersebut dapat terjadi dengan pemanggilan yang sederhana dan berjalan dengan
+benar.
+
+Ada banyak contoh lain dari `append`, `copy`, dan cara lain untuk menggunakan
+slice dalam
+https://golang.org/wiki/SliceTricks[halaman wiki "Slice Tricks"]
+yang dibangun oleh komunitas.
+
+
+==  Nil
+
+Selain itu, dengan pengetahuan yang baru kita dapat mari melihat representasi
+dari sebuah slice yang `nil`.
+Slice yang `nil` adalah nilai kosong dari header slice:
+
+----
+sliceHeader{
+	Length:        0,
+	Capacity:      0,
+	ZerothElement: nil,
+}
+----
+
+atau hanya
+
+----
+sliceHeader{}
+----
+
+Kuncinya yaitu pointer elemen pada header slice juga `nil`.
+Slice yang dibuat dengan
+
+----
+array[0:0]
+----
+
+memiliki panjang nol (dan mungkin kapasitas nol) namun pointer-nya tidak
+`nil`, jadi ia bukanlah slice yang `nil`.
+
+Supaya lebih jelas, slice yang kosong dapat berkembang (diasumsikan
+kapasitasnya tidak nol), namun slice yang `nil` tidak memiliki array tempat
+menyimpan nilai dan tidak akan pernah dapat dikembangkan bahkan untuk
+menyimpan satu elemen pun.
+
+Sebuah slice yang `nil` secara fungsionalitas sama dengan slice dengan panjang
+nol, walaupun ia tidak menunjuk ke mana pun.
+Ia memiliki panjang nol dan dapat ditambahkan, dengan alokasi.
+Sebagai contoh, lihat pernyataan satu baris di atas yang menyalin sebuah slice
+dengan menambahkan ke slice `nil`.
+
+
+==  String
+
+Sekarang sedikit membahas tentang string dalam Go dalam konteks dari slice.
+
+String sebenarnya sangat sederhana: ia adalah slice dari byte yang _read-only_
+dengan sedikit dukungan sintaksis ekstra dari bahasa.
+
+Karena sifatnya yang _read-only_, maka tidak perlu kapasitas (kita tidak bisa
+mengembangkan string), namun untuk tujuan yang umum kita dapat memperlakukan
+mereka seperti slice dari byte yang _read-only_.
+
+Sebagai langkah awal, kita dapat melakukan operasi indeks pada string untuk
+mengakses byte:
+
+----
+slash := "/usr/ken"[0] // menghasilkan byte dengan nilai '/'.
+----
+
+Kita dapat memotong sebuah string untuk mendapatkan sub-string:
+
+----
+usr := "/usr/ken"[0:4] // menghasilkan string "/usr"
+----
+
+Cukup jelas sekarang apa yang terjadi di belakang saat kita memotong sebuah
+string.
+
+Kita juga dapat mengubah slice dari byte menjadi string dan membuat sebuah
+string menjadi slice dari byte dengan konversi sederhana:
+
+----
+str := string(slice)
+----
+
+dan sebaliknya
+
+----
+slice := []byte(usr)
+----
+
+Array di balik sebuah string disembunyikan;
+kita tidak akan bisa mengakses konten array tersebut kecuali lewat string.
+Ini artinya saat kita melakukan konversi di atas, salinan dari array harus
+dibuat.
+Go tentu saja melakukan semua hal tersebut, jadi Anda tidak perlu khawatir
+lagi.
+Setelah konversi, modifikasi terhadap array di belakang slice tidak
+memengaruhi string yang berkorespondensi.
+
+Konsekuensi penting dari rancangan seperti-slice ini bagi string yaitu membuat
+operasi sub-string menjadi lebih efisien.
+Saat sebuah sub-string dibuat yang terjadi adalah dibuatnya dua buah header
+string.
+Secara string adalah _read-only_, string yang asli dan sub-string yang
+dihasilkan, dari operasi pemotongan, memiliki array yang sama.
+
+Sebuah catatan historis: Implementasi awal dari string selalu membuat alokasi
+baru, namun saat slice ditambahkan ke dalam bahasa, mereka menyediakan sebuah
+model untuk penanganan string yang efisien.
+Beberapa _benchmark_ memperlihatkan peningkatan kecepatan yang besar.
+
+Ada lebih banyak lagi bahasan tentang string, dan sebuah
+link:/blog/strings[blog terpisah]
+mengover hal tersebut lebih mendalam.
+
+
+==  Kesimpulan
+
+Untuk memahami bagaimana slice bekerja, sangatlah membantu untuk memahami
+bagaimana ia diimplementasikan.
+Ada struktur data, header slice, yaitu item yang berasosiasi dengan
+variabel slice, dan header tersebut berisi sebuah bagian dari array yang
+dialokasikan secara terpisah.
+Saat kita mengirim nilai slice, header tersebut disalin namun array yang
+ditunjuk selalu sama.
+
+Saat Anda memahami bagaimana slice bekerja, ia tidak saja menjadi mudah
+digunakan, tetapi juga sangat berguna, ekspresif, khususnya dengan bantuan
+fungsi bawaan `copy` dan `append`.
+
+
+==  Bacaan lebih lanjut
+
+Ada banyak informasi yang dapat ditemukan di Internet tentang slice dalam Go.
+Seperti yang disebutkan sebelumnya,
+https://golang.org/wiki/SliceTricks[halaman Wiki "Slice Tricks"]
+memiliki banyak contoh dari penggunaan slice.
+Blog tentang
+link:/blog/go-slices-usage-and-internals[Slice pada Go]
+menjelaskan lebih rinci layout memori dengan diagram yang jelas.
+Artikel Russ Cox tentang
+https://research.swtch.com/godata[Struktur Data Go]
+berisi diskusi tentang slice berikut dengan beberapa struktur data
+internal dari Go.
+
+Ada lebih banyak materi lagi yang tersedia, namun cara belajar paling bagus
+tentang slice yaitu dengan menggunakannya.
