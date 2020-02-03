@@ -2,6 +2,10 @@
 
 ==  Indeks
 
+*  link:/blog/pkg.go.dev-2020[Langkah selanjutnya untuk pkg.go.dev],
+   31 Januari 2020.
+   _Julie Qiu_
+
 *  link:/blog/go1.15-proposals[Proposal untuk Go 1.15],
    28 Januari 2020.
    _Robert Griesemer_, untuk tim Go
