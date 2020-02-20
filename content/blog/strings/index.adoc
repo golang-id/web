@@ -1,0 +1,441 @@
+=  String, byte, rune, dan karakter dalam Go
+:author: Rob Pike
+:date: 23 Oktober 2013
+
+==  Pendahuluan
+
+Pada
+link:/blog/slices[blog sebelumnya]
+dijelaskan bagaimana slice bekerja dalam Go, menggunakan sejumlah contoh untuk
+mengilustrasikan mekanisme di balik implementasinya.
+Dengan latar belakang tersebut, artikel ini mendiskusikan string dalam Go.
+Pertama, string tampak terlalu simpel untuk sebuah artikel, namun untuk
+menggunakannya dengan baik membutuhkan pemahaman tidak hanya bagaimana cara
+ia bekerja, tetapi juga perbedaan antara sebuah byte, karakter, dan rune,
+perbedaan antara Unicode dan UTF-8, perbedaan antara sebuah string dan literal
+string, dan perbedaan lain yang lebih halus.
+
+Salah satu cara untuk mengkaji topik ini yaitu dengan membayangkannya sebagai
+sebuah jawaban dari pertanyaan yang sering diajukan, "Saat saya mengindeks
+string pada Go pada posisi _n_, kenapa saya tidak mendapatkan karakter
+ke-_n_?"
+Seperti yang akan kita lihat nantinya, pertanyaan ini mengarahkan kita pada
+banyak hal tentang bagaimana teks bekerja dalam dunia nyata.
+
+Sebuah pendahuluan yang bagus terhadap masalah ini, independen terhadap Go,
+yaitu blog dari Joel Spolsky,
+http://www.joelonsoftware.com/articles/Unicode.html[The Absolute Minimum Every
+Software Developer Absolutely, Positively Must Know About Unicode and
+Character Sets (No Excuses!)].
+Banyak poin-poin yang diangkat dalam tulisan tersebut akan diulang di sini.
+
+
+==  Apa itu string?
+
+Mari kita mulai dengan beberapa dasar.
+
+Dalam Go, sebuah string yaitu slice dari byte yang _read-only_.
+Jika Anda tidak yakin tentang apa itu slice dari byte atau bagaimana ia
+bekerja, mohon baca
+link:/blog/slices[blog sebelumnya];
+kita asumsikan Anda telah membacanya.
+
+Penting juga diperjelas di sini bahwa sebuah string menyimpan _beragam_ byte.
+Ia tidak harus menyimpan teks Unicode, teks UTF-8, atau format lainnya.
+Selama menyangkut isi dari string, isinya sudah pasti slice dari byte.
+
+Berikut sebuah literal string (lebih lanjut tentang ini akan kita bahas nanti)
+yang menggunakan notasi heksadesimal lepas `\xNN` untuk mendefinisikan sebuah
+konstanta string yang menyimpan beberapa nilai byte tertentu.
+(Rentang byte untuk nilai heksadesimal yaitu 00 sampai FF, inklusif.)
+
+----
+const sample = "\xbd\xb2\x3d\xbc\x20\xe2\x8c\x98"
+----
+
+
+==  Mencetak string
+
+Karena beberapa byte pada contoh string sebelumnya bukanlah karakter ASCII
+yang valid, bahkan bukan UTF-8 yang valid, mencetak string tersebut secara
+langsung akan menghasilkan keluaran yang kacau.
+Perintah pencetakan sederhana
+
+----
+fmt.Println(sample)
+----
+
+menghasilkan keluaran kacau berikut (yang tampilannya beragam tergantung
+lingkungan Anda):
+
+----
+��=� ⌘
+----
+
+Untuk mengetahui apa yang disimpan string, kita perlu memecahnya dan memeriksa
+satu persatu.
+Ada beberapa cara untuk melakukan hal ini.
+Cara yang paling kentara yaitu dengan melakukan pengulangan pada isi string
+dan mengambil byte satu-per-satu, seperti berikut:
+
+----
+for i := 0; i < len(sample); i++ {
+	fmt.Printf("%x ", sample[i])
+}
+----
+
+Pengindeksan pada string mengakses byte, bukan karakter.
+Kita akan kembali pada topik tersebut lebih rinci nanti di bawah.
+Untuk sekarang, fokus pada byte dahulu.
+Berikut keluaran dari pengulangan byte-per-byte:
+
+----
+bd b2 3d bc 20 e2 8c 98
+----
+
+Perhatikan bagaimana setiap byte sesuai dengan nilai heksadesimal yang mengisi
+string sebelumnya.
+
+Cara singkat untuk menghasilkan keluaran yang baik untuk string yang kacau
+seperti di atas yaitu dengan menggunakan format %x (heksadesimal) pada
+`fmt.Printf`.
+Ia akan mencetak byte dari string secara sekuensial sebagai bilangan
+heksadesimal, dua per byte.
+
+----
+fmt.Printf("%x\n", sample)
+----
+
+Bandingkan keluarannya dengan yang di atas:
+
+----
+bdb23dbc20e28c98
+----
+
+Sebuah trik untuk menambahkan "spasi" pada format, dengan menempatkan sebuah
+spasi antara `%` dan `x`.
+Bandingkan format string yang digunakan di sini dengan yang di atas,
+
+----
+    fmt.Printf("% x\n", sample)
+----
+
+dan perhatikan bagaimana byte ditulis dengan spasi, membuat hasilnya lebih
+mudah dilihat:
+
+----
+bd b2 3d bc 20 e2 8c 98
+----
+
+Ada lagi.
+Format `%q` akan mengindahkan urutan byte yang tidak bisa dicetak dalam sebuah
+string sehingga keluarannya tidak ambigu.
+
+----
+    fmt.Printf("%q\n", sample)
+----
+
+Teknik ini cukup berguna saat kebanyakan string tidak bisa dibaca sebagai teks
+namun ada kemungkinan yang bisa dibaca juga; ia menghasilkan:
+
+----
+"\xbd\xb2=\xbc ⌘"
+----
+
+Jika kita lihat lebih rinci, ditemukan sebuah karakter ASCII sama-dengan,
+bersama dengan sebuah spasi, dan pada akhir muncul simbol Swedia untuk "Place
+of Interest".
+Simbol tersebut memiliki nilai Unicode U+2318, dienkod sebagai UTF-8 oleh byte
+setelah spasi (nilai heksa 20): `e2 8c 98`.
+
+Jika kita tidak terbiasa atau bingung dengan nilai di dalam string, kita dapat
+menggunakan tanda "tambah" pada format `%q`.
+Tanda ini menyebabkan pencetakan yang meng-"escape" (melepas) tidak hanya
+urutan yang tidak dapat dicetak, namun juga byte yang bukan ASCII, yang
+diinterpretasi dengan UTF-8.
+Hasilnya yaitu nilai Unicode dari UTF-8 yang merepresentasikan data selain
+ASCII dalam string:
+
+----
+    fmt.Printf("%+q\n", sample)
+----
+
+Dengan format tersebut, nilai Unicode dari simbol Swedia di-"escape" dengan
+`\u`:
+
+----
+"\xbd\xb2=\xbc \u2318"
+----
+
+Teknik pencetakan ini perlu diketahui saat men-_debug_ isi dari string,
+dan berguna dalam diskusi kita di bawah.
+Semua metode-metode tersebut selain dapat digunakan pada string juga dapat
+digunakan pada slice dari byte.
+
+Berikut seluruh opsi pencetakan sebelumnya, dalam sebuah program yang dapat
+Anda jalankan (dan ubah):
+
+----
+package main
+
+import "fmt"
+
+func main() {
+	const sample = "\xbd\xb2\x3d\xbc\x20\xe2\x8c\x98"
+
+	fmt.Println("Println:")
+	fmt.Println(sample)
+
+	fmt.Println("Byte loop:")
+	for i := 0; i < len(sample); i++ {
+		fmt.Printf("%x ", sample[i])
+	}
+	fmt.Printf("\n")
+
+	fmt.Println("Printf with %x:")
+	fmt.Printf("%x\n", sample)
+
+	fmt.Println("Printf with % x:")
+	fmt.Printf("% x\n", sample)
+
+	fmt.Println("Printf with %q:")
+	fmt.Printf("%q\n", sample)
+
+	fmt.Println("Printf with %+q:")
+	fmt.Printf("%+q\n", sample)
+}
+----
+
+(Latihan: Ubah contoh di atas menggunakan slice dari byte bukan string.
+Petunjuk: Gunakan konversi untuk membuat slice.)
+
+(Latihan: Lakukan pengulangan pada string menggunakan format %q untuk setiap
+byte.
+Apa yang dapat Anda pelajari dari keluarannya?)
+
+
+==  UTF-8 dan literal string
+
+Seperti yang kita lihat sebelumnya, pengindeksan pada string menghasilkan
+byte-byte, bukan karakter: sebuah string hanyalah sekumpulan byte.
+Ini artinya saat kita menyimpan sebuah nilai karakter dalam sebuah string,
+kita menyimpan representasi karakter tersebut byte-per-byte.
+Mari kita lihat contoh yang lebih terkontrol untuk melihat bagaimana hal
+tersebut terjadi.
+
+Berikut sebuah program sederhana yang mencetak konstanta string per karakter
+dengan tiga cara, satu dengan string polos, kedua dengan string ASCII, dan
+ketiga dengan heksadesimal.
+Supaya tidak bingung, kita buat sebuah "string mentah", yang dikurung
+dengan _backtick_, supaya hanya mengandung literal teks.
+(String biasa, dengan tanda kutip-ganda, bisa berisi seurutan "escape" seperti
+yang kita perlihatkan di atas.)
+
+----
+func main() {
+	const placeOfInterest = `⌘`
+
+	fmt.Printf("plain string: ")
+	fmt.Printf("%s", placeOfInterest)
+	fmt.Printf("\n")
+
+	fmt.Printf("quoted string: ")
+	fmt.Printf("%+q", placeOfInterest)
+	fmt.Printf("\n")
+
+	fmt.Printf("hex bytes: ")
+	for i := 0; i < len(placeOfInterest); i++ {
+		fmt.Printf("%x ", placeOfInterest[i])
+	}
+	fmt.Printf("\n")
+}
+----
+
+Keluarannya adalah:
+
+----
+plain string: ⌘
+quoted string: "\u2318"
+hex bytes: e2 8c 98
+----
+
+yang mengingatkan kita bahwa karakter Unicode untuk nilai U+2318, simbol ⌘
+untuk "Place of Interest" direpresentasikan oleh byte `e2 8c 98`, dan byte
+tersebut adalah _encoding_ UTF-8 dari nilai heksadesimal 2318.
+
+Bergantung pada kebiasaan Anda dengan UTF-8, semua ini tampak jelas atau
+membingungkan, namun perlu waktu sebentar untuk menjelaskan bagaimana
+representasi UTF-8 dari string dibuat.
+Fakta sederhananya adalah: ia dibuat saat sumber kode Go ditulis.
+
+Sumber kode dalam Go _didefinisikan_ sebagai teks UTF-8; tidak ada
+representasi lain yang dibolehkan.
+Hal ini menyatakan bahwa saat kita menulis teks berikut dalam sumber kode
+
+----
+`⌘`
+----
+
+editor akan  menyimpan _encoding_ UTF-8 dari simbol ⌘ ke dalam berkas.
+Saat kita mencetak nilai heksadesimal, kita hanya mencetak data yang editor
+simpan dalam berkas.
+
+Sumber kode Go adalah UTF-8, sehingga
+_sumber kode untuk literal string yaitu teks UTF-8_.
+Jika literal string tersebut tidak berisi urutan "escape" maka string yang
+dibuat akan menyimpan persis sumber teks di antara tanda kutip.
+Maka secara definisi dan secara konstruksi, string mentah akan selalu berisi
+representasi UTF-8 yang valid.
+Hal yang sama, sebuah literal string biasa akan selalu berisi UTF-8 yang
+valid, kecuali bila ia berisi "escape" UTF-8 seperti bagian sebelumnya.
+
+Beberapa orang menyangka bahwa string pada Go selalu UTF-8, belum tentu: hanya
+literal string yang UTF-8.
+Seperti yang kita lihat pada bagian sebelumnya, _nilai_ dari string dapat
+berisi beragam nilai byte; _literal_ string selalu berisi teks UTF-8 selama
+tidak ada "escape" pada tingkat byte.
+
+Sebagai kesimpulan, string dapat berisi byte apa pun, namun saat membangun
+sebuah literal string, byte-byte tersebut (hampir selalu) UTF-8.
+
+
+==  Poin kode, karakter, dan rune
+
+Sejauh ini kita telah berhati-hati dalam menggunakan kata "byte" dan
+"karakter".
+Hal ini sebagian karena string menyimpan byte, sebagian lagi karena ide
+tentang "karakter" cukup susah didefinisikan.
+Standar Unicode menggunakan istilah "poin kode" untuk mengacu pada item yang
+direpresentasikan oleh nilai tunggal.
+Poin kode U+2318 misalnya, dengan nilai heksadesimal 2318, merepresentasikan
+simbol ⌘.
+(Untuk informasi lebih lanjut tentang poin kode tersebut, lihat
+http://unicode.org/cldr/utility/character.jsp?a=2318[halaman Unicode].)
+
+Contoh lainnya, poin kode Unicode U+0061 adalah huruf kecil Latin 'A': a.
+
+Lalu bagaimana dengan huruf kecil 'A' dengan aksen, à?
+Itu adalah sebuah karakter, dan juga poin kode (U+00E0), namun ia juga
+memiliki representasi lain.
+Misalnya kita dapat "menggabungkan" poin kode aksen non-tirus, U+0300, dan
+menempelkan ke huruf kecil a, U+0061, untuk membuat karakter yang sama à.
+Pada umumnya, sebuah karakter bisa direpresentasikan oleh sejumlah urutan poin
+kode yang berbeda.
+
+Konsep dari karakter dalam komputer menjadi ambigu, atau membingungkan, jadi
+kami pakai secara hati-hati.
+Supaya hal-hal tersebut lebih dapat digunakan, ada beberapa teknik
+_normalisasi_ yang menjamin bahwa sebuah karakter selalu direpresentasikan
+oleh poin kode yang sama, namun subjek tersebut membuat kita terlalu jauh dari
+topik bahasan yang sekarang.
+Blog selanjutnya akan mencoba menjelaskan bagaimana pustaka Go mengatasi
+masalah normalisasi ini.
+
+"Poin kode" terlalu panjang, jadi Go memperkenalkan istilah yang lebih singkat
+untuk konsep ini: _rune_.
+Istilah ini muncul dalam pustaka dan sumber kode, dan maknanya sama dengan
+"poin kode", dengan sebuah tambahan informasi yang menarik.
+
+Bahasa Go mendefinisikan kata `rune` sebagai alias dari tipe `int32`, sehingga
+program jelas kapan sebuah nilai integer merepresentasikan sebuah poin kode.
+Lebih lanjut lagi, apa yang Anda bayangkan tentang sebuah konstanta karakter
+disebut dengan _konstanta rune_ dalam Go.
+Tipe dan nilai dari ekspresi
+
+----
+'⌘'
+----
+
+adalah rune dengan nilai integer `0x2318`.
+
+Sebagai kesimpulan, berikut beberapa poin penting:
+
+*  Sumber kode Go selalu UTF-8.
+*  Sebuah string menyimpan byte yang beragam.
+*  Literal string, tanpa "escape" pada tingkat byte, selalu menyimpan seurutan
+   UTF-8 yang valid.
+*  Urutan tersebut merepresentasikan poin kode Unicode, yang disebut
+   dengan rune.
+*  Tidak ada jaminan dalam Go bahwa karakter dalam string dinormalisasi.
+
+
+==  Pengulangan `range`
+
+Selain aksioma bahwa sumber kode Go adalah UTF-8, hanya ada satu cara dalam Go
+yang memperlakukan UTF-8 secara khusus, yaitu saat melakukan pengulangan
+`for range` pada sebuah string.
+
+Kita telah melihat apa yang terjadi dengan pengulangan `for` biasa,
+perbedaannya, `for range` men-_decode_ satu rune UTF-8 dalam setiap iterasi.
+Di setiap pengulangan, indeks dari pengulangan yaitu posisi rune, yang diukur
+dalam byte, dan nilai dari pengulangan yaitu poin kodenya.
+Berikut contoh penggunaan format `Printf`, `%#U`, yang memperlihatkan nilai
+poin kode Unicode yang mencetak representasinya:
+
+----
+const nihongo = "日本語"
+for index, runeValue := range nihongo {
+	fmt.Printf("%#U starts at byte position %d\n", runeValue, index)
+}
+----
+
+Keluarannya memperlihatkan bagaimana setiap poin kode memakai beberapa byte:
+
+----
+U+65E5 '日' starts at byte position 0
+U+672C '本' starts at byte position 3
+U+8A9E '語' starts at byte position 6
+----
+
+(Latihan: Taruh seurutan byte UTF-8 yang tidak valid ke dalam string.
+Apa yang terjadi pada setiap iterasi pengulangan?)
+
+
+==  Pustaka
+
+Pustaka standar Go menyediakan dukungan untuk memroses teks UTF-8.
+Jika pengulangan `for range` tidak cukup, bisa jadi fasilitas yang Anda
+butuhkan disediakan oleh sebuah paket dalam pustaka tersebut.
+
+Paket tersebut adalah
+https://golang.org/pkg/unicode/utf8/[`unicode/utf8`],
+yang berisi fungsi-fungsi yang membantu untuk memvalidasi, membedah, dan
+menggabungkan string-string UTF-8.
+Berikut contoh program yang sama dengan `for range` di atas, namun dengan
+menggunakan fungsi `DecodeRuneInString` yang ada dalam paket tersebut.
+Nilai kembalian dari fungsi tersebut adalah rune dengan ukuran byte UTF-8 yang
+di-_encode_.
+
+----
+const nihongo = "日本語"
+for i, w := 0, 0; i < len(nihongo); i += w {
+	runeValue, width := utf8.DecodeRuneInString(nihongo[i:])
+	fmt.Printf("%#U starts at byte position %d\n", runeValue, i)
+	w = width
+}
+----
+
+Jalankan kode tersebut untuk melihat bahwa ia mencetak keluaran yang sama
+dengan pengulangan `for range`.
+Pengulang `for range` dan `DecodeRuneInString` didefinisikan menghasilkan
+urutan iterasi yang sama.
+
+Lihat
+https://golang.org/pkg/unicode/utf8/[dokumentasi]
+paket `unicode/utf8` untuk melihat fasilitas lain yang disediakan paket
+tersebut.
+
+==  Kesimpulan
+
+Untuk menjawab pertanyaan pada bagian awal: String dibangun dari kumpulan byte
+sehingga pengindeksan string menghasilkan byte, bukan karaketer.
+Sebuah string bisa jadi tidak menyimpan karakter.
+Pada kenyataannya, definisi "karakter" itu ambigu dan adalah sebuah kesalahan
+untuk mencoba menyelesaikan keambiguan tersebut dengan mendefinisikan bahwa
+string terbuat dari kumpulan karakter.
+
+Ada banyak hal yang dapat dijelaskan tentang Unicode, UTF-8, dan dunia
+pemrosesan teks multibahasa, namun ia bisa ditunda sampai artikel selanjutnya.
+Untuk saat sekarang, kami berharap Anda lebih paham bagaimana perilaku string
+pada Go dan, walaupun ia bisa mengandung beragam byte, UTF-8 ialah bagian
+inti dari rancangan string.
