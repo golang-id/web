@@ -1,0 +1,42 @@
+=  Memperkenalkan Go Playground
+:author: Andrew Gerrand
+:date: 15 September 2010
+
+Jika Anda mengunjungi
+https://golang.org[golang.org]
+hari ini Anda akan melihat tampilan yang baru.
+Kami telah merombak rancangan dan konten situs supaya lebih mudah dicari.
+Perubahan ini juga direfleksikan pada antarmuka dari
+https://golang.org/cmd/godoc/[godoc],
+perkakas dokumentasi Go.
+Namun berita sebenarnya adalah tentang fitur baru:
+https://golang.org/[Go Playground].
+
+image::https://blog.golang.org/introducing-go-playground_Untitled.png[Go Playground]
+
+Playground membolehkan siapa pun dengan peramban menulis kode Go yang kemudian
+kami kompilasi dan jalankan di server kami.
+Ada beberapa contoh program untuk memulai (lihat pada bagian "Examples").
+Kami berharap bahwa fitur ini membuat pemrogram yang penasaran untuk dapat
+mencoba bahasa Go sebelum
+link:/doc/install[memasangnya],
+dan memberikan tempat bereksperimen bagi pengguna Go yang berpengalaman.
+Selain halaman depan, fungsionalitas ini memiliki potensial untuk membuat
+materi referensi dan tutorial lebih menarik.
+Kami mencoba mengembangkan penggunaannya di masa depan.
+
+Tentu saja, ada beberapa limitasi dari jenis program yang dapat Anda jalankan
+dalam Playground.
+Kami tidak dapat begitu saja menerima kode dan menjalankannya di server tanpa
+batasan.
+Program-program tersebut dibuat dan dijalankan dalam sebuah _sandbox_ dengan
+pustaka standar yang dikurangi;
+satu-satunya komunikasi antara program Anda dengan dunia luar hanyalah standar
+keluaran, dan juga ada batasan pemakaian CPU dan _memory_.
+Dengan ini, anggaplah Playground sebagai tempat merasakan indahnya dunia Go;
+untuk dapat merasakannya secara penuh Anda harus
+link:/doc/install[memasangnya sendiri di lokal].
+Jika Anda pernah ingin mencoba Go namun belum sempat, kenapa tidak coba
+kunjungi
+https://golang.org[golang.org]
+untuk mencobanya sekarang?

@@ -41,6 +41,9 @@
 *  link:/blog/slices[Array, slice (dan string): Mekanisme 'append']
    26 September 2013. _Rob Pike_
 
+*  link:/blog/introducing-go-playground/[ Memperkenalkan Go Playground],
+   15 September 2010.  _Andrew Gerrand_
+
 
 ==  Bahasa
 
