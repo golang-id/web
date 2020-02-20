@@ -29,8 +29,11 @@
    29 November 2018.
    _Robert Griesemer_
 
-*  link:/blog/errors-are-values[Error adalah nilai], 12 Januari 2015,
-   _Rob Pike_
+*  link:/blog/errors-are-values[Error adalah nilai],
+   12 Januari 2015. _Rob Pike_
+
+*  link:/blog/normalization[Normalisasi teks dalam Go],
+   26 November 2013. _Marcel van Lohuizen_
 
 *  link:/blog/strings[String, byte, rune, dan karakter dalam Go],
    23 Oktober 2013. _Rob Pike_

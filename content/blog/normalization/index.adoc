@@ -1,0 +1,373 @@
+= Normalisasi teks dalam Go
+:author: Marcel van Lohuizen
+:date: 26 November 2013
+:toc:
+
+==  Pendahuluan
+
+Pada
+link:/blog/strings[artikel]
+sebelumnya kita telah membahas tentang string, byte, dan karakter dalam Go.
+Saya telah bekerja dengan banyak paket-paket untuk pemrosesan teks
+multibahasa untuk repositori teks Go.
+Beberapa paket tersebut layak memiliki artikel sendiri yang terpisah, tetapi
+sekarang saya ingin fokus pada
+https://godoc.org/code.google.com/p/go.text/unicode/norm[go text/unicode/norm]
+yang menangani normalisasi, topik yang disinggung dalam
+link:/blog/strings[artikel tentang string]
+dan subjek dari artikel ini.
+Normalisasi bekerja pada tingkat paling atas dari abstraksi bukan pada byte
+mentah.
+
+Untuk belajar tentang normalisasi,
+http://unicode.org/reports/tr15/[Annex 15 dari Standar Unicode]
+adalah bacaan yang bagus.
+Artikel yang lebih awam yaitu
+http://en.wikipedia.org/wiki/Unicode_equivalence[halaman Wikipedia].
+Di sini kita fokus tentang bagaimana normalisasi bekerja dalam Go.
+
+
+==  Apa itu normalisasi?
+
+Terkadang ada beberapa cara untuk merepresentasikan string yang sama.
+Misalnya, sebuah é (e-tirus) dapat direpresentasikan dalam sebuah string
+sebagai sebuah rune ("\u00e9") atau sebuah 'e' diikuti oleh aksen tirus
+("e\u0301").
+Menurut standar Unicode, kedua hal tersebut "kesetaraan kanonis" dan
+sebaiknya diperlakukan sama.
+
+Menggunakan pembandingan byte-per-byte untuk menentukan kesamaan sudah jelas
+tidak akan menghasilkan nilai yang benar untuk kedua string tersebut.
+Unicode menentukan sekumpulan bentuk-bentuk normal supaya bila dua string
+setara secara kanonis dan dinormalisasi ke bentuk normal yang sama, maka
+representasi byte mereka akan sama.
+
+Unicode juga mendefinisikan sebuah "kesetaraan kompatibilitas" untuk
+menyamakan karakter yang merepresentasikan karakter yang sama, tetapi bisa
+jadi memiliki tampilan visual yang berbeda.
+Misalnya, angka _superscript_ '⁹' dan angka '9' biasa disebut dengan
+kesetaraan kompatibilitas.
+
+Untuk setiap bentuk kesetaraan ini, Unicode menentukan bentuk komposisi dan
+dekomposisi.
+Bentuk komposisi mengganti beberapa rune yang dapat digabungkan menjadi sebuah
+rune tunggal.
+Bentuk dekomposisi memecah rune menjadi komponen tersendiri.
+Tabel berikut memperlihatkan nama-nama, semuanya dengan prefiks NF, yang
+ditentukan oleh konsorsium Unicode untuk mengidentifikasi bentuk-bentuk
+tersebut:
+
+----
++-------------------------+-----------+-------------+
+|                         | Komposisi | Dekomposisi |
++-------------------------+-----------+-------------+
+| Kesamaan kanonis        | NFC       | NFD         |
++-------------------------+-----------+-------------+
+| Kesamaan kompatibilitas | NFKC      | NFKD        |
++-------------------------+-----------+-------------+
+----
+
+
+==  Pendekatan Go terhadap normalisasi
+
+Seperti yang telah dijelaskan juga dalam artikel tentang string, Go tidak
+menjamin bahwa karakter-karakter dalam sebuah string telah dinormalisasi.
+Namun, paket go.text dapat mengompensasi hal tersebut.
+Misalnya, paket
+https://godoc.org/code.google.com/p/go.text/collate[collate],
+yang dapat mengurutkan string menurut bahasa tertentu, bekerja secara tepat
+dengan string yang tidak dinormalisasi.
+Paket-paket dalam go.text tidak selalu membutuhkan input yang telah
+dinormalisasi, tetapi pada umumnya normalisasi bisa diperlukan untuk
+mendapatkan hasil yang konsisten.
+
+Normalisasi ada biayanya namun ia cepat, terutama untuk pemeriksaan dan
+pencarian atau jika sebuah string bukanlah NFD atau NFC dan bisa dikonversi ke
+NFD dengan melakukan dekomposisi tanpa mengubah urutan byte-byte.
+Secara praktik,
+http://www.macchiato.com/unicode/nfc-faq#TOC-How-much-text-is-already-NFC-[99.98%]
+isi halaman HTML di web dalam bentuk NFC (bila mengikutkan _markup_,
+nilai persentase akan lebih besar).
+Sejauh ini umumnya NFC dapat di-dekomposisi ke NFD tanpa perlu mengubah urutan
+(yang mana membutuhkan alokasi).
+Dan juga, cukup efisien untuk memeriksa kapan pengurutan diperlukan, sehingga
+kita dapat mempercepat dengan hanya memproses segmen-segmen tertentu yang
+membutuhkan.
+
+Supaya lebih baik, paket `collate` biasanya tidak menggunakan paket `norm`
+secara langsung, tetapi menggunakan paket `norm` untuk menggabungkan informasi
+normalisasi pada tabel tersendiri.
+Penggabungan kedua masalah tersebut membolehkan pengurutan dan normalisasi
+berjalan bersamaan tanpa memengaruhi kinerja.
+Biaya dari normalisasi seperti ini dikompensasi dengan tidak harus
+menormalisasi teks sebelumnya dan memastikan bentuk normal dijaga selama
+penyuntingan.
+Masalah yang terakhir cukup pelik.
+Misalnya, hasil dari penggabungan dua string NFC yang dinormalisasi tidak
+dijamin menjadi NFC.
+
+Tentu saja, kita dapat menghindari beban ini sebelumnya jika kita mengetahui
+bahwa sebuah string telah dinormalisasi, yang mana pada kebanyakan memang
+telah dinormalisasi.
+
+
+==  Kenapa peduli?
+
+Setelah semua diskusi tentang menghindari normalisasi, anda mungkin bertanya
+kenapa harus peduli dengan semua ini.
+Alasannya adalah bahwa ada beberapa kasus yang mana normalisasi dibutuhkan dan
+sangat penting untuk memahami apa saja kasus-kasus tersebut, dan bagaimana
+menangani secara benar.
+
+Sebelum mendiskusikan hal tersebut, kita harus menjelaskan konsep dari
+'karakter'.
+
+
+==  Apa itu karakter?
+
+Seperti yang telah disebutkan juga dalam artikel tentang string, beberapa
+karakter dapat memakai beberapa rune.
+Contohnya, sebuah 'e' dan '◌́' (tirus "\u0301") dapat digabungkan membentuk
+'é' ("e\u0301" dalam NFD).
+Kedua rune tersebut adalah satu karakter.
+Definisi dari sebuah karakter bisa beragam bergantung pada aplikasi.
+Untuk normalisasi kita definisikan sebagai seurutan rune yang
+dimulai dengan sebuah _starter_, sebuah rune yang tidak mengubah atau
+tergabung dengan rune lainnya, diikuti oleh urutan yang bukan _starter_, yaitu
+rune-rune yang bisa mengubah atau bergabung dengan rune lainnya (biasanya
+aksen).
+Algoritme normalisasi memproses satu karakter dalam satu waktu.
+
+Secara teori, tidak ada batas dari jumlah rune yang dapat membentuk sebuah
+karakter Unicode.
+Faktanya, tidak ada batasan jumlah pengubah yang mengikuti sebuah
+karakter, dan sebuah pengubah bisa berulang, atau bertumpuk.
+Pernah lihat 'e' dengan tiga tirus?
+Ini dia: 'é́́'.
+Itu adalah karakter dengan 4-rune yang valid menurut standar.
+
+Akibatnya, bahkan pada tingkat dasar, teks perlu diproses secara berurutan
+pada ukuran potongan yang tak terbatas.
+Hal ini tampak aneh dengan pendekatan _streaming_ terhadap pemrosesan teks,
+seperti yang digunakan oleh interface standar Go Reader dan Writer, biasanya
+model tersebut biasanya berpotensi membutuhkan buffer sementara dengan ukuran
+yang tak terbatas juga.
+Implementasi langsung dari normalisasi akan membutuhkan waktu O(n²).
+
+Tidak ada interpretasi yang bermakna dari sejumlah urutan pengubah yang banyak
+tersebut pada penerapan praktis.
+Unicode menetapkan sebuah format Stream-Safe Text, yang membolehkan pemotongan
+jumlah pengubah (yang bukan _starter_) paling banyak 30, lebih dari cukup
+untuk kebutuhan pada umumnya.
+Jika lebih, sisa pengubah akan ditempatkan setelah _Combining Grapheme Joiner_
+(CGJ atau U+034F) yang baru disisipkan.
+Go mengadopsi pendekatan ini untuk semua algoritme normalisasi.
+Keputusan ini mengorbankan sedikit kesesuaian demi sedikit keamanan.
+
+
+==  Menulis dalam bentuk normal
+
+Bahkan bila kita tidak perlu menormalisasi teks pada kode Go Anda, tetap saja
+hal ini perlu dilakukan saat berkomunikasi dengan dunia luar.
+Contohnya, normalisasi ke NFC memadatkan teks Anda, membuatnya lebih singkat
+saat dikirim.
+Untuk beberapa bahasa, seperti Korea, penghematan ini bisa sangat berpengaruh.
+Juga, beberapa API eksternal bisa jadi mengharapkan teks dalam bentuk normal
+tertentu.
+Atau Anda bisa mengeluarkan teks sebagai NFC seperti yang kebanyakan orang
+lakukan.
+
+Untuk menulis teks sebagai NFC, gunakan paket
+https://godoc.org/code.google.com/p/go.text/unicode/norm[unicode/norm]
+untuk membungkus `io.Writer`:
+
+----
+wc := norm.NFC.Writer(w)
+defer wc.Close()
+// write as before...
+----
+
+Jika Anda punya string yang berukuran kecil dan ingin konversi yang cepat,
+Anda bisa menggunakan bentuk sederhana berikut:
+
+----
+norm.NFC.Bytes(b)
+----
+
+Paket `norm` menyediakan beragam method lain untuk normalisasi teks.
+Pilih salah satu yang sesuai dengan kebutuhan Anda.
+
+
+==  Menangkap karakter yang mirip
+
+Bisakah Anda membedakan antara 'K' ("\u004B") dan 'K' (tanda Kelvin "\u212A")
+atau 'Ω' ("\u03a9") dan 'Ω' (tanda Ohm "\u2126")?
+Sangat mudah mengabaikan perbedaan antara variasi dari karakter yang sama.
+Pada umumnya adalah ide yang bagus untuk tidak membolehkan variasi tersebut
+dalam pengidentifikasi atau apa pun yang dapat menipu pengguna karena karakter
+yang mirip tersebut bisa menimbulkan celah keamanan.
+
+Bentuk kompatibilitas normal, NFKC dan NFKD, akan memetakan bentuk-bentuk yang
+secara visual identik ke nilai tunggal.
+Perlu diingat bahwa ia tidak akan melakukan hal tersebut saat dua simbol yang
+mirip, tetapi dari alfabet karakter yang berbeda.
+Contohnya, Latin 'o', Greek 'ο', dan Cyrillic 'о' adalah karakter-karakter
+yang berbeda.
+
+
+==  Perbaikan modifikasi teks
+
+Paket `norm` bisa membantu saat kita butuh mengubah teks.
+Bayangkan sebuah kasus yang mana Anda ingin mencari dan mengganti kata "cafe"
+dengan bentuk jamak "cafes".
+Sebuah potongan kode akan berbentuk seperti ini.
+
+----
+s := "We went to eat at multiple cafe"
+cafe := "cafe"
+if p := strings.Index(s, cafe); p != -1 {
+	p += len(cafe)
+	s = s[:p] + "s" + s[p:]
+}
+fmt.Println(s)
+----
+
+Ia akan mencetak "We went to eat at multiple cafes" seperti yang diharapkan.
+Sekarang anggaplah teks tersebut berisi pengejaan Prancis "café" dalam bentuk
+NFD:
+
+----
+s := "We went to eat at multiple cafe\u0301"
+----
+
+Menggunakan kode yang sama, penanda jamak "s" akan tetap disisipkan setelah
+"e", tetapi sebelum tirus, menghasilkan "We went to eat at multiple cafeś".
+Hasil ini tidak diharapkan.
+
+Masalahnya adalah kode tersebut tidak melihat batasan antara karakter
+multi-rune dan menyisipkan sebuah rune di tengah sebuah karakter.
+Dengan menggunakan paket `norm`, kita dapat menulis kode tersebut sebagai
+berikut:
+
+----
+s := "We went to eat at multiple cafe\u0301"
+cafe := "cafe"
+if p := strings.Index(s, cafe); p != -1 {
+	p += len(cafe)
+	if bp := norm.FirstBoundary(s[p:]); bp > 0 {
+		p += bp
+	}
+	s = s[:p] + "s" + s[p:]
+}
+fmt.Println(s)
+----
+
+Contoh ini memang dibuat-buat, tetapi pesannya cukup jelas.
+Ingatlah bahwa karakter dapat menggunakan beberapa rune.
+Umumnya masalah seperti ini dapat dihindari dengan menggunakan fungsionalitas
+yang menghargai batasan karakter (seperti paket `go.text/search`.)
+
+
+==  Iterasi
+
+Perkakas lain yang disediakan oleh paket `norm` yang bisa membantu bekerja
+dengan batasan karakter adalah iterator,
+https://godoc.org/code.google.com/p/go.text/unicode/norm#Iter[norm.Iter].
+Ia mengiterasi karakter satu-per-satu dalam bentuk normal.
+
+
+==  Transformasi
+
+Seperti yang telah disebutkan sebelumnya, kebanyakan teks dalam bentuk NFC,
+yang mana karakter dasar dan pengubah digabungkan menjadi sebuah rune bila
+memungkinkan.
+Untuk menganalisis karakter, akan lebih mudah menangani rune setelah
+di-dekomposisi menjadi komponen terkecil.
+Di sinilah bentuk NFD sangat membantu.
+Contohnya, potongan kode berikut membuat sebuah `transform.Transformer` yang
+men-dekomposisi teks menjadi bagian-bagian kecil, menghapus semua aksen, dan
+kemudian melakukan komposisi ulang teks menjadi NFC:
+
+----
+import (
+	"unicode"
+
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
+)
+
+isMn := func(r rune) bool {
+	return unicode.Is(unicode.Mn, r) // Mn: nonspacing marks
+}
+t := transform.Chain(norm.NFD, transform.RemoveFunc(isMn), norm.NFC)
+----
+
+Hasil dari `Transformer` dapat digunakan untuk menghapus aksen-aksen dari
+`io.Reader`:
+
+----
+r = transform.NewReader(r, t)
+// read as before ...
+----
+
+Hal ini akan mengonversi "cafés" dalam teks menjadi "cafes", tanpa
+melihat bentuk normal dari teks aslinya.
+
+
+==  Info normalisasi
+
+Seperti yang telah disebutkan sebelumnya, beberapa paket melakukan
+pra-komputasi normalisasi ke dalam tabel-nya sendiri untuk mengurangi
+normalisasi saat _run-time_.
+Tipe `norm.Properties` menyediakan akses ke informasi per-rune yang dibutuhkan
+oleh paket tersebut, yang paling terkenal yaitu _Canonical Combining Class_
+dan dekomposisi informasi.
+Bacalah
+https://godoc.org/code.google.com/p/go.text/unicode/norm/#Properties[dokumentasi]
+tipe tersebut jika Anda ingin belajar lebih dalam.
+
+
+==  Kinerja
+
+Untuk mengetahui kinerja dari normalisasi, kita bandingkan dengan kinerja dari
+`strings.ToLower`.
+Sampel dari baris pertama dalam bentuk huruf kecil dan NFC semua.
+Sampel yang kedua bukan dalam huruf kecil dan bukan dalam bentuk NFC, sehingga
+membutuhkan penulisan versi yang baru.
+
+----
+Input                ToLower   NFC Append  NFC Transform  NFC Iter
+nörmalization 	     199 ns    137 ns      133 ns         251 ns (621 ns)
+No\u0308rmalization  427 ns    836 ns      845 ns         573 ns (948 ns)
+----
+
+Kolom dari hasil menggunakan iterator memperlihatkan pengukuran dengan dan
+tanpa inisiasi dari iterator, yang berisi buffer yang tidak perlu di-inisiasi
+ulang saat digunakan kembali.
+
+Seperti yang kita lihat, mendeteksi apakah sebuah string telah dinormalisasi
+bisa cukup efisien.
+Kebanyakan biaya normalisasi pada baris kedua adalah untuk inisiasi buffer,
+biaya yang dibayar saat kita harus memproses string yang besar.
+Dan ternyata, buffer tersebut jarang digunakan, sehingga kita mungkin mengubah
+implementasi-nya suatu saat nanti untuk mempercepat kasus-kasus umum untuk
+string-string berukuran kecil.
+
+
+== Kesimpulan
+
+Jika Anda berurusan dengan teks di dalam Go, Anda tidak perlu menggunakan
+paket `unicode/norm` untuk menormalisasi teks Anda.
+Paket tersebut bisa berguna untuk memastikan bahwa string dinormalisasi
+sebelum dikirim atau untuk manipulasi teks tingkat lanjut.
+
+Artikel ini secara singkat menyinggung paket-paket go.text lainnya berikut
+dengan pemrosesan teks multibahasa dan mungkin saja menimbulkan banyak
+pertanyaan daripada jawaban.
+Diskusi tentang topik-topik ini, bagaimana pun juga, harus menunggu di lain
+waktu.
+
+
+== Artikel terkait
+
+* link:/blogs/strings[String, byte, rune, dan karakter dalam Go]
