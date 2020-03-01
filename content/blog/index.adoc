@@ -32,6 +32,9 @@
 *  link:/blog/errors-are-values[Error adalah nilai],
    12 Januari 2015. _Rob Pike_
 
+*  link:/blog/playground[Membedah Go Playground],
+   12 Desember 2013. _Andrew Gerrand_
+
 *  link:/blog/normalization[Normalisasi teks dalam Go],
    26 November 2013. _Marcel van Lohuizen_
 
@@ -41,7 +44,7 @@
 *  link:/blog/slices[Array, slice (dan string): Mekanisme 'append']
    26 September 2013. _Rob Pike_
 
-*  link:/blog/introducing-go-playground/[ Memperkenalkan Go Playground],
+*  link:/blog/introducing-go-playground/[Memperkenalkan Go Playground],
    15 September 2010.  _Andrew Gerrand_
 
 

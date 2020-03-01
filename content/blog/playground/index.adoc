@@ -1,0 +1,505 @@
+= Membedah Go Playground
+:author: Andrew Gerrand
+:date: 12 Desember 2013
+
+==  Pendahuluan
+
+Pada bulan September 2010 kami
+link:/blog/introducing-go-playground[memperkenalkan Go Playground],
+sebuah layanan web yang mengompilasi dan mengeksekusi kode Go dan
+menampilkan keluarannya.
+
+Jika Anda adalah pemrogram Go maka kemungkinan Anda sudah pernah menggunakan
+playground lewat
+https://play.golang.org[Go Playground]
+secara langsung, melakukan
+https://tour.golang-id.org[Tur Go],
+atau menjalankan
+https://golang.org/pkg/strings/#pkg-examples[contoh]
+dari dokumentasi Go.
+
+Anda mungkin juga pernah pakai lewat tombol "Run" dalam salah satu presentasi
+di
+https://talks.golang.org/[talks.golang.org]
+atau artikel dalam situs ini (seperti artikel tentang
+link:/blog/strings[String]).
+
+Dalam artikel ini kita akan melihat bagaimana playground diimplementasikan dan
+diintegrasikan dengan layanan-layanan tersebut.
+Implementasi mengikutkan beragam lingkungan sistem operasi dan _runtime_ dan
+penjelasan kita sekarang mengasumsikan Anda akrab dengan pemrograman sistem
+menggunakan Go.
+
+
+==  Ikhtisar
+
+image:https://blog.golang.org/playground/overview.png[]
+
+Layanan playground memiliki tiga bagian:
+
+*  Sebuah _back-end_ yang berjalan di server Google.
+   Ia menerima permintaan RPC, mengompilasi program menggunakan perkakas go,
+   mengeksekusi program, dan mengembalikan keluaran program
+   (atau kesalahan kompilasi) sebagai respons RPC.
+
+*  Sebuah _front-end_ yang berjalan di
+   https://cloud.google.com/appengine/docs/go/[Google App Engine].
+   Ia menerima permintaan HTTP dari klien dan membuat permintaan RPC ke
+   _back-end_.
+   Ia juga melakukan beberapa _caching_.
+
+*  Sebuah klien JavaScript yang mengimplementasikan antar muka dan membuat
+   permintaan HTTP ke _front-end_.
+
+
+==  Back-end
+
+Program back-end itu sendiri cukup biasa, jadi kita tidak akan mendiskusikan
+implementasinya di sini.
+Bagian yang menarik yaitu bagaimana kita mengeksekusi kode secara aman dalam
+sebuah lingkungan terjaga dengan tetap menyediakan fungsionalitas inti seperti
+waktu, jaringan, dan sistem berkas.
+
+Untuk mengisolasi program pengguna dari infrastruktur Google, back-end
+menjalankan program dengan
+https://developers.google.com/native-client/[Native Client] (atau "NaCl"),
+sebuah teknologi yang dikembangkan oleh Google untuk membolehkan eksekusi
+program x86 dengan aman di dalam peramban.
+Back-end menggunakan versi khusus dari perkakas `go` yang menghasilkan program
+NaCl yang dapat dieksekusi.
+
+(Perkakas khusus ini telah digabungkan ke Go 1.3.
+Untuk belajar lebih lanjut, bacalah
+https://golang.org/s/go13nacl[dokumentasi rancangan].)
+
+NaCl membatasi jumlah CPU dan RAM yang dikonsumsi program, dan mencegah
+program dari mengakses jaringan atau sistem berkas.
+Hal ini menimbulkan sebuah masalah.
+Dukungan konkurensi dan jaringan dalam Go adalah beberapa dari kunci
+kekuatannya, dan akses ke sistem berkas adalah hal yang vital bagi banyak
+program.
+Untuk dapat mendemonstrasikan konkurensi secara efektif kita membutuhkan akses
+ke waktu pada sistem, dan untuk mendemonstrasikan jaringan dan sistem berkas
+kita membutuhkan akses ke sebuah jaringan dan sebuah sistem berkas.
+
+Walaupun semuanya telah didukung sekarang ini, versi pertama dari playground,
+yang diluncurkan tahun 2010, tidak memiliki semua hal tersebut.
+Waktu sekarang di-set baku ke 10 November 2009, `time.Sleep` tidak memiliki
+efek, dan kebanyakan fungsi dalam paket `os` dan `net` dimatikan dengan
+mengembalikan eror `EINVALID`.
+
+Setahun yang lalu kami
+https://groups.google.com/d/msg/golang-nuts/JBsCrDEVyVE/30MaQsiQcWoJ[mengimplementasikan
+waktu palsu] dalam playground, supaya program yang memanggil `Sleep` dapat
+bekerja dengan benar.
+Pembaruan terakhir dari playground memperkenalkan jaringan palsu dan sistem
+berkas palsu, membuat perkakas playground hampir sama dengan perkakas Go yang
+normal.
+Fasilitas-fasilitas tersebut dijelaskan dalam bagian-bagian di bawah ini.
+
+
+=== Pemalsuan waktu
+
+Program-program yang berjalan di playground dibatasi jumlah waktu CPU dan
+memori yang dapat mereka gunakan, tetapi mereka juga dibatasi dalam berapa
+banyak waktu yang dapat mereka gunakan.
+Hal ini karena setiap program yang berjalan mengonsumsi sumber pada back-end
+dan pada infrastruktur antara klien dan back-end.
+Membatasi _run-time_ dari setiap program di playground membuat layanan kita
+lebih dapat diprediksi dan menjaga kita dari serangan _denial of service_.
+
+Namun batasan ini menjadi bermasalah saat kode yang dieksekusi menggunakan
+fungsi-fungsi waktu.
+Wicara
+https://talks.golang.org/2012/concurrency.slide[Pola Konkurensi Go]
+mendemonstrasikan konkurensi dengan contoh-contoh yang menggunakan fungsi
+waktu seperti
+https://golang.org/pkg/time/#Sleep[`time.Sleep`] dan
+https://golang.org/pkg/time/#After[`time.After`].
+Bila dijalankan pada versi playground yang lama, maka `Sleep` pada program
+tidak berpengaruh dan perilakunya akan aneh (dan terkadang salah).
+
+Dengan menggunakan sebuah trik kita dapat membuat sebuah program Go _berpikir_
+bahwa ia tertidur, padahal sebenarnya peniduran ini tidak memakan waktu sama
+sekali.
+Untuk dapat menjelaskan trik ini kita harus memahami bagaimana penjadwal
+(_scheduler_) mengatur goroutine yang tertidur.
+
+Saat sebuah goroutine memanggil `time.Sleep` (atau fungsi yang mirip) si
+_scheduler_ menambahkan sebuah _timer_ ke sebuah _heap_ dari _timer_ yang
+ditunda dan menempatkan goroutine ke mode tidur.
+Sementara itu, sebuah goroutine _timer_ khusus mengatur _heap_ tersebut.
+Saat goroutine _timer_ berjalan ia memberitahu si _scheduler_ untuk
+membangunkannya saat _timer_ yang tertunda selanjutnya telah siap berjalan dan
+kemudian mulai tidur.
+Saat ia bangun, ia akan memeriksa _timer_ mana saja yang telah kedaluwarsa,
+dan membangunkan goroutine tersebut, dan lanjut tidur kembali.
+
+Triknya adalah dengan mengubah kondisi yang membangunkan goroutine _timer_.
+Bukan dengan bangun setelah periode waktu tertentu, kita memodifikasi si
+_scheduler_ untuk menunggu sampai sebuah _deadlock_, keadaan yang mana semua
+goroutine diblok.
+
+Versi playground dari _runtime_ mengatur waktu internalnya sendiri.
+Saat si _scheduler_ mendeteksi sebuah _deadlock_ ia akan memeriksa apakah ada
+_timer_ yang tertunda.
+Jika ada, ia memajukan waktu internal ke waktu _trigger_ dari _timer_ paling
+awal dan kemudian membangunkan goroutine _timer_.
+Eksekusi terus berjalan dan program percaya bahwa waktu telah lewat, pada
+kenyataannya waktu tidur berjalan secara instan.
+
+Perubahan dalam _scheduler_ ini dapat ditemukan dalam
+https://golang.org/cl/73110043[proc.c]
+dan
+https://golang.org/cl/73110043[time.goc].
+
+Pemalsuan waktu memperbaiki beberapa isu dari penggunaan sumber daya pada
+back-end, tetapi bagaimana dengan keluaran program?
+Akan aneh melihat sebuah program yang tertidur berjalan sampai selesai dengan
+benar tanpa menghabiskan waktu sama sekali.
+
+Program berikut mencetak waktu saat ini setiap detik dan kemudian keluar
+setelah tiga detik.
+Coba jalankan.
+
+----
+func main() {
+    stop := time.After(3 * time.Second)
+    tick := time.NewTicker(1 * time.Second)
+    defer tick.Stop()
+    for {
+        select {
+        case <-tick.C:
+            fmt.Println(time.Now())
+        case <-stop:
+            return
+        }
+    }
+}
+----
+
+Bagaimana ia bekerja?
+Ia bekerja dengan kolaborasi antara back-end, front-end, dan klien.
+
+Kita menangkap tempo pada setiap penulisan ke standar keluaran dan eror dan
+mengirimnya ke klien.
+Kemudian klien dapat "menjalankan ulang" penulisan tersebut dengan tempo yang
+tepat, sehingga keluaran muncul seperti program berjalan secara benar di
+lokal komputer Anda.
+
+Paket _runtime_ pada playground menyediakan sebuah fungsi
+https://github.com/golang/go/blob/go1.3/src/pkg/runtime/sys_nacl_amd64p32.s#L54[`write`
+khusus]
+yang mengikutkan sebuah "playback header" sebelum setiap penulisan.
+Playback header tersebut berisi sebuah string, waktu sekarang, dan panjang
+data yang ditulis.
+Sebuah penulisan dengan playback header memiliki struktur berikut:
+
+----
+0 0 P B <8-byte time> <4-byte data length> <data>
+----
+
+Keluaran mentah dari program seperti di atas bentuknya seperti berikut:
+
+----
+\x00\x00PB\x11\x74\xef\xed\xe6\xb3\x2a\x00\x00\x00\x00\x1e2009-11-10 23:00:01 +0000 UTC
+\x00\x00PB\x11\x74\xef\xee\x22\x4d\xf4\x00\x00\x00\x00\x1e2009-11-10 23:00:02 +0000 UTC
+\x00\x00PB\x11\x74\xef\xee\x5d\xe8\xbe\x00\x00\x00\x00\x1e2009-11-10 23:00:03 +0000 UTC
+----
+
+Front-end membaca keluaran tersebut sebagai sekumpulan even dan mengembalikan
+daftar even tersebut ke klien sebagai sebuah objek JSON:
+
+----
+{
+    "Errors": "",
+    "Events": [
+        {
+            "Delay": 1000000000,
+            "Message": "2009-11-10 23:00:01 +0000 UTC\n"
+        },
+        {
+            "Delay": 1000000000,
+            "Message": "2009-11-10 23:00:02 +0000 UTC\n"
+        },
+        {
+            "Delay": 1000000000,
+            "Message": "2009-11-10 23:00:03 +0000 UTC\n"
+        }
+    ]
+}
+----
+
+Klien JavaScript (yang berjalan dalam peramban pengguna) kemudian menjalankan
+setiap even menggunakan interval delay yang diberikan.
+Dari sisi pengguna ia tampak seperti program yang berjalan seperti biasa.
+
+
+===  Pemalsuan sistem berkas
+
+Program yang dibangun dengan perkakas Go NaCl tidak dapat mengakses sistem
+berkas dari mesin lokal.
+Namun fungsi-fungsi pada paket `syscall` yang berkaitan dengan berkas (seperti
+`Open`, `Read`, `Write`, dan seterusnya) beroperasi dalam sistem berkas di
+dalam memori yang diimplementasikan oleh paket `syscall` itu sendiri.
+Secara paket `syscall` adalah antar muka antara kode Go dan kernel pada sistem
+operasi, program melihat sistem berkas persis seperti yang mereka lihat di
+dunia nyata.
+
+Contoh program berikut menulis data ke sebuah berkas, dan kemudian menyalin
+isi berkas tersebut ke standar keluaran.
+Cobalah jalankan. (Anda bisa mengubahnya juga!)
+
+----
+func main() {
+    const filename = "/tmp/file.txt"
+
+    err := ioutil.WriteFile(filename, []byte("Hello, file system\n"), 0644)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    b, err := ioutil.ReadFile(filename)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("%s", b)
+}
+----
+
+Saat proses mulai berjalan, sistem berkas diisi dengan beberapa perangkat di
+bawah `/dev` dan sebuah direktori `/tmp` yang kosong.
+Program dapat memanipulasi sistem berkas seperti biasa, tetapi saat program
+selesai setiap perubahan pada sistem berkas akan hilang.
+
+Ada juga sebuah perlengkapan yang memuat berkas zip ke dalam sistem berkas
+pada saat init (lihat
+https://github.com/golang/go/blob/go1.3/src/pkg/syscall/unzip_nacl.go[unzip_nacl.go]).
+Sejauh ini kita hanya menggunakan fasilitas unzip untuk menyediakan
+berkas-berkas data yang dibutuhkan untuk menjalankan pustaka standar
+pengujian, tetapi kami ingin menyediakan program playground dengan sekumpulan
+berkas yang dapat digunakan dalam contoh-contoh dokumentasi, artikel blog, dan
+tur Go.
+
+Implementasinya dapat ditemukan dalam berkas
+https://github.com/golang/go/blob/master/src/syscall/fs_nacl.go[fs_nacl.go]
+dan
+https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go[fd_nacl.go]
+(yang dibangun ke paket `syscall` hanya bila `GOOS` di set ke `nacl`).
+
+Sistem berkas itu sendiri direpresentasikan oleh
+https://github.com/golang/go/blob/master/src/syscall/fs_nacl.go#L26[struct
+fsys],
+yang mana sebuah instansi global (bernama `fs`) dibuat saat inisiasi.
+Beragam fungsi-fungsi berkas beroperasi terhadap `fs` bukan melakukan
+pemanggilan sistem secara langsung.
+Misalnya, berikut fungsi
+https://github.com/golang/go/blob/master/src/syscall/fs_nacl.go#L473[syscall.Open]:
+
+----
+func Open(path string, openmode int, perm uint32) (fd int, err error) {
+    fs.mu.Lock()
+    defer fs.mu.Unlock()
+    f, err := fs.open(path, openmode, perm&0777|S_IFREG)
+    if err != nil {
+        return -1, err
+    }
+    return newFD(f), nil
+}
+----
+
+Penanda berkas (_file descriptor_) dilacak oleh sebuah slice global bernama
+https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go#L17[`files`].
+Setiap penanda berkas berkorespondensi dengan sebuah
+https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go#L23[`file`]
+dan setiap `file` menyediakan nilai yang mengimplementasikan interface
+https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go#L30[`fileImpl`].
+Ada beberapa implementasi dari interface tersebut:
+
+*  Berkas dan perangkat biasa (seperti `/dev/random`) direpresentasikan oleh
+https://github.com/golang/go/blob/master/src/syscall/fs_nacl.go#L58[`fsysFile`],
+*  Standar masukan, keluaran, dan eror adalah instansi dari
+https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go#L216[`naclFile`],
+yang menggunakan pemanggilan sistem untuk berinteraksi dengan berkas yang
+sebenarnya (hal ini adalah satu-satunya cara program berinteraksi dengan dunia
+luar),
+*  _socket_ jaringan memiliki implementasinya sendiri, yang didiskusikan pada
+   bagian bawah.
+
+
+===  Pemalsuan jaringan
+
+Seperti pada sistem berkas, jaringan komputer pada playground adalah sebuah
+pemalsuan proses yang diimplementasikan oleh paket `syscall`.
+Ia membolehkan playground menggunakan interface _loopback_ (`127.0.0.1`).
+Permintaan ke host yang lain akan gagal.
+
+Sebagai contoh, jalankan program berikut.
+Ia akan membuka port TCP, menunggu koneksi yang masuk, menyalin data dari
+koneksi tersebut ke standar keluaran, dan keluar.
+Di dalam goroutine yang lain, ia membuat koneksi ke port yang terbuka
+tersebut, menulis sebuah string ke koneksi, dan menutupnya.
+
+----
+func main() {
+    l, err := net.Listen("tcp", "127.0.0.1:4000")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer l.Close()
+
+    go dial()
+
+    c, err := l.Accept()
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+
+    io.Copy(os.Stdout, c)
+}
+
+func dial() {
+    c, err := net.Dial("tcp", "127.0.0.1:4000")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer c.Close()
+    c.Write([]byte("Hello, network\n"))
+}
+----
+
+Antarmuka dari jaringan lebih kompleks dari sistem berkas, sehingga
+implementasi dari pemalsuan jaringan lebih besar dan kompleks daripada
+pemalsuan sistem berkas.
+Pemalsuan jaringan harus dapat menyimulasikan _timeout_ baca dan tulis,
+tipe-tipe alamat dan protokol yang berbeda, dan seterusnya.
+
+Implementasi tersebut dapat ditemukan dalam
+https://github.com/golang/go/blob/master/src/syscall/net_nacl.go[net_nacl.go].
+Bagian awal yang bagus untuk dibaca yaitu
+https://github.com/golang/go/blob/master/src/syscall/net_nacl.go#L461[netFile],
+implementasi dari jaringan socket dari interface `fileImpl`.
+
+
+==  Front-end
+
+Front-end dari playground adalah program sederhana (kurang dari 100 baris).
+Ia menerima permintaan HTTP dari klien, membuat permintaan RPC ke back-end,
+dan melakukan semacam penyimpanan sementara (_caching_).
+
+Front-end melayani HTTP dengan sebuah _handler_ di
+https://golang.org/compile.
+Handler tersebut menerima permintaan POST dengan bagian `body` (program Go
+yang akan dijalankan) dan kolom `version` opsional (untuk klien pada umumnya
+nilainya "2").
+
+Saat front-end menerima permintaan kompilasi, pertama ia akan memeriksa
+https://developers.google.com/appengine/docs/memcache/[memcache]
+untuk melihat apakah ia pernah menyimpan hasil kompilasi dari kode yang sama
+sebelumnya.
+Jika ditemukan, ia akan mengembalikan respons yang tersimpan tersebut.
+_Cache_ tersebut mencegah program yang umum seperti yang dapat kita temukan
+pada
+https://golang.org/[halaman depan Go]
+dari menghabiskan sumber daya pada back-end.
+Jika tidak ada respons yang tersimpan, front-end melakukan pemanggilan RPC ke
+back-end, menyimpan respons ke dalam memcache, membaca even-event, dan
+mengembalikan sebuah objek JSON ke klien sebagai respons HTTP (seperti yang
+dijelaskan di atas).
+
+
+==  Klien
+
+Beragam situs yang menggunakan playground memiliki kode JavaScript yang sama
+untuk menyiapkan antarmuka pengguna (kotak kode dan keluaran, tombol "Run",
+dan lainnya) dan berkomunikasi dengan front-end playground.
+
+Implementasinya ada dalam berkas
+https://github.com/golang/tools/blob/master/godoc/static/playground.js[playground.js]
+dalam repositori `go.tools`, yang dapat diimpor dari paket
+https://godoc.org/golang.org/x/tools/godoc/static[`golang.org/x/tools/godoc/static`].
+Beberapa kodenya cukup bersih dan beberapa cukup kasar karena ia adalah hasil
+gabungan dari beberapa implementasi dari kode klien.
+
+Fungsi
+https://github.com/golang/tools/blob/master/godoc/static/playground.js#L227[playground]
+membaca beberapa elemen HTML dan mengubahnya menjadi _widget_ playground yang
+interaktif.
+Anda sebaiknya menggunakan fungsi ini jika Anda ingin menempatkan playground
+pada situs Anda (lihat `Klien lain` di bawah).
+
+Interface
+https://github.com/golang/tools/blob/master/godoc/static/playground.js#L6[`Transport`]
+(tidak secara formal terdefinisi)
+mengabstraksi antarmuka pengguna untuk berkomunikasi ke front-end web.
+https://github.com/golang/tools/blob/master/godoc/static/playground.js#L43[HTTPTransport]
+adalah sebuah implementasi dari `Transport` menggunakan protokol HTTP seperti
+yang dijelaskan di atas.
+https://github.com/golang/tools/blob/master/godoc/static/playground.js#L115[SocketTransport]
+adalah implementasi menggunakan WebSocket (lihat "Eksekusi luring" di bawah).
+
+Untuk memenuhi
+https://en.wikipedia.org/wiki/Same-origin_policy[aturan same-origin],
+beberapa server web (godoc, misalnya) mengirim permintaan ke `/compile` lewat
+layanan proxy playground di https://golang.org/compile.
+Paket 
+https://godoc.org/golang.org/x/tools/playground[golang.org/x/tools]
+membantu melakukan hal ini.
+
+
+==  Eksekusi luring
+
+Baik
+https://tour.golang-id.org/[tur Go]
+dan
+https://godoc.org/golang.org/x/tools/present[perkakas Present]
+dapat berjalan secara luring.
+Hal ini bagus untuk yang memiliki koneksi internet yang terbatas atau untuk
+presentasi yang tidak dapat (dan _sebaiknya_ tidak) bergantung pada koneksi
+internet yang selalu bekerja baik.
+
+Untuk eksekusi secara luring, perkakas menjalankan versi back-end
+playground-nya sendiri di mesin lokal.
+Back-end menggunakan perkakas Go biasa tanpa ada modifikasi yang disebutkan di
+atas dan menggunakan WebSocket untuk berkomunikasi dengan klien.
+
+Implementasi WebSocket untuk back-end dapat ditemukan dalam paket
+https://godoc.org/golang.org/x/tools/playground/socket[golang.org/x/tools/playground/socket].
+Wicara
+https://talks.golang.org/2012/insidepresent.slide#1[Inside Present]
+mendiskusikan kode ini secara rinci.
+
+
+==  Klien lain
+
+Layanan playground digunakan oleh banyak proyek Go (
+https://gobyexample.com/[Go by Example] adalah salah satunya)
+dan kami suka bila Anda menggunakannya pada situs Anda sendiri.
+Apa yang kami harapkan yaitu supaya Anda
+mailto:golang-dev@googlegroups.com[kontak kami terlebih dahulu],
+menggunakan "user-agent" yang unik dalam permintaan Anda (sehingga kita dapat
+mengidentifikasi Anda), dan layanan Anda menguntungkan komunitas Go.
+
+
+==  Kesimpulan
+
+Dari godoc sampai tur sampai artikel ini, playground telah menjadi bagian
+penting dari sejarah dokumentasi Go.
+Dengan adanya penambahan sistem berkas dan jaringan palsu kami bergairah untuk
+mengembangkan materi-materi pembelajaran supaya dapat membahas hal-hal
+tersebut.
+
+Namun, pada akhirnya, playground itu hanyalah puncak.
+Dengan dukungan Native Client yang dijadwalkan dalam Go 1.3, kami berharap
+dapat melihat apa yang komunitas dapat lakukan dengannya.
+
+_Artikel ini adalah bagian ke 12 dari_
+https://blog.gopheracademy.com/go-advent-2013[Go Advent Calendar]
+_sebuah kumpulan artikel blog harian sampai Desember._
+
+
+==  Artikel terkait
+
+* link:/blog/introducing-go-playground[Memperkenalkan Go Playground]
