@@ -2,6 +2,9 @@
 
 ==  Indeks
 
+*  link:/blog/go1.14[Go 1.14 telah dirilis],
+   25 Februari 2020. _Alex Rakoczy_
+
 *  link:/blog/pkg.go.dev-2020[Langkah selanjutnya untuk pkg.go.dev],
    31 Januari 2020.
    _Julie Qiu_

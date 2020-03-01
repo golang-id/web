@@ -1,0 +1,33 @@
+=  Go 1.14 telah dirilis
+:author: Alex Rakoczy
+:date: 25 Februari 2020
+
+Hari ini tim Go sangat senang mengumumkan rilis dari Go 1.14.
+Anda bisa mendapatkannya lewat
+https://golang.org/dl[halaman unduhan].
+
+Beberapa sorotan dari rilis ini yaitu:
+
+*  Dukungan modul dalam perintah `go` sekarang telah stabil.
+   Kami mendorong semua pengguna untuk
+   https://golang.org/doc/go1.14#introduction[migrasi ke go modul sebagai
+   manajemen dependensi].
+*  https://golang.org/doc/go1.14#language[Penanaman interface dengan kumpulan
+   method yang sama]
+*  https://golang.org/doc/go1.14#runtime[Peningkatan kinerja `defer`]
+*  https://golang.org/doc/go1.14#runtime[Goroutine sekarang _asynchronously preemptible_]
+*  https://golang.org/doc/go1.14#runtime[Alokasi _page_ yang lebih efisien]
+*  https://golang.org/doc/go1.14#runtime[_Timer_ internal yang lebih efisien]
+
+Untuk daftar lengkap dari perubahan dan informasi lain tentang peningkatan di
+atas dapat dilihat di
+https://golang.org/doc/go1.14[catatan rilis Go 1.14].
+
+Kami berterima kasih kepada semua orang yang telah berkontribusi terhadap
+rilis ini baik dengan menulis kode, melaporkan _bug_, menyediakan balasan,
+dan/atau menguji beta dan rilis kandidat.
+Kontribusi dan ketekunan Anda membantu menjamin Go 1.14 supaya tetap stabil.
+Jika Anda memiliki masalah, silakan
+https://golang.org/issue/new[melaporkan isu].
+
+Kami berharap Anda senang dengan rilis baru ini!
