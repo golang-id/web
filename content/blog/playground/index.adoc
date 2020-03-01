@@ -502,4 +502,5 @@ _sebuah kumpulan artikel blog harian sampai Desember._
 
 ==  Artikel terkait
 
+* link:/blog/learn-go-from-your-browser[Belajar Go lewat peramban Anda]
 * link:/blog/introducing-go-playground[Memperkenalkan Go Playground]

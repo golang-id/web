@@ -1,0 +1,30 @@
+= Belajar Go lewat peramban Anda
+:author: Andrew Gerrand
+:date: 4 Oktober 2011
+
+Kami sangat senang mengumumkan
+https://tour.golang-id.org/[Sebuah tur dari Go],
+sebuah panduan tur dari bahasa pemrograman Go yang dapat Anda jalankan lewat
+peramban Anda.
+
+Tur tersebut mendemonstrasikan bahasa lewat contoh-contoh kode yang dapat Anda
+ubah, kompilasi, dan jalankan lewat situs tur itu sendiri.
+(Teknologi
+https://golang.org/doc/play/[Go Playground]
+yang bekerja di belakangnya.)
+
+Tur tersebut memiliki tiga bagian.
+Bagian pertama membahas sintaksis dasar dan struktur data;
+bagian kedua mendiskusikan method dan interface;
+dan yang ketiga memperkenalkan konkurensi.
+Setiap bagian berakhir dengan beberapa latihan supaya Anda dapat melatih apa
+yang Anda pelajari.
+
+Jadi, tunggu apa lagi?
+https://tour.golang-id.org/[Mulailah sekarang!]
+
+
+==  Artikel terkait
+
+*  link:/blog/playground[Membedah Go Playgound]
+*  link:/blog/introducing-go-playground/[Memperkenalkan Go Playground]

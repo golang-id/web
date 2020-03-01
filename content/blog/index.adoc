@@ -41,8 +41,11 @@
 *  link:/blog/strings[String, byte, rune, dan karakter dalam Go],
    23 Oktober 2013. _Rob Pike_
 
-*  link:/blog/slices[Array, slice (dan string): Mekanisme 'append']
+*  link:/blog/slices[Array, slice (dan string): Mekanisme 'append'],
    26 September 2013. _Rob Pike_
+
+*  link:/blog/learn-go-from-your-browser[Belajar Go lewat peramban Anda],
+   4 Oktober 2011. _Andrew Gerrand_
 
 *  link:/blog/introducing-go-playground/[Memperkenalkan Go Playground],
    15 September 2010.  _Andrew Gerrand_
