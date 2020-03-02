@@ -35,24 +35,20 @@ lebih lanjut, silakan buka halaman link:/doc[dokumentasi].
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
 
+*  link:/blog/go1.14[Go 1.14 telah dirilis],
+   25 Februari 2020.  _Alex Rakoczy_
+
 *  link:/blog/pkg.go.dev-2020[Langkah selanjutnya untuk pkg.go.dev],
-   31 Januari 2020.
-   _Julie Qiu_
+   31 Januari 2020.  _Julie Qiu_
 
 *  link:/blog/go1.15-proposals[Proposal untuk Go 1.15],
-   28 Januari 2020.
-   _Robert Griesemer_, untuk tim Go
+   28 Januari 2020.  _Robert Griesemer_, untuk tim Go
 
-*  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019], 20 November
-   2019.
-   _Todd Kulesza_
+*  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019],
+   20 November 2019.  _Todd Kulesza_
 
-*  link:/blog/go.dev[Go.dev: pusat kegiatan baru untuk pengembang Go], 13
-   November 2019.
-   _Steve Francia dan Julie Qiu_
-
-*  link:/blog/10years[Ulang tahun Go ke 10], 8 November 2019.
-   _Russ Cox, untuk tim Go_
+*  link:/blog/go.dev[Go.dev: pusat kegiatan baru untuk pengembang Go],
+   13 November 2019.  _Steve Francia dan Julie Qiu_
 
 baca artikel blog link:/blog[lainnya].
 
