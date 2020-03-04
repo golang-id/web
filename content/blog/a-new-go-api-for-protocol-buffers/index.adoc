@@ -1,0 +1,327 @@
+=  Go API baru untuk Protocol Buffers
+:author: Joe Tsai, Damien Neil, dan Herbie Ong
+:date: 2 Maret 2020
+
+==  Pendahuluan
+
+Dengan suka cita kami merilis revisi mayor dari Go API untuk
+https://developers.google.com/protocol-buffers[protocol buffers], format
+pertukaran data yang mendukung banyak bahasa pemrograman dari Google.
+
+
+==  Motivasi bagi API yang baru
+
+_Protocol buffers_ yang pertama untuk Go
+https://blog.golang.org/third-party-libraries-goprotobuf-and[diumumkan oleh
+Rob Pike]
+pada bulan Maret 2010.
+Go 1 belum dirilis sampai dua tahun kemudian.
+
+Satu dekade sejak rilis yang pertama, paket tersebut teluh tumbuh dan
+berkembang bersama dengan Go.
+Kebutuhan pengguna pun semakin besar juga.
+
+Banyak orang ingin menulis program yang menggunakan refleksi untuk memeriksa
+_message_ dalam _protocol buffer_.
+Paket
+https://pkg.go.dev/reflect[reflect]
+menyediakan tipe dan nilai untuk Go, tetapi mengindahkan informasi dari sistem
+tipe _protocol buffer_.
+Misalnya, kita ingin memiliki sebuah fungsi yang memeriksa isi sebuah pesan
+_log_ dan menghapus setiap field yang berisi data sensitif yang sebelumnya
+telah diberi anotasi.
+Anotasi tersebut bukan bagian dari sistem tipe Go.
+
+Salah satu kebutuhan umum lainnya yaitu menggunakan struktur data yang bukan
+dihasilkan oleh _compiler_ protocol buffer, seperti tipe _message_ yang
+dinamis yang dapat merepresentasikan _message_ yang tipenya tidak diketahui
+saat di-kompilasi.
+
+Kami juga menelaah bahwa sebuah sumber permasalahan yang sering ditemukan
+yaitu interface
+https://pkg.go.dev/github.com/golang/protobuf/proto?tab=doc#Message[proto.Message],
+yang mengidentifikasi nilai dari tipe _Message_ yang dibangkitkan
+(_generated_), memiliki manfaat yang sedikit dalam menjelaskan perilaku dari
+tipe-tipe tersebut.
+Saat pengguna membuat tipe yang mengimplementasikan interface tersebut (sering
+kali dengan menanam _Message_ di dalam struct yang lain) dan mengirim
+nilai dari tipe tersebut ke fungsi yang mengharapkan nilai _message_ yang
+hasil pembangkitan, program menjadi _crash_ atau tidak terprediksi.
+
+Ketiga permasalahan ini punya penyebab yang sama, dan sebuah solusi yang sama:
+interface `Message` seharusnya secara penuh menspesifikasikan perilaku dari
+sebuah _message_, dan fungsi-fungsi yang mengoperasikan nilai dari `Message`
+seharusnya dapat menerima tipe apa pun yang secara benar mengimplementasikan
+interface tersebut.
+
+Secara kita tidak bisa mengubah definisi dari tipe `Message` yang sekarang dan
+tetap menjaga kompatibilitas dari paket API, kami memutuskan untuk mulai
+membuat versi mayor yang baru yang tidak kompatibel dengan modul `protobuf`.
+
+Hari ini, kita merilis modul baru tersebut.
+Kami harap Anda menyukainya.
+
+
+==  Refleksi
+
+Refleksi adalah fitur andalan dari implementasi yang baru.
+Mirip dengan bagaimana paket `reflect` menyediakan sebuah tipe dan nilai pada
+Go, paket
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc[`google.golang.org/protobuf/reflect/protoreflect`]
+menyediakan sebuah nilai menurut sistem tipe _protocol buffer_.
+
+Deskripsi lengkap dari paket `protoreflect` akan terlalu panjang bila
+dijelaskan di sini, tetapi mari kita lihat bagaimana kita dapat menulis fungsi
+yang membersihkan pesan _log_ seperti yang kita sebut sebelumnya.
+
+Pertama, kita tulis berkas `.proto` mendefinisikan ekstensi dari tipe
+https://github.com/protocolbuffers/protobuf/blob/b96241b1b716781f5bc4dc25e1ebb0003dfaba6a/src/google/protobuf/descriptor.proto#L509[`google.protobuf.FieldOptions`]
+supaya kita dapat menambahkan anotasi pada field-field yang berisi informasi
+yang sensitif atau tidak.
+
+----
+syntax = "proto3";
+import "google/protobuf/descriptor.proto";
+package golang.example.policy;
+extend google.protobuf.FieldOptions {
+    bool non_sensitive = 50000;
+}
+----
+
+Kita kemudian menggunakan opsi ini untuk menandai field-field tertentu
+yang tidak sensitif.
+
+----
+message MyMessage {
+    string public_name = 1 [(golang.example.policy.non_sensitive) = true];
+}
+----
+
+Selanjutnya, kita tulis sebuah fungsi Go yang menerima nilai `Message` apa pun
+dan menghapus semua field-field yang sensitif.
+
+----
+// Redact clears every sensitive field in pb.
+func Redact(pb proto.Message) {
+   // ...
+}
+----
+
+Fungsi ini menerima sebuah
+https://pkg.go.dev/google.golang.org/protobuf/proto?tab=doc#Message[`proto.Message`],
+tipe interface yang diimplementasikan oleh semua tipe message hasil
+pembangkitan.
+Tipe tersebut adalah alias dari yang tipe yang didefinisikan dalam paket
+`protoreflect`:
+
+----
+type ProtoMessage interface {
+    ProtoReflect() Message
+}
+----
+
+Untuk menghindari penuhnya _namespace_ dari `Message` hasil pembangkitan,
+interface tersebut hanya berisi sebuah method yang mengembalikan
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Message[`protoreflect.Message`],
+yang menyediakan akses ke isi `message`.
+
+Kenapa alias?
+Karena `protoreflect.Message` memiliki method yang mengembalikan
+`proto.Message` yang asli, dan kita harus menghindari pengulangan impor
+(_import cycle_) antara kedua paket tersebut.
+
+Method
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Message.Range[`protoreflect.Message.Range`]
+memanggil sebuah fungsi untuk setiap field dalam sebuah `Message`.
+
+----
+m := pb.ProtoReflect()
+m.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+    // ...
+    return true
+})
+----
+
+Fungsi `Range` dipanggil dengan sebuah
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#FieldDescriptor[`protoreflect.FieldDescriptor`]
+yang mendeskripsikan tipe _protocol buffer_ dari field, dan sebuah
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Value[`protoreflect.Value`]
+yang berisi nilai dari field.
+
+Method
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Descriptor.Options[`protoreflect.FieldDescriptor.Options`]
+mengembalikan field sebagai sebuah `google.protobuf.FieldOptions`.
+
+----
+opts := fd.Options().(*descriptorpb.FieldOptions)
+----
+
+(Kenapa pakai asersi tipe?
+Karena paket `descriptorpb` bergantung pada `protoreflect`, paket
+`protoreflect` tidak dapat mengembalikan tipe konkrit dari `Options` tanpa
+mengakibatkan pengulangan impor.)
+
+Kemudian kita dapat memeriksa `opts` untuk melihat nilai dari ekstensi
+boolean kita sebelumnya:
+
+----
+if proto.GetExtension(opts, policypb.E_NonSensitive).(bool) {
+    return true // don't redact non-sensitive fields
+}
+----
+
+Ingatlah bahwa yang perlu diperhatikan di sini yaitu field _descriptor_.
+Informasi yang ingin kita ketahui berada dalam sistem tipe _protocol buffer_,
+bukan dalam sistem tipe Go.
+
+Hal ini juga merupakan contoh wilayah di mana kita telah menyederhanakan API
+dari paket `proto`.
+https://pkg.go.dev/github.com/golang/protobuf/proto?tab=doc#GetExtension[`proto.GetExtension`]
+yang aslinya mengembalikan sebuah nilai dan sebuah error.
+Fungsi
+https://pkg.go.dev/google.golang.org/protobuf/proto?tab=doc#GetExtension[`proto.GetExtension`]
+yang baru mengembalikan hanya nilai, atau nilai baku dari field bila tidak
+ada.
+Kesalahan dekode dari ekstensi dilaporkan saat `Unmarshal`.
+
+Saat kita mengetahui field mana yang perlu dihilangkan, kode untuk menghapus
+field tersebut cukup dengan:
+
+----
+m.Clear(fd)
+----
+
+Bila semua kode di atas digabung, fungsi `Redact` kita menjadi:
+
+----
+// Redact clears every sensitive field in pb.
+func Redact(pb proto.Message) {
+    m := pb.ProtoReflect()
+    m.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+        opts := fd.Options().(*descriptorpb.FieldOptions)
+        if proto.GetExtension(opts, policypb.E_NonSensitive).(bool) {
+            return true
+        }
+        m.Clear(fd)
+        return true
+    })
+}
+----
+
+Implementasi yang komplit bisa secara rekursif sampai ke field-field dalam
+`Message`.
+Kami berharap dengan contoh sederhana ini dapat memberi Anda bayangan terhadap
+penggunaan refleksi pada _protocol buffer_.
+
+
+==  Versi
+
+Kami menyebut versi asli dari Go _protocol buffer_ sebagai APIv1, dan yang
+baru APIv2.
+Karena APIv2 tidak kompatibel dengan APIv1, kita membutuhkan path modul yang
+berbeda.
+
+(Versi API ini tidak sama dengan versi dari bahasa _protocol buffer_:
+`proto1`, `proto2`, dan `proto3`.
+APIv1 dan APIv2 adalah implementasi dalam Go yang mendukung versi bahasa
+`proto2` dan `proto3`.)
+
+Modul
+https://pkg.go.dev/github.com/golang/protobuf?tab=overview[`github.com/golang/protobuf`]
+adalah APIv1.
+
+Modul
+https://pkg.go.dev/google.golang.org/protobuf?tab=overview[`google.golang.org/protobuf`]
+adalah APIv2.
+Kami telah mengambil mengubah path impor dengan beralih ke tempat yang tidak
+bergantung pada penyedia layanan hosting.
+(Kami juga mempertimbangkan `google.golang.org/protobuf/v2`, untuk memperjelas
+bahwa ini adalah versi mayor kedua dari API, tetapi kemudian memutuskan untuk
+memilih path yang pendek untuk keuntungan jangka panjang.)
+
+Kami tahu bahwa tidak semua pengguna akan pindah ke versi mayor yang baru pada
+saat bersamaan.
+Beberapa akan langsung pindah;
+yang lain bisa jadi tetap menggunakan versi lama seterusnya.
+Bahkan dalam sebuah program, beberapa bagian bisa jadi pakai API yang lama dan
+bagian lain menggunakan yang baru.
+Sangat penting bahwa kami terus mendukung program yang menggunakan APIv1.
+
+*  `github.com/golang/protobuf@v1.3.4` adalah versi paling terbaru pra-APIv2
+   dari APIv1.
+
+*  `github.com/golang/protobuf@v1.4.0` adalah versi APIv1 yang
+   diimplementasikan dengan APIv2.
+   API-nya tetap sama, tetapi implementasi dibelakangnya menggunakan yang
+   baru.
+   Versi ini berisi fungsi-fungsi untuk mengonversi interface `proto.Message`
+   antara APIv1 dan APIv2 untuk memudahkan transisi antara keduanya.
+
+*  `google.golang.org/protobuf@v1.20.0` adalah APIv2.
+   Modul ini bergantung pada `github.com/golang/protobuf@v1.4.0`, sehingga
+   program apa pun yang menggunakan APIv2 akan secara otomatis mengambil versi
+   APIv1 yang terintegrasi dengannya.
+
+(Kenapa mulai dengan versi `v1.20.0`?
+Supaya lebih jelas.
+Kami tidak berharap APIv1 akan sampai ke `v1.12.0`, sehingga nomor versi
+itu sendiri sudah cukup untuk membedakan antara APIv1 dan APIv2.)
+
+Kami tetap mendukung APIv1 selamanya.
+
+Pengorganisasian ini memastikan supaya semua program akan menggunakan
+implementasi tunggal dari _protocol buffer_, tanpa memperhatikan versi API
+mana yang digunakan.
+Ia membolehkan program untuk mengadopsi API baru secara gradual, atau tidak
+sama sekali, namun tetap mendapatkan keuntungan dari implementasi yang baru.
+Prinsip dari pemilihan versi minimum (_minimum version selection_) yaitu bahwa
+sebuah program bisa terus menggunakan implementasi yang lama sampai pengelola
+memilih untuk memperbarui ke yang baru (baik secara langsung, atau lewat
+pembaruan dependensi).
+
+
+==  Catatan fitur tambahan
+
+Paket
+https://pkg.go.dev/google.golang.org/protobuf/encoding/protojson[`google.golang.org/protobuf/encoding/protojson`]
+mengonversi _protocol buffer_ `Message` dari dan ke JSON menggunakan
+https://developers.google.com/protocol-buffers/docs/proto3#json[pemetaan JSON
+kanonis],
+dan memperbaiki sejumlah isu dengan paket `jsonpb` yang lama yang sulit diubah
+tanpa menyebabkan masalah bagi pengguna yang ada.
+
+Paket
+https://pkg.go.dev/google.golang.org/protobuf/types/dynamicpb[`google.golang.org/protobuf/types/dynamicpb`]
+menyediakan sebuah implementasi dari `proto.Message` untuk `message` yang tipe
+_protocol buffer_-nya dibangkitkan saat _runtime_.
+
+Paket
+https://pkg.go.dev/google.golang.org/protobuf/testing/protocmp[`google.golang.org/protobuf/testing/protocmp`]
+menyediakan fungsi-fungsi untuk membandingkan `Message` _protocol buffer_
+dengan paket
+https://pkg.go.dev/github.com/google/go-cmp/cmp[`github.com/google/go-cmp/cmp`].
+
+Paket
+https://pkg.go.dev/google.golang.org/protobuf/compiler/protogen?tab=doc[`google.golang.org/protobuf/compiler/protogen`]
+menyediakan dukungan untuk menulis _plugin_ untuk _compiler protocol buffer_.
+
+
+==  Kesimpulan
+
+Modul `google.golang.org/protobuf` adalah perbaikan mayor dari dukungan Go
+terhadap _protocol buffer_, menyediakan dukungan kelas-satu untuk refleksi,
+implementasi kustomisasi `Message`, dan pembersihan API.
+Kami ingin memelihara API yang lama selamanya sebagai pembungkus dari yang
+baru, membolehkan pengguna mengadopsi API baru secara inkremental.
+
+Tujuan dari pembaruan ini yaitu untuk meningkatkan API yang lama dan
+membereskan masalah-masalah mereka yang terdahulu.
+Saat kita menyelesaikan setiap komponen dari implementasi yang baru, kami
+langsung gunakan dalam basis kode Google.
+Rilis secara inkremental memberikan kita sebuah kepercayaan diri terhadap
+penggunaan dari API baru berikut dengan kinerja dan ketepatan dari
+implementasi yang baru.
+Kami percaya ia siap untuk digunakan untuk lingkungan _production_.
+
+Kami sangat senang dengan rilis ini dan berharap ia dapat melayani ekosistem
+Go untuk sepuluh tahun ke depan dan seterusnya!

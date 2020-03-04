@@ -2,6 +2,10 @@
 
 ==  Indeks
 
+*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol
+   Buffers],
+   2 Maret 2020.  Joe Tsai, Damien Neil, dan Herbie Ong
+
 *  link:/blog/go1.14[Go 1.14 telah dirilis],
    25 Februari 2020. _Alex Rakoczy_
 

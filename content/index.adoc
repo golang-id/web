@@ -35,6 +35,10 @@ lebih lanjut, silakan buka halaman link:/doc[dokumentasi].
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
 
+*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol
+   Buffers],
+   2 Maret 2020.  Joe Tsai, Damien Neil, dan Herbie Ong
+
 *  link:/blog/go1.14[Go 1.14 telah dirilis],
    25 Februari 2020.  _Alex Rakoczy_
 
@@ -46,9 +50,6 @@ komunitas Go Indonesia.
 
 *  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019],
    20 November 2019.  _Todd Kulesza_
-
-*  link:/blog/go.dev[Go.dev: pusat kegiatan baru untuk pengembang Go],
-   13 November 2019.  _Steve Francia dan Julie Qiu_
 
 baca artikel blog link:/blog[lainnya].
 
