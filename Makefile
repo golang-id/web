@@ -19,7 +19,7 @@ install: generate
 	go install ./cmd/$(PROGRAM_NAME)
 
 serve: generate
-	DEBUG=1 go run ./cmd/$(PROGRAM_NAME)
+	DEBUG=1 go run ./cmd/$(PROGRAM_NAME) -port=5080
 
 deploy: build-deploy
 	rsync --progress ./$(PROGRAM_NAME) golangid-webserver:~/bin/

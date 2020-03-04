@@ -5,10 +5,17 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/shuLhan/ciigo"
 )
 
 func main() {
-	srv := ciigo.NewServer("./content", ":5000", "./templates/html.tmpl")
+	var port string
+
+	flag.StringVar(&port, "port", "5000", "HTTP port server")
+	flag.Parse()
+
+	srv := ciigo.NewServer("./content", ":"+port, "./templates/html.tmpl")
 	srv.Start()
 }
