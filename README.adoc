@@ -30,7 +30,7 @@ terjemahkan.
 Repositori ini menggunakan konvensi direktori dan berkas yang sama dengan
 https://github.com/shuLhan/ciigo[kerangkanya]:
 
-*  `cmd/golangid`: direktori ini adalah program utama yang berisi konten
+*  `cmd/www-golangid`: direktori ini adalah program utama yang berisi konten
    statis.
    Program inilah yang nantinya melayani situs golang-id.org.
 
@@ -52,35 +52,53 @@ https://github.com/shuLhan/ciigo[kerangkanya]:
 
 Berikut langkah-langkah untuk memulai pengembangan di komputer anda,
 
-.  Salin repositori ini ke dalam
-   https://golang-id.org/doc/code.html#Workspaces[ruang-kerja] Go anda
-+
+Salin repositori ini ke dalam
+https://golang-id.org/doc/code.html#Workspaces[ruang-kerja]
+Go anda
+
 ----
 $ mkdir -p $GOPATH/src/github.com/golang-id/web
 $ cd $GOPATH/src/github.com/golang-id/web
 $ git clone https://github.com/golang-id/web .
 ----
 
-.  Jalankan perintah `go generate` untuk membangkitkan berkas HTML dari
-   berkas-berkas asciidoc.
-+
-----
-$ go generate
-----
+Jalankan program `www-golangid` di komputer anda dengan men set variabel
+lingkungan `DEBUG` dengan nilai `2`,
 
-.  Jalankan program `golangid` di komputer anda dengan men set variabel
-   lingkungan `DEBUG` dengan nilai `2`,
-+
 ----
-$ export DEBUG=2
-$ ./golangid
+$ DEBUG=2 go run ./cmd/www-golangid
 ----
 
-.  Buka peramban dengan alamat http://127.0.0.1:5000.
-   Situs lokal dari golang-id.org akan muncul di halaman tersebut.
+Jika ada eror seperti berikut,
 
-.  Untuk membuat halaman baru, lihat contoh yang sudah ada dalam direktori
-   "content".
+----
+Start: listen tcp :5000: bind: address already in use
+----
 
-.  Jika anda ingin menggabungkan pekerjaan anda, silakan _commit_ dan _push_
-   ke repositori anda sendiri dan buat _pull request_ ke repositori ini.
+itu berarti ada program lain yang telah menggunakan port 5000.
+Anda bisa mengganti port ke yang lain, misalnya 5080,
+
+----
+$ DEBUG=2 go run ./cmd/www-golangid -port=5080
+----
+
+
+Jika berhasil maka Anda akan melihat keluaran seperti berikut,
+
+----
+....
+ciigo: starting HTTP server at ":5000" for "./content"
+....
+----
+
+Buka peramban pada alamat http://127.0.0.1:5000 (atau sesuai dengan port yang
+Anda berikan).
+Situs lokal dari golang-id.org akan muncul di halaman tersebut.
+
+Untuk membuat halaman baru, lihat contoh yang sudah ada dalam direktori
+"content".
+
+Jika anda ingin menggabungkan pekerjaan anda, silakan _commit_ dan _push_
+ke repositori anda sendiri dan buat _pull request_ ke repositori ini.
+
+_Happy hacking!_
