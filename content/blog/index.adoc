@@ -54,6 +54,9 @@
 *  link:/blog/learn-go-from-your-browser[Belajar Go lewat peramban Anda],
    4 Oktober 2011. _Andrew Gerrand_
 
+*  link:/blog/profiling-go-programs[Memprofil program Go],
+   Juli 2011.  _Russ Cox_
+
 *  link:/blog/introducing-go-playground/[Memperkenalkan Go Playground],
    15 September 2010.  _Andrew Gerrand_
 

@@ -1,7 +1,6 @@
 =  Diagnostik
 :toc:
 :link-google-pprof: https://github.com/google/pprof/blob/master/doc/README.md
-:blog-profiling-go-programs: https://blog.golang.org/profiling-go-programs
 
 [.level4]
 Dokumentasi ini ditujukan bagi pemrogram tingkat lanjut yang memiliki
@@ -128,7 +127,7 @@ http://valgrind.org/docs/manual/cl-manual.html[callgrind] dari data profil
 menggunakan
 {link-google-pprof}[go tool pprof].
 Bacalah
-{blog-profiling-go-programs}[Profiling Go programs]
+link:/blog/profiling-go-programs[Profiling Go programs]
 untuk melihat bagaimana cara melakukannya.
 
 .Daftar fungsi yang paling sering dipanggil dalam format teks
