@@ -3,32 +3,35 @@
 :golang-doc-install-source: https://golang.org/doc/install/source
 :golang-doc-install-gccgo: https://golang.org/doc/install/gccgo
 :golang-id-list: https://groups.google.com/forum/#!forum/golang-id
+:golang-cmd: https://golang.org/cmd/cgo
+:golang-issue: https://github.com/golang-id/web/issues/new/choose
+:xcode-app: https://developer.apple.com/Xcode/
 
 // TODO: ms: translate the page on installing from source and installing
 // gccgo.
 
 [#download]
-==  Unduh distribusi Go
+==  *Unduh distribusi Go*
 
 {go-dl}[Unduh Go].
 
-Distribusi binary resmi tersedia untuk sistem operasi FreeBSD (rilis 10-STABLE
-dan di atasnya), Linux, macOS (10.10 dan di atasnya), dan Windows; dengan
-prosesor arsitektur 32-bit (386) atau 64-bit (amd64) x86.
+{go-dl}[Distribusi biner resmi] tersedia untuk sistem operasi FreeBSD (rilis 10-STABLE
+dan di atasnya), Linux, macOS (10.10 dan di atasnya), dan Windows dengan
+prosesor arsitektur 32-bit (`386`) atau 64-bit (`amd64`) x86.
 
-Jika distribusi binary tidak tersedia untuk kombinasi sistem operasi dan
-arsitektur anda, coba
+Jika distribusi biner tidak tersedia untuk kombinasi sistem operasi dan
+arsitektur Anda, coba
 {golang-doc-install-source}[pasang dari sumber] atau
 {golang-doc-install-gccgo}[pasang gccgo sebagai ganti gc].
 
 
 [#requirements]
-==  Kebutuhan sistem
+==  *Kebutuhan sistem*
 
-Distribusi binari dari Go tersedia untuk sistem operasi (SO) dan arsitektur
+{go-dl}[Distribusi binari] dari Go tersedia untuk sistem operasi (SO) dan arsitektur
 berikut.
-Pastikan sistem anda memenuhi kebutuhan ini sebelum melanjutkan.
-Jika SO atau arsitektur tidak terdaftar, anda mungkin bisa
+Pastikan sistem Anda memenuhi kebutuhan ini sebelum melanjutkan.
+Jika SO atau arsitektur tidak terdaftar, Anda mungkin bisa
 {golang-doc-install-source}[memasang dari sumbernya langsung] atau
 {golang-doc-install-gccgo}[menggunakan gccgo].
 
@@ -46,40 +49,39 @@ Jika SO atau arsitektur tidak terdaftar, anda mungkin bisa
 
 | macOS 10.10 atau terbaru
 | amd64
-| Gunakan clang atau gcc† dari Xcode‡ untuk dukungan cgo
+| Gunakan clang atau gcc† dari Xcode‡ untuk dukungan `cgo`
 
 | Windows 7, Server 2008R2 atau terbaru
 | amd64, 386
-| Gunakan MinGW gcc†.  Tidak perlu cygwin atau msys.
+| Gunakan MinGW (`386`) atau MinGW-W64 (`amd64`) gcc†. Tidak perlu cygwin atau msys.
 |===
 
-† Membutuhkan _compiler_ C jika anda berencana menggunakan cgo.
+† Membutuhkan _compiler_ C jika Anda berencana menggunakan {golang-cmd}[cgo].
 
-‡ Anda hanya perlu memasang peralatan _command line_ untuk Xcode.
-Jika anda telah memiliki Xcode 4.3+, anda bisa memasangnya dari panel
+‡ Anda hanya perlu memasang peralatan _command line_ untuk {xcode-app}[Xcode].
+Jika Anda telah memiliki Xcode 4.3+, Anda bisa memasangnya dari panel
 preferensi _Downloads_ pada tab _Components_.
 
 
 [#install]
-==  Memasang Go
+==  *Memasang Go*
 
-Jika anda mau meng- _upgrade_ dari versi lama, anda harus
+Jika Anda ingin meningkatkan dari versi lama Anda harus
 <<uninstall,menghapus versi yang terpasang>>.
 
 
 [#tarball]
 ===  Pada Linux, macOS, dan FreeBSD dengan tarball
 
-Pilih berkas arsip tarball (berkas dengan ekstensi `.tar.gz`) untuk dipasang.
-Misalnya, jika anda ingin memasang Go versi 1.12.4 untuk arsitektur 64-bit x86
-pada sistem operasi Linux, arsip yang anda butuhkan adalah
-`go1.12.4.linux-amd64.tar.gz`.
-
 {go-dl}[Unduh arsip tersebut] dan ekstrak ke direktori `/usr/local`,
 sehingga membuat `/usr/local/go`.
-Sebagai contohnya,
+Sebagai contohnya:
 
   tar -C /usr/local -xzf go$VERSION.$OS-$ARCH.tar.gz
+
+Pilih file arsip yang sesuai untuk instalasi Anda. 
+Misalnya, jika Anda menginstal Go versi 1.2.1 untuk 64-bit x86 di Linux, 
+arsip yang Anda inginkan disebut `go1.2.1.linux-amd64.tar.gz`.
 
 (Biasanya, perintah tersebut harus dijalankan sebagai `root` atau dengan
 `sudo`.)
@@ -90,12 +92,11 @@ Anda bisa melakukan dengan menambahkan baris berikut pada `/etc/profile`
 
   export PATH=$PATH:/usr/local/go/bin
 
-*Catatan:* perubahan pada berkas `profile` tidak akan berlaku sampai anda
+*Catatan:* perubahan pada berkas `profile` tidak akan berlaku sampai Anda
 `login` kembali ke komputer.
 Untuk menerapkan perubahan secara langsung, cukup jalankan perintah tersebut
-langsung dari _command prompt_ atau eksekusi berkas `profile` dengan cara,
-
-  source $HOME/.profile
+langsung dari _command prompt_ atau eksekusi berkas `profile` dengan cara
+`source $HOME/.profile`.
 
 
 [#macos]
@@ -106,7 +107,7 @@ perkakas Go.
 Paket tersebut akan memasang distribusi Go ke `/usr/local/go`.
 
 Paket tersebut seharusnya menyimpan direktori `/usr/local/go/bin` ke variabel
-lingkungan `PATH` anda.
+lingkungan `PATH` Anda.
 Anda perlu membuka sesi Terminal yang baru supaya perubahan langsung
 diterapkan.
 
@@ -114,9 +115,10 @@ diterapkan.
 [#windows]
 ===  Windows
 
-Go menyediakan dua opsi pemasangan untuk pengguna Windows: arsip zip yang
-mengharuskan anda mengatur variabel lingkungan secara manual dan paket MSI
-yang mengatur pemasangan secara otomatis.
+Go menyediakan dua opsi instalasi untuk pengguna Windows 
+(selain {golang-doc-install-source}[menginstal dari sumber]): arsip zip yang 
+mengharuskan Anda untuk mengatur beberapa variabel lingkungan dan pemasangan 
+MSI yang mengkonfigurasi instalasi Anda secara otomatis.
 
 
 ====  Pemasangan MSI
@@ -125,40 +127,33 @@ Buka {go-dl}[berkas MSI] dan ikuti perintah untuk memasang perkakas Go.
 Secara standar, paket tersebut memasang distribusi Go di `c:\Go`.
 
 Paket seharusnya menyimpan direktori `c:\Go\bin` dalam variabel lingkungan
-`PATH` anda secara otomatis.
+`PATH` Anda secara otomatis.
 Anda perlu membuka ulang _command prompt_ supaya perubahan langsung
 diterapkan.
 
 ====  Arsip zip
 
-{go-dl}[Unduh berkas zip] dan ekstrak ke direktori yang anda pilih (kami
+{go-dl}[Unduh berkas zip] dan ekstrak ke direktori yang Anda pilih (kami
 menyarankan `c:\Go`).
 
 Tambahkan sub-direktori `bin` dari Go (misalnya, `c:\Go\bin`) ke dalam
-variabel lingkungan `PATH` anda.
+variabel lingkungan `PATH` Anda.
 
 
 ====  Pengaturan variabel lingkungan pada Windows
 
-Dalam Windows, anda bisa mengatur variabel lingkungan lewat tombol
+Dalam Windows, Anda bisa mengatur variabel lingkungan lewat tombol
 "Environment Variables" pada tab "Advanced" dari panel kontrol "System".
 Beberapa versi Windows menyediakan panel kontrol ini lewat opsi "Advanced
 System Settings" di dalam panel kontrol "System".
 
 
 [#testing]
-==  Menguji pemasangan
+==  *Menguji pemasangan*
 
-Untuk memeriksa apakah Go terpasang dengan benar atau tidak, siapkan sebuah
-ruang-kerja (_workspace_) dan buat sebuah program sederhana, dengan cara
-berikut.
+Periksa bahwa Go terpasang dengan benar dengan cara membangun program sederhana, seperti berikut.
 
-Buat direktori ruang-kerja, misalnya `$HOME/go`.
-(Jika anda ingin menggunakan direktori yang berbeda, anda perlu mengatur
-variabel lingkungan `GOPATH`.)
-
-Selanjutnya, buat direktori `src/hello` dalam ruang-kerja anda, dan di dalam
-direktori tersebut buat sebuah berkas bernama `hello.go` yang berisi,
+Buat file bernama `hello.go` yang berisi:
 
 ----
 package main
@@ -166,15 +161,14 @@ package main
 import "fmt"
 
 func main() {
-  fmt.Printf("hello, world\n")
+        fmt.Printf("hello, world\n")
 }
 ----
 
 Kemudian bangun program dari kode tersebut dengan perkakas `go`:
 
 ----
-$ cd $HOME/go/src/hello
-$ go build
+$ go build hello.go
 ----
 
 Perintah di atas akan membuat sebuah program bernama `hello` di dalam
@@ -186,11 +180,8 @@ $ ./hello
 hello, world
 ----
 
-Jika anda melihat pesan "hello, world" maka instalasi Go anda berjalan dengan
+Jika Anda melihat pesan "hello, world" maka instalasi Go Anda berjalan dengan
 benar.
-
-Anda bisa menjalankan `go install` untuk memasang program ke dalam direktori
-`bin` pada ruang-kerja anda atau `go clean -i` untuk menghapusnya.
 
 Sebelum bergegas menulis kode Go, mohon baca dokumen tentang
 link:/doc/code.html[Cara Menulis Kode Go],
@@ -198,12 +189,12 @@ yang menjelaskan beberapa konsep utama tentang menggunakan perkakas Go.
 
 
 [#extra_versions]
-==  Memasang versi Go tambahan
+==  *Memasang versi Go tambahan*
 
 Terkadang ada gunanya memiliki beberapa versi Go terpasang di mesin yang sama,
 sebagai contohnya, untuk memastikan sebuah paket lulus dari pengujian beberapa
 versi Go.
-Setelah anda memasang satu versi Go, anda dapat memasang versi yang lain
+Setelah Anda memasang satu versi Go, Anda dapat memasang versi yang lain
 (seperti versi 1.10.7) dengan cara:
 
 ----
@@ -218,31 +209,33 @@ $ go1.10.7 version
 go version go1.10.7 linux/amd64
 ----
 
-Semua versi Go yang dapat dipasang terdaftar di halaman {go-dl}[unduhan].
+Semua versi Go yang dapat dipasang terdaftar di {go-dl}[halaman unduhan].
 Anda bisa menemukan lokasi dari versi yang terpasang dengan melihat variabel
 lingkungan `GOROOT`; sebagai contohnya, `go1.10.7 env GOROOT`.
 Untuk menghapus versi yang terpasang, cukup hapus direktori `GOROOT` dan
-program `goX.Y.Z`.
+biner `goX.Y.Z`.
 
 
 [#uninstall]
-==  Menghapus pemasangan Go
+==  *Menghapus pemasangan Go*
 
-Untuk menghapus Go dari sistem anda, hapus direktori `go`.
+Untuk menghapus Go dari sistem Anda, hapus direktori `go`.
 Pada Linux, macOS, dan FreeBSD, direktori tersebut ada di `/usr/local/go`,
 pada Windows ada di `c:\Go`.
 
 Anda sebaiknya juga menghapus direktori Go `bin` dari variabel lingkungan
-`PATH` anda.
-Pada Linux dan FreeBSD, anda harus menyunting `/etc/profile` atau
+`PATH` Anda.
+Pada Linux dan FreeBSD, Anda harus menyunting `/etc/profile` atau
 `$HOME/.profile`.
-Jika anda memasang Go lewat <<macos,packet macOS>>, maka anda harus menghapus
+Jika Anda memasang Go lewat <<macos,packet macOS>>, maka Anda harus menghapus
 berkas `/etc/paths.d/go`.
 Pengguna sistem Windows sebaiknya membaca bagian tentang
 <<windows_env,pengaturan variabel lingkungan dalam Windows>>.
 
 
 [#help]
-==  Bantuan
+==  *Bantuan*
 
 Untuk bantuan, silakan tanyakan lewat {golang-id-list}[milis Go Indonesia].
+
+Laporkan _bug_ di golang-id {golang-issue}[isu].
