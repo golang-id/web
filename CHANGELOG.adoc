@@ -2,6 +2,189 @@
 
 Dokumen ini mencatat perubahan dari hasil pengembangan situs golang-id.org.
 
+==  2020 Q1
+
+===  2020.03
+
+*  pembaruan: memasang go - source
+
+   https://golang-id.org/doc/install
+
+   Pembaruan ini menyesuaikan dokumentasi cara pemasangan dengan artikel
+   terbaru di _upstream_ (@gedenata).
+
+*  blog: terjemahkan artikel "Profiling Go Programs"
+
+   https://golang-id.org//blog/profiling-go-programs
+
+   Blog yang menjelaskan cara menggunakan perkakas "go tool pprof" untuk
+   menganalisis penggunaan memori dan CPU di program Go.
+
+*  blog: terjemahkan "Third-party libraries: goprotobuf and beyond"
+
+   https://golang-id.org/blog/third-party-libraries-goprotobuf-and
+
+   Blog lama tentang implementasi protocol buffer (protobuf) pada Go.
+
+*  blog: terjemahkan "A new Go API for Protocol Buffers"
+
+   https://golang-id.org/blog/a-new-go-api-for-protocol-buffers
+
+   Blog baru yang mengabarkan versi baru dari paket protocol buffer yang
+   memperbaiki permasalahan yang ditemukan pada versi lama.
+   Bagi pengguna Go yang menggunakan protobuf, dan belum tahu adanya versi
+   baru, sila baca artikel ini.
+
+*  blog: Go 1.14 is released
+
+   https://golang-id.org/blog/go1.14
+
+   Rilis stabil terbaru dari Go 1.14.
+   Sejak rilis terbaru ini ada beberapa isu yang bisa dikatakan mayor, dan
+   sudah diperbaiki pada rilis minor 1.14.2.
+
+*  blog: terjemahkan "Learn Go from your browser"
+
+   https://golang-id.org/blog/learn-go-from-your-browser
+
+   Blog lama tentang rilis pembelajaran Go lewat peramban yang sekarang sudah
+   tersedia dalam bahasa Indonesia: https://tour.golang-id.org.
+
+*  blog: terjemahkan "Inside the Go Playground"
+
+   https://golang-id.org/blog/playground
+
+   Dalam artikel ini kita akan melihat bagaimana playground diimplementasikan dan
+   diintegrasikan dengan layanan-layanan lainnya.
+   Implementasi mengikutkan beragam lingkungan sistem operasi dan _runtime_
+   dan penjelasan kita sekarang mengasumsikan Anda akrab dengan pemrograman
+   sistem menggunakan Go.
+
+===  2020.02
+
+*  blog: terjemahkan artikel "Introducing the Go Playground"
+
+   https://golang-id.org/blog/introducing-go-playground
+
+   Blog lama tentang rilis playground di situs golang.org.
+
+*  blog: terjemahkan artikel "Text normalization in Go"
+
+   https://golang-id.org/blog/normalization
+
+   Artikel yang membahas lebih dalam tentang proses normalisasi teks UTF-8
+   dalam paket dan program Go.
+
+*  blog: terjemahkan artikel "Strings, bytes, runes and characters in Go"
+
+   https://golang-id.org/blog/strings
+
+   String tampak terlalu simpel untuk sebuah artikel, namun untuk
+   menggunakannya dengan baik membutuhkan pemahaman tidak hanya bagaimana cara
+   ia bekerja, tetapi juga perbedaan antara sebuah byte, karakter, dan rune,
+   perbedaan antara Unicode dan UTF-8, perbedaan antara sebuah string dan
+   literal string, dan perbedaan lain yang lebih halus.
+
+   Salah satu cara untuk mengkaji topik ini yaitu dengan membayangkannya
+   sebagai sebuah jawaban dari pertanyaan yang sering diajukan, "Saat saya
+   mengindeks string pada Go pada posisi n, kenapa saya tidak mendapatkan
+   karakter ke-n?" Seperti yang akan kita lihat nantinya, pertanyaan ini
+   mengarahkan kita pada banyak hal tentang bagaimana teks bekerja dalam dunia
+   nyata.
+
+*  blog: terjemahkan blog baru "Next steps for pkg.go.dev"
+
+   https://golang-id.org/blog/pkg.go.dev-2020
+
+   Di tahun 2019, kami meluncurkan go.dev, sebuah situs baru untuk para
+   pengembang Go.
+
+   Sebagai bagian dari situs tersebut, kami juga meluncurkan pkg.go.dev, pusat
+   sumber informasi dari modul dan paket Go. Seperti halnya godoc.org,
+   pkg.go.dev melayani dokumentasi Go. Namun, pkg.go.dev dapat membaca modul
+   dan memiliki informasi tentang versi-versi sebelumnya dari sebuah paket!
+
+   Di tahun ini, kami akan menambahkan beberapa fitur ke pkg.go.dev untuk
+   membantu pengguna supaya lebih baik memahami dependensi mereka dan dalam
+   membuat keputusan terhadap pustaka yang akan mereka impor.
+
+
+===  2020.01
+
+*  blog: terjemahkan "Arrays, slices (and strings): The mechanics of 'append'"
+
+   https://golang-id.org/blog/slices
+
+   Salah satu fitur paling umum dari bahasa pemrograman prosedural yaitu
+   konsep dari sebuah array (larik). Array tampak seperti hal yang simpel
+   namun ada beberapa pertanyaan yang harus dijawab saat menambahkan array ke
+   dalam sebuah bahasa pemrograman, seperti:
+
+    * apakah ukuran array tetap atau dinamis?
+    * apakah ukuran bagian dari tipe?
+    * seperti apa bentuk dari array multi dimensi?
+    * apakah array kosong ada maknanya?
+
+   Jawaban dari pertanyaan tersebut memengaruhi apakah array adalah sebuah
+   fitur atau bagian inti dari rancangan bahasa (pemrograman).
+
+   Pada awal pengembangan Go, dibutuhkan sekitar setahun untuk memutuskan
+   jawaban dari pertanyaan tersebut sebelum rancangannya dirasakan tepat.
+   Langkah kuncinya adalah pengenalan dari slice, yang dibangun dari array
+   yang berukuran tetap untuk memberikan struktur data yang fleksibel dan
+   mudah dikembangkan. Sampai sekarang, pemrogram yang baru dengan Go sering
+   kali terbentur dengan cara kerja slice, bisa jadi karena pengalaman dari
+   bahasa pemrograman lain mengaburkan cara berpikir mereka.
+
+   Dalam artikel ini, kita akan mencoba menjernihkan kebingungan ini, dengan
+   cara membangun bagian-bagian tersebut untuk menjelaskan bagaimana fungsi
+   bawaan append bekerja, dan kenapa ia bekerja seperti itu.
+
+*  blog: terjemahkan blog "Go 2, here we come!"
+
+   https://golang-id.org/blog/go2-here-we-come
+
+   Di GopherCon 2017, Russ Cox secara resmi mulai membayangkan versi besar
+   selanjutnya dari Go dengan wicara tentang Masa depan Go (blog). Kita
+   menyebut masa depan bahasa secara informal dengan Go 2, walaupun sekarang
+   kita paham bahwa ia akan datang secara inkremental bukan dengan tiba-tiba
+   dalam sebuah rilis mayor. Tetap saja, Go 2 adalah julukan yang berguna,
+   sebagai suatu cara untuk membicarakan tentang masa depan bahasa, jadi mari
+   kita tetap menggunakan istilah tersebut untuk saat sekarang.
+
+   Perbedaan besar antara Go 1 dan Go 2 adalah siapa yang memengaruhi
+   rancangan dan bagaimana keputusan akan dibuat. Go 1 adalah usaha dari tim
+   kecil dengan sedikit pengaruh dari luar; Go 2 akan lebih dipengaruhi oleh
+   komunitas. Setelah lebih dari 10 tahun, kita telah belajar banyak tentang
+   bahasa dan pustaka-pustaka yang tidak kita ketahui sejak awal, dan hal ini
+   bisa terjadi lewat umpan balik dari komunitas Go.
+
+*  blog: terjemahan blog baru "Go 1.15 proposals"
+
+   https://golang-id.org/blog/go1.15-proposals
+
+   Saat ini kita mendekati rilis Go 1.14, yang direncanakan bulan Februari
+   bila semua berjalan dengan lancar, rilis kandidat yang pertama hampir siap.
+   Berdasarkan proses yang dijelaskan dalam blog Go 2, kami datang!, inilah
+   saat dalam siklus pengembangan dan rilis untuk menimbang
+   perubahan-perubahan apa saja yang ingin ditambahkan pada pustaka atau
+   bahasa untuk rilis selanjutnya, Go 1.15, yang dijadwalkan pada bulan
+   Agustus tahun ini.
+
+   Tujuan utama dari Go tetap pada manajemen paket dan versi, dukungan
+   penanganan error yang lebih baik, dan generik. Dukungan untuk modul
+   sekarang ini sudah cukup bagus dan semakin baik setiap hari, dan kita juga
+   punya progres dengan implementasi generik (lebih lanjut lagi nanti tahun
+   ini). Usaha kita selama tujuh bulan lalu dalam menyediakan mekanisme
+   penanganan error yang lebih baik, proposal try, menemui dukungan yang baik
+   namun juga penolakan yang kuat dan kami memutuskan untuk meninggalkannya.
+   Setelah kejadian itu ada banyak proposal yang memperbaikinya, namun tidak
+   ada dari mereka yang cukup meyakinkan, lebih bagus dari proposal try, atau
+   tidak menimbulkan kontroversi yang sama. Oleh karena itu, kami tidak
+   melanjutkan perubahan dari penanganan error untuk saat sekarang. Mungkin
+   nanti ada gagasan yang membantu kita memperbaiki status quo ini.
+
+
 ==  2019.12
 
 *  blog: terjemahkan "Errors are values"
