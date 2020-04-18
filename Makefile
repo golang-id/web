@@ -1,5 +1,6 @@
 .PHONY: clean all generate build deploy
 
+MACOS_SERVICE=local.golangid
 PROGRAM_NAME=www-golangid
 
 all: install
@@ -34,6 +35,14 @@ install-local: deploy-local
 	sudo systemctl daemon-reload
 	sudo systemctl enable $(PROGRAM_NAME)
 	sudo systemctl start $(PROGRAM_NAME)
+
+install-local-macos:
+	cp cmd/$(PROGRAM_NAME)/$(MACOS_SERVICE).plist ~/Library/LaunchAgents/
+	mkdir -p ~/bin
+	CGO_ENABLED=0 go build ./cmd/www-golangid
+	mv $(PROGRAM_NAME) ~/bin/
+	launchctl load ~/Library/LaunchAgents/$(MACOS_SERVICE).plist
+	launchctl start $(MACOS_SERVICE)
 
 deploy-local: build
 	sudo cp -f ./$(PROGRAM_NAME) /usr/local/bin/
