@@ -23,7 +23,7 @@ serve: generate
 	DEBUG=1 go run ./cmd/$(PROGRAM_NAME) -port=5080
 
 deploy: build-deploy
-	rsync --progress ./$(PROGRAM_NAME) aws-www:~/bin/
+	rsync --progress ./$(PROGRAM_NAME) personal-www:~/bin/
 
 build-deploy: generate
 	unset CGO_ENABLED; \
