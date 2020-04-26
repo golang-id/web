@@ -138,7 +138,7 @@ Opsi-opsi dari `build` berikut dapat digunakan pada perintah `clean`, `get`,
 -asmflags '[pattern=]arg list'
 	argumen yang dikirim ke setiap pemanggilan `go tool asm`.
 -buildmode mode
-	mode pembangunan yang akan digunakan.  lihat 'go help buildmode' untuk
+	mode pembangunan yang akan digunakan.  Lihat 'go help buildmode' untuk
 	lebih lanjut.
 -compiler name
 	nama compiler yang akan digunakan, seperti dalam runtime.Compiler
@@ -182,7 +182,7 @@ Opsi-opsi dari `build` berikut dapat digunakan pada perintah `clean`, `get`,
 -trimpath
 	hapus semua path-path sistem dari hasil program.
 	Nama berkas yang tercatat akan dimulai dengan "go" (untuk pustaka
-	standar), atau module path@version (bila menggunakan modul), atau path
+	standar), atau modul path@version (bila menggunakan modul), atau path
 	import biasa (bila menggunakan GOPATH).
 -toolexec 'cmd args'
 	program yang digunakan untuk memanggil program toolchain seperti vet
@@ -1099,7 +1099,7 @@ Perintah 'go mod' menyediakan akses terhadap operasi-operasi pada modul.
 Ingatlah bahwa dukungan untuk modul tertanam pada semua perintah go, tidak
 hanya 'go mod'.
 Misalnya, penambahan, penghapusan, pembaruan, dan pemunduran dari dependensi
-seharusnya dilakukan menggunakan 'go get'.
+seharusnya dilakukan lewat 'go get'.
 Lihat 'go help modules' untuk gambaran dari fungsionalitas modul.
 
 Penggunaan:
@@ -1127,3 +1127,165 @@ perintah-perintah tersebut.
 
 [#hdr-Download_modules_to_local_cache]
 ===  Unduh modul ke lokal _cache_
+
+Penggunaan:
+
+----
+go mod download [-x] [-json] [modules]
+----
+
+Perintah "download" mengunduh modul sesuai argumen yang diberikan, yang bisa
+dalam bentuk pola yang memilih dependensi dari modul utama atau kueri dalam
+bentuk "path@version".
+Jika argumen kosong, perintah "download" berlaku untuk semua dependensi dari
+modul utama (sama dengan 'go mod download all').
+
+Perintah go secara otomatis mengunduh modul yang dibutuhkan selama eksekusi.
+Perintah "go mod download" biasa berguna untuk mengisi _cache_ di lokal atau
+untuk mencari jawaban dari Go modul _proxy_
+
+Secara bawaan, "download" tidak menulis apa pun ke layar.
+Ia mungkin mencetak pesan kesalahan atau progres ke _standard error_.
+
+Opsi `-json` membuat perintah "download" mencetak seurutan objek JSON ke
+_standard output_, mendeskripsikan setiap modul yang diunduh (atau yang
+gagal), sesuai dengan struct Go berikut
+
+----
+type Module struct {
+	Path     string // path ke modul
+	Version  string // versi modul
+	Error    string // eror pemuatan modul
+	Info     string // path absolut ke berkas .info dalam cache
+	GoMod    string // path absolut ke berkas .mod dalam cache
+	Zip      string // path absolut ke berkas .zip dalam cache
+	Dir      string // path absolut ke direktori sumber dalam cache
+	Sum      string // checksum untuk path, versi (seperti dalam go.sum)
+	GoModSum string // checksum untuk go.mod (seperti dalam go.sum)
+}
+----
+
+Opsi `-x` menyebabkan "download" mencetak perintah pengunduhan yang
+dieksekusi.
+
+Lihat `go help modules` untuk mengetahui lebih lanjut tentang pencarian modul.
+
+
+[#hdr-Edit_go_mod_from_tools_or_scripts]
+===  Sunting go.mod dengan perkakas atau skrip
+
+Penggunaan:
+
+----
+go mod edit [editing flags] [go.mod]
+----
+
+Perintah "edit" menyediakan antarmuka baris-perintah untuk menyunting go.mod,
+umumnya digunakan oleh perkakas atau skrip.
+Ia hanya membaca go.mod;
+tidak membaca informasi tentang dependensi modul-modul.
+Secara bawaan, "edit" membaca dan menulis berkas "go.mod" dari modul utama,
+namun berkas tujuan yang berbeda dapat diberikan sebagai argumen "edit".
+
+Opsi-opsi pada "edit" menentukan seurutan operasi penyuntingan.
+
+Opsi -fmt memformat ulang berkas go.mod tanpa membuat perubahan.
+Pemformatan ulang ini biasanya dilakukan setelah melakukan perubahan yang
+mengubah berkas go.mod.
+Satu-satunya opsi ini diperlukan yaitu bila tidak ada lagi flag lain yang
+diberikan, seperti 'go mod edit -fmt'.
+
+Opsi -module mengubah path dari modul utama (baris "module" pada berkas
+go.mod).
+
+Opsi -require=path@version dan -droprequire=path menambah dan menghapus
+dependensi dari modul dan versi yang diberikan.
+Opsi -require akan menimpa dependensi yang sudah ada sesuai dengan path yang
+diberikan.
+Opsi ini umumnya untuk perkakas yang mengerti grafik modul.
+Pengguna biasa seharusnya menggunakan 'go get path@version' atau
+'go get path@none', yang membuat penyesuaian go.mod lainnya bila diperlukan
+untuk memenuhi batasan-batasan yang diberikan oleh modul lainnya.
+
+Opsi -exclude=path@version dan -dropexclude=path@version menambah dan
+menghapus pengecualian dari path dan versi modul yang diberikan.
+Opsi -exclude=path@version tidak melakukan operasi apa pun bila pengecualian
+telah tercatat sebelumnya.
+
+Opsi -replace=old[@v]=new[@v] menambah sebuah pengganti dari pasangan modul path dan
+versi yang diberikan.
+Jika @v dalam old@v tidak ada, penggantian tanpa versi pada bagian kiri
+ditambahkan, yang berlaku untuk semua versi dari path modul old.
+Jika @v dalam new@v tidak ada, path yang baru berarti direktori lokal dari
+modul, bukan path dari modul.
+Ingatlah bahwa -replace menimpa penggantian yang redundan untuk old[@v],
+sehingga tanpa @v akan menghapus penggantian yang ada untuk versi tertentu.
+
+Opsi -dropreplace=old[@v] menghapus sebuah penggantian dari pasangan path dan
+versi modul yang diberikan.
+Jika @v tidak ada, sebuah penggantian tanpa versi di bagian kiri akan dihapus.
+
+Opsi -require, -droprequire, -exclude, -dropexclude, -replace, dan
+-dropreplace bisa berulang, dan perubahan diterapkan sesuai dengan urutan yang
+diberikan.
+
+Opsi -go=version menset versi bahasa Go yang diinginkan.
+
+Opsi -print mencetak berkas akhir dari go.mod dalam format teks bukan menulis
+ke berkas.
+
+Opsi -json mencetak berkas akhir dari go.mod dalam format JSON bukan menulis
+ke berkas.
+Keluaran dari JSON sesuai dengan tipe-tipe Go berikut:
+
+----
+type Module struct {
+	Path string
+	Version string
+}
+
+type GoMod struct {
+	Module  Module
+	Go      string
+	Require []Require
+	Exclude []Module
+	Replace []Replace
+}
+
+type Require struct {
+	Path string
+	Version string
+	Indirect bool
+}
+
+type Replace struct {
+	Old Module
+	New Module
+}
+----
+
+Ingatlah bahwa ia hanya menjelaskan berkas go.mod itu sendiri, bukan
+modul-modul lain yang diacu secara tidak langsung.
+Untuk melihat seluruh modul yang digunakan pada saat "build", gunakan
+'go list -m -json all'.
+
+Sebagai contoh, sebuah perkakas bisa mengambil isi go.mod sebagai struktur
+data dengan mengurai keluaran dari 'go mod edit -json' dan kemudian dapat
+mengubahnya dengan memanggil 'go mod edit' dengan opsi -require, -exclude, dan
+seterusnya.
+
+[#hdr-Print_module_requirement_graph]
+===   Cetak dependensi modul
+
+Penggunaan:
+
+----
+go mod graph
+----
+
+Perintah "grapth" mencetak grafik kebutuhan modul (dengan menerapkan
+penggantian) dalam bentuk teks.
+Setiap baris dalam keluaran mencetak dua kolom yang dibatasi dengan dua spasi:
+nama modul dan satu atau lebih dependensinya.
+Setiap modul diidentifikasi sebagai sebuah string dalam bentuk path@version,
+kecuali untuk modul utama, tidak memiliki sufiks @version.
