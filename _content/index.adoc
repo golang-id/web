@@ -85,6 +85,10 @@ berdiskusi lebih lanjut tentang Go.
 
 Grup untuk berdiskusi dan tanya jawab dengan cepat mengenai apa pun.
 
+===  https://discord.gg/Uttw45[Discord]
+
+Grup untuk berdiskusi dan tanya jawab tentang Go lewat Discord server.
+
 
 ==  link:/berkontribusi.html[Berkontribusi]
 
