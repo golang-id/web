@@ -16,6 +16,6 @@ func main() {
 	flag.StringVar(&port, "port", "5000", "HTTP port server")
 	flag.Parse()
 
-	srv := ciigo.NewServer("./content", ":"+port, "./templates/html.tmpl")
+	srv := ciigo.NewServer("./_content", ":"+port, "./_templates/html.tmpl")
 	srv.Start()
 }
