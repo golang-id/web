@@ -13,22 +13,22 @@ Perintah-perintahnya adalah:
 
 ----
 bug         jalankan pelaporan bug
-build       kompilasi paket-paket dan dependensi
-clean       hapus berkas-berkas objek dan cache
+build       kompilasi paket dan dependensi
+clean       hapus berkas hasil build dan cache
 doc         tampilkan dokumentasi dari paket atau simbol
 env         cetak informasi lingkungan dari Go
 fix         ubah paket untuk menggunakan API yang baru
-fmt         gofmt (format ulang) sumber-sumber paket
+fmt         gofmt (format ulang) sumber paket
 generate    buat berkas Go dengan memproses sumber
 get         tambah dan pasang dependensi ke modul yang sekarang
 install     kompilasi dan pasang paket dan dependensi
 list        cetak daftar paket atau modul
 mod         pemeliharaan modul
 run         kompilasi dan jalankan program Go
-test        tes paket-paket
+test        tes paket
 tool        jalankan perkakas go tertentu
 version     cetak versi Go
-vet         laporkan kemungkinan kesalahan dalam paket-paket
+vet         laporkan kemungkinan kesalahan dalam paket
 ----
 
 Gunakan "go help <perintah>" untuk informasi tentang perintah.
@@ -36,23 +36,24 @@ Gunakan "go help <perintah>" untuk informasi tentang perintah.
 Beberapa topik bantuan tambahan:
 
 ----
-buildmode      mode pembangunan
-c              pemanggilan antara Go dan C
-cache          cache pada pembangunan dan tes
-environment    variabel-variabel lingkungan
-filetype       tipe-tipe berkas
-go.mod         berkas go.mod
-gopath         variabel lingkungan GOPATH
-gopath-get     legasi GOPATH menggunakan go get
-goproxy        protokol proxy pada modul
-importpath     sintaksis untuk path impor
-modules        modul, versi modul, dan banyak lagi
-module-get     go get dengan menggunakan modul
-module-auth    autentikasi modul menggunakan go.sum
-module-private konfigurasi modul untuk modul yang tidak publik
-packages       daftar dan pola paket
-testflag       opsi-opsi untuk tes
-testfunc       fungsi-fungsi untuk tes
+buildconstraint batasan-batasan dari build
+buildmode       mode-mode dari build
+c               pemanggilan antara Go dan C
+cache           cache pada pembangunan dan tes
+environment     variabel-variabel lingkungan
+filetype        tipe-tipe berkas
+go.mod          berkas go.mod
+gopath          variabel lingkungan GOPATH
+gopath-get      legasi GOPATH menggunakan go get
+goproxy         protokol proxy pada modul
+importpath      sintaksis untuk path impor
+modules         modul, versi modul, dan banyak lagi
+module-get      go get dengan menggunakan modul
+module-auth     autentikasi modul menggunakan go.sum
+module-private  konfigurasi modul untuk modul yang tidak publik
+packages        daftar dan pola paket
+testflag        opsi-opsi untuk tes
+testfunc        fungsi-fungsi untuk tes
 ----
 
 Gunakan "go help <topik>" untuk informasi lanjut tentang topik tersebut.
@@ -79,7 +80,7 @@ Penggunaan:
 go build [-o output] [-i] [flag build] [paket]
 ----
 
-Perintah `build` mengompilasi paket-paket berdasarkan nama dari path import,
+Perintah `build` kompilasi paket-paket berdasarkan nama dari path import,
 bersama dengan dependensinya, namun tidak memasang hasilnya.
 
 Jika argumennya adalah daftar berkas .go dari sebuah direktori, maka `build`
@@ -115,7 +116,7 @@ Opsi-opsi dari `build` berikut dapat digunakan pada perintah `clean`, `get`,
 -n
 	cetak perintah-perintah tetapi jangan jalankan.
 -p n
-	jumlah program, seperti perintah build atau tes, yang dapat berjalan
+	jumlah program, seperti perintah build atau test, yang dapat berjalan
 	secara paralel.
 	Nilai baku dari n yaitu jumlah CPU yang tersedia.
 -race
@@ -1283,9 +1284,369 @@ Penggunaan:
 go mod graph
 ----
 
-Perintah "grapth" mencetak grafik kebutuhan modul (dengan menerapkan
+Perintah "graph" mencetak grafik kebutuhan modul (dengan menerapkan
 penggantian) dalam bentuk teks.
-Setiap baris dalam keluaran mencetak dua kolom yang dibatasi dengan dua spasi:
+Setiap baris dari keluaran berisi dua kolom yang dibatasi dengan dua spasi:
 nama modul dan satu atau lebih dependensinya.
 Setiap modul diidentifikasi sebagai sebuah string dalam bentuk path@version,
 kecuali untuk modul utama, tidak memiliki sufiks @version.
+
+[#hdr-Initialize_new_module_in_current_directory]
+===  Inisiasi modul baru di direktori sekarang
+
+Penggunaan:
+
+----
+go mod init [module]
+----
+
+Perintah `init` menginisiasi dan menulis sebuah "go.mod" yang baru di
+direktori yang sekarang, efeknya adalah sebuah modul baru dibuat di direktori
+yang sama.
+Berkas "go.mod" harus tidak ada sebelumnya.
+Jika memungkinkan, `init` akan men-set path dari modul berdasarkan komentar
+impor (lihat 'go help importpath') atau dari konfigurasi Version Control
+System (VCS).
+Untuk menimpa path modul, tambahkan path modul sebagai argumen pertama.
+
+#hdr-Add_missing_and_remove_unused_modules
+===  Tambah modul yang hilang atau hapus modul yang tidak digunakan
+
+Penggunaan:
+
+----
+go mod tidy [-v]
+----
+
+Perintah `tidy` memastikan isi dari berkas go.mod sesuai dengan sumber kode
+dalam modul.
+Ia akan mencatat modul dependensi yang dibutuhkan supaya dapat membangun
+paket-paket di dalam modul yang sekarang, dan menghapus dependensi modul yang
+tidak digunakan.
+Ia juga menambahkan catatan ke go.sum dan menghapus yang tidak dipergunakan
+lagi.
+
+Opsi -v menyebabkan `tidy` mencetak informasi tentang modul yang dihapus ke
+__standard error__.
+
+
+[#hdr-Make_vendored_copy_of_dependencies]
+===   Salin semua dependensi ke direktori vendor
+
+Penggunaan:
+
+----
+go mod vendor [-v]
+----
+
+Perintah `vendor` me-reset direktori "vendor" pada modul utama supaya
+mengikutkan semua paket yang dibutuhkan untuk membangun dan menguji semua
+paket-paket di modul utama.
+Ia tidak mengikutkan berkas-berkas pengujian dari paket-paket yang
+di-vendor-kan.
+
+Opsi "-v" menyebabkan perintah "vendor" mencetak nama-nama dari modul dan
+paket yang di-vendor-kan ke __standard error__.
+
+
+[#hdr-Verify_dependencies_have_expected_content]
+===  Verifikasi dependensi sesuai dengan yang diharapkan
+
+Penggunaan:
+
+----
+go mod verify
+----
+
+Perintah `verify` memeriksa dependensi dari modul, yang disimpan dalam _cache_
+di lokal, belum pernah dimodifikasi sejak diunduh.
+Jika semua modul tidak pernah dimodifikasi, perintah `verify` mencetak
+"all modules verified.", selain itu ia akan melaporkan modul-modul yang telah
+berubah dan menyebabkan perintah 'go mod' keluar dengan status selain 0.
+
+
+[##hdr-Explain_why_packages_or_modules_are_needed]
+===  Jelaskan kenapa paket atau modul dibutuhkan
+
+Penggunaan:
+
+----
+go mod why [-m] [-vendor] packages...
+----
+
+Perintah "why" memperlihatkan path terpendek dalam rangkaian impor dari modul
+utama ke setiap paket pada parameter.
+Jika opsi "-m" diberikan, perintah "why" menganggap argumen sebagai daftar
+modul dan mencari sebuah path ke paket mana pun dalam setiap modul.
+
+Secara baku, "why" mencari paket yang cocok dengan "go list all", yang
+mengikutkan paket pengujian.
+Opsi "-vendor" menyebabkan "why" mengindahkan dependensi pengujian.
+
+Keluaran dari perintah ini yaitu seurutan stanza, setiap baris berisi nama
+paket atau modul dari parameter yang diberikan pada baris perintah.
+Setiap stanza dimulai dengan baris komentar "# paket" atau "# modul" sesuai
+dengan target paket atau modul.
+Baris selanjutnya mencetak sebuah path dari grafik impor, satu paket satu
+baris.
+Jika paket atau modul tidak diacu dari modul utama, maka stanza tersebut akan
+menampilkan catatan dalam tanda kurung yang menyatakan alasannya.
+
+Sebagai contohnya,
+
+----
+$ go mod why golang.org/x/text/language golang.org/x/text/encoding
+# golang.org/x/text/language
+rsc.io/quote
+rsc.io/sampler
+golang.org/x/text/language
+
+# golang.org/x/text/encoding
+(main module does not need package golang.org/x/text/encoding)
+$
+----
+
+
+[#hdr-Compile_and_run_Go_program]
+==   Kompilasi dan jalankan program Go
+
+Penggunaan:
+
+----
+go run [build flags] [-exec xprog] package [arguments...]
+----
+
+Perintah "run" mengompilasi dan menjalankan paket Go bernama "main".
+Biasanya paket tersebut ditentukan sebagai daftar berkas sumber .go dari
+sebuah direktori, tetapi bisa juga dalam bentuk path impor, path dalam sistem
+berkas, atau pola yang sesuai dengan sebuah paket, seperti 'go run .' atau
+'go run my/cmd'.
+
+Secara bawaan, 'go run' secara langsung menjalankan berkas binari hasil
+kompilasi: 'a.out argumen...'.
+Jika opsi "-exec" diberikan, 'go run' menjalankan berkas binari menggunakan
+program "xprog":
+
+----
+'xprog a.out arguments...'.
+----
+
+Jika opsi "-exec" tidak diberikan, GOOS atau GOARCH berbeda dengan bawaan
+sistem, dan sebuah program bernama go_$GOOS_$GOARCH_exec ditemukan ditemukan
+dalam system PATH, 'go run' memanggil berkas binari menggunakan program
+tersebut, misalnya 'go_js_wasm_exec a.out argumen...'.
+Hal ini membolehkan eksekusi dari program yang dikompilasi silang
+(__cross-compiled__) saat sebuah simulator atau metode eksekusi lain
+tersedia.
+
+Status keluaran dari perintah `run` bukanlah status keluaran dari berkas
+binary hasil kompilasi.
+
+Untuk informasi lebih lanjut tentang opsi-opsi pembangunan, lihat 'go help
+build'.
+Untuk informasi lebih lanjut tentang cara menspesifikasikan paket, lihat 'go
+help packages'.
+
+Lihat juga: go build.
+
+
+[#hdr-Test_packages]
+==  Menguji paket-paket
+
+Penggunaan:
+
+----
+go test [build/test flags] [packages] [build/test flags & test binary flags]
+----
+
+Perintah 'go test' men- otomatisasi pengujian paket-paket berdasarkan nama
+path impor.
+Ia mencetak ringkasan dari hasil pengujian dalam format:
+
+----
+ok   archive/tar   0.011s
+FAIL archive/zip   0.022s
+ok   compress/gzip 0.033s
+...
+----
+
+diikuti dengan rincian untuk setiap paket yang gagal (`FAIL`).
+
+Perintah 'go test' meng-ompilasi ulang setiap paket bersama dengan semua
+berkas yang sesuai dengan pola berkas "*_test.go".
+Berkas-berkas tambahan ini bisa berisi fungsi-fungsi pengujian, __benchmark__,
+dan contoh.
+Lihat 'go help testfunc' untuk lebih lanjut.
+Setiap paket yang didaftarkan menyebabkan eksekusi pengujian yang berbeda.
+Nama berkas yang dimulai dengan "_" (termasuk "_test.go") atau "." akan
+diindahkan.
+
+Berkas-berkas uji yang memiliki nama paket dengan sufiks "_test" akan
+dikompilasi sebagai paket yang terpisah, dan kemudian dihubungkan dan
+dijalankan bersamaan dengan binari pengujian utama.
+
+Perkakas go akan mengindahkan sebuah direktori bernama "testdata", membuatnya
+tersedia sebagai tempat penyimpanan data yang dibutuhkan oleh pengujian.
+
+Sebagai bagian dari pembangunan sebuah binari pengujian, 'go test' menjalankan
+'go vet' terhadap paket yang diberikan dan berkas sumber ujinya untuk
+mengidentifikasi permasalahan yang signifikan.
+Jika 'go vet' menemukan masalah, 'go test' melaporkannya dan tidak akan
+menjalankan binari pengujian.
+Hanya sebagian dari perkakas 'go vet' yang digunakan, yaitu: 'atomic', 'bool',
+'buildtags', 'errorsas', 'ifaceassert', 'nilfunc', 'printf', dan
+'stringintconv'.
+Anda bisa membaca dokumentasi dari setiap perkakas tersebut lewat "go doc
+cmd/vet".
+Untuk meniadakan eksekusi 'go vet', gunakan opsi "-vet=off".
+
+Semua baris keluaran dan ringkasan pengujian dicetak ke __standard output__,
+bahkan bila fungsi pengujian mencetaknya ke __standard error__-nya sendiri.
+(__standard error__ dari perintah go disediakan hanya untuk mencetak eror saat
+membangun binari pengujian.)
+
+Perintah 'go test' berjalan dalam dua mode berbeda:
+
+Yang pertama, disebut mode direktori lokal, terjadi saat 'go test' dipanggil
+tanpa argumen paket (misalnya, 'go test' atau 'go test -v').
+Dalam mode ini, 'go test' mengompilasi sumber kode dan tes paket yang
+ditemukan dalam direktori yang sekarang dan kemudian menjalankan binari tes.
+Dalam mode ini, tembolok (didiskusikan di bawah) di non-aktifkan.
+Setelah pengujian paket selesai, "go test" mencetak baris ringkasan
+memperlihatkan status pengujian ('ok' atau 'FAIL'), nama paket, dan waktu yang
+dihabiskan.
+
+Yang kedua, disebut mode daftar paket, terjadi saat "go test" dipanggil dengan
+argumen paket (misalnya 'go test math', 'go test ./...', dan bahkan 'go test
+.').
+Dalam mode ini, "go test" mengompilasi dan menguji setiap paket yang diberikan
+pada baris perintah.
+Jika sebuah pengujian paket berhasil, "go test" hanya mencetak baris ringkasan
+'ok'.
+Jika pengujian paket gagal, "go test" mencetak semua keluaran pengujian.
+Jika dipanggil dengan opsi "-bench" atau "-v", "go test" mencetak semua
+keluaran bahkan untuk pengujian paket yang berhasil, dengan tujuan menampilkan
+hasil __benchmark__ atau pencatatan.
+Setelah pengujian semua paket selesai, dan hasilnya dicetak, "go test"
+menampilkan status 'FAIL' jika salah satu pengujian paket gagal.
+
+Pada mode daftar paket, "go test" menyimpan hasil pengujian paket yang
+berhasil dalam sebuah tembolok untuk menghindari pengulangan pengujian yang
+tidak penting.
+Bila hasil dari sebuah pengujian dapat dipulihkan dari tembolok, "go test"
+akan menampilkan ulang keluaran sebelumnya bukan menjalankan binari pengujian
+kembali.
+Bila ini terjadi, "go test" mencetak '(cached)' sebagai pengganti waktu pada
+baris ringkasan.
+
+Aturan dari penggunaan tembolok yaitu pengujian dijalankan mengikutkan binari
+pengujian yang sama dan opsi-opsi pada baris perintah menggunakan sekumpulan
+opsi yang dapat di-__cache__, yaitu -cpu, -list, -parallel, -run, -short, dan
+-v.
+Jika "go test" dijalankan dengan opsi selain dari sekumpulan opsi tersebut,
+maka hasilnya tidak akan di-__cache__.
+Untuk menonaktifkan __caching__ pengujian, gunakan opsi pengujian atau argumen
+selain opsi-opsi yang dapat di-__cache__.
+Cara idiomatis untuk menonaktifkan __cache__ pengujian secara eksplisit yaitu
+menggunakan -count=1.
+Tes-test yang membuka berkas dalam sumber paket (biasanya $GOPATH) atau yang
+membaca variabel lingkungan akan selalu berjalan sama selama berkas dan
+variabel lingkungan tidak berubah.
+Sebuah hasil pengujian yang di-__cache__ dianggap dieksekusi tanpa memakan
+waktu sama sekali, sehingga sebuah hasil tes yang sukses akan di-__cache__ dan
+digunakan ulang dengan mengindahkan pengaturan -timeout.
+
+Selain opsi-opsi "build", opsi-opsi yang ditangani oleh 'go test' itu sendiri
+diantaranya:
+
+----
+-args
+    Kirim sisa baris perintah (semua argumen setelah -args) ke binari tes,
+    tanpa diinterpretasi dan tidak diubah.
+    Secara opsi ini mengonsumsi sisa dari baris perintah, daftar paket (jika
+    ada) harus muncul sebelum opsi ini.
+
+-c
+    Kompilasi binari tes ke "pkg.test" namun jangan jalankan (yang mana "pkg"
+    adalah elemen terakhir dari path impor paket).
+    Nama berkas dapat diubah lewat opsi -o.
+
+-exec xprog
+    Jalankan binari tes menggunakan xprog.  Perilaku ini sama dengan 'go run'.
+    Lihat 'go help run' untuk lebih jelas.
+
+-i
+    Pasang paket-paket dependensi dari tes.
+    Jangan jalankan tes.
+
+-json
+    Konversi hasil tes ke JSON yang cocok untuk pemrosesan otomatis.
+    Lihat 'go doc test2json' untuk rincian format.
+
+-o berkas
+    Kompilasi binari tes ke berkas.
+    Tes masih tetap dijalankan (kecuali -c atau -i diberikan).
+----
+
+Binari tes juga menerima opsi yang mengontrol eksekusi dari tes; opsi-opsi
+tersebut juga dapat diakses oleh 'go test'.  Lihat 'go help testflag' untuk
+lebih rinci.
+
+Untuk lebih lanjut tentang opsi "build", lihat 'go help build'.
+Untuk lebih lanjut tentang cara menspesifikasikan paket, lihat 'go help
+packages'.
+
+Lihat juga: go build, go vet.
+
+
+[#hdr-Run_specified_go_tool]
+==  Jalankan perkakas go tertentu
+
+Penggunaan:
+
+----
+go tool [-n] perintah [args...]
+----
+
+Perintah 'tool' menjalankan perintah yang diidentifikasi oleh
+argumen-argumennya.
+Bila argumen tidak diberikan, ia akan mencetak daftar perintah yang dikenal
+oleh 'tool'.
+
+Opsi -n menyebabkan 'tool' mencetak perintah yang akan dieksekusi tetapi tidak
+mengeksekusinya.
+
+Untuk informasi lebih lanjut tentang setiap perintah pada 'tool', lihat
+'go doc cmd/<perintah>'.
+
+
+[#hdr-Print_Go_version]
+==  Cetak versi Go
+
+Penggunaan:
+
+----
+go version [-m] [-v] [file ...]
+----
+
+Perintah 'version' mencetak informasi pembangunan dari hasil binari Go.
+
+Perintah 'go version' melaporkan versi Go yang digunakan untuk membangun
+setiap nama berkas binari yang diberikan pada baris perintah.
+
+Jika tidak ada berkas yang diberikan, 'go version' akan mencetak informasi
+versi dirinya sendiri.
+
+Jika sebuah direktori diberikan, 'go version' menelusuri direktori tersebut
+secara rekursif, mencari hasil binari-binari Go yang dikenal dan melaporkan
+versi mereka masing-masing.
+Secara bawaan, 'go version' tidak melaporkan berkas-berkas yang tidak dikenal
+yang ditemukan selama pemindaian direktori.
+Opsi -v melaporkan berkas-berkas yang tidak dikenal tersebut.
+
+Opsi -m menyebabkan 'go version' mencetak informasi versi modul yang tertanam
+dalam binari, bila ada.
+Keluarannya yaitu informasi modul yang berisi beberapa baris diikuti oleh
+versi, yang dipisahkan oleh karakter tab.
+
+Lihat juga: go doc runtime/debug.BuildInfo.
