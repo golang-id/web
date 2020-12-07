@@ -7,7 +7,7 @@
 package main
 
 import (
-	"github.com/shuLhan/ciigo"
+	"git.sr.ht/~shulhan/ciigo"
 )
 
 func main() {

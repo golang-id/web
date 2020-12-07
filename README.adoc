@@ -28,7 +28,7 @@ terjemahkan.
 ==  Struktur direktori dan berkas
 
 Repositori ini menggunakan konvensi direktori dan berkas yang sama dengan
-https://github.com/shuLhan/ciigo[kerangkanya]:
+https://sr.ht/~shulhan/ciigo[kerangkanya]:
 
 *  `cmd/www-golangid`: direktori ini adalah program utama yang berisi konten
    statis.
