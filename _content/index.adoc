@@ -35,6 +35,9 @@ lebih lanjut, silakan buka halaman link:/doc[dokumentasi].
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
 
+*  link:/blog/go1.15[Rilis Go 1.15],
+   11 Agustus 2020.  Alex Rakoczy
+
 *  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol
    Buffers],
    2 Maret 2020.  Joe Tsai, Damien Neil, dan Herbie Ong
