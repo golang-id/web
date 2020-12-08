@@ -60,6 +60,9 @@
 *  link:/blog/introducing-go-playground/[Memperkenalkan Go Playground],
    15 September 2010.  _Andrew Gerrand_
 
+*  link:/blog/json-rpc/[JSON-RPC: kisah penggunaan interface],
+   27 April 2010.  _Andrew Gerrand_
+
 *  link:/blog/third-party-libraries-goprotobuf-and[Pustaka pihak-ketiga:
    goprotobuf dan lainnya],
    20 April 2010.  _Andrew Gerrand_

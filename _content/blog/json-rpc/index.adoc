@@ -1,0 +1,71 @@
+= JSON-RPC: kisah penggunaan interface
+Andrew Gerrand
+27 April 2010
+
+Di artikel ini kita memperlihatkan contoh di mana
+link:/doc/effective_go.html#interfaces_and_types[interface]
+pada Go mempermudah melakukan perubahan (_refactor_) pada kode yang telah ada
+untuk membuatnya lebih fleksibel dan ekstensibel.
+Awalnya, pustaka standar
+https://golang.org/pkg/net/rpc/[paket RPC]
+menggunakan format kostum bernama
+https://golang.org/pkg/encoding/gob/[gob].
+Untuk beberapa aplikasi, kita ingin menggunakan
+https://golang.org/pkg/encoding/json/[JSON]
+sebagai format alternatif.
+
+Pertama kita mendefinisikan pasangan interface untuk menjelaskan
+fungsionalitas dari format yang sudah ada, satu untuk sisi klien, satu lagi di
+sisi peladen (_server_).
+
+----
+type ServerCodec interface {
+	ReadRequestHeader(*Request) error
+	ReadRequestBody(interface{}) error
+	WriteResponse(*Response, interface{}) error
+	Close() error
+}
+----
+
+Di sisi peladen, kita mengubah dua fungsi internal untuk menerima interface
+`ServerCodec`, mengganti `gob.Encoder`.
+Berikut salah satu dari fungsi tersebut,
+
+----
+func sendResponse(sending *sync.Mutex, req *Request,
+	reply interface{}, enc *gob.Encoder, errmsg string)
+----
+
+menjadi
+
+----
+func sendResponse(sending *sync.Mutex, req *Request,
+	reply interface{}, enc ServerCodec, errmsg string)
+----
+
+Kita kemudian menulis pembungkus untuk `gobServerCodec` untuk mereproduksi
+fungsionalitas yang asli.
+Setelah itu menjadi mudah untuk membuat `jsonServerCodec`.
+
+Setelah melakukan perubahan yang sama di sisi klien, semua pekerjaan yang
+harus dilakukan telah selesai untuk paket RPC.
+Semua ini membutuhkan tidak lebih dari 20 menit!
+Setelah dirapikan sedikit dan melakukan pengujian pada kode yang baru,
+https://github.com/golang/go/commit/dcff89057bc0e0d7cb14cf414f2df6f5fb1a41ec[perubahan
+terakhir]
+dikirim.
+
+Pada bahasa beroritentasi objek-turunan seperti Java atau C++, langkah yang
+dilakukan untuk menyelesaikan masalah yang sama seperti di atas yaitu dengan
+menggeneralisasi class RPC, dan membuat sub-class untuk JsonRPC dan GobRPC.
+Namun, pendekatan dengan cara ini menjadi sedikit sulit jika kita ingin
+supaya perubahan tersebut ortogonal terhadap hirarki class.
+(Misalnya, jika kita memiliki implementasi standar RPC tersendiri).
+Dalam paket Go, kita mengambil langkah yang tidak hanya simpel secara
+konseptual namun juga memiliki perubahan kode yang sedikit dan jelas.
+
+Kualitas vital dari setiap basis kode adalah pemeliharaan.
+Saat kebutuhan berubah, sangatlah penting supaya kode beradaptasi dengan mudah
+dan bersih, dan tidak menjadi liar dan susah untuk dikerjakan.
+Kami percaya bahwa sistem tipe berorientasi komposisi yang ringan pada Go
+membuat penstrukturan kode yang mudah dikembangkan.
