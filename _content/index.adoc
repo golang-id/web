@@ -38,6 +38,10 @@ komunitas Go Indonesia.
 *  link:/blog/go1.15[Rilis Go 1.15],
    11 Agustus 2020.  Alex Rakoczy
 
+*  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap
+   Kompatibel],
+   2 Juli 2020.  _Jean de Klerk_ dan _Jonathan Amsterdam_
+
 *  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol
    Buffers],
    2 Maret 2020.  Joe Tsai, Damien Neil, dan Herbie Ong
@@ -51,8 +55,6 @@ komunitas Go Indonesia.
 *  link:/blog/go1.15-proposals[Proposal untuk Go 1.15],
    28 Januari 2020.  _Robert Griesemer_, untuk tim Go
 
-*  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019],
-   20 November 2019.  _Todd Kulesza_
 
 baca artikel blog link:/blog[lainnya].
 

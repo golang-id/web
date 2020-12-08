@@ -1,0 +1,446 @@
+= Menjaga Modul Anda tetap Kompatibel
+Jean de Klerk; Jonathan Amsterdam
+7 July 2020
+
+== Pendahuluan
+
+Tulisan ini adalah bagian ke 5 dari sebuah seri.
+
+*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul]
+*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul]
+*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul]
+*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya]
+*  Bagian 5 - Menjaga Modul Anda tetap Kompatibel (artikel ini)
+
+Modul Anda akan terus berkembang seiring waktu saat Anda menambahkan fitur
+yang baru, mengubah perilaku modul, dan/atau mengganti bagian modul menjadi
+publik.
+Seperti yang telah kita diskusikan pada
+link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya],
+perubahan besar pada modul dengan versi v1+ harus terjadi dengan meningkatkan
+versi mayor (atau dengan mengadopsi path modul yang baru).
+
+Namun, merilis versi mayor yang baru membuat pengguna menjadi kesulitan.
+Mereka harus mencari tahu versi yang baru, mempelajari API yang baru, dan
+mengubah kode mereka.
+Beberapa pengguna modul Anda mungkin tidak akan pernah memperbarui dependensi
+mereka, artinya Anda harus memelihara dua versi kode yang berbeda.
+Jadi, lebih baik mengubah paket Anda yang sekarang dengan cara yang
+kompatibel (kompatibilitas-terbelakang)
+
+Dalam artikel ini, kita akan mengeksplorasi beberapa teknik untuk
+memperkenalkan perubahan-perubahan yang tidak terlalu berpengaruh pada
+pengguna modul.
+Intinya adalah: tambahkan fitur baru, jangan menghapus atau mengubah yang
+sudah ada.
+Kita juga akan mendiskusikan bagaimana merancang API yang kompatibel dari
+perspektif pengguna.
+
+
+==  Perubahan pada fungsi
+
+Terkadang, perubahan besar adalah dengan menambahan sebuah argumen ke sebuah
+fungsi.
+Kita akan jelaskan beberapa cara untuk menghindari perubahan seperti ini,
+namun sebelumnya mari kita lihat dahulu cara-cara yang salah.
+
+Saat menambahkan sebuah argumen yang baru dengan nilai baku, biasanya kita
+melakukannya dengan menambah sebuah parameter variadik.
+Misalnya, untuk menambahkan argumen `size` dengan nilai baku nol pada fungsi
+
+----
+func Run(name string)
+----
+
+kita bisa lakukan dengan
+
+----
+func Run(name string, size ...int)
+----
+
+dengan alasan bahwa semua pemanggilan terhadap fungsi `Run` yang sudah ada
+akan tetap berjalan.
+Hal ini memang benar, tetapi penggunaan fungsi `Run` seperti berikut akan
+membuat kompilasi menjadi gagal
+
+----
+package mypkg
+var runner func(string) = yourpkg.Run
+----
+
+Fungsi `Run` yang sebelumnya tetap berjalan pada kode di atas karena tipenya
+sama dengan `func(string)`, namun fungsi `Run` yang baru adalah
+`Run(string, ...int)`, sehingga perintah tersebut akan eror pada saat
+kompilasi.
+
+Contoh ini menggambarkan bahwa kompatibilitas pemanggilan tidak cukup
+untuk menjaga kompatibilitas-terbelakang.
+Pada kenyataannya, kita tidak dapat menjaga kompatibilitas bila berhadapan
+dengan masalah perubahan pada fungsi.
+
+Daripada mengganti parameter pada fungsi, lebih baik tambahkan fungsi yang
+baru.
+Sebagai contohnya, setelah paket `context` diperkenalkan, kita menjadi
+terbiasa mengirim `context.Context` sebagai argumen pertama dari fungsi.
+Namun, API yang sudah stabil tidak bisa mengubah fungsi yang diekspor untuk
+menerima `context.Context` begitu saja karena akan mengubah semua penggunaan
+dari fungsi tersebut.
+
+Maka dari itu, fungsi yang baru ditambahkan.
+Sebagai contohnya, method `Query` pada paket `database/sql` masih tetap
+
+----
+func (db *DB) Query(query string, args ...interface{}) (*Rows, error)
+----
+
+pada saat paket `context` diperkenalkan, tim Go menambahkan sebuah method baru
+ke `database/sql`:
+
+----
+func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*Rows, error)
+----
+
+Untuk menghindari duplikasi kode, method yang lama memanggil method yang baru
+dengan cara
+
+----
+func (db *DB) Query(query string, args ...interface{}) (*Rows, error) {
+	return db.QueryContext(context.Background(), query, args...)
+}
+----
+
+Menambahkan sebuah method membuat pengguna dapat melakukan migrasi ke API yang
+baru pada waktu yang mereka inginkan.
+Secara method-method tersebut dibaca dan terurut bersamaan, dan kata `Context`
+ada pada nama method yang baru, pengembangan dari `database/sql` API ini tidak
+mengurangi pembacaan dan pemahaman dari paket tersebut.
+
+Jika Anda mengantisipasi bahwa sebuah fungsi bisa saja butuh argumen yang
+baru pada suatu saat nanti, Anda bisa merancangnya terlebih dahulu dengan
+membuat sebuah argumen opsional sebagai bagian dari fungsi.
+Cara paling sederhana untuk melakukan hal ini yaitu dengan menambahkan sebuah
+argumen bertipe struct, seperti yang dilakukan oleh fungsi
+https://pkg.go.dev/crypto/tls?tab=doc#Dial[crypto/tls.Dial]:
+
+----
+func Dial(network, addr string, config *Config) (*Conn, error)
+----
+
+Komunikasi TLS yang dilakukan oleh fungsi `Dial` membutuhkan parameter
+`network` dan sebuah alamat (`addr`), namun ia juga memiliki banyak parameter
+lain dengan nilai baku (_default_).
+Mengirim nilai `nil` untuk parameter `config` akan menggunakan nilai baku
+tersebut;
+mengirim sebuah struct `Config` dengan men-set satu atau lebih field akan
+menimpa nilai baku pada field-field tersebut.
+Di masa depan, menambahkan parameter konfigurasi TLS yang baru hanya
+membutuhkan sebuah field yang baru pada struct `Config`, sebuah perubahan yang
+tetap menjaga kompatibilitas-terbelakang (hampir selalu -- lihat "Menjaga
+kompatibilitas struct" di bagian bawah).
+
+Terkadang teknik dengan menambahkan sebuah fungsi baru dan menambahkan opsi
+baru dapat digabungkan dengan membuat struct options sebagai method penerima.
+Mari kita lihat cara ini lewat perkembangan dari paket `net`.
+Sebelum Go 1.11, paket `net` hanya menyediakan fungsi `Listen` dengan argumen
+berikut,
+
+----
+func Listen(network, address string) (Listener, error)
+----
+
+Pada Go 1.11, dua fitur ditambahkan pada paket `net`: pengiriman sebuah
+`context`, dan membolehkan pemanggil menyediakan sebuah "fungsi pengontrol"
+untuk mengatur koneksi mentah setelah dibuat tetapi sebelum "binding"
+terjadi (keadaan yang mana _network socket_ dapat menerima koneksi).
+Perubahan yang diinginkan bisa berupa sebuah fungsi baru yang menerima sebuah
+context, network, alamat, dan fungsi kontrol.
+Namun, penulis paket `net` menambahkan struct
+https://pkg.go.dev/net@go1.11?tab=doc#ListenConfig[ListenConfig]
+untuk mengantisipasi adanya penambahan opsi selanjutnya suatu saat nanti.
+Daripada menambahkan fungsi baru dengan nama yang aneh, kita menambahkan
+method `Listen` ke `ListenConfig`:
+
+----
+type ListenConfig struct {
+	Control func(network, address string, c syscall.RawConn) error
+}
+
+func (*ListenConfig) Listen(ctx context.Context, network, address string) (Listener, error)
+----
+
+Cara lain untuk menyediakan opsi baru dimasa depan yaitu dengan pola "tipe
+Option", yang mana opsi-opsi dikirim sebagai argumen variadik, dan setiap opsi
+adalah sebuah fungsi yang mengubah nilai yang akan dibangun.
+Cara ini dijelaskan lebih rinci oleh tulisan Rob Pike
+https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html[Self-referential
+functions and the design of options].
+Salah satu contoh umum adalah fungsi
+https://pkg.go.dev/google.golang.org/grpc?tab=doc#DialOption[DialOption]
+pada paket
+https://pkg.go.dev/google.golang.org/grpc?tab=doc[google.golang.org/grpc].
+
+Tipe Option memiliki peran yang sama dengan struct Option pada argumen fungsi:
+cara mudah untuk mengirim konfigurasi yang mengubah perilaku.
+Untuk menentukan cara mana yang harus digunakan hanyalah masalah selera.
+Lihatlah penggunaan sederhana dari tipe `DialOption` pada paket `grpc`:
+
+----
+grpc.Dial("some-target",
+	grpc.WithAuthority("some-authority"),
+	grpc.WithMaxDelay(time.Second),
+	grpc.WithBlock())
+----
+
+Cara ini juga bisa diterapkan menggunakan struct Options seperti berikut,
+
+----
+notgrpc.Dial("some-target", &notgrpc.Options{
+	Authority: "some-authority",
+	MaxDelay:  time.Second,
+	Block:     true,
+})
+----
+
+Opsi dengan argumen fungsi memiliki kekurangan: kita harus menulis nama paket
+sebelum opsi untuk setiap pemanggilan (contohnya `grpc.WithXxx`);
+hal ini akan menambah ukuran dari _namespace_ paket;
+dan tidak menjelaskan perilaku yang terjadi bila kita mengirim opsi yang sama
+dua kali.
+Di sisi lain, fungsi yang menggunakan struct option membutuhkan sebuah
+parameter yang mungkin saja `nil` yang menurut beberapa orang terlihat kurang
+menarik.
+
+Salah satu cara di atas adalah pilihan yang masuk akal untuk memastikan
+pengembangan masa depan dari API modul Anda tetap menjaga
+kompatibilitas-terbelakang.
+
+
+== Bekerja dengan interface
+
+Terkadang, fitur baru membutuhkan perubahan pada interface yang telah
+terekspos ke publik: misalnya, sebuah method baru harus ditambahkan pada
+sebuah interface.
+Menambahkan method yang baru langsung ke interface akan menyebabkan perubahan
+besar, lalu bagaimana caranya supaya kita dapat menambahkan method baru ke
+interface yang sudah terekspos ke publik?
+
+Caranya yaitu dengan mendefinisikan interface baru dengan method yang baru,
+dan bilamana interface yang lama digunakan, kita memeriksa apakah tipe yang
+diberikan adalah tipe yang lama atau yang baru.
+
+Mari kita ilustrasikan cara ini dengan contoh dari paket
+https://pkg.go.dev/archive/tar?tab=doc[archive/tar].
+Method
+https://pkg.go.dev/archive/tar?tab=doc#NewReader[tar.NewReader]
+menerima sebuah `io.Reader`, suatu waktu tim Go menyadari bahwa akan lebih
+efisien untuk melewati header dari satu berkas ke berkas yang lain jika kita
+dapat memanggil
+https://pkg.go.dev/io?tab=doc#Seeker[Seek].
+Namun, kita tidak dapat menambahkan method `Seek` ke `io.Reader`: hal ini akan
+menimbulkan perubahan pada semua pengguna `io.Reader`.
+
+Cara lainnya yaitu dengan mengganti `tar.NewReader` untuk menerima
+https://pkg.go.dev/io?tab=doc#ReadSeeker[io.ReadSeeker]
+bukan `io.Reader` lagi, secara `io.ReadSeeker` mendukung `io.Reader` and
+`Seek` (lewat interface `io.Seeker`).
+Tetapi, seperti yang telah kita bahas di atas, mengubah argumen dari fungsi
+juga akan menyebabkan perubahan besar.
+
+Akhirnya, mereka memutuskan tidak mengubah `tar.NewReader`, namun memeriksa
+tipe dari `io.Seeker` dalam method `tar.Reader`:
+
+----
+package tar
+
+type Reader struct {
+	r io.Reader
+}
+
+func NewReader(r io.Reader) *Reader {
+	return &Reader{r: r}
+}
+
+func (r *Reader) Read(b []byte) (int, error) {
+	if rs, ok := r.r.(io.Seeker); ok {
+		// Gunakan rs.Seek.
+	}
+	// Gunakan r.r.Read.
+}
+----
+
+(Lihat
+https://github.com/golang/go/blob/60f78765022a59725121d3b800268adffe78bde3/src/archive/tar/reader.go#L837[reader.go]
+untuk kode aslinya.)
+
+Saat Anda menemui kasus seperti `tar.NewReader` di atas, yang mana Anda harus
+menambahkan method baru ke sebuah interface, Anda bisa mengikuti strategi
+seperti yang kita jelaskan sebelumnya.
+Mulailah dengan membuat interface yang baru dengan method yang baru, atau
+tentukan interface yang sudah ada dengan method yang baru.
+Selanjutnya, temukan fungsi-fungsi yang harus mendukung method yang baru
+tersebut, lakukan pemeriksaan tipe untuk interface yang baru, dan tambahkan
+kode yang menggunakan interface yang baru.
+
+Strategi ini hanya bekerja saat interface yang lama tanpa method yang baru
+masih bisa digunakan, membatasi pengembangan dari modul Anda di masa depan.
+
+Bila memungkinkan, lebih baik hindari masalah seperti ini.
+Saat merancang sebuah _constructor_, misalnya, lebih baik mengembalikan tipe
+yang konkret.
+Menggunakan tipe konkret membolehkan kita menambahkan method baru di masa
+depan tanpa perubahan yang besar dari sisi pengguna, tidak seperti interface.
+Properti ini membuat modul Anda lebih mudah dikembangkan di masa depan.
+
+Tip: jika Anda butuh menggunakan interface tapi tidak ingin pengguna Anda
+mengimplementasikannya, Anda dapat menambahkan method yang tidak diekspor.
+Hal ini mencegah tipe-tipe yang didefinisikan di luar paket Anda dari
+memenuhi interface Anda tanpa melakukan _embedding_, membebaskan Anda dari
+menambahkan method suatu saat nanti tanpa mengganggu implementasi pengguna.
+Contohnya, lihat
+https://github.com/golang/go/blob/83b181c68bf332ac7948f145f33d128377a09c42/src/testing/testing.go#L564-L567[fungsi
+private pada testing.TB].
+
+----
+type TB interface {
+	Error(args ...interface{})
+	Errorf(format string, args ...interface{})
+	// ...
+
+	// A private method to prevent users implementing the
+	// interface and so future additions to it will not
+	// violate Go 1 compatibility.
+	private()
+}
+----
+
+Topik ini juga dieksplorasi lebih dalam dalam wicaranya Jonathan Amsterdam
+"Detecting Incompatible API Changes" (https://www.youtube.com/watch?v=JhdL5AkH-AQ[wicara],
+https://github.com/gophercon/2019-talks/blob/master/JonathanAmsterdam-DetectingIncompatibleAPIChanges/slides.pdf[salindia]).
+
+
+== Penambahan method konfigurasi
+
+Sejauh ini kita telah membahas cara menangani perubahan yang besar, yang mana
+mengubah sebuah tipe atau fungsi akan menyebabkan kode di sisi pengguna
+gagal ter-_compile_.
+Namun, perubahan perilaku juga dapat mengganggu pengguna, walaupun kode dari
+sisi pengguna sukses di-_compile_.
+Sebagai contohnya, banyak user menganggap
+https://pkg.go.dev/encoding/json?tab=doc#Decoder[json.Decoder]
+mengindahkan field dalam JSON yang tidak ada di dalam struct.
+Pada saat tim Go ingin mengembalikan eror untuk kasus ini, mereka harus
+berhati-hati.
+Secara melakukan hal tersebut tanpa adanya mekanisme _pembolehan_ berarti akan
+banyak pengguna menerima eror saat menggunakan method tersebut, di mana
+sebelumnya tidak ada eror.
+
+Jadi, daripada mengubah perilaku untuk semua user, tim Go menambahkan sebuah
+method konfigurasi pada struct `Decoder`:
+https://pkg.go.dev/encoding/json?tab=doc#Decoder.DisallowUnknownFields[Decoder.DisallowUnknownFields].
+Melakukan pemanggilan pada method tersebut berarti pengguna _membolehkan_
+perilaku yang baru, dan tanpa adanya pemanggilan method tersebut maka perilaku
+dari `json.Decoder` akan tetap seperti yang lama.
+
+
+== Menjaga kompatibilitas struct
+
+Seperti yang telah kita bahas sebelumnya bahwa setiap perubahan ke sebuah
+fungsi publik adalah perubahan yang besar.
+Situasi ini lebih baik pada struct.
+Jika Anda memiliki tipe struct yang diekspor, Anda akan dapat selalu
+menambahkan field baru atau menghapus field yang tidak diekspor tanpa
+mengganggu kompatibilitas.
+Saat menambahkan sebuah field, pastikan bahwa nilai kosong dari field tersebut
+memiliki arti tersendiri dan tetap menjaga perilaku yang lama, sehingga kode
+yang ada sekarang yang tidak menset nilai dari field tersebut tetap berjalan
+dengan benar.
+
+Masih ingat para penulis paket `net` menambahkan `ListenConfig` pada Go 1.11
+karena mereka berpikir bahwa akan ada opsi-opsi selanjutnya?
+Ternyata mereka benar.
+Pada Go 1.13,
+https://pkg.go.dev/net@go1.13?tab=doc#ListenConfig[field KeepAlive]
+ditambahkan untuk membolehkan pengguna mematikan fungsi keep-alive dan
+mengatur periode-nya.
+Nilai baku kosong dari KeepAlive tetap menjaga perilaku asli dari keep-alive
+yaitu menghidupkan fungsi keep-alive dengan periode waktu baku yang telah
+ditentukan.
+
+Ada sebuah kemungkinan di mana menambah field baru bisa dapat mengganggu kode
+pengguna secara tidak langsung.
+Jika semua field dalam sebuah struct bisa dikomparasi--artinya nilai dari
+tipe-tipe field dapat dibandingkan dengan `==` dan `!=` dan digunakan sebagai
+kunci pada `map`--maka tipe struct tersebut dapat dikomparasi juga.
+Pada kasus ini, menambahkan sebuah field baru dengan tipe yang tidak dapat
+dikomparasi akan membuat tipe struct tidak dapat dikomparasi, membuat
+semua kode yang membandingkan nilai dari struct menjadi gagal.
+
+Untuk menjaga supaya struct tetap dapat dikomparasi, jangan menambahkan field
+yang tidak dapat dikomparasi ke struct tersebut.
+Anda dapat membuat unit tes untuk itu, atau menggunakan perkakas
+https://pkg.go.dev/golang.org/x/exp/cmd/gorelease?tab=doc[gorelease]
+untuk menangkap kemungkinan masalah ini terjadi suatu saat nanti.
+
+Untuk mencegah komparasi, pastikan struct tersebut memiliki field yang tidak
+dapat dibandingkan.
+Struct yang memiliki field dengan tipe slice, map, atau fungsi sudah pasti
+tidak bisa dikomparasi, namun jika field tipe tersebut tidak ada, kita dapat
+menambahkan field kosong `_` seperti berikut:
+
+----
+type Point struct {
+	_ [0]func()
+	X int
+	Y int
+}
+----
+
+Tipe `func()` tidak bisa dikomparasi, dan array dengan ukuran nol tidak
+memakan ruang.
+Kita bisa membuat sebuah tipe tersendiri untuk memperjelas hal ini:
+
+----
+type doNotCompare [0]func()
+
+type Point struct {
+	doNotCompare
+	X int
+	Y int
+}
+----
+
+Apakah sebaiknya menggunakan `doNotCompare` pada struct Anda?
+Jika Anda telah mendefinisikan struct tersebut untuk digunakan sebagai
+pointer--yaitu dengan memiliki method pointer dan mungkin fungsi konstruksi
+`NewXxx` yang mengembalikan pointer--maka menambahkan sebuah field
+`doNotCompare` tidak diperlukan.
+Pengguna dari tipe pointer memahami bahwa setiap nilai dari tipe pointer
+adalah berbeda: jika ingin membandingkan dua nilai, kita tinggal
+membandingkan pointer-nya saja.
+
+Jika Anda mendefinisikan sebuah struct untuk digunakan sebagai nilai, seperti
+pada contoh `Point` kita sebelumnya, maka sering kali kita ingin supaya struct
+tersebut dapat dibandingkan dengan nilai dari tipe struct yang sama.
+Pada kasus yang tidak umum di mana Anda memiliki nilai struct yang tidak ingin
+dibandingkan, maka menambahkan field `doNotCompare` akan memberikan Anda
+kebebasan untuk mengubah struct tersebut nantinya tanpa harus khawatir
+mengganggu kompatibilitas komparasi.
+Kelemahannya, tipe tersebut jadi tidak bisa digunakan sebagai kunci dari
+`map`.
+
+
+== Kesimpulan
+
+Saat merancang API dari awal, pertimbangkan lah dengan hati-hati kemudahan
+mengembangkan API terhadap perubahan di masa yang akan datang.
+Dan saat Anda ingin menambahkan fitur baru, ingatlah aturan berikut: tambah,
+jangan ubah atau hapus, dan ingatlah pengecualian berikut--interface, argumen
+fungsi, dan nilai kembalian tidak bisa ditambahkan tanpa menjaga
+kompatibilitas-terbelakang.
+
+Jika Anda ingin mengubah API secara drastis, atau bila API Anda mulai
+kehilangan fokusnya saat fitur-fitur baru ditambahkan, maka mungkin itulah
+waktunya untuk versi mayor yang baru.
+Tetapi sering kali, membuat perubahan yang tetap menjaga
+kompatibilitas-terbelakang lebih mudah dan menghindari mengganggu pengguna
+dari modul atau API Anda. 

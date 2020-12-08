@@ -130,3 +130,7 @@
 *  link:/blog/v2-go-modules[Bagian 4 - Go Modul: v2 dan Seterusnya], 7
    November 2019.
    _Jean de Klerk and Tyler Bui-Palsulich_
+
+*  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap Kompatibel],
+   7 July 2020.
+   _Jean de Klerk; Jonathan Amsterdam_
