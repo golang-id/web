@@ -59,6 +59,11 @@ komunitas Go Indonesia.
 baca artikel blog link:/blog[lainnya].
 
 
+==  link:/modul[Modul]
+
+Temukan Go modul yang dibuat oleh komunitas.
+
+
 ==  link:/wicara[Wicara]
 
 Halaman ini berisi _podcast_ dan video tentang Go yang dibawakan oleh

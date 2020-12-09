@@ -1,0 +1,41 @@
+= Modul dan paket
+
+Di halaman ini Anda akan menemukan modul, paket, dan perkakas yang dibuat oleh
+komunitas Go Indonesia.
+
+https://pkg.go.dev/github.com/bxcodec/faker[github.com/bxcodec/faker]::
+    Pembangkit data palsu untuk tipe struct.
+
+https://pkg.go.dev/github.com/iwanbk/bcache[github.com/iwanbk/bcache]::
+    Pustaka untuk mendistribusikan _cache_ dalam memori pada aplikasi.
+
+https://pkg.go.dev/github.com/iwanbk/rimcu[github.com/iwanbk/rimcu]::
+    Pustaka yang menggabungkan Redis dan _cache_ dalam memori.
+
+https://pkg.go.dev/github.com/iwanbk/gobeanstalk[github.com/iwanbk/gobeanstalk]::
+    Klien untuk http://kr.github.io/beanstalkd/[beanstalkd].
+
+https://pkg.go.dev/git.sr.ht/~shulhan/asciidoctor-go[git.sr.ht/~shulhan/asciidoctor-go]::
+    Pustaka untuk mengurai bahasa _markup_ asciidoc dan mengonversinya ke
+    HTML5.
+
+https://pkg.go.dev/git.sr.ht/~shulhan/ciigo[git.sr.ht/~shulhan/ciigo]::
+    Membuat situs web statis menggunakan bahasa _markup_ asciidoc.
+    Situs ini adalah salah satu contoh yang menggunakan perkakas ini.
+
+https://pkg.go.dev/github.com/shuLhan/rescached-go[rescached-go]::
+    DNS forwarder dengan cache.
+
+https://pkg.go.dev/github.com/shuLhan/share[github.com/shuLhan/share]::
+    Kumpulan paket dan perkakas yang membantu membuat aplikasi dengan Go.
+    Beberapa paket yang direkomendasikan,
+    * https://pkg.go.dev/github.com/shuLhan/share/lib/dns[lib/dns] - pustaka
+      untuk protokol DNS.
+    * https://pkg.go.dev/github.com/shuLhan/share/lib/http[lib/http] - pustaka
+      yang membungkus standar pustaka `net/http` dan menyediakan API yang
+      simpel untuk membuat REST API dengan _routing_.
+    * https://pkg.go.dev/github.com/shuLhan/share/lib/memfs[lib/memfs] -
+      pustaka untuk menanam berkas ke dalam sumber kode Go.
+    * https://pkg.go.dev/github.com/shuLhan/share/lib/websocket[lib/websocket]
+      - pustaka protokol WebSocket menggunakan _epoll_ untuk membuat peladen
+        dan klien WebSocket.
