@@ -81,18 +81,24 @@ ikuti dan pantau acara pertemuan komunitas Go Bandung selanjutnya.
 
 ==  Bantuan
 
-===  https://groups.google.com/forum/#!forum/golang-id[Milis Go Indonesia]
+===  https://groups.google.com/forum/#!forum/golang-id[Milis]
 
 Jika anda memiliki pertanyaan, atau ingin berbagi karya Go anda, atau ingin
 berdiskusi lebih lanjut tentang Go.
 
-===  https://t.me/golangID[Grup Telegram Go Indonesia]
+===  https://www.reddit.com/r/golang_id/[Reddit]
+
+Sub reddit untuk mendapatkan artikel terbaru dan juga bisa sebagai alternatif
+tempat berdiskusi tentang Go.
+
+===  https://twitter.com/IdGolang[Twitter]
+
+Ikuti kami di Twitter untuk mendapatkan artikel-artikel terbaru dalam Bahasa
+Indonesia.
+
+===  https://t.me/golangID[Telegram]
 
 Grup untuk berdiskusi dan tanya jawab dengan cepat mengenai apa pun.
-
-===  https://discord.gg/Uttw45[Discord]
-
-Grup untuk berdiskusi dan tanya jawab tentang Go lewat Discord server.
 
 
 ==  link:/berkontribusi.html[Berkontribusi]
