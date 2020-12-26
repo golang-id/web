@@ -291,8 +291,8 @@ Pengguna Go umumnya menggunakan _debugger_ berikut:
    mendukung konsep _runtime_ dan tipe bawaan.
    Delve adalah _debugger_ yang kaya dengan fitur dan tepercaya.
 
-*  https://golang.org/doc/gdb[GDB]: GDB menyediakan dukungan Go lewat
-   _compiler_ Go bawaan dan `gccgo`.
+*  link:/doc/gdb[GDB]: GDB menyediakan dukungan Go lewat _compiler_ Go bawaan
+   dan `gccgo`.
    Manajemen _stack_, _thread_, dan _runtime_ memiliki aspek yang berbeda jauh
    dari model eksekusi yang diharapkan oleh GDB yang terkadang membingungkan
    _debugger_, bahkan pada program yang di- _compile_ dengan `gccgo`.

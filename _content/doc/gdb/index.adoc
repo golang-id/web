@@ -1,0 +1,505 @@
+= Debugging kode Go dengan GDB
+:toc:
+:sectanchors:
+:sectlinks:
+
+_Instruksi dalam dokumen ini hanya berlaku untuk perkakas toolchain standar
+(perkakas dan compiler Go `gc`)_.
+_Gccgo memiliki dukungan gdb langsung_.
+
+Perlu diketahui bahwa
+https://github.com/go-delve/delve[Delve]
+adalah alternatif lain dari GDB untuk melakukan _debugging_ pada program Go
+yang dibangun dengan _toolchain_ standar.
+Delve mengenal _runtime_, struktur data, dan ekspresi Go lebih baik
+daripada GDB.
+Delve saat ini mendukung Linux, OSX, dan Windows pada `amd64`.
+Untuk daftar platform yang didukung, lihatlah
+https://github.com/go-delve/delve/tree/master/Documentation/installation[dokumentasi
+Delve].
+
+GDB tidak begitu baik mengenali program Go.
+Managemen stack, _threading_, dan _runtime_ memiliki aspek-aspek yang cukup
+berbeda dari model eksekusi yang diharapkan GDB yang dapat membingungkan
+_debugger_ dan menyebabkan hasil yang tidak tepat bahkan untuk program yang
+dibuat dengan gccgo.
+Akibatnya, walaupun GDB dapat berguna pada situasi tertentu (misalnya,
+melakukan _debug_ pada kode Cgo, atau _debug_ pada _runtime_ itu sendiri), ia
+bukanlah _debugger_ yang handal untuk program Go, terutama program yang
+bergantung pada konkurensi.
+Lebih lanjut lagi, saat ini bukanlah prioritas dari proyek Go untuk mengatasi
+masalah ini.
+
+Instruksi-instruksi di bawah ini sebaiknya digunakan sebagai panduan tentang
+bagaimana menggunakan GDB, tidak menjamin selalu sukses.
+Selain artikel ini Anda mungkin bisa membaca lebih lanjut pada
+https://sourceware.org/gdb/current/onlinedocs/gdb/[manual GDB].
+
+
+[#Introduction]
+== Pendahuluan
+
+Saat Anda mengompilasi kode Go dengan _toolchain_ `gc` pada Linux, macOS,
+FreeBSD, atau NetBSD, program yang dihasilkan berisi informasi _debug_ dengan
+format DWARFv4 yang mana versi terbaru (≥7.5) dari GDB dapat gunakan untuk
+menginspeksi sebuah proses secara langsung atau sebuah _core dump_.
+
+Gunakan opsi '-w' untuk menghilangkan informasi _debug_ (misalnya, `go build
+-ldflags=-w prog.go`).
+
+Kode yang dibangkitkan oleh _compiler_ gc mengikutkan baris pemanggilan fungsi
+dan registrasi variabel-variabel.
+Optimisasi ini terkadang membuat _debugging_ dengan gdb menjadi sukar.
+Jika Anda butuh mematikan optimasi ini, bangun program Anda menggunakan `go
+build -gcflags=all="-N -l"`.
+
+Jika Anda ingin menggunakan gdb untuk menginspeksi sebuah _core dump_, Anda
+dapat memicu _dump_ pada saat program _crash_, pada sistem yang membolehkan,
+dengan menset `GOTRACEBACK=crash` di lingkungan sistem (lihat
+http://127.0.0.1:6061/pkg/runtime/#hdr-Environment_Variables[dokumentasi paket
+`runtime`]
+untuk informasi lebih lanjut).
+
+[#Common_Operations]
+===  Operasi umum
+
+* Tampilkan berkas dan nomor baris dari kode, set _breakpoint_ dan uraikan
+  baris perintah kode,
++
+----
+(gdb) list
+(gdb) list line
+(gdb) list file.go:line
+(gdb) break line
+(gdb) break file.go:line
+(gdb) disas
+----
+
+* Tampilkan _backtrace_ dan _stack frame_:
++
+----
+(gdb) bt
+(gdb) frame n
+----
+
+* Tampilkan nama, tipe, dan lokasi dari variabel lokal pada _stack frame_,
+  argumen, dan nilai kembalian:
++
+----
+(gdb) info locals
+(gdb) info args
+(gdb) p variable
+(gdb) whatis variable
+----
+
+* Tampilkan nama, tipe, dan lokasi dari variabel global:
++
+----
+(gdb) info variables regexp
+----
+
+
+[#Go_Extensions]
+===  Ekstensi Go
+
+Mekanisme ekstensi pada GDB membolehkan memuat skrip ekstensi untuk program
+tertentu.
+Perkakas Go menggunakan ekstensi ini untuk mengembangkan GDB dengan beberapa
+perintah yang berguna untuk menginspeksi internal dari kode _runtime_ (seperti
+goroutine) dan untuk mencetak tipe map, slice, dan channel.
+
+* Cetak sebuah string, slice, map, channel, atau interface,
++
+----
+(gdb) p var
+----
+
+* Fungsi `$len()` dan `$cap()` untuk string, slice, dan map:
++
+----
+(gdb) p $len(var)
+----
+
+* Fungsi untuk mengganti interface menjadi tipe dinamisnya:
++
+----
+(gdb) p $dtype(var)
+(gdb) iface var
+----
++
+*Masalah diketahui*: GDB tidak bisa secara otomatis mencari tipe dinamis dari
+sebuah nilai interface jika nama panjangya berbeda dengan nama pendeknya
+(cukup mengganggu saat mencetak _stack trace_, pencetak GDB balik lagi
+menggunakan nama tipe yang pendek dan sebuah pointer).
+
+* Memeriksa goroutine:
++
+--
+----
+(gdb) info goroutines
+(gdb) goroutine n cmd
+(gdb) help goroutine
+----
+
+Sebagai contohnya,
+----
+(gdb) goroutine 12 bt
+----
+
+Anda dapat menginspeksi semua goroutine dengan mengirim `all` bukan ID dari
+goroutine tertentu.
+Misalnya:
+----
+(gdb) goroutine all bt
+----
+--
+
+Jika Anda ingin melihat bagaimana ia bekerja, atau ingin mengubahnya, lihatlah
+https://golang.org/src/runtime/runtime-gdb.py[src/runtime/runtime-gdb.py]
+di dalam distribusi sumber Go.
+Skrip ekstensi tersebut bergantung pada tipe-tipe khusus (`hash<T,U>`) dan
+variabel (`runtime.m` dan `runtime.g`) yang _linker_
+(https://golang.org/src/cmd/link/internal/ld/dwarf.go[src/cmd/link/internal/ld/dwarf.go])
+pastikan didescripsikan dalam format DWARF.
+
+Jika Anda tertarik pada bentuk informasi _debug_, jalankan `objdump -W a.out`
+dan lihatlah pada bagian `+.debug_*+`.
+
+[#Known_Issues]
+===  Masalah yang diketahui
+
+. Pencetakan string hanya bisa digunakan pada tipe string, bukan pada tipe
+  yang diturunkan dari string.
+. Informasi tipe hilang pada bagian C dari pustaka _runtime_
+. GDB tidak mengenal kualifikasi nama Go dan memperlakukan "fmt.Print" sebagai
+  string harfiah dengan "." harus diberi tanda kutip.
+. Pada Go 1.11, informasi _debug_ selalu dikompres.
+  Versi terdahulu dari gdb, seperti yang tersedia pada macOS, tidak mengenal
+  kompresi.
+  Anda dapat membangkitkan informasi _debug_ tanpa kompresi dengan menggunakan
+  `go build -ldflags=-compressdwarf=false`.
+  (Supaya lebih gampang Anda dapat menyimpan opsi `-ldflags` dalam
+  link:/cmd/go/#hdr-Environment_variables[variabel lingkungan GOFLAGS]
+  supaya Anda tidak perlu mengulangi penulisannya lagi).
+
+
+[#Tutorial]
+== Tutorial
+
+Dalam tutorial ini kita akan menginspeksi binari dari unit test pada paket
+https://golang.org/pkg/regexp/[regexp].
+Untuk membuat binari tersebut, pindahlah ke `$GOROOT/src/regexp` dan jalankan
+`go test -c`.
+Perintah tersebut seharusnya menghasilkan sebuah berkas program bernama
+`regepx.test`.
+
+
+[#Getting_Started]
+===  Memulai
+
+Jalankan GDB untuk men-_debug_ `regexp.test`:
+
+----
+$ gdb regexp.test
+GNU gdb (GDB) 7.2-gg8
+Copyright (C) 2010 Free Software Foundation, Inc.
+License GPLv  3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+Type "show copying" and "show warranty" for licensing/warranty details.
+This GDB was configured as "x86_64-linux".
+
+Reading symbols from  /home/user/go/src/regexp/regexp.test...
+done.
+Loading Go Runtime support.
+(gdb)
+----
+
+Pesan "Loading Go Runtime support" berarti GDB memuat ekstensi dari
+`$GOROOT/src/runtime/runtime-gdb.py`.
+
+Untuk membantu GDB menemukan sumber _runtime_ Go dan skrip pendukung lainnya,
+kirimkan `$GOROOT` dengan opsi `-d`:
+
+----
+$ gdb regexp.test -d $GOROOT
+----
+
+Jika GDB masih tetap tidak bisa menemukan direktori atau skrip tersebut, Anda
+bisa memuatnya secara manual dengan memberitahu gdb (dengan asumsi Anda
+memiliki sumber kode Go di ~/go/):
+
+----
+(gdb) source ~/go/src/runtime/runtime-gdb.py
+Loading Go Runtime support.
+----
+
+[#Inspecting_the_source]
+=== Menginspeksi sumber
+
+Gunakan perintah "```l```" atau "```list```" untuk menginspeksi kode sumber.
+
+----
+(gdb) l
+----
+
+Tampilkan bagian tertentu dari sumber dengan mengirim parameter pada
+"```list```" dengan nama fungsi (harus disertai dengan nama paketnya).
+
+----
+(gdb) l main.main
+----
+
+Tampilkan isi berkas tertentu dan nomor baris kode:
+
+----
+(gdb) l regexp.go:1
+(gdb) # Tekan enter untuk mengulangi perintah sebelumnya.
+----
+
+[#Naming]
+===  Penamaan
+
+Nama variabel dan fungsi harus disertai dengan nama paket di mana mereka
+berada.
+Fungsi `Compile` yang ada dalam paket `regexp` dikenal oleh GDB sebagai
+`regexp.Compile`.
+
+Method harus disertai dengan tipe penerimanya.
+Misalnya, method `String` pada tipe `Regexp` dikenal oleh GDB dengan
+`+regexp.(*Regexp).String+`.
+
+Variabel yang menimpa variabel dengan nama yang sama secara otomatis diberi
+sufiks dengan nomor dalam informasi _debug_.
+Variabel yang diacu oleh sebuah _closure_ akan muncul sebagai pointer dengan
+prefiks '&'.
+
+[#Setting_breakpoints]
+=== Menset _breakpoint_
+
+Set sebuah _breakpoint_ pada fungsi `TestFind`:
+
+----
+(gdb) b 'regexp.TestFind'
+Breakpoint 1 at 0x424908: file /home/user/go/src/regexp/find_test.go, line 148.
+----
+
+Jalankan program:
+
+----
+(gdb) run
+Starting program: /home/user/go/src/regexp/regexp.test
+
+Breakpoint 1, regexp.TestFind (t=0xf8404a89c0) at /home/user/go/src/regexp/find_test.go:148
+148	func TestFind(t *testing.T) {
+----
+
+Eksekusi telah berhenti pada _breakpoint_.
+Lihatlah goroutine mana saja yang sedang berjalan, dan apa yang mereka
+lakukan:
+
+----
+(gdb) info goroutines
+  1  waiting runtime.gosched
+* 13  running runtime.goexit
+----
+
+Baris yang diawali dengan `\*` adalah goroutine yang aktif sekarang.
+
+[#Inspecting_the_stack]
+===  Menginspeksi _stack_
+
+Untuk melihat _stack trace_ di posisi program kita berhenti:
+
+----
+(gdb) bt  # backtrace
+#0  regexp.TestFind (t=0xf8404a89c0) at /home/user/go/src/regexp/find_test.go:148
+#1  0x000000000042f60b in testing.tRunner (t=0xf8404a89c0, test=0x573720) at /home/user/go/src/testing/testing.go:156
+#2  0x000000000040df64 in runtime.initdone () at /home/user/go/src/runtime/proc.c:242
+#3  0x000000f8404a89c0 in ?? ()
+#4  0x0000000000573720 in ?? ()
+#5  0x0000000000000000 in ?? ()
+----
+
+Goroutine yang lain, nomor 1, tersendat dalam `runtime.gosched`, ditahan pada
+penerima channel:
+
+----
+(gdb) goroutine 1 bt
+#0  0x000000000040facb in runtime.gosched () at /home/user/go/src/runtime/proc.c:873
+#1  0x00000000004031c9 in runtime.chanrecv (c=void, ep=void, selected=void, received=void)
+ at  /home/user/go/src/runtime/chan.c:342
+#2  0x0000000000403299 in runtime.chanrecv1 (t=void, c=void) at/home/user/go/src/runtime/chan.c:423
+#3  0x000000000043075b in testing.RunTests (matchString={void (struct string, struct string, bool *, error *)}
+ 0x7ffff7f9ef60, tests=  []testing.InternalTest = {...}) at /home/user/go/src/testing/testing.go:201
+#4  0x00000000004302b1 in testing.Main (matchString={void (struct string, struct string, bool *, error *)}
+ 0x7ffff7f9ef80, tests= []testing.InternalTest = {...}, benchmarks= []testing.InternalBenchmark = {...})
+at /home/user/go/src/testing/testing.go:168
+#5  0x0000000000400dc1 in main.main () at /home/user/go/src/regexp/_testmain.go:98
+#6  0x00000000004022e7 in runtime.mainstart () at /home/user/go/src/runtime/amd64/asm.s:78
+#7  0x000000000040ea6f in runtime.initdone () at /home/user/go/src/runtime/proc.c:243
+#8  0x0000000000000000 in ?? ()
+----
+
+_Stack frame_ memperlihatkan kita sekarang sedang mengeksekusi fungsi
+`regexp.TestFind`, seperti yang diharapkan.
+
+----
+(gdb) info frame
+Stack level 0, frame at 0x7ffff7f9ff88:
+ rip = 0x425530 in regexp.TestFind (/home/user/go/src/regexp/find_test.go:148);
+    saved rip 0x430233
+ called by frame at 0x7ffff7f9ffa8
+ source language minimal.
+ Arglist at 0x7ffff7f9ff78, args: t=0xf840688b60
+ Locals at 0x7ffff7f9ff78, Previous frame's sp is 0x7ffff7f9ff88
+ Saved registers:
+  rip at 0x7ffff7f9ff80
+----
+
+Perintah `info locals` menampilkan semua variabel lokal terhadap fungsi dan
+nilainya, namun sedikit berbahaya untuk digunakan, secara ia mencoba mencetak
+variabel yang belum diinisiasi.
+Slice yang belum diinisiasi bisa menyebabkan gdb mencetak array yang sangat
+besar.
+
+Untuk melihat argumen fungsi:
+
+----
+(gdb) info args
+t = 0xf840688b60
+----
+
+Saat mencetak argumen, perhatikan bahwa ia adalah sebuah pointer ke nilai
+Regexp.
+GDB secara tidak tepat menaruh `+*+` pada sisi kanan dari nama tipe dan
+mencetak kata 'struct', dalam gaya tradisional C.
+
+----
+(gdb) p re
+(gdb) p t
+$1 = (struct testing.T *) 0xf840688b60
+(gdb) p t
+$1 = (struct testing.T *) 0xf840688b60
+(gdb) p *t
+$2 = {errors = "", failed = false, ch = 0xf8406f5690}
+(gdb) p *t->ch
+$3 = struct hchan<*testing.T>
+----
+
+Struct `+hchan<*testing.T>+` adalah representasi runtime-internal dari sebuah
+channel.
+Saat ini kosong, kalau tidak gdb akan mencetak isinya.
+
+Melangkah ke perintah selanjutnya:
+
+----
+(gdb) n  # execute next line
+149             for _, test := range findTests {
+(gdb)    # enter is repeat
+150                     re := MustCompile(test.pat)
+(gdb) p test.pat
+$4 = ""
+(gdb) p re
+$5 = (struct regexp.Regexp *) 0xf84068d070
+(gdb) p *re
+$6 = {expr = "", prog = 0xf840688b80, prefix = "", prefixBytes =  []uint8, prefixComplete = true,
+  prefixRune = 0, cond = 0 '\000', numSubexp = 0, longest = false, mu = {state = 0, sema = 0},
+  machine =  []*regexp.machine}
+(gdb) p *re->prog
+$7 = {Inst =  []regexp/syntax.Inst = {{Op = 5 '\005', Out = 0, Arg = 0, Rune =  []int}, {Op =
+    6 '\006', Out = 2, Arg = 0, Rune =  []int}, {Op = 4 '\004', Out = 0, Arg = 0, Rune =  []int}},
+  Start = 1, NumCap = 2}
+----
+
+Kita dapat melangkah ke pemanggilan `Stringfunction` dengan "s":
+
+----
+(gdb) s
+regexp.(*Regexp).String (re=0xf84068d070, noname=void) at /home/user/go/src/regexp/regexp.go:97
+97      func (re *Regexp) String() string {
+----
+
+Ambil _stack trace_ untuk melihat posisi kita sekarang:
+
+----
+(gdb) bt
+#0  regexp.(*Regexp).String (re=0xf84068d070, noname=void)
+    at /home/user/go/src/regexp/regexp.go:97
+#1  0x0000000000425615 in regexp.TestFind (t=0xf840688b60)
+    at /home/user/go/src/regexp/find_test.go:151
+#2  0x0000000000430233 in testing.tRunner (t=0xf840688b60, test=0x5747b8)
+    at /home/user/go/src/testing/testing.go:156
+#3  0x000000000040ea6f in runtime.initdone () at /home/user/go/src/runtime/proc.c:243
+....
+----
+
+Lihat pada kode sumber:
+
+----
+(gdb) l
+92              mu      sync.Mutex
+93              machine []*machine
+94      }
+95
+96      // String returns the source text used to compile the regular expression.
+97      func (re *Regexp) String() string {
+98              return re.expr
+99      }
+100
+101     // Compile parses a regular expression and returns, if successful,
+----
+
+[#Pretty_Printing]
+=== Pencetakan
+
+Mekanisme pencetakan pada GDB dipicu oleh kecocokan regexp pada nama tipe.
+Sebagai contoh pada slice:
+
+----
+(gdb) p utf
+$22 =  []uint8 = {0 '\000', 0 '\000', 0 '\000', 0 '\000'}
+----
+
+Secara slice, array, dan string bukanlah C pointer, GDB tidak dapat
+menerjemahkan operasi tersebut untuk Anda, namun Anda dapat melihat ke dalam
+representasi _runtime_:
+
+----
+(gdb) p slc
+$11 =  []int = {0, 0}
+(gdb) p slc-><TAB>
+array  slc    len
+(gdb) p slc->array
+$12 = (int *) 0xf84057af00
+(gdb) p slc->array[1]
+$13 = 0
+----
+
+Fungsi ekstensi `$len` dan `$cap` bekerja pada string, array, dan slice:
+
+----
+(gdb) p $len(utf)
+$23 = 4
+(gdb) p $cap(utf)
+$24 = 4
+----
+
+Channel dan map adalah tipe "reference", yang mana gdb tampilkan sebagai
+pointer ke tipe bentukan-{cpp} seperti `hash<int,string>*`.
+
+Interface direpresentasikan dalam _runtime_ sebagai sebuah pointer ke tipe
+pen-deskripsi dan sebuah pointer ke nilai.
+Ekstensi _runtime_ pada GDB menerjemahkan ini dan secara otomatis memicu
+pencetakan untuk tipe _runtime_.
+Fungsi ekstensi `$dtype` menerjemahkan tipe dinamis untuk Anda (contoh ini
+diambil dari _breakpoint_ pada regexp.go baris 293.)
+
+----
+(gdb) p i
+$4 = {str = "cbb"}
+(gdb) whatis i
+type = regexp.input
+(gdb) p $dtype(i)
+$26 = (struct regexp.inputBytes *) 0xf8400b4930
+(gdb) iface i
+regexp.input: struct regexp.inputBytes *
+---
