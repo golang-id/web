@@ -1,0 +1,441 @@
+= Penyiapan dan penggunaan gccgo
+:toc:
+:sectanchors:
+:sectlinks:
+
+Dokumen ini menjelaskan cara menggunakan gccgo, salah satu _compiler_ untuk
+bahasa Go.
+_Compiler_ gccgo adalah antar-muka terbaru dari GCC, _compiler_ dari GNU yang
+banyak digunakan.
+Walaupun antar-muka itu sendiri berada di bawah lisensi model-BSD, gccgo
+biasanya digunakan sebagai bagian dari GCC oleh karena itu dilindungi oleh
+lisensi
+https://www.gnu.org/licenses/gpl.html[GNU General Public License]
+(lisensi ini melingkupi gccgo sebagai bagian dari GCC; tidak mengikutkan kode
+yang dihasilkan oleh gccgo).
+
+Ingatlah bahwa gccgo bukan _compiler_ gc; lihat instruksi
+link:/doc/install/[Memasang Go] untuk _compiler_ tersebut.
+
+
+[#Releases]
+== Rilis
+
+Cara paling gampang untuk memasang gccgo yaitu dengan memasang rilis dari
+program GCC yang mengikutkan dukungan Go.
+Rilis program GCC tersedia pada
+https://gcc.gnu.org/install/binaries.html[situs berikut]
+dan biasanya sudah tersedia pada kebanyakan distribusi GNU/Linux.
+Umumnya distro sudah membangun program GCC yang mengikutkan dukungan
+terhadap Go.
+
+GCC rilis 4.7.1 dan selanjutnya mengikutkan _compiler_ dan pustaka Go 1.
+
+Dikarenakan isu waktu, GCC rilis 4.8.0 dan 4.8.1 mendekati Go 1.1 tetapi tidak
+identik.
+GCC rilis 4.8.2 mengikutkan implementasi Go 1.1.2.
+
+GCC rilis 4.9 mengikutkan implementasi Go 1.2.
+
+GCC rilis 5 mengikutkan implementasi pustaka Go 1.4.
+Go 1.4 _runtime_ belum digabung semuanya, namun hal ini seharusnya tidak
+memengaruhi program Go.
+
+GCC rilis 6 mengikutkan implementasi pustaka Go 1.6.1.
+Go 1.6 _runtime_ belum digabung semuanya, namun hal ini seharusnya tidak
+memengaruhi program Go.
+
+GCC rilis 7 mengikutkan implementasi pustaka Go 1.8.1.
+Seperti rilis sebelumnya, Go 1.8 _runtime_ belum digabungkan, namun hal ini
+tidak memengaruhi program Go.
+
+GCC rilis 8 mengikutkan implementasi Go 1.10.1.
+Go 1.10 _runtime_ telah digabungkan seluruhnya ke sumber pengembangan GCC, dan
+telah mendukung _garbage collection_ secara konkuren.
+
+GCC rilis 9 mengikutkan implementasi dari Go rilis 1.12.2.
+
+
+[#Source_code]
+== Kode sumber
+
+Jika Anda tidak bisa menggunakan versi rilis, atau lebih menyukai membangun
+gccgo dari awal, kode sumber gccgo tersedia lewat Git.
+Situs GCC memiliki
+https://gcc.gnu.org/git.html[instruksi untuk mendapatkan kode sumber GCC].
+Kode sumber gccgo sudah termasuk di dalamnya.
+Versi stabil dari dukungan Go tersedia dalam cabang `devel/gccgo` pada
+repositori utama dari GCC: `git://gcc.gnu.org/git/gcc.git`.
+Cabang ini secara periodik diperbarui dengan sumber _compiler_ Go yang stabil.
+
+Perlu diketahui, walaupun gcc.gnu.org adalah salah satu cara umum untuk
+mendapatkan kode sumber untuk antar-muka Go, repositori itu bukanlah sumber
+utama sebenarnya.
+Jika Anda ingin berkontribusi pada antar-muka _compiler_ Go, lihatlah halaman
+link:/doc/gccgo_contribute.html[Berkontribusi pada gccgo].
+
+
+[#Building]
+== Pembangunan
+
+Pembangunan gccgo seperti membangun GCC biasa dengan satu atau dua opsi
+tambahan.
+Lihat
+https://gcc.gnu.org/install/[instruksi pada situs gcc].
+Saat Anda menjalankan `configure`, tambahkan opsi
+`+--enable-languages=c,c++,go+` (beserta dengan bahasa pemrograman lain yang
+ingin dibangun).
+Jika Anda menargetkan 32-bit x86, maka Anda harus membangun gccgo yang
+mendukung instruksi _locked compare_ dan _exchange_;
+lakukan hal ini dengan menambahkan opsi `+--with-arch=i586+` (atau arsitektur
+terbaru, bergantung pada di mana program Anda akan berjalan).
+Jika Anda menargetkan 64-bit x86, tapi terkadang ingin menggunakan opsi
+`-m32`, maka gunakan opsi `+--with-arch-32=i586+`.
+
+
+[#Gold]
+===  Gold
+
+Pada sistem GNU/Linux, _compiler_ gccgo mampu menggunakan sejumlah _stack_
+kecil pada goroutine.
+Hal ini membolehkan program untuk menjalankan banyak goroutine, secara setiap
+goroutine menggunakan ukuran _stack_ yang kecil.
+Fitur ini membutuhkan _gold linker_ versi 2.22 atau terbaru.
+Anda bisa memasang GNU binutils 2.22 atau yang terbaru, atau Anda bisa
+membangunnya sendiri.
+
+Untuk membangun `gold` sendiri, buat GNU binutils menggunakan
+`+--enable-gold=default+` saat menjalankan skrip `configure`.
+Sebelum pembangunan, Anda harus memasang paket `flex` dan `bison`.
+Urutan langkah-langkahnya biasanya seperti berikut (Anda bisa mengganti
+`/opt/gold` dengan direktori lain yang bisa Anda tulis):
+
+----
+git clone git://sourceware.org/git/binutils-gdb.git
+mkdir binutils-objdir
+cd binutils-objdir
+../binutils-gdb/configure --enable-gold=default --prefix=/opt/gold
+make
+make install
+----
+
+Bagaimanapun Anda memasang _gold_, saat menjalankan `configure` pada gccgo
+gunakan opsi `+--with-ld+=_GOLD_BINARY_`.
+
+
+[#Prerequisites]
+===  Kebutuhan awal
+
+Sejumlah kebutuhan awal diperlukan untuk membangun GCC, seperti yang
+dijelaskan pada
+https://gcc.gnu.org/install/prerequisites.html[situs GCC].
+Sangatlah penting untuk memasang semua kebutuhan awal tersebut sebelum
+menjalankan skrip `configure` pada gcc.
+Pustaka-pustaka untuk kebutuhan awal dapat diunduh menggunakan skrip
+`contrib/download_prerequisites` dalam sumber GCC.
+
+
+[#Build_commands]
+===  Perintah pembangunan
+
+Setelah semua kebutuhan terpasang, maka urutan langkah pembangunan dan
+pemasangan adalah seperti berikut (hanya gunakan opsi `+--with-ld+` jika Anda
+menggunakan _gold linker_ seperti yang dijelaskan di atas):
+
+----
+git clone --branch devel/gccgo git://gcc.gnu.org/git/gcc.git gccgo
+mkdir objdir
+cd objdir
+../gccgo/configure --prefix=/opt/gccgo --enable-languages=c,c++,go --with-ld=/opt/gold/bin/ld
+make
+make install
+----
+
+
+[#Using_gccgo]
+== Menggunakan gccgo
+
+_Compiler_ gccgo bekerja seperti antar-muka gcc lainnya.
+Pada GCC 5, pemasangan gccgo mengikutkan versi dari perintah go, yang bisa
+digunakan untuk membangun program Go seperti yang dijelaskan di
+https://golang.org/cmd/go.
+
+Untuk mengompilasi sebuah berkas tanpa menggunakan perkakas `go`,
+----
+gccgo -c file.go
+----
+
+Perintah ini menghasilkan `file.o`.
+Untuk mengaitkan berkas-berkas menjadi sebuah program:
+----
+gccgo -o file file.o
+----
+
+Untuk menjalankan program hasil, Anda perlu memberitahu program tersebut
+tempat di mana paket-paket Go yang telah dikompilasi.
+Ada beberapa cara untuk melakukan hal ini:
+
+* Set variabel sistem `LD_LIBRARY_PATH`:
++
+--
+----
+LD_LIBRARY_PATH=${prefix}/lib/gcc/MACHINE/VERSION
+[or]
+LD_LIBRARY_PATH=${prefix}/lib64/gcc/MACHINE/VERSION
+export LD_LIBRARY_PATH
+----
+
+Di sini `${prefix}` adalah opsi `+--prefix+` saat membangun gccgo,
+biasanya `/usr`.
+Apakah menggunakan `lib` atau `lib64` bergantung kepada target.
+Biasanya `lib64` untuk sistem `x86_64`, dan `lib` untuk sistem lainnya.
+Intinya adalah untuk menentukan direktori tempat `libgo.so` disimpan.
+--
+
+* Mengirim opsi `-WL,-R` saat melakukan langkah pengaitan (ganti `lib` dengan
+  `lib64` sesuai dengan sistem Anda):
++
+----
+go build -gccgoflags -Wl,-R,${prefix}/lib/gcc/MACHINE/VERSION
+[or]
+gccgo -o file file.o -Wl,-R,${prefix}/lib/gcc/MACHINE/VERSION
+----
+
+* Gunakan opsi `-static-libgo` untuk mengaitkan program secara statis terhadap
+  paket-paket kompilasi.
+
+* Gunakan opsi `-static` untuk menghasilkan program statis sepenuhnya (nilai
+  baku dari _compiler_ gc).
+
+
+[#Options]
+==  Opsi-opsi
+
+_Compiler_ gccgo mendukung semua opsi GCC untuk bahasa yang berdiri sendiri,
+yang palng sering digunakan yaitu `-O` dan `-g`.
+
+Opsi `-fgo-pkgpath=PKGPATH` bisa digunakan untuk men-set prefiks yang unik
+untuk paket yang sedang dikompilasi.
+Opsi ini digunakan secara otomatis oleh perkakas go, namun Anda mungkin mau
+menggunakan opsi ini saat memanggil gccgo.
+Opsi ini diperuntukkan untuk program besar yang berisi banyak paket, untuk
+membolehkan beberapa paket menggunakan pengidentifikasi yang sama sebagai nama
+paket.
+Isi dari PKGPATH bisa string apa saja;
+pilihan baiknya untuk string ini yaitu path yang digunakan untuk mengimpor
+paket tersebut.
+
+Opsi `-I` dan `-L`, yang bagi _compiler_ berlaku sama, bisa digunakan untuk
+menentukan path pencarian saat impor.
+Opsi ini tidak dibutuhkan jika Anda membangun dengan perkakas go.
+
+[#Imports]
+==  Impor
+
+Saat Anda mengompilasi sebuah berkas yang meng-ekspor sesuatu, informasi
+tentang ekspor ini disimpan langsung dalam berkas objek.
+Jika Anda membangun dengan gccgo, bukan dengan perkakas go, maka saat Anda
+meng-impor sebuah paket, Anda harus memberitahu gccgo bagaimana mencari berkas
+tersebut.
+
+Saat Anda meng-impor paket _FILE_ dengan gccgo, ia akan mencari data impor
+dalam berkas-berkas berikut, dan menggunakan berkas pertama yang ditemukan.
+
+* __FILE__.gox
+* lib__FILE__.so
+* lib__FILE__.a
+* __FILE__.o
+
+`__FILE__.gox` hanya berisi data yang di-ekspor saja.
+Berkas ini bisa dihasilkan dari `FILE.o` lewat
+
+----
+objcopy -j .go_export FILE.o FILE.gox
+----
+
+_Compiler_ gccgo akan mencari berkas-berkas impor di direktori yang sekarang.
+Pada skenario yang kompleks Anda bisa menambahkan opsi `-I` atau `-L` pada
+gccgo.
+Kedua opsi ini menerima nama direktori untuk tempat pencarian.
+Opsi `-L` juga dikirim ke _linker_.
+
+_Compiler_ gccgo saat ini (2015-06-15) tidak mencatat nama berkas dari
+paket-paket yang diimpor di dalam berkas objek.
+Anda harus mengatur data yang diimpor untuk dikaitkan pada program.
+Sekali lagi, hal ini tidak berlaku saat membangun dengan perintah `go`.
+
+----
+gccgo -c mypackage.go              # Ekspor mypackage
+gccgo -c main.go                   # Impor  mypackage
+gccgo -o main main.o mypackage.o   # Secara eksplisit mengaitkan dengan mypackage.o
+----
+
+[#Debugging]
+==  Debugging
+
+Jika Anda menggunakan opsi `-g` saat kompilasi, Anda bisa menjalankan program
+_debugger_ `gdb` pada program Anda.
+_Debugger_ ini memiliki batasan kemampuan tentang Go.
+Anda bisa men-set _breakpoint_, _single-step_, dan lainnya.
+Anda bisa mencetak nilai variabel, namun akan dicetak seperti tipe-tipe C/C++.
+Untuk tipe numerik hal ini tidak terlalu penting.
+Tipe string dan interface pada Go akan muncul sebagai struct dengan dua
+elemen.
+Tipe map dan `channel` pada Go selalu direpresentasikan sebagai C pointer ke
+struktur _run-time_.
+
+
+[#C_Interoperability]
+==  C interoperabilitas
+
+Saat menggunakan gccgo ada keterbatasan interoperabilitas dengan C, atau
+dengan kode C++ yang dikompilasi menggunakan `extern "C"`.
+
+[#Types]
+===  Tipe-tipe
+
+Tipe-tipe dasar dipetakan secara langsung:
+sebuah `int32` pada Go adalah `int32_t` pada C, sebuah `int64` pada Go adalah
+`int64_t`, dan seterusnya.
+Tipe `int` pada Go yaitu sebuah integer yang sama dengan ukuran sebuah
+pointer, yang berkorespondensi dengan tipe C `intptr_t`.
+Tipe `byte` pada Go sama dengan `unsigned char` pada C.
+Tipe pointer pada Go sama dengan pointer pada C.
+Tipe struct pada Go sama dengan struct pada C dengan field dan tipe yang sama
+juga.
+
+Tipe string pada Go didefinisikan sebagai struktur dengan dua elemen (hal ini
+bisa berubah sewaktu-waktu):
+
+----
+struct __go_string {
+    const unsigned char *__data;
+    intptr_t __length;
+};
+----
+
+Anda tidak bisa mengirimkan array antara C dan Go.
+Namun, sebuah pointer ke array dalam Go sama dengan sebuah pointer ke tipe
+elemen pada C.
+Sebagai contohnya, Go `+*[10]int+` sama dengan `+int*+` pada C, mengasumsikan
+bahwa pointer pada C memang menunjuk ke 10 elemen tersebut.
+
+Sebuah slice pada Go adalah sebuah struct.
+Definisi slice saat ini (hal ini bisa berubah sewaktu-waktu):
+
+----
+struct __go_slice {
+    void *__values;
+    intptr_t __count;
+    intptr_t __capacity;
+};
+----
+
+Tipe fungsi pada Go adalah sebuah pointer ke sebuah struct (hal ini bisa
+berubah sewaktu-waktu).
+Field pertama pada struct menunjuk ke kode pada fungsi, yang sama dengan
+sebuah pointer ke sebuah fungsi pada C yang tipe-tipe parameternya sama semua,
+dengan parameter tambahan di belakang.
+Parameter tambahan ini adalah _closure_, dan argumen yang dikirim yaitu sebuah
+pointer ke tipe struct.
+Saat sebuah fungsi Go mengembalikan lebih dari satu nilai, fungsi pada C
+mengembalikan sebuah struct.
+Misalnya, fungsi berikut ini berlaku sama,
+
+----
+func GoFunction(int) (int, float64)
+struct { int i; float64 f; } CFunction(int, void*)
+----
+
+Tipe interface, channel, dan map pada Go tidak memiliki tipe korespondensi
+langsung pada C (interface adalah struct dengan dua elemen, channel dan map
+adalah pointer ke struct pada C, namun struct ini sengaja tidak
+didokumentasikan).
+Tipe `enum` pada C berkorespondensi pada tipe integer, namun secara tepatnya
+sangat susah diprediksi secara umum; gunakan _cast_.
+Tipe `union` pada C tidak ada korespondensinya pada tipe Go.
+Tipe `struct` pada C dengan _bitfields_ tidak ada korespondensinya pada tipe
+Go.
+Tipe `class` pada C++ tidak ada korespondensinya pada tipe Go.
+
+Alokasi memori sangatlah berbeda antara C dan Go, secara Go menggunakan
+_garbage collection_.
+Panduan pastinya pada area ini adalah tidak ditentukan, namun ada kemungkinan
+akan diperbolehkan mengirim sebuah pointer yang dialokasikan dari C ke Go.
+Tanggung jawab dari yang melepas pointer di memori akan dilakukan pada sisi C,
+dan tentu saja bila sisi C menghapus pointer sementara di sisi Go masih
+memiliki salinan maka program akan gagal.
+Saat mengirim sebuah pointer dari Go ke C, fungsi Go harus menahan salinan
+dari pointer tersebut dalam variabel Go.
+Jika tidak maka _garbage collector_ pada Go bisa saja menghapus pointer
+tersebut saat fungsi C masih menggunakannya.
+
+
+[#Function_names]
+===  Nama-nama fungsi
+
+Kode Go bisa memanggil fungsi pada C secara langsung menggunakan sebuah
+ekstensi Go yang diimplementasikan dalam gccgo: sebuah deklarasi fungsi bisa
+diawali dengan `//extern NAME`.
+Misalnya, berikut cara mendeklarasikan fungsi C `open` dalam Go:
+
+----
+//extern open
+func c_open(name *byte, mode int, perm int) int
+----
+
+Fungsi C biasanya membutuhkan string yang berakhir dengan NUL, yang pada Go
+sama dengan sebuah pointer ke sebuah array (bukan slice!) dari byte
+yang berakhir dengan byte kosong.
+Jadi contoh pemanggilan dari Go seperti berikut (setelah mengimpor paket
+`syscall`):
+
+----
+var name = [4]byte{'f', 'o', 'o', 0};
+i := c_open(&name[0], syscall.O_RDONLY, 0);
+----
+
+(ini hanyalah contoh saja, untuk membuka sebuah berkas dalam Go gunakanlah
+fungsi `os.Open`)
+
+Ingatlah jika fungsi C bisa memblok, seperti pemanggilan ke `read`,
+pemanggilan ke fungsi C tersebut bisa memblok keseluruhan program Go.
+Kecuali bila Anda benar-benar paham apa yang Anda lakukan, semua pemanggilan
+antara C dan Go sebaiknya diimplementasikan lewat `cgo` atau `SWIG`, seperti
+pada _compiler_ gc.
+
+Nama dari fungsi-fungsi Go yang diakses dari C bisa berubah sewaktu-waktu.
+Sekarang ini nama dari fungsi Go yang tidak memiliki _receiver_ yaitu
+`prefix.package.Functionname`.
+Nilai dari `prefix` diset lewat opsi `-fgo-prefix` saat paket dikompilasi;
+jika opsi ini tidak diset, maka nilai bakunya adalah `go`.
+Untuk memanggil fungsi tersebut dari C Anda harus menset nama tersebut
+menggunakan ekstensi GCC.
+
+----
+extern int go_function(int) __asm__ ("myprefix.mypackage.Function");
+----
+
+[#Automatic_generation_of_Go_declarations_from_C_source_code]
+=== Pembangkit otomatis deklarasi Go dari kode sumber C
+
+Versi Go pada GCC mendukung pembangkit otomatis deklarasi Go dari kode C.
+Fasilitas ini sedikit aneh, dan pengguna pada umumnya sebaiknya menggunakan
+program
+link:/cmd/cgo[cgo]
+dengan opsi `-gccgo`.
+
+Kompilasi kode C Anda seperti biasa, dan tambahkan opsi
+`-fdump-go-spec=FILENAME`.
+Opsi tersebut akan membuat berkas FILENAME pada saat kompilasi.
+Berkas ini akan berisi deklarasi Go untuk tipe-tipe, variabel, dan fungsi yang
+dideklarasikan dalam kode C.
+Tipe-tipe C yang tidak dapat direpresentasikan dalam Go akan dicatat sebagai
+komentar dalam kode Go.
+Berkas yang dibangkitkan tidak akan memiliki deklarasi paket, namun bisa
+dikompilasi langsung oleh gccgo.
+
+Prosedur ini memiliki batasan dan kelebihan yang tidak tertulis dan kami
+tidak menjamin ia tidak berubah di masa depan.
+Hal ini lebih berguna sebagai titik awal untuk pembangunan kode Go daripada
+prosedur untuk umum.
