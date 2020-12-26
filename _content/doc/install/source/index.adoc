@@ -1,0 +1,536 @@
+= Memasang Go dari sumber
+:toc:
+:sectanchors:
+:sectlinks:
+
+Topik ini menjelaskan cara membangun dan menjalankan Go dari kode sumbernya
+langsung.
+Untuk memasang Go lewat aplikasi, lihat
+link:/doc/install[Unduh dan pasang].
+
+==  Pendahuluan
+
+Go adalah sebuah proyek sumber terbuka, didistribusikan di bawah
+https://golang.org/LICENSE[lisensi model-BSD].
+Dokumen ini menjelaskan cara mengambil kode sumber, membangunnya dalam mesin
+Anda, dan menjalankannya.
+
+Umumnya pengguna tidak perlu melakukan hal ini, namun cukup memasang dari
+paket biner yang sudah dikompilasi seperti yang dijelaskan pada artikel
+link:/doc/install[Unduh dan pasang].
+Jika Anda ingin membantu membangun kode sumber yang ada pada paket-paket
+pra-kompilasi, silakan lanjutkan membaca artikel.
+
+Ada dua _compiler_ resmi Go: `gc` dan `gccgo`.
+Dokumen ini fokus pada `gc`, _compiler_ dan perkakas Go.
+Untuk informasi tentang cara bekerja dengan `gccgo`, _compiler_ tradisional
+yang menggunakan GCC, lihat
+https://golang.org/doc/install/gccgo[Penyiapan dan penggunaan gccgo].
+
+_Compiler_ Go mendukung kumpulan instruksi berikut:
+
+amd64, 386::
+    Kumpulan instruksi x86, 64 dan 32 bit.
+
+arm64, arm::
+    Kumpulan instruksi ARM, 64-bit (AArch64) dan 32-bit.
+
+mips64, mips64le, mips, mipsle::
+    Kumpulan instruksi MIPS, big- dan little-endian, 64- dan 32-bit.
+
+ppc64, ppc64le::
+    Kumpulan instruksi 64-bit PowerPC, big- dan little-endian.
+
+riscv64::
+    Kumpulan instruksi 64-bit RISC-V.
+
+s390x::
+    IBM z/Architecture.
+
+wasm::
+    https://webassembly.org/[WebAssembly].
+
+Go _compiler_ dapat ditujukan untuk sistem operasi AIX, Android, DragonFly
+BSD, FreeBSD, Illumos, Linux, macOS/iOS (Darwin), NetBSD, OpenBSD, Plan 9,
+Solaris, dan Windows (walaupun tidak semua sistem operasi mendukung semua
+arsitektur).
+
+Daftar dukungan yang dianggap "kelas pertama" tersedia pada halaman wiki
+https://golang.org/wiki/PortingPolicy#first-class-ports[dukungan kelas
+pertama].
+
+Seluruh kombinasi yang didukung ada dalam daftar
+<<environment,variabel lingkungan>> di bawah.
+
+Lihat halaman pemasangan untuk
+link:/doc/install#requirements[kebutuhan sistem keseluruhan].
+Batasan berikut berlaku untuk sistem yang dapat dibangun hanya dari sumber:
+
+* Untuk Linux pada PowerPC 64-bit, versi kernel minimum yaitu 2.6.37, artinya
+  Go tidak mendukung CentOS 6 pada sistem ini.
+
+
+[#go14]
+==  Pasang compiler Go untuk _bootstrap_
+
+Keseluruhan perkakas Go ditulis dalam Go.
+Untuk membuat Go, Anda butuh memasang sebuah _compiler_ Go.
+Skrip yang melakukan pembangunan perkakas Go mencari perintah "go" di
+dalam `$PATH`, jadi bila Go telah terpasang di dalam sistem Anda dan ada dalam
+`$PATH`, Anda telah siap untuk membangun Go dari kode sumber.
+Atau, Anda juga bisa menset `$GOROOT_BOOTSTRAP` ke direktori pemasangan Go;
+maka perintah `$GOROOT_BOOTSTRAP/bin/go` akan menjadi _compiler_ Go yang
+digunakan untuk membangun perkakas dari awal.
+
+===  Perkakas _bootstrap_ dari rilis biner
+
+Untuk menggunakan rilis biner sebagai perkakas _bootstrap_, lihat
+https://golang.org/dl/[halaman unduhan]
+atau gunakan paket distribusi Go lainnya.
+
+===  Perkakas _bootstrap_ dari sumber
+
+Untuk membangun perkakas _bootstrap_ dari kode sumber, gunakan cabang
+(_branch_) git `release-branch.go1.4` atau unduh
+https://dl.google.com/go/go1.4-bootstrap-20171003.tar.gz[go1.4-bootstrap-20171003.tar.gz],
+yang berisi kode sumber Go 1.4 dengan beberapa perbaikan yang menjaga supaya
+perkakas dapat berjalan pada sistem operasi terbaru.
+(Go 1.4 adalah distribusi terakhir yang ditulis menggunakan C.)
+Setelah mengunduh dan membuka kode sumber Go 1.4, `cd` ke subdirektori `src`,
+set `CGO_ENABLED=0` pada lingkungan sistem, dan jalankan `make.bash` (atau
+`make.bat` kalau di Windows).
+
+Setelah kode sumber Go 1.4 diekstrak ke dalam direktori GOROOT_BOOTSTRAP,
+pastikan supaya salinan repositori git ini selalu mengacu pada 
+`release-branch.go1.4`.
+Jangan gunakan salinan repositori ini untuk langkah pada
+<<fetch,Mengambil repositori>>.
+Perkakas _bootstrap_ go1.4 *harus bisa* membaca kode sumber go1.4 yang
+diasumsikan berada pada direktori GOROOT_BOOTSTRAP.
+
+===  Perkakas _bootstrap_ dari sumber kompilasi-silang (_cross-compiled_)
+
+Untuk membuat perkakas _bootstrap_ dari hasil kompilasi-silang, untuk sistem
+yang Go 1.4 tidak punya targetnya (misalnya, `linux/ppc64le`), pasang Go di
+sistem yang berbeda kemudian jalankan
+https://golang.org/src/bootstrap.bash[bootstrap.bash].
+
+Misalnya, saat dijalankan sebagai berikut
+----
+$ GOOS=linux GOARCH=ppc64 ./bootstrap.bash
+----
+`bootstrap.bash` akan mengompilasi-silang perkakas untuk kombinasi
+GOOS/GOARCH tersebut, yang tersimpan dalam
+`../../go-${GOOS}-${GOARCH}-bootstrap`.
+Hasil kompilasi-silang dalam direktori tersebut dapat disalin ke mesin target
+dan digunakan sebagai `GOROOT_BOOTSTRAP` untuk membangun Go dari awal.
+
+===  Perkakas _bootstrap_ menggunakan gccgo
+
+Untuk menggunakan gccgo sebagai perkakas _bootstrap_, Anda harus mengarahkan
+`$GOROOT_BOOTSTRAP/bin/go` supaya menunjuk ke gccgo 5.
+Misalnya pada Ubuntu Vivid,
+
+----
+$ sudo apt-get install gccgo-5
+$ sudo update-alternatives --set go /usr/bin/go-5
+$ GOROOT_BOOTSTRAP=/usr ./make.bash
+----
+
+
+[#git]
+==  Pasang git, bila diperlukan
+
+Untuk melanjutkan ke langkah selanjutnya, Anda harus memasang Git.
+(Periksa apakah Anda sudah memiliki perintah `git` sebelum melanjutkan.)
+
+Jika Anda belum memasang Git, ikuti instruksi pada halaman
+https://git-scm.com/downloads[mengunduh Git].
+
+
+[#ccompiler]
+==  Pasang _compiler_ C (opsional)
+
+Untuk membuat Go dengan dukungan
+https://golang.org/cmd/cgo[cgo],
+yang membolehkan Go program mengimpor pustaka C, _compiler_ C seperti `gcc`
+atau `clang` haruslah terpasang terlebih dahulu.
+Pasanglah _compiler_ C sesuai dengan metode pemasangan di sistem Anda.
+
+Untuk membangun tanpa `cgo`, set variabel lingkungan `CGO_ENABLED=0` sebelum
+menjalankan `all.bash` atau `make.bash`.
+
+
+[#fetch]
+==  Mengambil repositori
+
+Pindahlah ke direktori di mana Anda akan memasang Go, dan pastikan direktori
+`goroot` belum ada.
+Kemudian _clone_ repositori dan pindah ke tag rilis terakhir (misalnya,
+`go1.15`),
+
+----
+$ git clone https://go.googlesource.com/go goroot
+$ cd goroot
+$ git checkout <tag>
+----
+
+Yang mana `<tag>` adalah versi dari rilis.
+
+Go akan terpasang di dalam direktori dibuat.
+Misalnya, jika Go di _clone_ di dalam `$HOME/goroot`, maka perkakas Go akan
+terpasang dalam `$HOME/goroot/bin`.
+Nama direktori _clone_ tidaklah harus `goroot`, bisa apa saja, tapi ingatlah
+bila di _clone_ ke `$HOME/go` maka ia akan konflik dengan lokasi baku
+`$GOPATH`.
+Lihat bagian tentang <<gopath,GOPATH>> di bawah.
+
+
+[#head]
+==  Pindah ke cabang master (opsional)
+
+Jika Anda berniat untuk mengubah kode sumber Go, dan
+link:/doc/contribute.html[berkontribusi]
+ke proyek ini, maka pindahlah dari cabang rilis ke cabang `master` (cabang
+pengembangan).
+Jika bukan demikian, lewati langkah ini.
+
+----
+$ git checkout master
+----
+
+
+[#install]
+==  Pasang Go
+
+Untuk mulai membangun Go, jalankan
+
+----
+$ cd src
+$ ./all.bash
+----
+
+(bila menggunakan Windows gunakan `all.bat`).
+
+Jika semua berjalan dengan lancar, maka pada akhir kompilasi akan mencetak
+keluaran seperti berikut:
+
+----
+ALL TESTS PASSED
+
+---
+Installed Go for linux/amd64 in /home/you/go.
+Installed commands in /home/you/go/bin.
+*** You need to add /home/you/go/bin to your $PATH. ***
+----
+
+Yang mana detail dari baris terakhir bergantung pada sistem operasi,
+arsitektur, dan direktori yang digunakan selama pemasangan.
+
+Untuk informasi lebih lanjut tentang cara mengontrol pembangunan, lihat
+diskusi tentang <<environment,variabel lingkungan>> di bawah.
+Skrip `all.bash` (atau `all.bat`) menjalankan beberapa pengujian yang penting
+untuk Go, yang membutuhkan waktu lebih daripada hanya membangun perkakas Go
+saja.
+Jika Anda tidak berniat menjalankan pengujian cukup jalankan `make.bash` (atau
+`make.bat`) saja.
+
+
+[#testing]
+== Menguji instalasi Anda
+
+Periksa apakah Go terpasang dengan benar dengan membuat sebuah program
+sederhana.
+
+Buatlah sebuah berkas bernama `hello.go` dan salinlah kode berikut:
+
+----
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Printf("hello, world\n")
+}
+----
+
+kemudian jalankan dengan perkakas `go`:
+
+----
+$ go run hello.go
+hello, world
+----
+
+Jika Anda melihat keluaran `hello, world` maka Go telah terpasang dengan
+benar.
+
+[#gopath]
+==  Atur lingkungan kerja Anda
+
+Anda hampir selesai.
+Anda hanya perlu sedikit pengaturan.
+
+Dokumen
+link:/doc/code.html[Bagaimana menulis kode Go]
+menyediakan *instruksi pengaturan yang penting* untuk menggunakan perkakas Go.
+
+
+[#tools]
+==  Pasang perkakas tambahan
+
+Sumber kode untuk beberapa perkakas Go tambahan (termasuk
+link:/cmd/godoc/[godoc])
+disimpan di
+https://golang.org/x/tools[repositori tools].
+Untuk memasang salah satu perkakas tersebut (misalnya `godoc`):
+
+----
+$ go get golang.org/x/tools/cmd/godoc
+----
+
+Untuk memasang perkakas tambahan tersebut, perintah `go get` membutuhkan
+<<git,Git>> terpasang di lokal.
+
+Anda juga harus memiliki sebuah ruang kerja (GOPATH); lihatlah
+link:/doc/code.html[Bagaimana menulis kode Go]
+untuk lebih detail.
+
+
+[#community]
+== Komunitas
+
+Sumber komunitas biasa seperti kanal `#go-nuts` di server IRC
+https://freenode.net/[Freenode] dan milis 
+https://groups.google.com/group/golang-nuts[Go Nuts]
+memiliki beberapa orang yang aktif yang dapat membantu masalah Anda selama
+pemasangan.
+Bagi yang ingin selalu terbarui, ada milis lain yaitu
+http://groups.google.com/group/golang-checkins[golang-checkins]
+yang berisi pesan tentang setiap commit yang masuk ke repositori Go.
+
+Isu-isu tentang Go dapat dilaporkan ke
+http://golang.org/issue/new[pelacak isu Go].
+
+[#releases]
+== Mengikuti rilis
+
+Rilis terbaru diumumkan di milis
+http://groups.google.com/group/golang-announce[golang-announce].
+Setiap pengumuman mencantumkan rilis tag, misalnya `go1.9`.
+
+Untuk memperbarui kode sumber ke rilis yang terbaru, Anda dapat menjalankan:
+
+----
+$ cd go/src
+$ git fetch
+$ git checkout <tag>
+$ ./all.bash
+----
+
+Yang mana `<tag>` adalah versi dari rilis yang terbaru.
+
+[#environment]
+==  Opsi variabel lingkungan
+
+Lingkungan kompilasi Go dapat diatur lewat variabel sistem.
+_Tidak ada variabel yang perlu di-set untuk pembangunan_, namun Anda mungkin
+butuh menset beberapa variabel untuk menimpa pengaturan bakunya.
+
+$GOROOT::
+Direktori hasil pemasangan Go, biasanya `$HOME/go1.X`.
+Isi dari variabel ini diset saat kompilasi menjadi direktori di mana
+`all.bash` dijalankan.
+Anda tidak perlu menset variabel ini kecuali Anda ingin berpindah-pindah
+dari salinan repositori yang berbeda-beda di sistem lokal Anda.
+
+$GOROOT_FINAL::
+Lokasi di mana perkakas dan skrip akan terpasang.
+Jika variabel ini tidak diset, maka nilainya sama dengan $GOROOT.
+Jika Anda membangun Go di lokasi tertentu (misalnya `$HOME/src/go`) namun
+ingin terpasang di lokasi lain yang berbeda (misalnya `/usr`), maka Anda dapat
+menset variabel sistem ini sebelum membangun dari kode sumber.
+
+$GOPATH::
+Direktori di mana proyek-proyek Go selain distribusi perkakas Go akan
+terpasang.
+Misalnya, `golang.org/x/tools` akan disalin ke
+`$GOPATH/src/golang.org/x/tools`.
+Program-program selain perkakas dari distribusi Go terpasang di `$GOPATH/bin`
+(atau `$GOBIN`, bila diset).
+Modul-modul diunduh dan disimpan dalam tembolok di `$GOPATH/pkg/mod`.
++
+Lokasi baku dari `$GOPATH` adalah `$HOME/go`, dan biasanya tidak perlu menset
+variabel ini secara eksplisit.
+Namun, bila Anda menyalin kode sumber Go ke `$HOME/go`, Anda harus menset
+`$GOPATH` ke lokasi yang lain untuk menghindari konflik.
+
+$GOBIN::
+Direktori di mana program-program selain perkakas distribusi Go akan
+dipasang oleh
+link:/cmd/go/[perintah go].
+Misalnya, perintah `go get golang.org/x/tools/cmd/godoc` akan mengunduh,
+membangun, dan memasang program `godoc` di dalam direktori `$GOBIN`.
+Bila kosong, `$GOBIN` diset ke `$GOPATH/bin` (atau `$HOME/go/bin` bila
+`$GOPATH` tidak diset).
+Bila diset, Anda harus menambahkan direktori ini ke dalam variabel sistem
+`$PATH` Anda supaya dapat menggunakan program-program yang terpasang.
++
+Ingatlah bahwa program distribusi Go terpasang di `$GOROOT/bin` (untuk program
+Go yang dipanggil langsung) atau `$GOTOOLDIR` (untuk program yang dipanggil
+oleh perkakas Go; nilai bakunya yaitu `$GOROOT/pkg/$GOOS_$GOARCH`) bukan
+`$GOBIN`.
+
+$GOOS dan $GOARCH::
+Nama dari target sistem operasi dan arsitektur.
+Nilai variabel ini diset ke `$GOHOSTOS` dan `$GOHOSTARCH` (dijelaskan di
+bawah).
++
+--
+Pilihan untuk $GOOS adalah `android`, `darwin` (macOS,iOS), `dragonfly`,
+`freebsd`, `illumos`, `js`, `linux`, `netbsd`, `openbsd`, `plan9`, `solaris`,
+atau `windows`.
+
+Pilihan untuk $GOARCH adalah `amd64` (64-bit x86), `386` (32-bit x86), `arm`
+(32-bit ARM), `arm64` (64-bit ARM), `ppc64le` (PowerPC 64-bit, little-endian),
+`ppc64` (PowerPC 64-bit, big-endian), `mips64le` (MIPS 64-bit, little-endian),
+`mips64` (MIPS 64-bit, big-endian), `mipsle` (MIPS 32-bit, little-endian),
+`mips` (MIPS 32-bit, big-endian), `s390x` (IBM System z 64-bit, big-endian),
+atau `wasm` (WebAssembly 32-bit).
+
+Kombinasi valid dari $GOOS dan $GOARCH adalah:
+
+|===
+|*$GOOS* |*$GOARCH*
+|aix        |ppc64
+|android    |386
+|android    |amd64
+|android    |arm
+|android    |arm64
+|darwin     |amd64
+|darwin     |arm64
+|dragonfly  |amd64
+|freebsd    |386
+|freebsd    |amd64
+|freebsd    |arm
+|illumos    |amd64
+|js         |wasm
+|linux      |386
+|linux      |amd64
+|linux      |arm
+|linux      |arm64
+|linux      |ppc64
+|linux      |ppc64le
+|linux      |mips
+|linux      |mipsle
+|linux      |mips64
+|linux      |mips64le
+|linux      |riscv64
+|linux      |s390x
+|netbsd     |386
+|netbsd     |amd64
+|netbsd     |arm
+|openbsd    |386
+|openbsd    |amd64
+|openbsd    |arm
+|openbsd    |arm64
+|plan9      |386
+|plan9 	    |amd64
+|plan9      |arm
+|solaris    |amd64
+|windows    |386
+|windows    |amd64
+|===
+--
+
+
+$GOHOSTOS dan $GOHOSTARCH::
+Berisi nama dari sistem operasi dan arsitektur dari host.
+Nilai bakunya yaitu sistem operasi dan arsitektur lokal.
++
+Pilihan nilai yang valid sama dengan $GOOS dan $GOARCH, tercantum di atas.
+Nilai yang diset harus kompatibel dengan sistem lokal.
+Misalnya, Anda tidak bisa menset $GOHOSTARCH ke `arm` bila sistem lokal Anda
+adalah `x86`.
+
+$GO386 (hanya untuk sistem 386)::
+Nilai bakunya otomatis terdeteksi jika dibangun pada `386` atau `amd64`,
+selain itu diset ke `387`.
++
+--
+Variabel ini mengontrol kode yang dibangkitkan oleh `gc` untuk menggunakan
+unit _floating-point_ 387 (bila diset ke `387`) atau instruksi SSE2 (bila
+diset ke `sse2`) untuk komputasi _floating-point_.
+
+* GO386=387: gunakan x87 untuk operasi _floating-point_; seharusnya didukung
+  oleh semua cip x86 (Pentium MMX atau yang terbaru).
+* GO386=sse2: gunakan operasi _floating-point_ SSE2; memiliki performansi
+  lebih baik dari 387, namun hanya tersedia pada Pentium 4/Opteron/Athlon 64
+  atau yang terbaru.
+--
+
+$GOARM (untuk `arm` only)::
+Nilai bakunya otomatis dideteksi pada prosesor target, selain itu akan diset
+ke `6`.
++
+--
+Variabel ini menset versi _floating-point_ ko-prosesor pada arsitektur ARM.
+Jika Anda mengompilasi pada sistem target tersebut, nilainya akan otomatis
+terdeteksi.
+
+* GOARM=5: gunakan floating-point tingkat perangkat lunak; bila CPU tidak
+  memiliki ko-prosesor VFP
+* GOARM=6: gunakan VFPv1; nilai baku saat kompilasi-silang; biasanya untuk
+  ARM11 atau yang terbaru (VFPv2 atau yang terbaru juga didukung)
+* GOARM=7: gunakan VFPv3; biasanya untuk Cortex-A
+
+Jika ragu, kosongkan variabel ini, dan set hanya saat menjalankan program Go.
+Halaman wiki
+http://golang.org/wiki/GoArm[GoArm]
+berisi detail lebih lanjut tentang dukungan ARM pada Go.
+--
+
+$GOMIPS (untuk `mips` dan `mipsle`), $GOMIPS64 (untuk `mips64` atau `mips64le`)::
+Variabel ini menset apakah menggunakan instruksi floating-point
+atau tidak.
+Set ke "`hardfloat`" untuk menggunakan instruksi _floating-point_ (nilai
+bakunya).
+Set ke "`softfloat`" untuk menggunakan soft _floating-point_.
+
+$GOPPC64 (hanya untuk `ppc64` atau `ppc64le`)::
+Variabel ini menset level prosesor (yaitu versi _Instruction Set
+Architecture_) dari target _compiler_.
+Nilai bakunya yaitu `power8`.
++
+* GOPPC64=power8: gunakan instruksi ISA v2.07
+* GOPPC64=power9: gunakan instruksi ISA v3.00
+
+$GOWASM (hanya untuk `wasm`)::  Variabel ini berisi daftar fitur-fitur
+https://github.com/WebAssembly/proposals[eksperimental WebAssembly]
+yang hasil pembangunan program WebAssembly dapat gunakan.
+Nilai bakunya yaitu kosong (tidak ada fitur eksperimental yang digunakan).
++
+* GOWASM=satconv: gunakan fitur
+  https://github.com/WebAssembly/nontrapping-float-to-int-conversions/blob/master/proposals/nontrapping-float-to-int-conversion/Overview.md[konversi float-to-int]
+* GOWASM=signext: gunakan fitur
+https://github.com/WebAssembly/sign-extension-ops/blob/master/proposals/sign-extension-ops/Overview.md[operator sign-extension]
+
+
+Ingatlah bahwa $GOOS dan $GOARCH mengidentifikasi _target_ lingkungan,
+bukan lingkungan yang sekarang sedang berjalan.
+Efeknya, Anda sebenarnya selalu melakukan kompilasi-silang.
+Secara arsitektur, yang kita maksud dengan target yaitu sistem di mana hasil
+kompilasi program akan berjalan: sistem x86-64 yang berjalan dalam sistem
+operasi 32-bit harus menset GOARCH ke 386, bukan `amd64`.
+
+Jika Anda menimpa nilai baku dari variabel-variabel lingkungan di atas, set
+juga mereka dalam profil _shell_ Anda (`$HOME/.bashrc`, `$HOME/.profile`, atau
+sejenisnya).
+Pengaturan tersebut bentuknya seperti berikut,
+
+----
+export GOARCH=amd64
+export GOOS=linux
+----
+
+walau sebenarnya tidak ada variabel yang perlu diset untuk membangun,
+memasang, dan mengembangkan kode sumber Go.

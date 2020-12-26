@@ -7,8 +7,11 @@
 :golang-issue: https://github.com/golang-id/web/issues/new/choose
 :xcode-app: https://developer.apple.com/Xcode/
 
-// TODO: ms: translate the page on installing from source and installing
-// gccgo.
+Untuk cara pemasangan lainnya, Anda mungkin tertarik:
+
+* link:/doc/install/source[Memasang Go dari sumber] - Bagaimana cara mengambil
+  sumber kode, membangunnya pada mesin Anda, dan menjalankannya.
+
 
 [#download]
 ==  *Unduh distribusi Go*
