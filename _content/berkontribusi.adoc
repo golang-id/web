@@ -25,12 +25,6 @@ sebagai komunitas Go Indonesia:
 Daftar artikel yang rekomendasi untuk diterjemahkan, diurut berdasarkan
 bagian:
 
-*  Memasang Go
-
-** https://golang.org/doc/install/source => /doc/install/source/index.adoc
-
-** https://golang.org/doc/install/gccgo => /doc/install/gccgo/index.adoc
-
 *  Wiki
 
 ** https://github.com/golang/go/wiki/Modules => /wiki/Modules/index.adoc

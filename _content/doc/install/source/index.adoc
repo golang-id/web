@@ -25,7 +25,7 @@ Ada dua _compiler_ resmi Go: `gc` dan `gccgo`.
 Dokumen ini fokus pada `gc`, _compiler_ dan perkakas Go.
 Untuk informasi tentang cara bekerja dengan `gccgo`, _compiler_ tradisional
 yang menggunakan GCC, lihat
-https://golang.org/doc/install/gccgo[Penyiapan dan penggunaan gccgo].
+link:/doc/install/gccgo/[Penyiapan dan penggunaan gccgo].
 
 _Compiler_ Go mendukung kumpulan instruksi berikut:
 

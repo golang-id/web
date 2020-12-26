@@ -1,7 +1,7 @@
 =  Memulai dari Awal
 :go-dl: https://golang.org/dl
-:golang-doc-install-source: https://golang.org/doc/install/source
-:golang-doc-install-gccgo: https://golang.org/doc/install/gccgo
+:golang-doc-install-source: link:/doc/install/source/
+:golang-doc-install-gccgo: link:/doc/install/gccgo/
 :golang-id-list: https://groups.google.com/forum/#!forum/golang-id
 :golang-cmd: https://golang.org/cmd/cgo
 :golang-issue: https://github.com/golang-id/web/issues/new/choose
