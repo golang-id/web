@@ -1378,8 +1378,8 @@ Kesalahan yang sering terjadi yaitu mengirim pointer ke sebuah nilai
 _interface_ terhadap fungsi yang mengharapkan sebuah _interface_.
 _compiler_ akan melaporkan kesalahan ini, namun situasi ini terkadang juga
 membingungkan, karena terkadang
-https://golang.org/doc/faq#different_method_sets[pointer diperlukan untuk
-memenuhi sebuah interface].
+link:/doc/faq#different_method_sets[pointer diperlukan untuk memenuhi sebuah
+interface].
 Intinya adalah pointer ke tipe kongkret akan memenuhi sebuah _interface_,
 namun pointer ke sebuah _interface_ tidak akan pernah memenuhi _interface_.
 
@@ -1616,8 +1616,7 @@ Hal ini disebabkan karena pengiriman data antara _thread_ mengikutkan
 perpindahan konteks (_context switching_), yang memiliki biaya yang
 signifikan, dan biaya tersebut dapat bertambah dengan menambah jumlah CPU.
 Misalnya,
-https://golang.org/ref/spec#An_example_package[contoh penyaringan bilangan
-prima]
+link:/ref/spec#An_example_package[contoh penyaringan bilangan prima]
 dalam spesifikasi Go tidak memiliki performansi paralelisme yang signifikan
 walaupun ia menjalankan banyak goroutine;
 menambah jumlah _thread_ (CPU) akan lebih memungkinkan memperlambatnya
@@ -1998,7 +1997,7 @@ Sejarah dan dokumentasi untuk cara membangun lingkungan Go yang baru dari
 sumber dijelaskan di
 https://golang.org/s/go15bootstrap[sini]
 dan di
-https://golang.org/doc/install/source[sini].
+link:/doc/install/source[sini].
 
 `Gc` ditulis dalam Go menggunakan _recursive descent parser_ dan menggunakan
 kostum _loader_, yang juga ditulis dengan Go berdasarkan loader pada Plan 9,
