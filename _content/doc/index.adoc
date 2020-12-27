@@ -90,3 +90,9 @@ Dokumentasi untuk perkakas Go.
 ===  link:/ref/spec[Spesifikasi Bahasa]
 
 Spesifikasi bahasa Go yang resmi.
+
+===  link:/ref/mem[Model memori pada Go]
+
+Sebuah dokumen yang menspesifikasikan kondisi-kondisi di mana pembacaan sebuah
+variabel pada sebuah goroutine dapat dijamin mengobservasi nilai yang
+dihasilkan oleh penulisan ke variabel yang sama dalam goroutine yang berbeda.

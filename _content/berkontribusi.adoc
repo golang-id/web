@@ -47,8 +47,6 @@ bagian:
 
 ** https://golang.org/doc/cmd/go => /doc/cmd/go/index.adoc
 
-** https://golang.org/ref/mem => /ref/mem/index.adoc
-
 
 ==  Cara berkontribusi
 

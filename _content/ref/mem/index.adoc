@@ -1,0 +1,446 @@
+= Model memori pada Go
+Tim Go
+31 Mei 2014
+:toc:
+:sectanchors:
+:sectlinks:
+
+==  Pendahuluan
+
+Model memori pada Go menspesifikasikan kondisi-kondisi di mana pembacaan
+sebuah variabel dalam satu goroutine dijamin mendapatkan nilai yang dihasilkan
+oleh penulisan ke variabel yang sama pada goroutine yang berbeda.
+
+== Petunjuk
+
+Program yang mengubah data yang diakses secara simultan oleh beberapa
+goroutine harus membuat akses tersebut secara serial.
+
+Supaya akses tersebut serial, lindungi data dengan operasi kanal (_channel_)
+atau model sinkronisasi primitif lainnya seperti yang ada dalam paket
+https://golang.org/pkg/sync/[sync]
+dan
+https://golang.org/pkg/sync/atomic/[sync/atomic].
+
+== Terjadi-sebelum
+
+Dalam sebuah goroutine, pembacaan dan penulisan harus dieksekusi dengan urutan
+yang dispesifikasikan oleh program.
+_Compiler_ dan prosesor bisa saja mengubah urutan eksekusi pembacaan dan
+penulisan dalam sebuah goroutine hanya bila pengurutan tersebut tidak mengubah
+perilaku pada goroutine tersebut seperti yang didefinisikan oleh spesifikasi
+bahasa.
+Karena pengubahan urutan ini, urutan eksekusi yang diobservasi oleh sebuah
+goroutine bisa berbeda dengan yang diobservasi oleh goroutine yang lain.
+Sebagai contoh, jika salah satu goroutine mengeksekusi `a = 1; b = 2;`,
+goroutine yang lain bisa saja membaca nilai `b` yang telah diperbarui sebelum
+nilai `a` diisi.
+
+Untuk menentukan kebutuhan-kebutuhan dari pembacaan dan penulisan, kita
+mendefinisikan _terjadi-sebelum_, sebuah bagian pengurutan eksekusi dari
+operasi memori dalam sebuah program Go.
+Jika kejadian `e~1~` terjadi sebelum kejadian `e~2~`, maka kita bisa katakan
+bahwa `e~2~` terjadi setelah `e~1~`.
+Dan juga, jika `e~1~` tidak terjadi sebelum `e~2~` dan tidak setelah `e~2~`,
+maka kita katakan bahwa `e~1~` dan `e~2~` terjadi secara konkuren.
+
+_Dalam sebuah goroutine, urutan terjadi-sebelum adalah urutan yang
+diekspresikan oleh program_.
+
+Sebuah pembacaan __r__ pada sebuah variabel `v` _dibolehkan_ mengobservasi
+penulisan __w__ ke `v` jika kondisi-kondisi berikut terpenuhi: 
+
+. __r__ tidak terjadi sebelum __w__.
+. Tidak ada penulisan lain __w'__ terhadap `v` yang terjadi setelah __w__
+  tetapi sebelum __r__.
+
+Untuk menjamin bahwa sebuah pembacaan __r__ dari variabel `v` mengobservasi
+sebuah penulisan __w__ ke `v`, pastikan bahwa __w__ adalah satu-satunya
+penulisan yang mana __r__ dibolehkan mengobservasi.
+Dengan kata lain, __r__ _dijamin_ mengobservasi __w__ jika kondisi-kondisi
+berikut terpenuhi:
+
+. __w__ terjadi sebelum __r__.
+. Penulisan lainnya ke variabel `v` terjadi sebelum __w__ atau setelah __r__.
+
+Pasangan kondisi ini lebih kuat dari pasangan sebelumnya;
+ia membutuhkan kondisi yang mana tidak ada penulisan lain terjadi secara
+konkuren dengan __w__ atau __r__.
+
+Dalam sebuah goroutine, tidak ada konkurensi, jadi kedua definisi berikut
+adalah sama: sebuah pembacaan __r__ mengobservasi nilai yang ditulis oleh
+penulisan terakhir __w__ ke `v`.
+Saat beberapa goroutine mengakses variabel berbagi `v`, mereka harus
+menggunakan kejadian sinkronisasi untuk mendapatkan kondisi terjadi-sebelum
+yang memastikan pembacaan mengobservasi penulisan yang diinginkan.
+
+Inisialisasi variabel `v` dengan nilai kosong, sesuai dengan tipe dari `v`,
+berlaku seperti penulisan dalam model memori.
+
+Pembacaan dan penulisan nilai yang lebih besar dari ukuran _word_ pada sebuah
+mesin berjalan seperti operasi-operasi pada banyak mesin dengan urutan yang
+tidak ditentukan. (red: Misal, pada mesin x86-64 dengan ukuran _word_
+adalah 64-bit, maka pembacaan atau penulisan nilai yang lebih dari 64-bit akan
+menyebabkan operasi yang belum tentu berurutan).
+
+
+== Sinkronisasi
+
+=== Inisialisasi
+
+Inisialisasi program berjalan dalam sebuah goroutine, namun goroutine tersebut
+bisa saja membuat goroutine yang lain, yang berjalan secara konkuren.
+
+_Jika sebuah paket p mengimpor paket q, maka fungsi `init` pada q akan
+berakhir sebelum `init` pada p dimulai_.
+
+_Mulainya fungsi `main.main` terjadi setelah semua fungsi `init` telah
+selesai_.
+
+=== Pembuatan goroutine
+
+_Perintah `go`, yang memulai sebuah goroutine yang baru, terjadi sebelum
+eksekusi goroutine dimulai_.
+Artinya, sebuah goroutine memiliki dua perintah: perintah `go` dan diikuti
+dengan fungsi yang akan dieksekusi.
+Perintah `go` itu sendiri berjalan dan selesai, terjadi-sebelum fungsi yang
+akan dieksekusi dimulai.
+
+Sebagai contoh, pada program berikut:
+
+----
+var a string
+
+func f() {
+	print(a)
+}
+
+func hello() {
+	a = "hello, world"
+	go f()
+}
+----
+
+Memanggil fungsi `hello` akan mencetak "hello, world" pada suatu saat di masa
+depan (kemungkinan setelah `hello` selesai).
+
+=== Destruksi goroutine
+
+Selesainya sebuah goroutine tidak dijamin selalu terjadi sebelum _event_ apa
+pun dalam program.
+Artinya, tidak ada kejadian yang memberitahu bahwa sebuah goroutine itu
+selesai atau belum.
+
+Contohnya, dalam program berikut:
+
+----
+var a string
+
+func hello() {
+	go func() { a = "hello" }()
+	print(a)
+}
+----
+
+Penempatan nilai ke `a` tidak diikuti oleh sinkronisasi, jadi tidak
+menjamin diobservasi oleh goroutine yang lain.
+_Compiler_ yang agresif bisa saja menghapus perintah `go` tersebut.
+
+Jika efek dari sebuah goroutine harus diobservasi oleh goroutine yang lain,
+gunakan mekanisme sinkronisasi seperti sebuah pengunci (_lock_) atau
+komunikasi dengan kanal untuk memastikan urutan yang relatif.
+
+
+=== Komunikasi dengan kanal
+
+Komunikasi kanal yaitu metode utama sinkronisasi antara goroutine.
+Setiap pengiriman pada sebuah kanal sama dengan penerimaan dari kanal
+tersebut, biasanya dalam goroutine yang berbeda.
+
+Sebuah pengiriman ke sebuah kanal terjadi-sebelum penerimaan dari kanal
+tersebut selesai.
+
+Program berikut:
+
+----
+var c = make(chan int, 10)
+var a string
+
+func f() {
+	a = "hello, world"
+	c <- 0
+}
+
+func main() {
+	go f()
+	<-c
+	print(a)
+}
+----
+
+dijamin mencetak "hello, world".
+Penulisan ke `a` terjadi sebelum pengiriman pada `c`, yang terjadi sebelum
+penerimaan pada `c` selesai, yang terjadi sebelum pencetakan.
+
+_Ditutupnya sebuah kanal terjadi sebelum sebuah penerimaan yang mengembalikan
+nilai kosong, sebuah kejadian yang disebabkan karena kanal telah ditutup_.
+
+Pada contoh sebelumnya, mengganti `+c <- 0+` dengan `close(c)` menghasilkan
+sebuah program yang dijamin berjalan sama.
+
+_Menerima sebuah nilai pada kanal tanpa-penyangga terjadi sebelum pengiriman
+sebuah nilai pada kanal tersebut selesai_.
+
+Program berikut (sama seperti program di atas, namun dengan perintah
+pengiriman dan penerimaan yang di balik dan menggunakan kanal
+tanpa-penyangga):
+
+----
+var c = make(chan int)
+var a string
+
+func f() {
+	a = "hello, world"
+	<-c
+}
+
+func main() {
+	go f()
+	c <- 0
+	print(a)
+}
+----
+
+juga menjamin mencetak "hello, world".
+Penulisan ke `a` terjadi sebelum penerimaan pada `c`, yang terjadi sebelum
+pengiriman ke `c` selesai, yang terjadi sebelum pencetakan.
+
+Jika kanal tersebut memiliki penyangga (misalnya, `c = make(chan int, 1)`) maka
+program tersebut tidak menjamin pencetakan "hello, world".
+(Program bisa saja mencetak string kosong, _crash_, atau melakukan hal
+lainnya.)
+
+_Penerima ke-k pada kanal dengan kapasitas C terjadi sebelum pengiriman
+k+C pada kanal tersebut selesai_.
+
+Aturan ini menggeneralisasi aturan sebelumnya tentang kanal dengan-penyangga.
+Aturan ini membolehkan penghitungan sinyal (_counting semaphore_) menggunakan
+model sebuah kanal dengan-penyangga: jumlah item di dalam kanal
+berkorespondensi dengan jumlah penggunaan aktif, kapasitas dari kanal
+berkorespondensi dengan jumlah maksimum dari penggunaan secara simultan,
+mengirim sebuah item berarti menangkap sinyal, dan menerima sebuah item
+berarti melepas sinyal.
+Cara ini adalah idiom umum untuk membatasi konkurensi.
+
+Program berikut menjalankan sebuah goroutine untuk setiap item dalam daftar
+`work`, tetapi goroutine tersebut berkoordinasi menggunakan kanal `limit`
+untuk memastikan paling banyak tiga fungsi yang bekerja pada satu waktu.
+
+----
+var limit = make(chan int, 3)
+
+func main() {
+	for _, w := range work {
+		go func(w func()) {
+			limit <- 1
+			w()
+			<-limit
+		}(w)
+	}
+	select{}
+}
+----
+
+===  Penguncian (_lock_)
+
+Paket `sync` memiliki dua tipe data untuk penguncian, `sync.Mutex` dan
+`sync.RWMutex`.
+
+_Untuk setiap `sync.Mutex` atau `sync.RWMutex` pada variabel `l` dengan
+`n < m`, pemanggilan ke-`n` dari `l.Unlock()` terjadi sebelum pemanggilan
+ke-`m` dari `l.Lock()` selesai_.
+
+Program berikut:
+
+----
+var l sync.Mutex
+var a string
+
+func f() {
+	a = "hello, world"
+	l.Unlock()
+}
+
+func main() {
+	l.Lock()
+	go f()
+	l.Lock()
+	print(a)
+}
+----
+
+dijamin mencetak "hello, world".
+Pemanggilan `l.Unlock()` yang pertama (dalam fungsi `f`) terjadi sebelum
+pemanggilan kedua dari `l.Lock()` (dalam fungsi `main`) selesai, yang terjadi
+sebelum pencetakan.
+
+_Untuk setiap pemanggilan ke `l.RLock` pada sebuah `sync.RWMutext` pada
+variabel `l`, ada sebuah `n` yang mana `l.RLock` terjadi (selesai) setelah
+pemanggilan ke-`n` pada `l.Unlock` dan `l.RUnlock` terjadi sebelum pemanggilan
+ke-`n+1` terhadap `l.Lock`_.
+
+=== `Once`
+
+Paket `sync` menyediakan sebuah mekanisme aman untuk inisialisasi dalam
+beberapa goroutine lewat penggunaan type `Once`.
+Beberapa _thread_ dapat mengeksekusi `once.Do(f)` untuk fungsi `f`, namun
+hanya satu thread yang akan menjalankan fungsi `f()`, dan pemanggilan lainnya
+ditahan sampai `f()` tersebut selesai.
+
+_Sebuah pemanggilan `f()` dari `once.Do(f)` terjadi (selesai) sebelum ada
+pemanggilan lain dari `once.Do(f)` selesai_.
+
+Pada program berikut:
+
+----
+var a string
+var once sync.Once
+
+func setup() {
+	a = "hello, world"
+}
+
+func doprint() {
+	once.Do(setup)
+	print(a)
+}
+
+func twoprint() {
+	go doprint()
+	go doprint()
+}
+----
+
+pemanggilan `twoprint` akan memanggil fungsi `setup` hanya sekali.
+Fungsi `setup` akan selesai sebelum pemanggilan ke `print`.
+Hasilnya adalah "hello, world" akan dicetak dua kali.
+
+
+== Sinkronisasi yang salah
+
+Ingatlah bahwa sebuah pembacaan __r__ bisa mengobservasi nilai yang ditulis
+oleh penulisan __w__ yang terjadi secara konkuren dengan __r__.
+Walaupun hal ini terjadi, bukan berarti pembacaan yang terjadi setelah __r__
+akan mengobservasi penulisan yang terjadi sebelum __w__.
+
+Pada program berikut:
+
+----
+var a, b int
+
+func f() {
+	a = 1
+	b = 2
+}
+
+func g() {
+	print(b)
+	print(a)
+}
+
+func main() {
+	go f()
+	g()
+}
+----
+
+bisa saja `g` mencetak 2 kemudian 0.
+
+Fakta ini menyalahkan beberapa idiom umum.
+
+Penguncian dengan pemeriksaan-ganda adalah salah satu cara untuk menghindari
+sinkronisasi berlebihan.
+Misalnya, program `twoprint` bisa saja ditulis dengan cara yang keliru seperti
+berikut:
+
+----
+var a string
+var done bool
+
+func setup() {
+	a = "hello, world"
+	done = true
+}
+
+func doprint() {
+	if !done {
+		once.Do(setup)
+	}
+	print(a)
+}
+
+func twoprint() {
+	go doprint()
+	go doprint()
+}
+----
+
+tetapi tidak ada yang menjamin bahwa, dalam `doprint`, memeriksa penulisan ke
+`done` berarti telah menulis nilai `a`.
+Versi ini bisa saja (secara keliru) mencetak sebuah string kosong bukan
+"hello, world".
+
+Salah satu idiom keliru lainnya yaitu sibuk menunggu sebuah nilai, seperti:
+
+----
+var a string
+var done bool
+
+func setup() {
+	a = "hello, world"
+	done = true
+}
+
+func main() {
+	go setup()
+	for !done {
+	}
+	print(a)
+}
+----
+
+Seperti sebelumnya, tidak ada yang menjamin, dalam `main`, penulisan ke `done`
+berarti selesainya penulisan ke `a`, sehingga program tersebut bisa saja
+mencetak sebuah string kosong juga.
+Lebih parah lagi, tidak ada yang menjamin penulisan ke `done` akan dibaca oleh
+`main`, secara tidak ada kejadian sinkronisasi antara kedua thread.
+Pengulangan pada `main` tidak dijamin akan berakhir.
+
+Ada beberapa variasi lain dari contoh di atas, seperti program berikut.
+
+----
+type T struct {
+	msg string
+}
+
+var g *T
+
+func setup() {
+	t := new(T)
+	t.msg = "hello, world"
+	g = t
+}
+
+func main() {
+	go setup()
+	for g == nil {
+	}
+	print(g.msg)
+}
+----
+
+Bahkan bila `main` membaca `g != nil` dan pengulangan berakhir, tidak ada yang
+menjamin bahwa ia akan menerima nilai untuk `g.msg`.
+
+Di semua contoh tersebut, semua solusi sama: gunakan sinkronisasi secara
+eksplisit.

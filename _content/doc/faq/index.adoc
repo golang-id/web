@@ -1562,7 +1562,7 @@ perintah `top` pada Unix dan perhatikan kolom `RES` (Linux) atau `RSIZE`
 //{{{
 
 Penjelasan dari operasi _atomic_ dalam Go dapat ditemukan dalam dokumen
-https://golang.org/ref/mem[Model _memory_ Go (Inggris)].
+link:/ref/mem[Model memori pada Go].
 
 Sinkronisasi tingkat-rendah dan primitif _atomic_ tersedia dalam paket
 https://golang.org/pkg/sync[sync]
