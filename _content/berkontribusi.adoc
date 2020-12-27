@@ -1,5 +1,7 @@
 =  Berkontribusi
-:stylesheet: /assets/style.css
+:toc:
+:sectanchors:
+:sectlinks:
 :golangid-isu: https://github.com/golang-id/web/issues
 
 Halaman ini mendokumentasikan daftar pekerjaan yang dapat dilakukan untuk
@@ -11,11 +13,12 @@ sebagai komunitas Go Indonesia:
     beradaptasi dan menggunakan Go.
 
 2.  Mengumpulkan blog tentang Go yang ditulis oleh komunitas Go Indonesia.
-    setiap blog nantinya dapat diakses lewat
-    "https://golang-id.org/blog/YYYYMMDD_[judul]".
+    Setiap blog nantinya dapat diakses lewat
+    +https://golang-id.org/~[penulis]/[judul]+.
 
 3.  Mengumpulkan repositori Go yang ditulis oleh komunitas Go Indonesia.
-    Kumpulan repositori ini seperti
+    Kumpulan repositori ini seperti halaman wiki
+    https://github.com/golang/go/wiki/Projects[Projects] atau
     https://github.com/avelino/awesome-go[awesome-go] namun khusus untuk
     komunitas Go Indonesia.
 
@@ -73,15 +76,15 @@ https://sr.ht/~shulhan/ciigo[kerangkanya]:
    statis.
    Program inilah yang nantinya melayani situs golang-id.org.
 
-*  `content`: direktori ini berisi konten/halaman dari situs.
+*  `+_content+`: direktori ini berisi konten/halaman dari situs.
    Setiap halaman dibuat dengan menggunakan format asciidoc dan harus
    menggunakan ekstensi ".adoc".
-   Berkas memiliki ekstensi selain ".adoc" akan diindahkan.
+   Berkas dengan ekstensi selain ".adoc" akan diindahkan.
 
-*  `content/assets`: direktori yang menyimpan berkas statis, seperti
+*  `+_content/assets+`: direktori yang menyimpan berkas statis, seperti
    _stylesheet_.
 
-*  `templates/html.tmpl`: berisi template yang membungkus hasil HTML dari
+*  `+_templates/html.tmpl+`: berisi template yang membungkus hasil HTML dari
    berkas asciidoc.  Sebaiknya berkas ini tidak diubah dahulu, kecuali
    anda tahu yang anda lakukan.
 
@@ -100,40 +103,39 @@ $ cd $GOPATH/src/github.com/golang-id/web
 $ git clone https://github.com/golang-id/web .
 ----
 
-Jalankan program `www-golangid` di komputer anda dengan men set variabel
-lingkungan `DEBUG` dengan nilai `2`,
+Jalankan program `www-golangid` di komputer anda lewat Makefile,
 
 ----
-$ DEBUG=2 go run ./cmd/www-golangid
+$ make serve
 ----
 
 Jika ada eror seperti berikut,
 
 ----
-Start: listen tcp :5000: bind: address already in use
+Start: listen tcp :5080: bind: address already in use
 ----
 
-itu berarti ada program lain yang telah menggunakan port 5000.
-Anda bisa mengganti port ke yang lain, misalnya 5080,
+itu berarti ada program lain yang telah menggunakan port 5080.
+Anda bisa mengganti port ke yang lain, misalnya 5081,
 
 ----
-$ DEBUG=2 go run ./cmd/www-golangid -port=5080
+$ DEBUG=1 go run ./cmd/www-golangid -port=5081
 ----
 
 Jika berhasil maka Anda akan melihat keluaran seperti berikut,
 
 ----
 ....
-ciigo: starting HTTP server at ":5000" for "./content"
+ciigo: starting HTTP server at ":5080" for "./_content"
 ....
 ----
 
-Buka peramban pada alamat http://127.0.0.1:5000 (atau sesuai dengan port yang
+Buka peramban pada alamat http://127.0.0.1:5080 (atau sesuai dengan port yang
 Anda berikan).
 Situs lokal dari golang-id.org akan muncul di halaman tersebut.
 
 Untuk membuat halaman baru, lihat contoh yang sudah ada dalam direktori
-"content".
+"_content".
 
 Jika anda ingin menggabungkan pekerjaan anda, silakan _commit_ dan _push_
 ke repositori anda sendiri dan buat _pull request_ ke repositori ini.
