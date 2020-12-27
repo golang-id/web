@@ -72,6 +72,7 @@ h6 {
 	font-weight: bold;
 }
 h1 {
+	padding: 0.5rem 0;
 	font-size: 1.75rem;
 	line-height: 1;
 }
@@ -199,6 +200,9 @@ td p {
 	margin: 1.25rem;
 }
 
+#footer {
+	display: none;
+}
 .footer {
 	text-align: center;
 	color: #666;
