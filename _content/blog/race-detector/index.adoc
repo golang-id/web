@@ -1,0 +1,346 @@
+= Memperkenalkan pendeteksi _data race_
+Dmitry Vyukov; Andrew Gerrand
+26 Juni 2013
+
+== Pendahuluan
+
+http://en.wikipedia.org/wiki/Race_condition[Kondisi berpacu (_race conditions_)]
+adalah salah satu dari kesalahan pemrograman yang berbahaya dan
+sukar ditangkap.
+Kesalahan ini biasanya menyebabkan kegagalan yang tidak menentu dan misterius,
+terkadang kegagalan ini muncul lama setelah kode berjalan.
+Walaupun mekanisme konkurensi Go membuat kita mudah menulis kode yang
+konkuren, tetapi ia tidak mencegah adanya kondisi berpacu.
+Perhatian, ketekunan, dan pengujian diperlukan.
+Dan perkakas yang tepat juga dapat membantu.
+
+Kami dengan gembira memperkenalkan
+link:/doc/articles/race_detector.html[pendeteksi _data race_]
+pada Go 1.1, sebuah perkakas baru untuk menemukan kondisi berpacu dalam kode
+Go.
+Sekarang ini tersedia pada sistem Linux, OS X, dan Windows dengan prosesor x86
+64-bit.
+
+Pendeteksi _data race_ didasari oleh
+https://github.com/google/sanitizers[pustaka _ThreadSanitizer_]
+dari C/C++,
+yang telah lama digunakan untuk mendeteksi banyak eror dalam basis kode
+internal Google dan
+http://www.chromium.org/[Chromium].
+Teknologi ini diintegrasikan pada Go di bulan September 2012; sejak itu ia
+telah menangkap
+https://github.com/golang/go/issues?utf8=%E2%9C%93&q=ThreadSanitizer[42 kondisi]
+berpacu dalam pustaka standar.
+Sekarang ia telah menjadi bagian dari proses pembangunan berkelanjutan, yang
+mana terus menangkap kondisi berpacu bila ia muncul.
+
+== Cara bekerja
+
+Pendeteksi _data race_ diintegrasikan dengan perkakas go.
+Saat opsi baris perintah `-race` di set, _compiler_ membaca semua akses memori
+dalam kode dan mencatat kapan dan bagaimana memori tersebut diakses, sementara
+pustaka _runtime_ membaca adanya akses yang tidak disinkronisasi ke variabel
+yang berbagi.
+Saat perilaku "berpacu" terdeteksi, sebuah peringatan dicetak.
+(Bacalah
+https://github.com/google/sanitizers/wiki/ThreadSanitizerAlgorithm[artikel berikut]
+untuk memahami lebih rinci tentang bagaimana algoritma bekerja).
+
+Pendeteksi _data race_ dapat mendeteksi kondisi berpacu hanya saat dipicu oleh
+kode yang sedang berjalan, yang artinya sangatlah penting untuk menjalankan
+program dengan opsi `-race` telah dinyalakan sebelum digunakan di lingkungan
+kerja yang sebenarnya.
+Namun, program yang dibangun dengan `-race` dapat menggunakan CPU dan memori
+sepuluh kali lebih banyak, jadi tidak praktis untuk selalu menjalankan
+pendeteksi _data race_.
+Salah satu cara untuk mengatasi dilema ini yaitu dengan menjalankan beberapa
+tes dengan pendeteksi _data race_ dinyalakan.
+Integrasi tes dan unit tes adalah kandidat yang bagus, secara mereka condong
+menggunakan bagian kode secara konkuren.
+Pendekatan lain yaitu dengan menjalankan program dengan pendeteksi _data race_
+bersamaan dengan beberapa program yang sama pada beberapa server yang berbeda.
+
+== Menggunakan pendeteksi _data race_
+
+Pendeteksi _data race_ terintegrasi dengan perkakas Go.
+Untuk membangun kode Anda dengan menyalakan pendeteksi _data race_, cukup
+tambahkan opsi `-race` pada baris perintah:
+
+----
+$ go test -race mypkg    // pengujian paket
+$ go run -race mysrc.go  // kompilasi dan menjalankan program
+$ go build -race mycmd   // pembangunan program
+$ go install -race mypkg // pemasangan paket
+----
+
+Untuk mencoba sendiri pendeteksi _data race_, ambil dan jalankan contoh
+program berikut:
+
+----
+$ go get -race golang.org/x/blog/support/racy
+$ racy
+----
+
+== Contoh-contoh
+
+Berikut dua contoh masalah dunia nyata yang ditangkap oleh pendeteksi _data
+race_.
+
+=== Contoh 1: Timer.Reset
+
+Contoh pertama yaitu versi sederhana dari kesalahan nyata yang ditemukan
+oleh pendeteksi _data race_.
+Program ini menggunakan sebuah `time.Timer` untuk mencetak sebuah pesan
+setelah durasi waktu acak antara 0 sampai 1 detik.
+Hal ini terjadi berulang kali selama 5 detik.
+Program ini menggunakan `time.AfterFunc` untuk membuat sebuah `Timer` untuk
+pesan yang pertama dan kemudian menggunakan method `Reset` untuk menjadwalkan
+pesan selanjutnya, supaya dapat menggunakan ulang variabel `Timer` yang sudah
+ada.
+
+----
+11 func main() {
+12     start := time.Now()
+13     var t *time.Timer
+14     t = time.AfterFunc(randomDuration(), func() {
+15         fmt.Println(time.Now().Sub(start))
+16         t.Reset(randomDuration())
+17     })
+18     time.Sleep(5 * time.Second)
+19 }
+20
+21 func randomDuration() time.Duration {
+22     return time.Duration(rand.Int63n(1e9))
+23 }
+----
+
+Kode tersebut tampak masuk akal, namun pada kondisi tertentu ia akan gagal:
+
+----
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal 0xb code=0x1 addr=0x8 pc=0x41e38a]
+
+goroutine 4 [running]:
+time.stopTimer(0x8, 0x12fe6b35d9472d96)
+    src/pkg/runtime/ztime_linux_amd64.c:35 +0x25
+time.(*Timer).Reset(0x0, 0x4e5904f, 0x1)
+    src/pkg/time/sleep.go:81 +0x42
+main.func·001()
+    race.go:14 +0xe3
+created by time.goFunc
+    src/pkg/time/sleep.go:122 +0x48
+----
+
+Apa yang terjadi?
+Menjalankan program dengan menyalakan pendeteksi _data race_ akan tampak lebih
+jelas:
+
+----
+==================
+WARNING: DATA RACE
+Read by goroutine 5:
+  main.func·001()
+     race.go:16 +0x169
+
+Previous write by goroutine 1:
+  main.main()
+      race.go:14 +0x174
+
+Goroutine 5 (running) created at:
+  time.goFunc()
+      src/pkg/time/sleep.go:122 +0x56
+  timerproc()
+     src/pkg/runtime/ztime_linux_amd64.c:181 +0x189
+==================
+----
+
+Pendeteksi _data race_ memperlihatkan masalahnya: pembacaan dan penulisan
+tanpa sinkronisasi pada variabel `t` dari goroutine yang berbeda.
+Jika durasi _timer_ awal sangat kecil, fungsi _timer_ bisa dipanggil sebelum
+`main` goroutine telah menyimpan nilai ke `t` sehingga pemanggilan `t.Reset`
+dilakukan pada `t` yang `nil`.
+
+Untuk memperbaiki kondisi berpacu ini kita mengubah kode untuk membaca dan
+menulis variabel `t` hanya dari `main` goroutine:
+
+----
+11 func main() {
+12     start := time.Now()
+13     reset := make(chan bool)
+14     var t *time.Timer
+15     t = time.AfterFunc(randomDuration(), func() {
+16         fmt.Println(time.Now().Sub(start))
+17         reset <- true
+18     })
+19     for time.Since(start) < 5*time.Second {
+20         <-reset
+21         t.Reset(randomDuration())
+22     }
+23 }
+----
+
+Di sini, `main` goroutine sajalah yang bertanggung jawab men-set dan me-reset
+Timer `t` dan kanal `reset` yang baru mengkomunikasikan kebutuhan untuk
+mereset _timer_ dengan cara yang aman.
+
+Pendekatan lain yang lebih sederhana dan kurang efisien yaitu dengan
+http://play.golang.org/p/kuWTrY0pS4[menghindari menggunakan timer yang sama].
+
+
+=== Contoh 2: `ioutil.Discard`
+
+Contoh kedua lebih halus.
+
+Paket `ioutil` memiliki objek
+https://golang.org/pkg/io/ioutil/#Discard[Discard]
+yang mengimplementasikan
+https://golang.org/pkg/io/#Writer[`io.Writer`],
+yang meniadakan semua data yang ditulis ke dalam objek tersebut.
+Seperti `/dev/null`: sebuah tempat mengirim data yang Anda bisa baca tapi
+tidak ingin disimpan.
+Objek `Discard` ini biasanya digunakan oleh
+https://golang.org/pkg/io/#Copy[`io.Copy`]
+untuk mengosongkan pembaca, seperti ini:
+
+----
+io.Copy(ioutil.Discard, reader)
+----
+
+Pada bulan Juli 2011, time Go menyadari bahwa menggunakan `Discard` dengan
+cara ini tidak efisien: fungsi `Copy` mengalokasikan penyangga sebesar 32 kB
+setiap kali dipanggil, namun saat digunakan dengan `Discard` penyangga
+tersebut tidak dipakai secara kita hanya akan melempar data yang dibaca saja.
+Kita memikirkan bahwa penggunaan idiomatis dari `Copy` dan `Discard` ini
+seharusnya tidak terlalu membebankan.
+
+Perbaikannya cukup sederhana.
+Jika `Writer` mengimplementasi method `ReadFrom`, sebuah pemanggilan `Copy`
+seperti berikut:
+
+----
+io.Copy(writer, reader)
+----
+
+didelegasikan ke pemanggilan yang lebih efisien:
+
+----
+writer.ReadFrom(reader)
+----
+
+Kita
+https://golang.org/cl/4817041[menambahkan method `ReadFrom`]
+ke tipe `Discard`, yang memiliki penyangga internal yang dibagi dengan semua
+penggunanya.
+Kita tahu bahwa secara teori ini adalah kondisi berpacu, namun secara semua
+penulisan ke penyangga seharusnya langsung dibuang kami berpikir masalah
+kondisi berpacu di sini tidak begitu penting.
+
+Saat pendeteksi _data race_ diimplementasikan ia langsung
+https://golang.org/issue/3970[menandakan kode tersebut]
+sebagai "berpacu".
+Sekali lagi, kita menyadari bahwa kode tersebut bermasalah, namun memutuskan
+bahwa kondisi berpacu tersebut tidak "nyata".
+Untuk menghindari kondisi "positif salah" ini pada saat pembangunan, kita
+mengimplementasikan
+https://golang.org/cl/6624059[versi yang tidak "berpacu"]
+yang dinyalakan hanya saat pendeteksi _data race_ berjalan.
+
+Akan tetapi beberapa bulan kemudian
+https://bradfitz.com/[Brad]
+menemui sebuah _bug_ yang
+https://golang.org/issue/4589[janggal dan menyebalkan].
+Setelah beberapa hari melakukan _debug_, dia menemukan kondisi berpacu yang
+nyata yang disebabkan oleh `ioutil.Discard`.
+
+Berikut kode yang diketahui berpacu dalam `io/ioutil`, yang mana `Discard`
+adalah `devNull` yang berbagi sebuah penyangga tunggal dengan semua
+penggunanya.
+
+----
+var blackHole [4096]byte // shared buffer
+
+func (devNull) ReadFrom(r io.Reader) (n int64, err error) {
+    readSize := 0
+    for {
+        readSize, err = r.Read(blackHole[:])
+        n += int64(readSize)
+        if err != nil {
+            if err == io.EOF {
+                return n, nil
+            }
+            return
+        }
+    }
+}
+----
+
+Program Brad memiliki sebuah tipe `trackDigestReader`, yang membungkus sebuah
+`io.Reader` dan mencatat _hash_ dari apa yang ia baca.
+
+----
+type trackDigestReader struct {
+    r io.Reader
+    h hash.Hash
+}
+
+func (t trackDigestReader) Read(p []byte) (n int, err error) {
+    n, err = t.r.Read(p)
+    t.h.Write(p[:n])
+    return
+}
+----
+
+Sebagai contoh, ia bisa digunakan untuk menghitung hash SHA-1 dari sebuah
+berkas saat membacanya:
+
+----
+tdr := trackDigestReader{r: file, h: sha1.New()}
+io.Copy(writer, tdr)
+fmt.Printf("File hash: %x", tdr.h.Sum(nil))
+----
+
+Pada kasus-kasus tertentu data terkadang tidak perlu ditulis--tetapi hash
+masih diperlukan--maka `Discard` digunakan:
+
+----
+io.Copy(ioutil.Discard, tdr)
+----
+
+Namun pada kasus ini penyangga `blackHole` bukan hanya lubang hitam; ia adalah
+tempat untuk menyimpan data antara pembacaan dari sumber `io.Reader` dan
+penulisan ke `hash.Hash`.
+Saat beberapa goroutine mulai melakukan _hash_ secara bersamaan, setiap
+goroutine akan berbagi penyangga `blackHole` yang sama, kondisi berpacu mulai
+timbul dengan mengkorupsi data antara pembacaan dan penulisan.
+Tidak ada eror atau panic yang terjadi, namun _hash_ yang dihasilkan selalu
+salah.
+
+----
+func (t trackDigestReader) Read(p []byte) (n int, err error) {
+    // penyangga p adalah blackHole
+    n, err = t.r.Read(p)
+    // p bisa dikorupsi oleh goroutine yang lain,
+    // baik oleh Read di atas atau oleh  Write di bawah.
+    t.h.Write(p[:n])
+    return
+}
+----
+
+Bug ini akhirnya
+https://golang.org/cl/7011047[diperbaiki]
+dengan memberikan penyangga yang unik untuk setiap penggunaan
+`ioutil.Discard`, mengeliminasi kondisi berpacu pada penyangga yang berbagi.
+
+
+== Kesimpulan
+
+Pendeteksi _data race_ adalah perkakas yang tangguh untuk memeriksa ketepatan
+dari program yang konkuren.
+Ia tidak akan menimbulkan kondisi positif-salah, jadi perhatikan baik-baik
+peringatan yang dikeluarkan oleh pendeteksi ini.
+Namun ia hanya akan bekerja baik seperti halnya tes-tes Anda;
+Anda harus memastikan mereka benar-benar menggunakan properti konkuren dari
+kode Anda supaya pendeteksi _data race_ dapat melakukan kerjanya dengan baik.
+
+Apa yang Anda tunggu lagi?
+Jalankan "go test -race" pada kode Anda hari ini!

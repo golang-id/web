@@ -51,6 +51,9 @@
 *  link:/blog/slices[Array, slice (dan string): Mekanisme 'append'],
    26 September 2013. _Rob Pike_
 
+*  link:/blog/race-detector[Memperkenalkan pendeteksi _data race_],
+   26 Juni 2013. _Dmitry Vyukov_ dan _Andrew Gerrand_.
+
 *  link:/blog/learn-go-from-your-browser[Belajar Go lewat peramban Anda],
    4 Oktober 2011. _Andrew Gerrand_
 
@@ -142,3 +145,6 @@
 
 *  link:/doc/articles/race_detector.html[Pendeteksi _data race_] - Manual tentang
    pendeteksi _data race_.
+
+*  link:/blog/race-detector[Memperkenalkan pendeteksi _data race_] -
+   Pengenalan terhadap pendeteksi _data race_.
