@@ -1,0 +1,420 @@
+= Pendeteksi _data race_
+:toc:
+:sectanchors:
+:sectlinks:
+
+[#Introduction]
+== Pendahuluan
+
+_Data race_ adalah tipe kesalahan yang paling umum dan sukar untuk di-_debug_
+dalam sistem konkuren.
+_Data race_ terjadi saat dua goroutine mengakses variabel yang sama secara
+bersamaan dengan salah satu metoda akses adalah tulis.
+Lihat
+link:/ref/mem/[Model memori pada Go] untuk lebih rinci.
+
+Berikut contoh _data race_ yang bisa membuat program _crash_ dan korupsi pada
+memori:
+
+----
+func main() {
+	c := make(chan bool)
+	m := make(map[string]string)
+	go func() {
+		m["1"] = "a" // Akses konflik yang pertama.
+		c <- true
+	}()
+	m["2"] = "b" // Akses konflik yang kedua.
+	<-c
+	for k, v := range m {
+		fmt.Println(k, v)
+	}
+}
+----
+
+[#Usage]
+== Penggunaan
+
+Untuk membantu mendiagnosis kesalahan seperti ini, Go memiliki pendeteksi
+_data race_.
+Untuk menggunakan pendeteksi tersebut, tambahkan opsi `-race` pada perintah
+`go`:
+
+----
+$ go test -race mypkg    // saat menguji paket
+$ go run -race mysrc.go  // saat menjalankan berkas sumber
+$ go build -race mycmd   // saat membangun program
+$ go install -race mypkg // saat memasang paket
+----
+
+[#Report_Format]
+== Format laporan
+
+Saat pendeteksi _data race_ menemukan sebuah _data race_ dalam program, ia
+akan mencetak sebuah laporan.
+Laporan tersebut berisi _stack trace_ dari akses-akses yang konflik, dan juga
+kumpulan baris yang melaporkan di goroutine mana akses tersebut terjadi.
+Berikut contohnya:
+
+----
+WARNING: DATA RACE
+Read by goroutine 185:
+  net.(*pollServer).AddFD()
+      src/net/fd_unix.go:89 +0x398
+  net.(*pollServer).WaitWrite()
+      src/net/fd_unix.go:247 +0x45
+  net.(*netFD).Write()
+      src/net/fd_unix.go:540 +0x4d4
+  net.(*conn).Write()
+      src/net/net.go:129 +0x101
+  net.func·060()
+      src/net/timeout_test.go:603 +0xaf
+
+Previous write by goroutine 184:
+  net.setWriteDeadline()
+      src/net/sockopt_posix.go:135 +0xdf
+  net.setDeadline()
+      src/net/sockopt_posix.go:144 +0x9c
+  net.(*conn).SetDeadline()
+      src/net/net.go:161 +0xe3
+  net.func·061()
+      src/net/timeout_test.go:616 +0x3ed
+
+Goroutine 185 (running) created at:
+  net.func·061()
+      src/net/timeout_test.go:609 +0x288
+
+Goroutine 184 (running) created at:
+  net.TestProlongTimeout()
+      src/net/timeout_test.go:618 +0x298
+  testing.tRunner()
+      src/testing/testing.go:301 +0xe8
+----
+
+[#Options]
+== Opsi-opsi
+
+Variabel lingkungan `GORACE` dapat digunakan untuk menset opsi pendeteksi
+_data race_.
+Formatnya yaitu:
+
+----
+GORACE="opsi1=nilai1 opsi2=nilai2"
+----
+
+Opsi-opsinya adalah sebagai berikut:
+
+* `log_path` (nilai baku `stderr`): Pendeteksi _data race_ menulis laporan ke
+  berkas bernama `log_path.__pid__`.
+  Nama-nama khusus seperti `stdout` dan `stderr` menyebabkan laporan ditulis
+  ke standar keluaran dan standar eror.
+
+* `exitcode` (nilai baku `66`): Nilai status program saat berhenti setelah
+  mendeteksi adanya _data race_.
+
+* `strip_path_prefix` (nilai baku ""): Hapus string prefiks dari semua berkas
+  laporan, untuk membuat laporan lebih singkat.
+
+* `history_size` (nilai baku 1): Riwayat akses memori per-goroutine yaitu
+  `+32K * 2**history_size+` elemen.
+  Meningkatkan nilai ini dapat menghindari eror "failed to restore the stack",
+  dengan biaya bertambahnya penggunaan memori.
+
+* `halt_on_error` (nilai baku 0): Mengontrol apakah program berhenti setelah
+  melaporkan _data race_ yang pertama atau tidak.
+
+* `atexit_sleep_ms` (nilai baku 1000): Lamanya `main` goroutine untuk tidur
+  sebentar sebelum program berhenti, dalam milidetik.
+
+Contoh:
+
+----
+$ GORACE="log_path=/tmp/race/report strip_path_prefix=/my/go/sources/" go test -race
+----
+
+Artinya, laporan tentang adanya _data race_ pada hasil pengujian, jika ada,
+akan ditulis ke dalam berkas `/tmp/race/report` dan setiap keluaran dari
+laporan akan menghapus prefix "/my/go/sources/".
+
+
+[#Excluding_Tests]
+== Mengindahkan pengujian
+
+Saat opsi `-race` diberikan saat pembangunan, perintah `go` menambahan
+tag `race` pada `build`.
+Anda dapat menggunakan tag ini untuk mengindahkan beberapa kode dan pengujian
+dari pendeteksi _data race_.
+Berikut contohnya:
+
+----
+// +build !race
+
+package foo
+
+// The test contains a data race. See issue 123.
+func TestFoo(t *testing.T) {
+	// ...
+}
+
+// The test fails under the race detector due to timeouts.
+func TestBar(t *testing.T) {
+	// ...
+}
+
+// The test takes too long under the race detector.
+func TestBaz(t *testing.T) {
+	// ...
+}
+----
+
+[#How_To_Use]
+==  Cara penggunaan
+
+Sebagai langkah awal, jalankan tes Anda menggunakan pendeteksi _data race_ 
+(`go test -race`).
+Pendeteksi _data race_ hanya dapat mencari _data race_ saat program
+dijalankan, ia tidak bisa menemukan _data race_ bila kode tidak dieksekusi.
+Jika tes-tes Anda tidak komplit, Anda mungkin bisa menemukan _data race_ pada
+program Anda dengan membangun program dengan tambahan opsi `-race` dan
+menjalankan program tersebut pada beban kerja yang sesungguhnya.
+
+[#Typical_Data_Races]
+== Contoh _Data race_ yang umum
+
+Berikut beberapa contoh _data race_ yang umum terjadi.
+Semua contoh ini dapat dideteksi dengan pendeteksi _data race_.
+
+[#Race_on_loop_counter]
+=== _Data race_ pada pengulangan
+
+----
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(5)
+	for i := 0; i < 5; i++ {
+		go func() {
+			fmt.Println(i) // Bukan 'i' yang Anda harapkan.
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+----
+
+Variabel `i` di dalam fungsi adalah variabel yang sama digunakan oleh
+pengulangan, sehingga pembacaan pada goroutine berpacu dengan pengulangan,
+akibatnya pembacaan dalam goroutine berpacu dengan penambahan pada pengulangan.
+(Program tersebut bisa jadi mencetak `55555`, bukan `01234`).
+Program tersebut dapat diperbaiki dengan membuat salinan dari variabel `i`:
+
+----
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(5)
+	for i := 0; i < 5; i++ {
+		go func(j int) {
+			fmt.Println(j) // Variabel `j` adalah salinan lokal dari `i`.
+			wg.Done()
+		}(i) // Kirim salinan dari variabel `i` ke dalam fungsi.
+	}
+	wg.Wait()
+}
+----
+
+[#Accidentally_shared_variable]
+=== Berbagi variabel tanpa sengaja
+
+----
+// ParallelWrite menulis data ke file1 dan file2, mengembalikan satu atau
+// lebih eror.
+func ParallelWrite(data []byte) chan error {
+	res := make(chan error, 2)
+	f1, err := os.Create("file1")
+	if err != nil {
+		res <- err
+	} else {
+		go func() {
+			// Variabel err ini dibagi dengan goroutine main, sehingga
+			// penulisan err di sini berpacu dengan err di bawah.
+			_, err = f1.Write(data)
+			res <- err
+			f1.Close()
+		}()
+	}
+	f2, err := os.Create("file2") // Konflik penulisan err kedua.
+	if err != nil {
+		res <- err
+	} else {
+		go func() {
+			_, err = f2.Write(data)
+			res <- err
+			f2.Close()
+		}()
+	}
+	return res
+}
+----
+
+Cara memperbaiki yaitu dengan menggunakan variabel yang baru dalam goroutine
+(perhatikan penggunaan `:=`):
+
+----
+			...
+			_, err := f1.Write(data)
+			...
+			_, err := f2.Write(data)
+			...
+----
+
+[#Unprotected_global_variable]
+=== Variabel global yang tidak dilindungi
+
+Jika kode berikut dipanggil dari beberapa goroutine, ia akan menyebabkan _data
+race_ pada variabel map `service`.
+Pembacaan dan penulisan secara bersamaan dari variabel map yang sama tidak
+aman:
+
+----
+var service map[string]net.Addr
+
+func RegisterService(name string, addr net.Addr) {
+	service[name] = addr
+}
+
+func LookupService(name string) net.Addr {
+	return service[name]
+}
+----
+
+Untuk membuat kode lebih aman, lindungi akses dengan sebuah `mutex`:
+
+----
+var (
+	service   map[string]net.Addr
+	serviceMu sync.Mutex
+)
+
+func RegisterService(name string, addr net.Addr) {
+	serviceMu.Lock()
+	defer serviceMu.Unlock()
+	service[name] = addr
+}
+
+func LookupService(name string) net.Addr {
+	serviceMu.Lock()
+	defer serviceMu.Unlock()
+	return service[name]
+}
+----
+
+[#Primitive_unprotected_variable]
+=== Variabel primitif yang tidak dilindungi
+
+_Data race_ juga dapat terjadi pada variabel-variabel bertipe primitif
+(`bool`, `int`, `int64`, dan lainnya), seperti pada contoh berikut:
+
+----
+type Watchdog struct{ last int64 }
+
+func (w *Watchdog) KeepAlive() {
+	w.last = time.Now().UnixNano() // Konflik akses yang pertama.
+}
+
+func (w *Watchdog) Start() {
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			// Second conflicting access.
+			if w.last < time.Now().Add(-10*time.Second).UnixNano() {
+				fmt.Println("No keepalives for 10 seconds. Dying.")
+				os.Exit(1)
+			}
+		}
+	}()
+}
+----
+
+Bahkan _data race_ yang tampak "polos" seperti di atas dapat menyebabkan
+masalah yang sukar-di-_debug_ yang disebabkan oleh akses memori yang tidak
+atomik, interferensi akibat optimisasi _compiler_, atau masalah pengurutan
+saat mengakses memori prosesor.
+
+Cara paling umum untuk memperbaiki _data race_ seperti ini yaitu dengan
+menggunakan sebuah kanal (_channel_) atau `mutex`.
+Supaya bebas-penguncian, bisa menggunakan paket
+https://golang.org/pkg/sync/atomic/[`sync/atomic`].
+
+----
+type Watchdog struct{ last int64 }
+
+func (w *Watchdog) KeepAlive() {
+	atomic.StoreInt64(&w.last, time.Now().UnixNano())
+}
+
+func (w *Watchdog) Start() {
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			if atomic.LoadInt64(&w.last) < time.Now().Add(-10*time.Second).UnixNano() {
+				fmt.Println("No keepalives for 10 seconds. Dying.")
+				os.Exit(1)
+			}
+		}
+	}()
+}
+----
+
+[Unsynchronized_send_and_close_operations]
+=== Operasi kirim-dan-tutup yang tidak sinkron
+
+Seperti yang didemokan oleh contoh berikut, operasi kirim dan tutup yang tidak
+disinkronkan pada kanal yang sama bisa menimbulkan kondisi _data race_:
+
+----
+c := make(chan struct{}) // atau kanal dengan-penyangga.
+
+// Pendeteksi data race tidak bisa menemukan hubungan terjadi-sebelum untuk
+// operasi kirim-dan-tutup seperti di bawah ini.  Dua operasi berikut tidak
+// disinkronkan dan terjadi secara konkuren.
+go func() { c <- struct{}{} }()
+close(c)
+----
+
+Menurut
+link:/ref/mem[Memori model pada Go], pengiriman ke kanal terjadi sebelum
+penerimaan dari kanal selesai.
+Untuk sinkronisasi operasi kirim-dan-tutup, gunakan operasi penerimaan untuk
+menjamin bahwa pengiriman selesai sebelum operasi tutup dilakukan:
+
+----
+c := make(chan struct{}) // atau kanal dengan penyangga.
+
+go func() { c <- struct{}{} }()
+<-c
+close(c)
+----
+
+[#Supported_Systems]
+== Dukungan sistem
+
+Pendeteksi _data race_ berjalan pada `linux/amd64`, `linux/ppc64le`,
+`linux/arm64`, `freebsd/amd64`, `netbsd/amd64`, `darwin/amd64`,
+`darwin/arm64`, dan `windows/amd64`.
+
+
+[#Runtime_Overhead]
+==  Beban _runtime_
+
+Biaya dari penggunaan pendeteksi _data race_ beragam pada program, namun pada
+umumnya penggunaan memori bisa meningkat 5-10x dan waktu eksekusi bertambah
+2-20x.
+
+Pendeteksi _data race_ saat ini mengalokasikan 8 byte tambahan per perintah
+`defer` dan `recover`.
+Alokasi tambahan ini
+https://golang.org/issue/26813[tidak berkurang sampai goroutine selesai].
+Hal ini berarti jika Anda memiliki goroutine yang berjalan lama yang secara
+periodik memanggil `defer` dan `recover`, penggunaan memori program Anda bisa
+bertambah tanpa batas.
+Alokasi memori ini tidak akan muncul pada keluaran dari `runtime.ReadMemStats`
+atau `runtime/pprof`.

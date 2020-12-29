@@ -100,12 +100,6 @@
    https://golang.org/pkg/image/draw/[image/draw].
 
 
-==  Perkakas
-
-*  link:/doc/articles/go_command.html[Tentang Perintah Go] - kenapa kita
-   membuatnya, apa saja kegunaannya, dan bagaimana menggunakannya.
-
-
 ==  Modul
 
 *  link:/blog/versioning-proposal[Proposal untuk versi paket dalam Go], 26
@@ -137,3 +131,14 @@
 *  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap Kompatibel],
    7 July 2020.
    _Jean de Klerk; Jonathan Amsterdam_
+
+
+==  Perkakas
+
+*  link:/doc/articles/go_command.html[Tentang Perintah Go] - kenapa kita
+   membuatnya, apa saja kegunaannya, dan bagaimana menggunakannya.
+
+*  link:/doc/gdb[Debugging kode Go dengan GDB]
+
+*  link:/doc/articles/race_detector.html[Pendeteksi _data race_] - Manual tentang
+   pendeteksi _data race_.
