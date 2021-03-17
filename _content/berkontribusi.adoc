@@ -82,7 +82,7 @@ https://sr.ht/~shulhan/ciigo[kerangkanya]:
 *  `+_content/assets+`: direktori yang menyimpan berkas statis, seperti
    _stylesheet_.
 
-*  `+_templates/html.tmpl+`: berisi template yang membungkus hasil HTML dari
+*  `+_content/html.tmpl+`: berisi template yang membungkus hasil HTML dari
    berkas asciidoc.  Sebaiknya berkas ini tidak diubah dahulu, kecuali
    anda tahu yang anda lakukan.
 

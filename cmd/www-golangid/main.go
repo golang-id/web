@@ -19,5 +19,5 @@ func main() {
 	flag.StringVar(&port, "port", "5000", "HTTP port server")
 	flag.Parse()
 
-	ciigo.Serve(memFS, "./_content", ":"+port, "./_templates/html.tmpl")
+	ciigo.Serve(memFS, "./_content", ":"+port, "_content/html.tmpl")
 }
