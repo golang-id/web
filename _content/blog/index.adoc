@@ -70,6 +70,10 @@
    goprotobuf dan lainnya],
    20 April 2010.  _Andrew Gerrand_
 
+*  link:/blog/godoc/[godoc: Mendokumentasikan kode Go],
+   31 Maret 2011.  _Andrew Gerrand_
+
+
 ==  Bahasa
 
 *  link:/blog/gos-declaration-syntax/[Sintaksis deklarasi pada Go]

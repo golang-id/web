@@ -1,0 +1,136 @@
+= godoc: Mendokumentasikan kode Go
+Andrew Gerrand
+31 Maret 2011
+
+Proyek Go melakukan dokumentasi dengan serius.
+Dokumentasi adalah bagian terbesar yang membuat perangkat lunak mudah diakses
+dan dijaga.
+Tidak saja dokumentasi harus ditulis dengan baik dan akurat, ia juga harus
+mudah ditulis dan dijaga.
+Idealnya, dokumentasi sebaiknya tercakup dalam kode itu sendiri sehingga
+dokumentasi berkembang bersama dengan kode.
+Semakin mudah bagi pemogram untuk menghasilkan dokumentasi yang bagus, maka
+semakin baik hal itu bagi semua orang.
+
+Oleh karena itu, kita telah mengembangkan perkakas dokumentasi
+https://golang.org/cmd/godoc/[`godoc`^].
+Artikel ini menjelaskan pendekatan `godoc` terhadap dokumentasi, dan
+menjelaskan bagaimana Anda dapat menggunakan konvensi dan perkakas tersebut
+untuk menulis dokumentasi yang bagus untuk proyek Anda.
+
+Godoc mengurai kode sumber --termasuk komentar-- dan menghasilkan dokumentasi
+dalam bentuk HTML atau teks.
+Hasil akhirnya yaitu dokumentasi yang berkaitan erat dengan kode yang
+didokumentasikan.
+Sebagai contohnya, lewat antar muka web dari godoc anda dapat melakukan
+navigasi dari dokumentasi
+https://golang.org/pkg/strings/#HasPrefix[sebuah fungsi^]
+ke
+https://golang.org/src/strings/strings.go?s=11163:11200#L434[implementasinya^]
+lewat satu klik.
+
+Secara konseptual, godoc mirip dengan
+https://www.python.org/dev/peps/pep-0257/[Docstring^]
+pada Python dan
+https://www.oracle.com/java/technologies/javase/javadoc-tool.html[Javadoc^]
+pada Java, namun lebih simpel.
+Komentar yang dibaca oleh godoc bukanlah konstruksi bahasa (seperti pada
+Docstring) dan tidak harus memiliki sintak yang bisa dibaca mesin (seperti
+pada Javadoc).
+Komentar pada godoc cukup dengan tulisan yang baik, tulisan yang ingin Anda
+baca bahkan tanpa godoc.
+
+Konvensinya cukup sederhana: untuk mendokumentasikan sebuah tipe, variabel,
+konstan, fungsi, atau bahkan sebuah paket, tulis lah komentar tersebut
+langsung di atas deklarasinya, tanpa ada baris kosong.
+Godoc kemudian akan mempresentasikan komentar tersebut sebagai teks bersama
+dengan item yang didokumentasikan.
+Sebagai contohnya, berikut dokumentasi untuk fungsi
+https://golang.org/pkg/fmt/#Fprint[`Fprint`^] pada paket `fmt`:
+
+	// Fprint formats using the default formats for its operands and writes to w.
+	// Spaces are added between operands when neither is a string.
+	// It returns the number of bytes written and any write error encountered.
+	func Fprint(w io.Writer, a ...interface{}) (n int, err error) {
+
+Perhatikan komentar tersebut adalah sebuah kalimat lengkap yang dimulai dengan
+nama dari elemen yang dijelaskan.
+Konvensi ini penting dan membolehkan kita menghasilkan dokumentasi dalam
+format yang beragam, dari teks sampai HTML sampai halaman `man` pada UNIX,
+dan membuatnya mudah dibaca saat sebuah perkakas memotong komentar tersebut,
+seperti saat mengekstrak baris atau kalimat yang pertama.
+
+Komentar pada deklarasi paket sebaiknya menyediakan dokumentasi paket secara
+keseluruhan.
+Komentar tersebut bisa saja pendek, seperti deskripsi pada paket
+https://golang.org/pkg/sort/[`sort`^].
+
+	// Package sort provides primitives for sorting slices and user-defined
+	// collections.
+	package sort
+
+Komentar pada paket juga dapat sangat detil seperti pada paket
+https://golang.org/pkg/encoding/gob/[gob^].
+Paket tersebut menggunakan konvensi: jika dokumentasi paket terlalu panjang
+maka komentar ditaruh diberkasnya sendiri,
+https://golang.org/src/pkg/encoding/gob/doc.go[doc.go^],
+yang berisi hanya komentar dan sebuah klausa paket.
+
+Saat menulis komentar untuk sebuah paket, ingatlah selalu bahwa kalimat
+pertama akan muncul dalam
+https://golang.org/pkg/[daftar paket^]
+di godoc.
+
+Komentar yang tidak selaras dengan deklarasinya akan diindahkan dari keluaran
+godoc, dengan sebuah pengecualian.
+Komentar teratas yang dimulai dengan kata `"BUG(who)"` dikenali sebagai "bug"
+yang tercatat, dan diikutkan dalam bagian "Bugs" dari dokumentasi paket.
+Bagian "who" diisi dengan nama orang yang bisa menyediakan informasi lebih
+lanjut tentang _bug_ tersebut.
+Sebagai contohnya, berikut adalah isu yang tercatat pada
+https://golang.org/pkg/bytes/#pkg-note-BUG[paket bytes^]:
+
+	// BUG(r): The rule Title uses for word boundaries does not handle Unicode punctuation properly.
+
+Terkadang sebuah field pada struct, fungsi, tipe, atau bahkan keseluruhan
+paket sudah tidak digunakan lagi, tetapi harus tetap disimpan demi
+kompatibilitas dengan program yang ada.
+Untuk menginformasikan bahwa sebuah pengidentifikasi sebaiknya tidak digunakan
+lagi, tambahkan sebuah paragraf pada komentar yang dimulai dengan
+"Deprecated:" diikuti dengan informasi tentang kenapa ia tidak digunakan lagi.
+Ada beberapa contoh
+https://golang.org/search?q=Deprecated:[pada pustaka standar^].
+
+Ada beberapa aturan format yang Godoc gunakan saat mengonversi komentar ke
+HTML:
+
+* Baris selanjutnya dari teks dianggap bagian dari paragraf yang sama; Anda
+  harus meninggalkan baris kosong untuk memisahkan paragraf.
+
+* Pra-format teks dibentuk dengan memberi spasi dengan tab relatif terhadap
+  teks komentar disekitarnya (lihat dokumentasi
+  https://golang.org/src/pkg/encoding/gob/doc.go[doc.go^] sebagai
+  contohnya).
+
+* URL akan dikonversi ke tautan HTML; tidak ada marka khusus yang perlu
+  ditambahkan.
+
+Ingat bahwa tidak ada dari aturan-aturan tersebut yang mengharuskan Anda
+melakukan sesuatu yang khusus.
+
+Faktanya, hal terbaik dari pendekatan minimal godoc yaitu bagaimana mudahnya
+ia digunakan.
+Akibatnya, banyak kode Go, termasuk semua pustaka standar, telah mengikuti
+konvensi-konvensi tersebut.
+
+Kode Anda sendiri dapat merepresentasikan dokumentasi yang bagus dengan hanya
+memberi komentar seperti yang dijelaskan di atas.
+Setiap paket Go yang dipasang dalam `$GOROOT/src/pkg` dan setiap ruang kerja
+`GOPATH` akan dapat diakses lewat baris-perintah `godoc` dan antar muka
+HTTP, dan Anda dapat menentukan direktori-direktori tambahan untuk
+pengindeksan lewat opsi `-path` atau hanya dengan menjalankan `"godoc ."` di
+dalam direktori sumber.
+
+Lihatlah
+https://golang.org/cmd/godoc/[dokumentasi godoc^]
+untuk lebih jelasnya.
