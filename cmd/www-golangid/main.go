@@ -8,7 +8,10 @@ import (
 	"flag"
 
 	"git.sr.ht/~shulhan/ciigo"
+	"github.com/shuLhan/share/lib/memfs"
 )
+
+var memFS *memfs.MemFS
 
 func main() {
 	var port string
@@ -16,5 +19,5 @@ func main() {
 	flag.StringVar(&port, "port", "5000", "HTTP port server")
 	flag.Parse()
 
-	ciigo.Serve("./_content", ":"+port, "./_templates/html.tmpl")
+	ciigo.Serve(memFS, "./_content", ":"+port, "./_templates/html.tmpl")
 }
