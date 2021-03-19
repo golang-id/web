@@ -1,5 +1,7 @@
 =  Perintah go
 :toc:
+:sectanchors:
+:sectlinks:
 
 Go adalah sebuah perkakas untuk mengatur sumber kode Go.
 
@@ -1650,3 +1652,219 @@ Keluarannya yaitu informasi modul yang berisi beberapa baris diikuti oleh
 versi, yang dipisahkan oleh karakter tab.
 
 Lihat juga: go doc runtime/debug.BuildInfo.
+
+[#hdr-Report_likely_mistakes_in_packages]
+== Periksa kemungkinan kesalahan dalam paket
+
+Penggunaan
+
+	go vet [-n] [-x] [-vettool prog] [build flags] [vet flags] [packages]
+
+Program `vet` menjalankan perintah `go vet` pada paket-paket berdasarkan nama
+path impor yang diberikan pada parameter "packages".
+
+Untuk informasi lebih lanjut tentang vet dan opsinya, lihat 'go doc cmd/vet'.
+Untuk informasi tentang parameter "packages", lihat 'go help packages'.
+Untuk informasi dafter _checker_ (pemeriksa) yang tersedia berikut opsinya,
+lihat 'go tool vet help'.
+Untuk informasi tentang _checker_ seperti 'printf', lihat
+'go tool vet help printf'.
+
+Opsi `-n` mencetak perintah yang akan dieksekusi.
+Opsi `-x` mencetak perintah saat mereka dieksekusi.
+
+Opsi `-vettool=prog` menentukan perkakas analisis yang akan digunakan dengan
+pemeriksaan alternatif atau tambahan.
+Misalnya, penganalisis 'shadow' dapat dibangun dan dijalankan menggunakan
+perintah berikut:
+
+	go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+	go vet -vettool=$(which shadow)
+
+Opsi "build flags" yang didukung oleh "go vet" yaitu opsi-opsi yang mengontrol
+eksekusi dan pencarian paket, seperti `-n`, `-x`, `-v`, `-tags`, dan
+`-toolexec`.
+Untuk tahu lebih banyak tentang opsi tersebut, lihat 'go help build'.
+
+Lihat juga: `go fmt`, `go fix`.
+
+[#hdr-Build_constraints]
+== Batasan-batasan pembangunan
+
+Sebuah batasan pembangunan, dikenal juga dengan tag _build_, adalah baris
+komentar yang diawali dengan
+
+	// +build
+
+yang berisi daftar kondisi yang mana sebuah berkas akan disertakan dalam
+paket.
+Batasan-batasan tersebut bisa muncul dalam berkas sumber kode apa saja (tidak
+hanya Go), namun harus berada paling atas, diawali hanya oleh baris kosong
+atau baris komentar lain.
+Aturan ini berarti bahwa dalam berkas Go sebuah batasan pembangunan harus
+muncul sebelum klausa "package".
+
+Untuk membedakan antara batasan pembangunan dengan dokumentasi paket,
+sekumpulan batasan pembangunan harus diikuti oleh baris kosong.
+
+Sebuah batasan pembangunan dievaluasi sebagai logika OR dari opsi-opsi yang
+dipisahkan dengan spasi.
+Setiap opsi dievaluasi sebagai logika AND bila dipisahkan oleh koma.
+Setiap kondisi terdiri dari huruf, angka, garis bawah, dan titik.
+Sebuah kondisi bisa dinegasikan dengan mengawali dengan `!`.
+Sebagai contoh, batasan pembangunan berikut:
+
+	// +build linux,386 darwin,!cgo
+
+berkorespondensi dengan formula logika:
+
+	(linux AND 386) OR (darwin AND (NOT cgo))
+
+Sebuah berkas bisa memiliki banyak batasan pembangunan.
+Keseluruhan batasan dievaluasi dengan operasi AND.
+Batasan pembangunan berikut:
+
+	// +build linux darwin
+	// +build amd64
+
+berkorespondensi dengan formula logika:
+
+	(linux OR darwin) AND amd64
+
+Saat pembangunan dilakukan, beberapa kata-kata berikut dipenuhi:
+
+* target sistem operasi, yang dikeluarkan oleh `runtime.GOOS`, di set dengan
+  variabel sistem `GOOS`
+* target arsitektur, yang dikeluarkan oleh `runtime.GOARCH`, di set lewat
+  variabel sistem `GOARCH`.
+* _compiler_ yang digunakan, antara "gc" atau "gccgo"
+* "cgo", jika perintah cgo didukung (lihat `CGO_ENABLED` dalam 'go help
+  environment').
+* rilis mayor dari Go, "go1.1" untuk Go versi 1.1, "go1.12" untuk Go 1.12, dan
+  seterusnya.
+* tag-tag tambahan yang diberikan lewat opsi "-tags" (lihat 'go help build').
+
+Tidak ada tag-tag pembangunan yang memisahkan antara rilis beta atau minor.
+
+Jika sebuah nama berkas, setelah ekstensi dan akhiran "_test" dihapus, cocok
+dengan salah satu pola berikut:
+
+----
+*_GOOS
+*_GOARCH
+*_GOOS_GOARCH
+----
+
+(contoh: source_windows_amd64.go) yang mana `GOOS` dan `GOARCH`
+merepresentasikan sistem operasi dan arsitektur, maka berkas tersebut dianggap
+memiliki batasan pembangunan implisit (dengan tambahan batasan-batasan
+eksplisit dari dalam berkas).
+
+Menggunakan GOOS=android akan cocok dengan tag dan berkas pembangunan untuk
+GOOS=linux dengan tambahan tag dan berkas untuk android.
+
+Menggunakan GOOS=illumos akan cocok dengan tag dan berkas pembangunan untuk
+GOOS=solaris dengan tambahan tag dan berkas untuk illumos.
+
+Menggunakan GOOS=ios akan cocok dengan tag dan berkas untuk GOOS=darwin dengan
+tambahan tag dan berkas khusus untuk ios.
+
+Untuk melewati sebuah berkas dari pembangunan:
+
+	// +build ignore
+
+(kata lain bisa digunakan, tetapi "ignore" lebih konvensional.)
+
+Untuk membangun sebuah berkas hanya saat menggunakan cgo, dan hanya pada Linux
+dan OS X:
+
+	// +build linux,cgo darwin,cgo
+
+Berkas tersebut biasanya dipadukan dengan berkas lain yang mengimplementasikan
+fungsionalitas baku untuk sistem berbeda, yang mana pada kasus ini akan
+memiliki batasan sebaliknya:
+
+	// +build !linux,!darwin !cgo
+
+Menamakan sebuah berkas dengan `dns_windows.go` akan menyebabkan ia hanya
+diikutkan saat membangun paket pada sistem Windows; hal yang sama,
+`math_386.s` hanya akan diikutkan saat membangun paket untuk arsitektur 32-bit
+x86.
+
+
+[#hdr-Build_modes]
+== Mode-mode pembangunan
+
+Perintah 'go build' dan 'go install' menerima argumen `-buildmode` yang
+mengindikasikan jenis berkas objek apa yang akan dibangun.
+Nilai yang didukung antara lain,
+
+`-buildmode=archive`::
+	Bangun paket selain main menjadi berkas arsip `.a`.
+	Paket bernama main akan diindahkan.
+
+`-buildmode=c-archive`::
+	Bangun paket main yang didaftarkan, berikut semua paket yang diimpor,
+	menjadi berkas arsip C.
+	Simbol-simbol yang bisa dipanggil hanya fungsi yang diekspor menggunakan
+	komentar "//export" pada cgo.
+	Membutuhkan paling tidak satu paket main didaftarkan.
+
+`-buildmode=c-shared`::
+	Bangun paket main yang didaftarkan, berikut semua paket yang diimport,
+	menjadi sebuah pustaka C.
+	Simbol-simbol yang bisa dipanggil hanya fungsi yang diekspor menggunakan
+	komentar "//export" cgo.
+	Membutuhkan paling tidak satu paket main didaftarkan.
+
+`-buildmode=default`::
+	Paket-paket main yang didaftarkan akan dibangun menjadi program dan paket
+	selain main dibangun menjadi berkas arsip .a (perilaku bawaan).
+
+`-buildmode=shared`::
+	Gabung semua paket non-main menjadi pustaka tunggal yang akan digunakan
+	untuk pembangunan dengan opsi `-linkshared`.
+	Paket bernama main akan diindahkan.
+
+`-buildmode=exe`::
+	Bangun semua paket main yang didaftarkan dan semua yang diimpor menjadi
+	program.
+	Paket yang tidak bernama main akan diindahkan.
+
+`-buildmode=pie`::
+	Bangun semua paket main yang didaftarkan dan semua yang mereka impor
+	menjadi _position independent executables_ (PIE).
+	Paket yang tidak bernama main akan diindahkan.
+
+`-buildmode=plugin`::
+	Bangun paket main yang didaftarkan, berikut semua paket yang diimpor,
+	menjadi sebuah plugin Go.
+	Paket selain "main" akan diindahkan.
+
+Pada AIX, saat mengaitkan program C yang menggunakan arsip Go yang dibangun
+dengan -buildmode=c-archive, Anda harus mengirim -Wl,-bnoobjreorder ke
+_compiler_ C.
+
+
+[#hdr-Calling_between_Go_and_C]
+== Pemanggilan antara Go dan C
+
+Ada dua perbedaan cara pemanggilan antara kode Go dan C/C++.
+
+Yang pertama yaitu perkakas cgo, yang merupakan bawaan dari distribusi Go.
+Untuk informasi tentang cara penggunaannya lihat dokumentasi cgo (go doc
+cmd/cgo).
+
+Yang kedua yaitu program SWIG, yaitu sebuah perkakas umum antarmuka antar
+bahasa.
+Informasi lebih lanjut tentang SWIG lihat http://swig.org/[swig.org^].
+Saat menjalankan "go build", setiap berkas dengan ekstensi .swig akan dikirim
+ke SWIG.
+Setiap berkas dengan ekstensi .swigcxx akan dikirim ke SWIG dengan opsi
+`-c++`.
+
+Bila cgo atau SWIG tidak digunakan, "go build" akan mengirim semua berkas
+.c, .m, .s, .S, atau .sx ke _compiler_ C, dan semua berkas .cc, .cpp, .cxx ke
+_compiler_ C++.
+Variabel lingkungan CC atau CXX bisa diset untuk menentukan _compiler_ C atau
+C++ yang akan digunakan.
