@@ -423,7 +423,7 @@ Opsi-opsi:
 	Tampilkan keseluruhan sumber kode dari simbol.  Cara ini
 	memperlihatkan seluruh sumber Go dari deklarasi dan definisi, seperti
 	sebuah definisi fungsi (termasuk badannya), deklarasi tipe atau blok
-	const.  Keluarannya bisa mengikutkan rincian yang tidak diekspor.
+	const.  Keluarannya bisa mengikutkan detail yang tidak diekspor.
 -u
 	Tampilkan dokumentasi untuk simbol, method, field yang tidak diekspor
 	dan yang diekspor.
@@ -1472,7 +1472,7 @@ ok   compress/gzip 0.033s
 ...
 ----
 
-diikuti dengan rincian untuk setiap paket yang gagal (`FAIL`).
+diikuti dengan detail untuk setiap paket yang gagal (`FAIL`).
 
 Perintah 'go test' meng-ompilasi ulang setiap paket bersama dengan semua
 berkas yang sesuai dengan pola berkas "*_test.go".
@@ -1583,7 +1583,7 @@ diantaranya:
 
 -json
     Konversi hasil tes ke JSON yang cocok untuk pemrosesan otomatis.
-    Lihat 'go doc test2json' untuk rincian format.
+    Lihat 'go doc test2json' untuk detail format.
 
 -o berkas
     Kompilasi binari tes ke berkas.
@@ -1592,7 +1592,7 @@ diantaranya:
 
 Binari tes juga menerima opsi yang mengontrol eksekusi dari tes; opsi-opsi
 tersebut juga dapat diakses oleh 'go test'.  Lihat 'go help testflag' untuk
-lebih rinci.
+lebih detail.
 
 Untuk lebih lanjut tentang opsi "build", lihat 'go help build'.
 Untuk lebih lanjut tentang cara menspesifikasikan paket, lihat 'go help
@@ -1868,3 +1868,964 @@ Bila cgo atau SWIG tidak digunakan, "go build" akan mengirim semua berkas
 _compiler_ C++.
 Variabel lingkungan CC atau CXX bisa diset untuk menentukan _compiler_ C atau
 C++ yang akan digunakan.
+
+[#hdr-Build_and_test_caching]
+== Tembolok pembangunan dan pengujian
+
+Perintah go menyimpan hasil pembangunan untuk digunakan lagi pada pembangunan
+berikutnya.
+Lokasi baku dari tempat penyimpanan ini yaitu direktori bernama `go-build` di
+dalam direktori tembolok pengguna sesuai dengan sistem operasi yang digunakan.
+Lokasi ini dapat diganti lewat variabel lingkungan `GOCACHE`, dan menjalankan
+'go env GOCACHE' akan menampilkan direktori tembolok yang sedang digunakan.
+
+Perintah go secara berkala akan menghapus data tembolok yang jarang digunakan.
+Menjalankan 'go clean --cache' menghapus semua data tembolok.
+
+Tembolok pembangunan mencatat perubahan pada sumber kode Go, _compiler_, opsi
+pada _compiler_, dan seterusnya: membersihkan tembolok secara eksplisit
+sebenarnya tidak perlu dilakukan.
+Namun, tembolok pembangunan tidak mendeteksi perubahan terhadap pustaka C yang
+diimpor lewat cgo.
+Jika Anda melakukan perubahan pada pustaka C dalam sistem Anda, Anda harus
+membersihkan tembolok secara eksplisit atau gunakan opsi pembangunan -a (lihat
+'go help build') untuk memaksa membangun ulang semua paket yang bergantung
+pada pustaka C yang diubah.
+
+Perintah go juga menyimpan tembolok hasil pengujian paket yang sukses.
+Lihat 'go help test' untuk lebih detail.
+Menjalankan 'go clean -testcache' menghapus semua tembolok hasil pengujian
+(namun tetap menyimpan tembolok hasil pembangunan).
+
+Variabel sistem GODEBUG dapat digunakan untuk menghidupkan pelacakan
+(_debugging_) tentang kondisi dari tembolok:
+
+`GODEBUG=gocacheverify=1` menyebabkan perintah go mengindahkan tembolok
+sehingga memaksa membangun ulang semuanya dan memeriksa apakah hasilnya sesuai
+dengan isi tembolok sekarang.
+
+`GODEBUG=gocachehash=1` menyebabkan perintah go mencetak input yang di-_hash_
+untuk membangun kunci pencarian tembolok.
+Keluaran dari pelacakan ini sangat banyak namun berguna untuk memeriksa
+tembolok.
+
+`GODEBUG=gocachetest=1` menyebabkan perintah go mencetak detail keputusan
+apakah memakai ulang hasil pengujian di tembolok atau tidak.
+
+
+[#hdr-Environment_variables]
+== Variabel lingkungan
+
+Perintah go dan perkakas yang dieksekusi, membaca variabel lingkungan untuk
+konfigurasi.
+Jika sebuah variabel lingkungan tidak diset, perintah go menggunakan
+pengaturan bawaan.
+Untuk melihat pengaturan efektif dari variabel <NAME>, jalankan
+'go env <NAME>'.
+Untuk mengganti pengaturan bawaan, jalankan 'go env -w <NAME>=<VALUE>'.
+Perubahan dari 'go env -w' dicatat dalam berkas konfigurasi Go yang disimpan
+dalam direktori konfigurasi user, yang diambil lewat `os.UserConfigDir`.
+Lokasi dari berkas konfigurasi dapat diganti dengan men-set variabel
+lingkungan `GOENV`, dan 'go env GOENV' mencetak lokasi efektifnya, namun
+'go env -w' tidak bisa mengganti lokasi bawaannya.
+Lihat 'go help env' untuk lebih detail.
+
+Variabel lingkungan untuk tujuan umum:
+
+`GO111MODULE`::
+    Mengontrol apakah perintah go berjalan dengan mode GOPATH atau modul.
+    Bisa "off", "on", atau "auto".
+    Lihat https://golang.org/ref/mod#mod-commands .
+
+`GCCGO`::
+    Mengatur perintah gccgo untuk menjalankan 'go build -compiler=gccgo'.
+
+`GOARCH`::
+    Arsitektur, atau prosesor, tujuan dari kode yang akan dikompilasi.
+    Contohnya amd64, 386, arm, ppc64.
+
+`GOBIN`::
+    Direktori tempat 'go install' akan memasang hasil pembangunan program.
+
+`GOCACHE`::
+    Direktori tempat perintah go akan menyimpan informasi tembolok untuk
+    digunakan pada pembangunan berikutnya.
+
+`GOMODCACHE`::
+    Direktori tempat perintah go akan menyimpan modul-modul yang diunduh.
+
+`GODEBUG`::
+    Menghidupkan beragam fasilitas pelacakan.
+    Lihat 'go doc runtime' untuk detail.
+
+`GOENV`::
+    Lokasi dari berkas konfigurasi lingkungan.
+    Tidak dapat di set menggunakan 'go env -w'.
+
+`GOFLAGS`::
+    Daftar pengaturan `-flag=value` yang dikirim ke perintah go.
+    Karena setiap input dipisahkan oleh spasi, nilai dari flag tidak boleh
+    berisi spasi.
+    Flag-flag yang didaftarkan pada baris perintah diterapkan setelah daftar
+    ini dan oleh karena itu bisa menimpanya.
+
+`GOINSECURE`::
+    Daftar prefiks path modul dengan pola _glob_, yang dipisahkan oleh koma,
+    (dengan sintak sesuai dengan `path.Match`) yang diunduh dengan cara tidak
+    aman.
+    Hanya berlaku untuk dependensi yang diambil secara langsung.
+    `GOINSECURE` tidak mematikan validasi _checksum_.
+    `GOPRIVATE` atau `GONOSUMDB` bisa digunakan untuk hal tersebut.
+
+`GOOS`::
+    Sistem operasi tujuan untuk kode yang akan dikompilasi.
+    Contohnya linux, darwin, windows, netbsd.
+
+`GOPATH`::
+    Untuk lebih detail lihat: 'go help gopath'.
+
+`GOPROXY`::
+    URL untuk proksi modul Go.
+    Lihat
+    https://golang.org/ref/mod#environment-variables
+    dan
+    https://golang.org/ref/mod#module-proxy
+    untuk lebih detail.
+
+`GOPRIVATE`, `GONOPROXY`, `GONOSUMDB`::
+    Daftar prefiks path modul, dengan pola _glob_ dipisahkan oleh koma (sesuai
+    dengan sintaks `path.Match`), yang harus diambil secara langsung atau yang
+    tidak dibandingkan dengan basis data _checksum_.
+	Lihat https://golang.org/ref/mod#private-modules .
+
+`GOROOT`::
+    Lokasi utama dari perkakas go.
+
+`GOSUMDB`::
+    Nama basis data _checksum_ yang digunakan, berikut pilihan kunci publik
+    dan URL-nya.
+    Lihat https://golang.org/ref/mod#authenticating .
+
+`GOTMPDIR`::
+    Direktori tempat perintah go menulis berkas sumber, paket, dan program
+    untuk sementara.
+
+`GOVCS`::
+    Daftar perintah _version control_ yang digunakan sesuai dengan peladen.
+	Lihat 'go help vcs'.
+
+Variabel lingkungan yang digunakan dengan cgo:
+
+`AR`::
+    Program yang digunakan untuk memanipulasi arsip pustaka saat membangun
+    dengan _compiler_ gccgo.
+	Nilai bakunya adalah 'ar'.
+
+`CC`::
+    Program yang digunakan untuk mengompilasi kode C.
+
+`CGO_ENABLED`::
+    Menentukan apakah perintah cgo dihidupkan atau tidak.
+    Nilainya antara 0 atau 1.
+
+`CGO_CFLAGS`::
+    Opsi yang cgo kirim ke _compiler_ saat mengompilasi kode C.
+
+`CGO_CFLAGS_ALLOW`::
+    _Regular expression_ yang menentukan opsi-opsi tambahan yang boleh muncul
+    dalam sumber kode perintah `#cgo CFLAGS`.
+    Tidak berlaku untuk variabel lingkungan `CGO_CFLAGS`.
+
+`CGO_CFLAGS_DISALLOW`::
+    _Regular expression_ yang menentukan opsi-opsi yang tidak dibolehkan
+    muncul dalam perintah sumber kode `#cgo CFLAGS`.
+    Tidak berlaku untuk variabel lingkungan `CGO_CFLAGS`.
+
+`CGO_CPPFLAGS`, `CGO_CPPFLAGS_ALLOW, `CGO_CPPFLAGS_DISALLOW`::
+    Seperti `CGO_CFLAGS`, `CGO_CFLAGS_ALLOW`, dan `CGO_CFLAGS_DISALLOW` namun
+    untuk pra-proses C.
+
+`CGO_CXXFLAGS`, `CGO_CXXFLAGS_ALLOW`, `CGO_CXXFLAGS_DISALLOW`::
+    Seperti `CGO_CFLAGS`, `CGO_CFLAGS_ALLOW`, dan `CGO_CFLAGS_DISALLOW` namun
+    untuk _compiler_ C++.
+
+`CGO_FFLAGS`, `CGO_FFLAGS_ALLOW`, `CGO_FFLAGS_DISALLOW`::
+    Seperti `CGO_CFLAGS`, `CGO_CFLAGS_ALLOW`, dan `CGO_CFLAGS_DISALLOW` namun
+    untuk _compiler_ Fortran.
+
+`CGO_LDFLAGS`, `CGO_LDFLAGS_ALLOW`, `CGO_LDFLAGS_DISALLOW`::
+    Seperti `CGO_CFLAGS`, `CGO_CFLAGS_ALLOW`, dan `CGO_CFLAGS_DISALLOW` namun
+    untuk _linker_.
+
+`CXX`::
+    Program yang digunakan untuk mengompilasi kode C++.
+
+`FC`::
+    Program yang digunakan untuk mengompilasi kode Fortran.
+
+`PKG_CONFIG`::
+    Lokasi perkakas pkg-config.
+
+Variabel lingkungan untuk arsitektur tertentu:
+
+`GOARM`::
+    Untuk `GOARCH=arm`, menentukan arsitektur ARM dari target kompilasi.
+    Nilai validnya adalah 5, 6, 7.
+
+`GO386`::
+    Untuk `GOARCH=386`, menentukan implementasi instruksi _floating-point_
+    yang akan digunakan.
+    Nilai validnya adalah `sse2` (baku), `softfloat`.
+
+`GOMIPS`::
+	Untuk `GOARCH=mips{,le}`, menentukan instruksi _floating-point_ yang akan
+    digunakan.
+	Nilai validnya adalah `hardfloat` (baku), `softfloat`.
+
+`GOMIPS64`::
+    Untuk `GOARCH=mips64{,le}`, menentukan instruksi _floating-point_ yang
+    akan digunakan.
+	Nilai valid-nya adalah `hardfloat` (baku), `softfloat`.
+
+`GOWASM`::
+	Untuk `GOARCH=wasm`, berisi daftar fitur eksperimental WebAssembly yang
+    akan digunakan, dipisahkan oleh koma.
+    Nilai valid-nya adalah `satconv`, `signext`.
+
+Variabel lingkungan untuk tujuan tertentu:
+
+`GCCGOTOOLDIR`::
+    Jika diset, menentukan lokasi pencarian perkakas gccgo, seperti cgo.
+    Nilai bakunya berdasarkan bagaimana gccgo dikonfigurasi.
+
+`GOROOT_FINAL`::
+    Direktori tempat Go dipasang, jika Go dipasang di direktori yang berbeda
+    dengan tempat dibangun.
+    Nama berkas saat mencetak _stack traces_ diganti dari `GOROOT` menjadi
+    `GOROOT_FINAL`.
+
+`GO_EXTLINK_ENABLED`::
+    Menentukan apakah _linker_ menggunakan mode _linking_ eksternal saat
+    menggunakan `-linkmode=auto` untuk kode yang menggunakan cgo.
+    Set ke 0 untuk mematikan mode penautan eksternal, 1 untuk menghidupkan.
+
+`GIT_ALLOW_PROTOCOL`::
+    Didefinisikan oleh Git.
+    Daftar skema, dipisahkan dengan ':', yang boleh digunakan pada saat
+    `git fetch/clone`.
+    Jika di set, setiap skema yang secara eksplisit tidak dicantumkan akan
+    dianggap sebagai tidak aman oleh 'go get'.
+    Secara nilai variabel ini ditentukan oleh Git, nilai bakunya tidak bisa
+    diganti lewat 'go env -w'.
+
+Informasi tambahan yang tersedia lewat 'go env' tapi tidak dibaca dari
+lingkungan:
+
+`GOEXE`::
+    Nama ekstensi untuk berkas program hasil pembangunan (".exe" pada Windows,
+    "" untuk sistem lain).
+
+`GOGCCFLAGS`::
+    Daftar argumen, dipisahkan oleh spasi, yang dikirimkan ke perintah CC.
+
+`GOHOSTARCH`::
+    Arsitektur (`GOARCH`) dari perkakas Go yang terpasang.
+
+`GOHOSTOS`::
+    Sistem operasi (`GOOS`) dari perkakas Go yang terpasang.
+
+`GOMOD`::
+    Lokasi absolut dari berkas go.mod pada modul utama.
+    Jika mode modul dihidupkan, tapi berkas go.mod tidak ditemukan, `GOMOD`
+    akan berisi `os.DevNull` ("/dev/null" pada sistem berbasis Unix, "NUL"
+    pada Windows).
+    Jika mode modul dimatikan, `GOMOD` akan berisi string kosong.
+
+`GOTOOLDIR`::
+    Direktori tempat perkakas go (compile, cover, doc, dll) dipasang.
+
+`GOVERSION`::
+    Versi dari Go yang terpasang, seperti yang dilaporkan oleh
+    `runtime.Version`.
+
+
+[#hdr-File_types]
+== Tipe-tipe berkas
+
+Perintah go memeriksa isi dari direktori dengan batasan berkas tertentu.
+Go mengidentifikasi berkas mana yang diperiksa berdasarkan ekstensi dari nama
+berkas.
+Ekstensi tersebut antara lain:
+
+`.go`::
+    Sumber kode Go.
+
+`.c`, `.h`::
+    Sumber kode C.
+    Jika paket menggunakan cgo atau SWIG, berkas ini akan dikompilasi dengan
+    _compiler_ bawaan sistem operasi (biasanya gcc); selain itu akan mencetak
+    pesan kesalahan.
+
+`.cc`, `.cpp`, `.cxx`, `.hh`, `.hpp`, `.hxx`::
+    Sumber kode C++.
+    Hanya berlaku pada cgo atau SWIG, dan selalu dikompilasi dengan _compiler_
+    bawaan sistem operasi.
+
+`.m`::
+    Sumber kode Objective-C.
+    Hanya berlaku pada cgo, dan selalu dikompilasi dengan _compiler_ bawaan
+    OS.
+
+`.s`, `.S`, `.sx`::
+    Sumber kode assembler.
+    Jika paket menggunakan cgo atau SWIG, berkas ini akan digabungkan dengan
+    _assembler_ bawaan sistem operasi (biasanya gcc); selain itu akan
+    digabungkan dengan Go assembler.
+
+`.swig`, `.swigcxx`::
+    Berkas definisi SWIG.
+
+`.syso`::
+    Berkas objek sistem.
+
+Berkas dari setiap tipe-tipe tersebut kecuali `.syso` bisa berisi batasan
+pembangunan (komentar `//+build`), namun perintah go akan berhenti mencari
+batasan pembangunan bila baris pertama pada berkas bukan baris kosong atau
+bukan baris komentar dengan prefiks `//`.
+Lihat dokumentasi go/build untuk lebih detail.
+
+
+[#hdr-The_go_mod_file]
+== Berkas go.mod
+
+Sebuah versi modul didefinisikan oleh kumpulan berkas, dengan sebuah berkas
+go.mod pada _root_ direktori.
+Saat perintah go berjalan, ia akan mencari berkas go.mod tersebut di direktori
+sekarang dan di direktori di atas-nya untuk menentukan _root_ dari modul
+utama.
+
+Format berkas go.mod dijelaskan secara detail di
+https://golang.org/ref/mod#go-mod-file.
+
+Untuk membuat berkas go.mod yang baru, gunakan 'go mod init'.
+Untuk detail lihat 'go help mod init' atau
+https://golang.org/ref/mod#go-mod-init.
+
+Untuk menambahkan modul yang kurang atau menghapus modul yang tidak
+dibutuhkan, gunakan 'go mod tidy'.
+Untuk detail, lihat 'go help mod tidy' atau
+https://golang.org/ref/mod#go-mod-tidy.
+
+Untuk menambah, meningkatkan atau menurunkan versi modul, atau menghapus modul
+tertentu, gunakan 'go get'.
+Untuk detail-nya, lihat 'go help module-get' atau
+https://golang.org/ref/mod#go-get.
+
+Untuk membuat perubahan lain atau membaca go.mod sebagai JSON untuk digunakan
+oleh perkakas lain, gunakan 'go mod edit'.
+Lihat 'go help mod edit' atau
+https://golang.org/ref/mod#go-mod-edit.
+
+[#hdr-GOPATH_environment_variable]
+== Variabel lingkungan GOPATH
+
+Variabel lingkungan `GOPATH` berisi daftar direktori untuk mencari kode Go.
+Pada Unix, nilainya adalah string yang dipisahkan oleh titik-dua ":".
+Pada Windows, nilainya adalah string yang dipisahkan oleh titik-koma ";".
+Pada Plan 9, nilainya adalah sebuah daftar.
+
+Jika `GOPATH` tidak diset, nilai bakunya adalah direktori bernama "go" di
+dalam rumah direktori user (`$HOME/go` pada Unix, `%USERPROFILE%` pada
+Windows), kecuali bila direktori tersebut telah berisi pemasangan distribusi
+Go.
+Jalankan "go env GOPATH" untuk melihat nilai `GOPATH`.
+
+Lihat https://golang.org/wiki/SettingGOPATH untuk menset nilai `GOPATH`.
+
+Setiap direktori yang terdaftar dalam `GOPATH` haruslah memiliki struktur
+sebagai berikut:
+
+Direktori `src` menyimpan sumber kode.
+Path yang ada di dalam `src` menentukan path impor atau nama program.
+
+Direktori `pkg` menyimpan pemasangan objek-objek paket.
+Seperti pada distribusi Go, setiap pasangan target sistem operasi dan
+arsitektur memiliki sub-direktori sendiri (`pkg/GOOS_GOARCH`).
+
+Jika `DIR` adalah sebuah direktori dalam `GOPATH`, sebuah paket dengan sumber
+kode dalam `DIR/src/foo/bar` dapat diimpor lewat "foo/bar" dan hasil
+kompilasinya dipasang ke "DIR/pkg/GOOS_GOARCH/foo/bar.a".
+
+Direktori `bin` menyimpan hasil kompilasi program.
+Setiap program memiliki nama sesuai dengan nama sumber direktorinya, namun
+hanya elemen direktori terakhir, bukan keseluruhan _path_.
+Misalnya, program dengan sumber kode dalam `DIR/src/foo/quux` dipasang ke
+`DIR/bin/quux`, bukan `DIR/bin/foo/quux`.
+Prefiks "foo/" dihapus supaya Anda bisa menambahkan `DIR/bin` ke variabel
+lingkungan `PATH` pada sistem operasi Anda.
+Jika variabel lingkungan `GOBIN` diset, program-program akan dipasang ke dalam
+direktori tersebut bukan ke `DIR/bin`.
+Nilai dari `GOBIN` haruslah path absolut.
+
+Berikut contoh struktur direktori:
+
+----
+GOPATH=/home/user/go
+
+/home/user/go/
+    src/
+        foo/
+            bar/               (kode Go dalam paket bar)
+                x.go
+            quux/              (kode Go dalam paket main)
+                y.go
+    bin/
+        quux                   (program yang terpasang)
+    pkg/
+        linux_amd64/
+            foo/
+                bar.a          (objek paket yang terpasang)
+----
+
+Go mencari setiap direktori yang terdaftar dalam `GOPATH` untuk mencari sumber
+kode, namun paket-paket yang baru selalu diunduh ke direktori pertama dalam
+daftar tersebut.
+
+Lihat https://golang.org/doc/code.html sebagai contohnya.
+
+[#hdr-GOPATH_and_Modules]
+== GOPATH dan modul
+
+Saat menggunakan mode modul, `GOPATH` tidak digunakan lagi untuk mencari
+impor.
+Namun, ia masih digunakan untuk menyimpan sumber kode yang diunduh (dalam
+`GOPATH/pkg/mod`) dan menyimpan program yang dikompilasi (dalam `GOPATH/bin`).
+
+
+[#hdr-Internal_Directories]
+== Direktori internal
+
+Kode yang ada di dalam direktori bernama "internal" hanya bisa diimpor oleh
+kode-kode dalam direktori di atas dari "internal".
+Berikut versi tambahan dari struktur direktori di atas:
+
+----
+/home/user/go/
+    src/
+        crash/
+            bang/              (kode go dalam paket bang)
+                b.go
+        foo/                   (kode go dalam paket foo)
+            f.go
+            bar/               (kode go dalam paket bar)
+                x.go
+            internal/
+                baz/           (kode go dalam paket baz)
+                    z.go
+            quux/              (kode go dalam paket main)
+                y.go
+----
+
+Kode dalam `z.go` diimpor sebagai "foo/internal/baz", namun perintah impor
+tersebut hanya dapat dilakukan dalam berkas sumber dari dalam direktori `foo`
+dan turunannya.
+Berkas sumber `foo/f.go`, `foo/bar/x.go`, dan `foo/quux/y.go` dapat mengimpor
+"foo/internal/baz", namun berkas sumber `crash/bang/b.go` tidak bisa.
+
+Lihat https://golang.org/s/go14internal untuk lebih detailnya.
+
+[#hdr-Vendor_Directories]
+== Direktori vendor
+
+Go 1.6 mendukung penggunaan salinan lokal dari dependensi eksternal untuk
+memenuhi impor-impor dari dependensi tersebut, sering juga disebut dengan
+istilah _vendoring_.
+
+Kode di dalam direktori bernama "vendor" hanya dapat diimpor oleh kode dalam
+direktori dan sub-direktori dari bagian atas "vendor", dan hanya dengan
+menggunakan path impor yang mengindahkan prefiks sampai ke elemen vendor.
+
+Berikut contoh dari bagian sebelumnya, tapi dengan direktori "internal"
+diganti nama dengan "vendor" dan sebuah direktori "foo/vendor/crash/bang"
+ditambahkan:
+
+----
+/home/user/go/
+    src/
+        crash/
+            bang/              (kode go dalam paket bang)
+                b.go
+        foo/                   (kode go dalam paket foo)
+            f.go
+            bar/               (kode go dalam paket bar)
+                x.go
+            vendor/
+                crash/
+                    bang/      (kode go dalam paket bang)
+                        b.go
+                baz/           (kode go dalam paket baz)
+                    z.go
+            quux/              (kode go dalam paket main)
+                y.go
+----
+
+Aturan impor diterapkan sebagaimana pada direktori internal, namun kode dalam
+z.go diimpor sebagai "baz", bukan sebagai "foo/vendor/baz".
+
+Kode di dalam direktori vendor menimpa kode pada direktori di atasnya.
+Misalnya, kode-kode di bawah direktori "foo" yang mengimpor "crash/bang" akan
+menunjuk ke "foo/vendor/crash/bang", bukan bagian teratas "crash/bang".
+
+Kode di dalam direktori vendor tidak ada pemeriksaan path impor (lihat 'go
+help importpath').
+
+Saat 'go get' mengambil atau memperbarui sebuah repositori git, ia juga akan
+memperbarui `submodules`.
+
+Direktori vendor tidak memengaruhi penempatan dari repositori-repositori baru
+yang diunduh pertama kali oleh 'go get': repositori tersebut selalu disimpan
+dalam `GOPATH`, tidak dalam direktori vendor.
+
+Lihat https://golang.org/s/go15vendor untuk lebih detailnya.
+
+
+[#hdr-Legacy_GOPATH_go_get]
+== Legasi GOPATH go get
+
+Perintah 'go get' memiliki perilaku yang berbeda bergantung pada apakah
+perintah go berjalan dengan mode modul atau mode legasi GOPATH.
+Teks bantuan untuk legasi GOPATH berikut, yang dapat diakses juga lewat 'go
+help gopath-get' bahkan untuk mode modul, menjelaskan 'go get' yang beroperasi
+dengan mode legasi GOPATH.
+
+Penggunaan: go get [-d] [-f] [-t] [-u] [-v] [-fix] [opsi build] [paket]
+
+Perintah get mengunduh paket-paket berdasarkan nama dari path impor, berikut
+dengan dependensinya.
+Ia kemudian memasang paket-paket tersebut, seperti dengan 'go install'.
+
+Opsi -d membuat perintah `get` berhenti setelah mengunduh paket; tidak
+memasang paket tersebut.
+
+Opsi -f, hanya berlaku bila -u juga digunakan, memaksa perintah `get -u` untuk
+tidak memeriksa bahwa setiap paket telah diunduh dari repositori yang ditandai
+oleh path impor-nya.
+Opsi ini bisa digunakan jika sumber repositori adalah salinan lokal dari yang
+aslinya.
+
+Opsi -fix membuat perintah get menjalankan perkakas `fix` pada paket-paket
+yang diunduh sebelum mencari dependensi atau membangun kode.
+
+Opsi -t membuat perintah get juga mengunduh paket-paket yang dibutuhkan untuk
+membangun pengujian untuk paket-paket yang ditentukan.
+
+Opsi -u membuat perintah get memperbarui paket-paket yang diberikan berikut
+dengan dependensinya.
+Secara bawaan, `get` menggunakan jaringan internet untuk mengunduh paket yang
+kurang tapi tidak untuk mencari pembaruan dari paket-paket yang telah
+terpasang.
+
+Opsi -v membuat perintah `get` menampilkan progres dan pelacakan lebih lanjut.
+
+Perintah `get` juga dapat menerima opsi dari perintah `build` untuk mengontrol
+pemasangan.
+Lihat 'go help build'.
+
+Saat mengunduh sebuah paket yang baru, `get` membuat direktori target
+`GOPATH/src/<import-path>`.
+Jika `GOPATH` berisi lebih dari satu direktori, `get` menggunakan direktori
+yang pertama.
+Untuk detail lebih lanjut lihat: 'go help gopath'.
+
+Saat mengunduh atau memperbarui sebuah paket, `get` mencari _branch_ atau
+_tag_ yang sesuai dengan versi Go yang terpasang di lokal.
+Aturannya yaitu jika versi pemasangan Go di lokal yaitu "go1", get akan
+mencari _branch_ atau _tag_ bernama "go1".
+Jika versi tersebut tidak ada ia akan mengambil _branch_ bawaan dari paket.
+
+Saat `go get` mengunduh atau memperbarui sebuah repositori Git, ia juga
+memperbarui `git submodules` yang diacu oleh repositori tersebut.
+
+Perintah `get` tidak pernah mengunduh atau memperbarui kode yang disimpan
+dalam direktori vendor.
+
+Untuk informasi lebih lanjut tentang parameter paket, lihat 'go help
+packages'.
+
+Untuk informasi tentang bagaimana 'go get' mencari sumber kode untuk diunduh,
+lihat 'go help importpath'.
+
+Bagian ini menjelaskan perilaku perintah `get` bila menggunakan `GOPATH` untuk
+mengatur sumber kode dan dependensi.
+Jika perintah go berjalan dalam mode modul, detail dari opsi `get` dan
+efeknya berubah, seperti yang dijelaskan pada 'go help get'.
+Lihat 'go help modules' dan 'go help module-get'.
+
+Lihat juga: `go build`, `go install`, `go clean`.
+
+[#hdr-Module_proxy_protocol]
+== Protokol proksi modul
+
+Sebuah proksi Go modul adalah peladen web yang dapat merespon permintaan GET
+untuk URL dari bentuk tertentu.
+Permintaan tersebut tidak memiliki parameter kueri, bahkan sebuah situs yang
+melayani sistem berkas yang statik (termasuk sebuah URL `file:///`)
+bisa menjadi proksi modul.
+
+Untuk detail tentang protokol `GOPROXY`, lihat
+https://golang.org/ref/mod#goproxy-protocol.
+
+
+[#hdr-Import_path_syntax]
+== Sintaksis path impor
+
+Sebuah path impor (lihat 'go help packages') menandakan sebuah paket yang
+disimpan dalam sistem berkas lokal.
+Secara umum, sebuah path impor menandakan sebuah paket standar (seperti
+"unicode/utf8") atau sebuah paket yang ditemukan dalam salah satu ruang kerja
+(Untuk informasi lebih detail lihat: 'go help gopath').
+
+
+[#hdr-Relative_import_paths]
+== Path impor relatif
+
+Sebuah path impor yang dimulai dengan `./` atau `../` disebut dengan path
+relatif.
+Perkakas Go mendukung path impor relatif sebagai penyingkat dengan dua cara.
+
+Pertama, sebuah path relatif dapat digunakan sebagai singkatan pada baris
+perintah.
+Jika Anda misalkan sedang bekerja dalam direktori yang berisi kode yang
+diimpor sebagai "unicode" dan ingin menjalankan pengujian untuk
+"unicode/utf8", Anda bisa menjalankan "go test ./utf8" tanpa perlu menulis
+keseluruhan path.
+Hal yang sama, dengan situasi yang sebaliknya, "go test .." akan menjalankan
+pengujian "unicode" jika dijalankan dari dalam direktori "unicode/utf8".
+Pola relatif juga dibolehkan, seperti "go test ./..." untuk menguji semua
+sub-direktori.
+Lihat 'go help packages' untuk detail tentang sintaksis pola.
+
+Kedua, jika Anda mengompilasi sebuah program Go bukan dari ruang kerja, Anda
+bisa menggunakan path relatif pada perintah impor dalam program tersebut untuk
+mengacu ke kode terdekat yang juga tidak dalam ruang kerja.
+Hal ini mempermudah bereksperimen dengan program kecil di luar ruang kerja
+yang biasa, namun program tersebut tidak bisa dipasang dengan "go install"
+(tidak ada ruang kerja tempat ia akan dipasang), jadi program tersebut akan
+selalu dibangun ulang dari awal setiap kali pembangunan dilakukan.
+Untuk menghindari ambiguitas, program Go tidak bisa menggunakan path impor
+relatif dari dalam ruang kerja.
+
+
+[#hdr-Remote_import_paths]
+== Path impor asing (_remote_)
+
+Beberapa path impor juga menentukan bagaimana mendapatkan sumber kode dari
+paket tersebut menggunakan sebuah sistem kontrol revisi (_version control
+system_ atau VCS).
+
+Beberapa situs penyimpanan kode umum memiliki sintaksis khusus:
+
+* Bitbucket (Git, Mercurial)
+
+    import "bitbucket.org/user/project"
+    import "bitbucket.org/user/project/sub/directory"
+
+* GitHub (Git)
+
+	import "github.com/user/project"
+	import "github.com/user/project/sub/directory"
+
+* Launchpad (Bazaar)
+
+	import "launchpad.net/project"
+	import "launchpad.net/project/series"
+	import "launchpad.net/project/series/sub/directory"
+
+	import "launchpad.net/~user/project/branch"
+	import "launchpad.net/~user/project/branch/sub/directory"
+
+* IBM DevOps Services (Git)
+
+	import "hub.jazz.net/git/user/project"
+	import "hub.jazz.net/git/user/project/sub/directory"
+
+Untuk kode yang disimpan pada peladen lain, path impor bisa ditambahkan dengan
+tipe pengontrol versi, atau perkakas go bisa secara dinamik mengambil path
+impor lewat https/http dan menentukan di mana kode disimpan berdasarkan tag
+`<meta>` dalam HTML.
+
+Untuk mendeklarasikan lokasi kode, sebuah path impor dengan bentuk
+
+    repository.vcs/path
+
+menentukan repositori, dengan atau tanpa sufiks `.vcs`, menggunakan nama VCS,
+dan path dalam repositori.
+Nilai VCS yang didukung antara lain:
+
+----
+Bazaar      .bzr
+Fossil      .fossil
+Git         .git
+Mercurial   .hg
+Subversion  .svn
+----
+
+Misalnya,
+
+    import "example.org/user/foo.hg"
+
+menyatakan direktori dari repositori Mercurial pada example.org/user/foo atau
+foo.hg, dan
+
+    import "example.org/repo.git/foo/bar"
+
+menyatakan foo/bar direktori sebagai repositori Git pada example.org/repo atau
+repo.git.
+
+Saat sebuah VCS mendukung beberapa protokol, setiap protokol akan dicoba
+bergantian saat melakukan pengunduhan.
+Misalnya, pengunduhan Git mencoba `+https://+`, kemudian `+git+ssh://+`.
+
+Secara bawaan, pengunduhan dibatasi hanya untuk protokol yang aman (misalnya
+https, ssh).
+Untuk menimpa pengaturan ini pada saat pengunduhan dengan Git, variabel
+lingkungan `GIT_ALLOW_PROTOCOL` dapat diset (Untuk detail lebih lanjut lihat:
+'go help environment').
+
+Jika path impor bukan dari situs yang dikenal dan juga tidak memiliki penanda
+VCS, perkakas go mencoba mengambil path impor lewat https/http dan mencari tag
+`<meta>` dalam HTML dokumen `<head>`.
+
+Tag meta tersebut memiliki bentuk berikut:
+
+    <meta name="go-import" content="import-prefix vcs repo-root">
+
+Bagian `import-prefix` adalah path impor yang berkorespondensi dengan root
+repositori.
+Nilainya haruslah sebuah prefiks atau path dari paket yang akan diambil lewat
+"go get".
+Jika path tidak sesuai, permintaan http berikutnya dilakukan terhadap
+`import-prefix` untuk memverifikasi bahwa tag `<meta>` cocok.
+
+Tag `meta` sebaiknya berada paling awal dalam berkas HTML sebisa mungkin.
+Secara khusus, sebaiknya muncul sebelum ada JavaScript atau CSS, untuk
+menghindari kesalahan penguraian pada perintah Go yang terbatas.
+
+Bagian `vcs` yaitu salah satu dari "bzr", "fossil", "git", "hg", "svn".
+
+Bagian `repo-root` yaitu root dari VCS yang berisi sebuah skema dan tidak
+berisi `.vcs`.
+
+Misalnya,
+
+    import "example.org/pkg/foo"
+
+akan menghasilkan beberapa permintaan berikut:
+
+----
+https://example.org/pkg/foo?go-get=1 (direkomendasikan)
+http://example.org/pkg/foo?go-get=1  (pilihan terakhir, hanya bila GOINSECURE diset)
+----
+
+Jika halaman kembalian berisi tag `meta` berikut
+
+----
+<meta name="go-import" content="example.org git https://code.org/r/p/exproj">
+----
+
+perkakas go akan memverifikasi bahwa https://example.og/?go-get=1 berisi tag
+`meta` yang sama dan kemudian mengeksekusi
+
+    git clone https://code.org/r/p/exproj
+
+ke dalam
+
+    GOPATH/src/example.org
+
+Bila menggunakan mode `GOPATH`, paket-paket yang diunduh akan disimpan dalam
+direktori pertama yang terdaftar dalam variabel lingkungan `GOPATH`.
+(Lihat 'go help gopath-get' dan 'go help gopath'.)
+
+Bila menggunakan mode modul, paket-paket yang diunduh disimpan dalam tembolok
+modul.
+Lihat https://golang.org/ref/mod#module-cache.
+
+Bila menggunakan mode modul, sebuah variasi tambahan dari tag meta `go-import`
+akan dikenali dan dipilih.
+Variasi tersebut menggunakan "mod" sebagai nilai dalam `vcs`, seperti berikut:
+
+----
+<meta name="go-import" content="example.org mod https://code.org/moduleproxy">
+----
+
+Tag tersebut berarti untuk mengunduh modul dengan path yang diawali dengan
+`example.org` dari proksi modul lewat URL https://code.org/moduleproxy.
+Lihat https://golang.org/ref/mod#goproxy-protocol untuk detail tentang
+protokol proksi.
+
+
+[#hdr-Import_path_checking]
+== Pemeriksaan path impor
+
+Saat fitur path impor kostum seperti yang dijelaskan di atas dialihkan ke
+situs penyimpanan yang dikenal, maka setiap paket-paket bisa memiliki dua path
+impor, menggunakan domain kostum atau lewat situs penyimpanan.
+
+Sebuah perintah paket dikatakan memiliki "komentar impor" jika ia diikuti oleh
+(sebelum baris baru selanjutnya) oleh sebuah komentar dengan dua bentuk
+berikut:
+
+----
+package math // import "path"
+package math /* import "path" */
+----
+
+Perintah go akan menolak memasang sebuah paket dengan komentar impor kecuali
+bila ia diacu dengan path impor tersebut.
+Dengan cara ini, komentar impor membolehkan pemilik paket memastikan bahwa
+path impor kostum yang digunakan dan bukan path langsung ke situs penyimpanan.
+
+Pemeriksaan path impor dimatikan untuk kode yang ditemukan dalam direktori
+vendor.
+Hal ini membolehkan menyalin kode ke dalam lokasi alternatif dalam direktori
+vendor tanpa perlu mengganti komentar impor.
+
+Pemeriksaan path impor juga dimatikan saat menggunakan modul.
+Komentar path impor sudah tidak berlaku lagi karena digantikan oleh berkas
+go.mod lewat baris perintah `module`.
+
+Lihat https://golang.org/s/go14customimport untuk detailnya.
+
+
+[#hdr-Modules__module_versions__and_more]
+== Modul, versi modul, dan lainnya
+
+Modul adalah bagaimana Go mengatur dependensi.
+
+Sebuah modul adalah koleksi dari paket-paket yang dirilis, diberi versi, dan
+didistribusikan bersamaan.
+Modul bisa diunduh langsung lewat repositori VCS atau lewat peladen proksi
+modul.
+
+Untuk seri tutorial tentang modul, lihat
+https://golang.org/doc/tutorial/create-module.
+
+Untuk referensi detail tentang modul, lihat
+https://golang.org/ref/mod.
+
+Secara bawaan, perintah go bisa mengunduh modul lewat
+https://proxy.golang.org.
+Ia bisa melakukan autentikasi modul menggunakan basis data _checksum_ pada
+https://sum.golang.org.
+Kedua layanan ini dioperasikan oleh tim Go pada Google.
+Kebijakan privasi bagi layanan tersebut dapat dilihat di
+https://proxy.golang.org/privacy
+dan
+https://sum.golang.org/privacy.
+
+Perilaku pengunduhan dari perintah Go bisa diatur lewat variabel lingkungan
+`GOPROXY`, `GOSUMDB`, `GOPRIVATE`, dan lainnya.
+Lihat 'go help environment' dan
+https://golang.org/ref/mod#private-module-privacy
+untuk informasi lebih lanjut.
+
+[#hdr-Module_authentication_using_go_sum]
+== Autentikasi modul menggunakan go.sum
+
+Saat perintah go mengunduh sebuah berkas zip dari modul atau berkas go.mod ke
+dalam tembolok modul, ia akan menghitung _hash_ kriptografi dan
+membandingkannya dengan nilai yang diketahui untuk memverifikasi bahwa berkas
+tersebut belum berubah sejak ia diunduh pertama kalinya.
+Daftar _hash_ yang dikenal tersebut disimpan dalam sebuah berkas dalam
+direktori modul bernama `go.sum`.
+Daftar _hash_ tersebut juga bisa diunduh lewat basis data _checksum_
+bergantung pada nilai dari `GOSUMDB`, `GOPRIVATE`, dan `GONOSUMDB`.
+
+Untuk detailnya, lihat
+https://golang.org/ref/mod#authenticating.
+
+[#hdr-Package_lists_and_patterns]
+== Daftar dan pola paket
+
+Banyak perintah Go berlaku untuk sekumpulan paket-paket:
+
+    go action [packages]
+
+Biasanya, `[packages]` adalah daftar dari path impor.
+
+Sebuah path impor yang absolut atau dimulai dengan `.` atau `..`
+diinterpretasikan sebagai path pada sistem berkas dan menyatakan paket dalam
+direktori tersebut.
+
+Selain itu, path impor `P` menyatakan paket ditemukan dalam direktori
+`DIR/src/P` untuk `DIR` yang terdaftar dalam variabel lingkungan `GOPATH`
+(Untuk detail lebih lanjut lihat: 'go help gopath').
+
+Jika tidak ada path impor yang diberikan, maka aksi dari perintah go tersebut
+berlaku untuk paket dalam direktori yang sekarang.
+
+Ada empat nama untuk path yang sebaiknya tidak digunakan untuk nama paket yang
+akan dibangun dengan perkakas go:
+
+* "main" menyatakan paket teratas dari program yang berdiri sendiri.
+
+* "all" akan dikembangkan menjadi semua paket yang ditemukan dalam semua
+  direktori GOPATH.
+  Misalnya, 'go list all' mencetak semua paket dalam sistem lokal.
+  Saat menggunakan modul, "all" berarti semua paket dalam modul utama dan
+  dependensinya, termasuk dependensi yang dibutuhkan untuk pengujian.
+
+* "std" mirip dengan "all" tapi dikembangkan hanya menjadi paket-paket dalam
+  pustaka standar Go.
+
+* "cmd" dikembangkan menjadi repositori Go dan pustaka internalnya.
+
+Path impor yang diawali dengan "cmd/" hanya dicocokan dengan sumber kode dalam
+repositori Go.
+
+Sebuah path impor adalah sebuah pola jika ia mengikutkan satu atau lebih
+"..." _wildcard_, setiap _wildcard_ dapat dicocokan dengan string apapun,
+termasuk string kosong dan string yang berisi _slash_ "/".
+Pola seperti itu dikembangkan menjadi semua direktori paket yang ditemukan
+dalam `GOPATH` dengan nama yang sesuai dengan pola.
+
+Supaya pola umum lebih gampang, ada dua kasus khusus.
+Pertama, `+/...+` di akhir dari pola dapat cocok dengan string kosong,
+sehingga `+net/...+` cocok dengan `net` dan paket-paket dalam sub-direktori
+nya, seperti `net/http`.
+Kedua, setiap pola yang dipisahkan oleh _slash_ "/" yang berisi sebuah
+_wildcard_ tidak diikutkan dalam pencocokan dengan elemen "vendor", sehingga
+`+./...+` tidak dicocokan dengan paket-paket dalam direktori `./vendor` atau
+`./mycode/vendor`, namun `+./vendor/...+` dan `+./mycode/vendor/...+` bisa.
+Ingatlah, bahwa sebuah direktori bernama "vendor" yang berisi kode bukanlah
+paket yang di-vendor-kan: `cmd/vendor` berarti sebuah program bernama
+`vendor`, dan pola `+./cmd/...+` akan mengikutkannya.
+Lihat https://golang.org/s/go15vendor untuk informasi tentang _vendoring_.
+
+Sebuah path impor bisa mengikutkan sebuah paket yang akan diunduh dari
+repositori _remote_.
+Lihat 'go help importpath' untuk detailnya.
+
+Setiap paket dalam sebuah program haruslah memiliki path impor yang unik.
+Secara konvensi, hal ini diatur dengan mengawali setiap path dengan prefiks
+yang unik yang dimiliki oleh Anda.
+Misalnya, path yang digunakan secara internal oleh Google semuanya dimulai
+dengan 'google', dan path yang menyatakan repositori remote dimulai dengan
+path ke kode, seperti 'github.com/user/repo'.
+
+Paket-paket dalam sebuah program tidak harus memiliki nama yang unik, tetapi
+ada dua nama paket yang memiliki nama yang spesial.
+Paket bernama "main" mengindikasikan sebuah program, bukan sebuah pustaka.
+Program bisa dieksekusi dan tidak bisa diimpor.
+Paket bernama "documentation" mengindikasikan dokumentasi untuk program selain
+Go di dalam direktori.
+Berkas-berkas di dalam paket dokumentasi diindahkan oleh perintah go.
+
+Sebagai kasus khusus, jika parameter `[packages]` adalah daftar berkas-berkas
+.go dari sebuah direktori yang sama, maka perintah tersebut akan digabungkan
+menjadi sebuah paket yang berisi berkas-berkas tersebut, mengindahkan batasan
+pembangunan dalam berkas tersebut dan mengindahkan berkas-berkas lain dalam
+direktori paket tersebut.
+
+Nama berkas dan direktori yang dimulai dengan "." atau "_" diindahkan oleh
+perkakas go, sebagaimana juga direktori bernama "testdata".
