@@ -12,8 +12,10 @@ import (
 
 func main() {
 	opts := &ciigo.GenerateOptions{
-		Root:           "_content",
-		HTMLTemplate:   "_content/html.tmpl",
+		ConvertOptions: ciigo.ConvertOptions{
+			Root:         "_content",
+			HtmlTemplate: "_content/html.tmpl",
+		},
 		GenPackageName: "main",
 		GenVarName:     "memFS",
 		GenGoFileName:  "cmd/www-golangid/static.go",

@@ -6,6 +6,7 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"git.sr.ht/~shulhan/ciigo"
 	"github.com/shuLhan/share/lib/memfs"
@@ -19,5 +20,16 @@ func main() {
 	flag.StringVar(&port, "port", "5000", "HTTP port server")
 	flag.Parse()
 
-	ciigo.Serve(memFS, "./_content", ":"+port, "_content/html.tmpl")
+	serveOpts := &ciigo.ServeOptions{
+		ConvertOptions: ciigo.ConvertOptions{
+			Root:         "_content",
+			HtmlTemplate: "_content/html.tmpl",
+		},
+		Address: "127.0.0.1:" + port,
+		Mfs:     memFS,
+	}
+	err := ciigo.Serve(serveOpts)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
