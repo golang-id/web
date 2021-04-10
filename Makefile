@@ -1,4 +1,4 @@
-.PHONY: clean all generate build deploy
+.PHONY: clean all generate build build-deploy deploy
 
 MACOS_SERVICE=local.golangid
 PROGRAM_NAME=www-golangid
@@ -23,7 +23,7 @@ serve: generate
 	DEBUG=1 go run ./cmd/$(PROGRAM_NAME) -port=5080
 
 deploy: build-deploy
-	rsync --progress ./$(PROGRAM_NAME) personal-www:~/bin/
+	rsync --progress ./$(PROGRAM_NAME) www-golangid:/data/app/bin/
 
 build-deploy: generate
 	unset CGO_ENABLED; \
