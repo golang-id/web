@@ -2829,3 +2829,461 @@ direktori paket tersebut.
 
 Nama berkas dan direktori yang dimulai dengan "." atau "_" diindahkan oleh
 perkakas go, sebagaimana juga direktori bernama "testdata".
+
+
+[#hdr-Configuration_for_downloading_non_public_code]
+== Konfigurasi untuk mengunduh kode yang bukan publik
+
+Perintah go secara bawaan mengunduh Go modul yang publik lewat proksi di
+proxy.golang.org.
+Ia secara bawaan juga melakukan validasi _checksum_ terhadap modul yang
+diunduh, dengan basis data publik yang ada di sum.golang.org.
+Konfigurasi bawaan ini bekerja untuk semua sumber kode yang publik.
+
+Variabel lingkungan GOPRIVATE mengontrol modul mana saja yang dianggap oleh
+perintah go sebagai privat (tidak tersedia secara umum) yang meniadakan
+penggunaan proksi dan validasi basis data _checksum_.
+Variabel tersebut berisi daftar prefiks dari modul, dipisahkan oleh koma
+(sesuai dengan sintaksis fungsi `patch.Match`).
+Misalnya,
+
+    GOPRIVATE=*.corp.example.com,rsc.io/private
+
+menyebabkan perintah go menganggap semua modul yang sesuai dengan prefiks
+tersebut sebagai privat, termasuk git.corp.example.com/xyzzy, rsc.io/private,
+dan rsc.io/private/guux.
+
+Untuk kontrol lebih lanjut terhadap pengunduhan dan validasi modul, variabel
+lingkungan GONOPROXY dan GONOSUMDB menerima daftar pola yang sama dan menimpa
+GOPRIVATE untuk menentukan apakah menggunakan proksi dan basis data
+_checksum_.
+
+Misalnya, jika sebuah perusahaan memiliki modul proksi sendiri untuk
+modul-modul pribadi, pengguna akan set go menggunakan:
+
+----
+GOPRIVATE=*.corp.example.com
+GOPROXY=proxy.example.com
+GONOPROXY=none
+----
+
+Variabel GOPRIVATE juga menentukan pola "publik" dan "private" untuk variabel
+GOVCS; lihat 'go help vcs'.
+Untuk penggunaan tersebut, GOPRIVATE berlaku bahkan untuk mode GOPATH.
+Pada kasus ini, ia mencocokan path impor bukan path modul.
+
+Perintah 'go env -w' (lihat 'go help env') dapat digunakan untuk menset
+variabel-variabel lingkungan tersebut untuk diaplikasikan pada perintah go
+selanjutnya.
+
+Untuk lebih rinci, lihat https://golang.org/ref/mod#private-modules.
+
+[#hdr-Testing_flags]
+== Opsi-opsi pengujian
+
+Perintah 'go test' menerima opsi-opsi yang berlaku untuk 'go test' itu sendiri
+dan juga untuk hasil program pengujian.
+
+Beberapa opsi-opsi tersebut mengontrol _profiling_ dan menulis hasil eksekusi
+_profile_ yang sesuai untuk "go tool pprof";
+jalankan 'go tool pprof -h' untuk informasi lebih lanjut.
+Opsi --alloc_space, --alloc_objects, dan --show_types dari `pprof` mengontrol
+bagaimana informasi tersebut ditulis.
+
+Opsi-opsi berikut dikenali oleh perintah 'go test' dan mengontrol eksekusi
+dari pengujian:
+
+`-bench regexp`::
+    Hanya jalankan benchmark yang sesuai dengan _regular expression_.
+    Secara bawaan, tidak ada benchmark yang akan dijalankan oleh program
+    pengujian.
+    Untuk menjalankan semua benchmark, gunakan '-bench .' atau '-bench=.'.
+    Dua atau lebih _regular expression_ dipisahkan oleh karakter '/', dan
+    setiap bagian dari pengidentifikasi benchmark harus cocok dengan elemen
+    secara berurutan, jika ada.
+    Induk dari sub-benchmark dijalankan dengan b.N=1.
+    Misalnya, diberikan -bench=X/Y, benchmark induk yang sesuai dengan X
+    dijalankan dengan b.N=1 untuk mencari sub-benchmark yang cocok dengan Y,
+    yang kemudian dijalankan secara penuh.
+
+`-benchtime t`::
+    Jalankan iterasi dari benchmark sampai t, dispesifikasikan sebagai
+    time.Duration (misalnya, `-benchtime 1h30s`).
+    Nilai bawaannya yaitu 1 detik (1s).
+    Sintaksis khusus `Nx` berarti menjalakan benchmark N kali (misalnya,
+    `-benchtime 100x`).
+
+`-count n`::
+    Jalankan setiap tes dan benchmark `n` kali (nilai bawaan 1).
+    Jika -cpu di set, jalankan `n` kali untuk setiap nilai GOMAXPROCS.
+    Fungsi ExampleXxx selalu berjalan hanya sekali.
+
+`-cover`::
+    Nyalakan liputan analisis kode.
+    Ingatlah bahwa secara liputan analisis bekerja dengan menandai sumber kode
+    sebelum kompilasi, kegagalan kompilasi dan pengujian saat menyalakan
+    liputan analisis bisa saja melaporkan nomor baris yang tidak
+    sesuai dengan nomor baris pada sumber kode aslinya.
+
+`-covermode set,count,atomic`::
+    Set mode analisis untuk paket yang dites.
+    Nilai bawaannya adalah "set" kecuali bila -race dinyalakan, maka nilai
+    bawaannya adalah "atomic".
+    Nilainya:
+    * `set`: bool: apakah baris ini dijalankan?
+    * `count`: int: berapa kali baris kode ini dijalankan?
+    * `atomic`: int: sama dengan `count` tapi lebih tepat untuk tes
+      pada multi _thread_; secara signifikan memakan lebih banyak biaya.
+
+`-coverpkg pattern1,pattern2,pattern3`::
+    Terapkan analisis kode terhadap paket yang sesuai dengan pola paket.
+    Nilai bawaannya yaitu untuk setiap tes menganalisis hanya paket yang
+    dites.
+    Lihat 'go help packages' untuk deskripsi dari pola paket.
+
+`-cpu 1,2,4`::
+    Menentukan nilai GOMAXPROCS untuk setiap tes atau benchmark yang
+    dieksekusi.
+    Nilai bawaannya yaitu nilai dari GOMAXPROCS.
+
+`-failfast`::
+    Jangan jalankan tes yang baru setelah tes yang pertama gagal.
+
+`-list regexp`::
+    Tampilkan daftar tes, _benchmark_, atau contoh yang sesuai dengan
+    _regular expression_.
+    Tidak ada tes, _benchmark_, atau contoh yang akan dijalankan.
+    Opsi ini hanya menampilkan tes induk.
+    Tidak ada sub-tes atau sub-_benchmark_ yang ditampilkan.
+
+`-parallel n`::
+    Membolehkan eksekusi paralel dari fungsi tes yang memanggil `T.Parallel`.
+    Nilai dari opsi ini adalah jumlah maksimum dari tes yang berjalan secara
+    simultan;
+    secara bawaan, nilainya sama dengan GOMAXPROCS.
+    Opsi ini hanya berlaku untuk satu program tes saja.
+    Perintah 'go test' bisa saja menjalankan tes untuk paket-paket yang
+    berbeda secara parallel, berdasarkan pengaturan dari opsi -p (lihat 'go
+    help build').
+
+`-run regexp`::
+    Jalankan hanya tes dan contoh yang sesuai dengan _regular expression_.
+    Untuk tes, _regular expression_ dipisahkan oleh karakter '/' menjadi
+    seurutan _regular expression_, dan setiap bagian dari identifikasi tes
+    harus sesuai dengan elemen dalam urutan tersebut, jika ada.
+    Ingatlah bahwa induk tes yang cocok juga dijalankan, sehingga -run=X/Y
+    menjalankan dan melaporkan hasil dari semua tes yang sesuai dengan X,
+    walaupun tidak ada sub-tes yang sesuai dengan Y, karena tes harus
+    menjalankan X untuk mencari sub-tes Y.
+
+`-short`::
+    Untuk memberitahu tes yang berjalan lama supaya mempersingkat waktunya.
+    Secara bawaan opsi ini tidak aktif.
+
+`-shuffle off,on,N`::
+    Acak urutan eksekusi dari tes dan _benchmark_.
+    Opsi ini "off" secara bawaan.
+    Jika -shuffle dinyalakan, maka nilai pengacak akan diinisiasi (_seed_)
+    dengan waktu sistem.
+    Jika -shuffle diset dengan integer N, maka N akan digunakan sebagai nilai
+    inisiasi pengacak.
+    Pada kedua kasus tersebut, nilai inisiasi akan ditampilkan untuk
+    bisa direproduksi.
+
+`-timeout d`::
+    Jika sebuah program tes berjalan lebih lama dari d, maka panic.
+    Jika d adalah 0, maka timeout tidak diaktifkan.
+    Nilai bawaannya adalah 10 menit (10m).
+
+`-v`::
+    Laporkan semua tes saat berjalan.
+    Laporkan juga semua teks dari pemanggilan Log dan Logf bahkan jika tes
+    sukses.
+
+`-vet list`::
+    Konfigurasi pemanggilan dari 'go vet' menggunakan daftar pemeriksaan vet,
+    yang dipisahkan dengan koma.
+    Jika daftar ini kosong, maka tes akan menjalankan 'go vet' dengan daftar
+    bawaan yang telah disiapkan.
+    Jika daftar bernilai "off", maka 'go test' tidak akan menjalankan 'go
+    vet'.
+
+Opsi-opsi berikut juga dikenali oleh 'go test' dan dapat digunakan untuk
+mem-_profile_ tes saat eksekusi:
+
+`-benchmem`::
+    Laporkan statistik alokasi memori pada saat _benchmark_.
+
+`-blockprofile block.out`::
+    Laporkan _profile_ goroutine yang menyebabkan pemblokiran ke berkas
+    bernama "block.out" saat semua tes selesai.
+
+`-blockprofilerate n`::
+    Atur detail yang dikeluarkan oleh -blockprofile dengan memanggil
+    `runtime.SetBlockProfileRate` dengan n.
+    Lihat 'go doc runtime.SetBlockProfileRate'.
+    Si _profiler_ mencoba mengambil sampel, secara rata-rata, satu even
+    pemblokiran setiap n nano-detik.
+    Secara bawaan, jika -blockprofile diset tanpa opsi ini, semua even
+    pemblokiran akan dicatat, sama dengan `-blockprofilerate=1`.
+
+`-coverprofile cover.out`::
+    Tulis laporan _profile_ ke berkas "cover.out" setelah semua tes sukses.
+    Opsi ini otomatis menyalakan opsi -cover.
+
+`-cpuprofile cpu.out`::
+    Tulis _profile_ CPU ke berkas "cpu.out" sebelum program tes berakhir.
+
+`-memprofile mem.out`::
+    Tulis _profile_ alokasi ke berkas bernama "mem.out" setelah semua tes
+    sukses.
+
+`-memprofilerate n`::
+    Hidupkan _profile_ alokasi memori yang lebih tepat (dan lebih memakan
+    biaya) dengan menset `runtime.MemProfileRate`.
+    Lihat 'go doc runtime.MemProfileRate'.
+    Untuk melaporkan semua alokasi memori, gunakan `-memprofilerate=1`.
+
+`-mutexprofile mutex.out`::
+    Tulis _profile_ sengketa _mutex_ ke berkas yang bernama "mutex.out" saat
+    semua tes telah selesai.
+
+`-mutexprofilefraction n`::
+    Ambil satu sampel dalam n _stack traces_ dari goroutine yang memegang
+    _mutex_.
+
+`-outputdir direktori`::
+    Simpan berkas keluaran dari _profile_ dalam direktori tertentu, secara
+    bawaan diset ke direktori tempat 'go test' dijalankan.
+
+`-trace trace.out`::
+    Tulis pelacakan eksekusi ke berkas bernama "trace.out" sebelum tes
+    berakhir.
+
+Setiap opsi-opsi tersebut juga dikenali lewat prefiks opsional 'test.',
+seperti `-test.v`.
+Saat mengeksekusi program tes (hasil dari 'go test -c') secara langsung,
+prefiks ini menjadi wajib.
+
+Perintah 'go test' akan menulis atau menghapus opsi-opsi yang dikenali, bila
+diperlukan, sebelum dan sesudah parameter opsional untuk daftar paket, sebelum
+menjalankan program tes.
+
+Misalnya, perintah
+
+    go test -v -myflag testdata -cpuprofile=prof.out -x
+
+akan mengompilasi program tes dan menjalankannya sebagai
+
+    pkg.test -test.v -myflag testdata -test.cpuprofile=prof.out
+
+(Opsi `-x` dihapus karena hanya berlaku untuk eksekusi perintah go, bukan
+untuk program tes itu sendiri.)
+
+Opsi tes yang membangkitkan _profile_ (selain liputan analisis) juga menyimpan
+program tes dalam pkg.test untuk digunakan saat menganalisis _profile_.
+
+Saat 'go test' menjalankan sebuah program tes, ia akan dijalankan di dalam
+direktori sumber kode paket.
+Bergantung kepada tes yang dijalankan, bisa jadi ia akan melakukan hal yang
+sama saat mengeksekusi program tes secara langsung.
+
+Daftar paket pada baris perintah, jika ada, harus muncul sebelum opsi-opsi
+yang tidak dikenali oleh perintah 'go test'.
+Melanjutkan contoh sebelumnya, daftar paket seharusnya muncul sebelum
+`-myflag`, namun bisa diberikan antara `-v`.
+
+Saat 'go test' berjalan dengan mode daftar paket, 'go test' menyimpan tembolok
+dari hasil tes paket yang sukses untuk mengurangi menjalankan tes yang tidak
+diperlukan.
+Untuk mematikan tembolok, gunakan opsi tes atau argumen selain dari opsi yang
+bisa mempengaruhi tembolok.
+Cara paling umum untuk mematikan tembolok tes secara eksplisit yaitu
+menggunakan `-count=1`.
+
+Untuk menghindari supaya argumen dari program tes dianggap sebagai nama paket
+atau opsi, gunakan `-args` (lihat 'go help test') yang akan mengirim sisa dari
+baris perintah ke program tes tanpa diubah.
+
+Misalnya, perintah
+
+    go test -v -args -x -v
+
+akan mengompilasi program tes dan menjalankannya sebagai
+
+    pkg.test -test.v -x -v
+
+Hal yang sama,
+
+    go test -args math
+
+akan mengompilasi program tes dan menjalankannya sebagai
+
+    pkg.test math
+
+Pada contoh yang pertama, argumen `-x` dan `-v` dikirim ke program tes tanpa
+diubah dan tanpa memengaruhi program go itu sendiri.
+Pada contoh kedua, argumen `math` dikirim ke program tes, bukan dianggap
+sebagai bagian dari daftar paket.
+
+
+[#hdr-Testing_flags]
+== Fungsi-fungsi pengujian
+
+Perintah 'go test' mencari fungsi tes, _benchmark_, dan contoh dalam
+berkas-berkas '*_test.go' pada paket-paket yang akan dites.
+
+Sebuah fungsi tes yaitu fungsi yang memiliki prefiks `Test`, misalnya
+`TestXxx` (yang mana `Xxx` harus diawali dengan huruf kapital) dan harus
+memiliki penanda berikut,
+
+    func TestXxx(t *testing.T) { ... }
+
+Sebuah fungsi _benchmark_ yaitu yang bernama `BenchmarkXxx` dan harus memiliki
+penanda berikut,
+
+    func BenchmarkXxx(b *testing.B) { ... }
+
+Sebuah fungsi ExampleXxx mirip dengan fungsi TestXxx tetapi tidak menggunakan
+`*testing.T` untuk melaporkan sukses atau gagal, melainkan mencetak keluaran
+ke `os.Stdout`.
+Jika komentar terakhir pada function ExampleXxx dimulai dengan "Output:" maka
+keluaran dari fungsi tersebut dibandingkan dengan komentar (lihat contoh di
+bawah).
+Jika komentar terakhir dimulai dengan "Unordered output:" maka keluaran dari
+fungsi Example tersebut dibandingkan dengan isi dari komentar, namun dengan
+urutan dari baris komentar bisa tidak berurut.
+Sebuah fungsi Example tanpa ada dua komentar tersebut hanya dikompilasi tapi
+tidak dijalankan.
+Sebuah fungsi Example tanpa ada teks setelah "Output:" dikompilasi,
+dieksekusi, dan ekspektasi-nya adalah tidak ada keluaran.
+
+Godoc menampilkan badan dari ExampleXxx untuk mendemonstrasikan penggunaan
+dari fungsi, konstanta, atau variabel `Xxx`.
+Contohnya, sebuah method `M` dengan penerima bertipe `T` atau `*T` nama fungsi
+Example-nya adalah `ExampleT_M`.
+Bisa saja ada banyak contoh untuk fungsi, konstanta, atau variabel tersebut,
+dibedakan dari akhiran `_xxx`, yang mana `xxx` adalah sebuah sufiks yang tidak
+dimulai dengan huruf kapital.
+
+Berikut sebuah contoh dari fungsi Example:
+
+----
+func ExamplePrintln() {
+	Println("Keluaran dari\ncontoh ini.")
+	// Output: Keluaran dari
+	// contoh ini.
+}
+----
+
+Berikut contoh lain yang mana urutan dari keluaran diindahkan:
+
+----
+func ExamplePerm() {
+	for _, value := range Perm(4) {
+		fmt.Println(value)
+	}
+
+	// Unordered output: 4
+	// 2
+	// 1
+	// 3
+	// 0
+}
+----
+
+Keseluruhan berkas tes dipresentasikan sebagai contoh bila ia hanya berisi
+sebuah fungsi Example saja, paling tidak deklarasi fungsi, tipe, variabel,
+atau konstanta, dan tidak ada fungsi Benchmark atau Test lainnya.
+
+Lihat dokumentasi dari paket `testing` untuk informasi lebih lanjut.
+
+
+[#hdr-Controlling_version_control_with_GOVCS]
+== Mengatur perkakas _version control_ lewat GOVCS
+
+Perintah 'go get' dapat menjalankan perintah-perintah _version control_,
+seperti `git`, untuk mengunduh kode yang diimpor.
+Fungsionalitas ini sangat penting untuk ekosistem desentralisasi paket Go,
+yang mana kode dapat diimpor dari peladen mana pun, namun hal ini juga
+bisa menimbulkan masalah keamanan, jika peladen yang berniat jahat menemukan
+cara untuk menjalankan kode yang tidak diinginkan.
+
+Untuk menyeimbangkan fungsionalitas dan keamanan, perintah 'go get' secara
+bawaan hanya akan menggunakan `git` dan `gh` untuk mengunduh kode dari peladen
+publik.
+Namun ia akan menggunakan sistem _version control_ yang dikenal (bzr,
+fossil, git, hg, svn) untuk mengunduh kode dari peladen privat, selama
+paket-paket yang disimpan sesuai dengan variabel GOPRIVATE (lihat
+'go help private').
+Rasionalitas dari hanya membolehkan Git dan Mercurial adalah kedua sistem ini
+memiliki perhatian yang khusus terhadap isu-isu bila dijalankan sebagai klien
+pada peladen yang tidak dipercaya.
+Sebaliknya, Bazaar, Fossil, dan Subversion umumnya hanya digunakan pada
+lingkungan yang dipercaya dengan autentikasi dan rentan terhadap serangan.
+
+Batasan perintah _version control_ hanya berlaku saat menggunakan akses
+langsung untuk mengunduh kode.
+Saat mengunduh modul dari sebuah proksi, 'go get' akan menggunakan protokol
+proksi, yang mana selalu dibolehkan.
+Secara bawaan, perintah 'go get' menggunakan salinan modul Go pada proksi
+(proxy.golang.org) untuk paket-paket publik dan hanya menggunakan _version
+control_ untuk paket-paket private atau saat proksi publik menolak melayani
+publik paket (biasanya karena alasan legalitas).
+Oleh karena itu, klien masih dapat mengakses kode publik yang disimpan lewat
+repositori Bazaar, Fossil, atau Subversion, secara pengunduhan dilakukan oleh
+Go modul proksi, yang menangani resiko keamanan dengan menjalankan perintah
+_version control_ menggunakan _sandbox_ tersendiri.
+
+Variabel GOVCS dapat digunakan untuk mengubah sistem _version control_ apa
+saja yang dibolehkan untuk paket-paket tertentu (diidentifikasi lewat path
+impor atau modul).
+Variabel GOVCS diterapkan saat membangun paket dengan mode modul dan GOPATH.
+Saat menggunakan mode modul, pola dengan path modul.
+Saat menggunakan mode GOPATH, pola disamakan dengan path impor yang
+berkorespondensi dengan induk dari repositori.
+
+Format umum dari nilai pengaturan GOVCS yaitu sebuah aturan yang dipisahkan
+dengan koma, format aturan ini yaitu "pola:daftar_vcs".
+Format dari "pola" yaitu menggunakan _glob_ yang harus sesuai dengan satu atau
+lebih elemen dari path impor atau modul.
+Format dari "daftar_vcs" yaitu daftar _version control_ yang dibolehkan yang
+dipisahkan dengan '|', atau "all" untuk membolehkan perintah apa pun, atau
+"off" untuk menolak perintah apa pun.
+Ingatlah bahwa jika sebuah modul cocok dengan pola pada "daftar_vcs" yang di
+set ke "off", ia bisa saja tetap diunduh jika peladen menggunakan skema "mod",
+yang menyuruh perintah go untuk mengunduh modul tersebut menggunakan
+protokol GOPROXY.
+Pola pertama yang cocok akan digunakan, walaupun pola selanjutnya ada yang
+cocok juga.
+
+Misalnya,
+
+    GOVCS=github.com:git,evil.com:off,*:git|hg
+
+Dengan pengaturan ini, kode dengan modul atau path impor yang diawali dengan
+github.com/ hanya dapat menggunakan git;
+path dengan evil.com tidak dapat menggunakan perintah _version control_ apa
+pun, dan semua path lainnya (`*` berarti cocok dengan lainnya) hanya dapat
+menggunakan git atau hg.
+
+Pola khusus "public" dan "private" cocok dengan modul atau path impor publik
+dan privat.
+Sebuah path dikatakan "private" jika ia cocok dengan isi dari variabel
+GOPRIVATE; selain itu maka akan dianggap publik.
+
+Jika tidak ada aturan dalam variabel GOVCS yang cocok dengan sebuah modul atau
+path impor tertentu, perintah 'go get' akan menerapkan aturan bawaan, yaitu
+'public:git|gh,private:all'.
+
+Untuk membolehkan penggunaan sistem _version control_ mana pun untuk semua
+paket, gunakan:
+
+    GOVCS=*:all
+
+Untuk mematikan penggunakan _version control_, gunakan:
+
+    GOVCS=*:off
+
+Perintah 'go env -w' (lihat 'go help env') dapat digunakan untuk menset
+variabel GOVCS untuk pemanggilan perintah go selanjutnya.
