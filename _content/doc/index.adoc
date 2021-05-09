@@ -83,7 +83,7 @@ Dokumen ini berisi jawaban dari pertanyaan yang sering diajukan tentang Go.
 
 Dokumentasi untuk pustaka bawaan Go.
 
-===  link:/cmd/[Dokumentasi perintah]
+===  link:/doc/cmd/[Dokumentasi perintah]
 
 Dokumentasi untuk perkakas Go.
 
