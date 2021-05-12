@@ -35,8 +35,9 @@ Pengecualian: variabel statik dalam _preamble_ sebaiknya tidak diacu dari kode
 Go; fungsi statik dibolehkan.
 
 Sebagai contoh lihat `$GOROOT/misc/cgo/stdio` dan `$GOROOT/misc/cgo/gmp`.
-Lihat link:/doc/articles/c_go_cgo.html["C? Go? Cgo!"] untuk pengenalan tentang
-penggunaan cgo.
+Lihat
+link:/blog/cgo/["C? Go? Cgo!"^]
+untuk pengenalan tentang penggunaan cgo.
 
 Variabel lingkungan `CFLAGS`, `CPPFLAGS`, `CXXFLAGS`, `FFLAGS`, dan `LDFLAGS`
 bisa didefinisikan dengan pseudo direktif `#cgo` dalam baris komentar tersebut
@@ -45,8 +46,9 @@ Nilai-nilai yang didefinisikan dalam beberapa direktif akan secara otomatis
 digabungkan.
 Direktif tersebut bisa mengikutkan daftar batasan pembangunan yang membatasi
 efek penggunaan cgo terhadap sistem yang memenuhi salah satu dari batasan
-tersebut (lihat link:/cmd/go#hdr-Build_Constraints[Batasan-batasan
-pembangunan] untuk detail tentang sintaksis batasan).
+tersebut (lihat
+link:/cmd/go#hdr-Build_constraints[Batasan-batasan pembangunan^]
+untuk detail tentang sintaksis batasan).
 Contohnya:
 
 ----
@@ -156,10 +158,10 @@ ke 0 untuk menonaktifkan.
 Perkakas go akan men-set batasan pembangunan "cgo" jika cgo diaktifkan.
 Menggunakan `import "C"` berarti selalu mengaktifkan batasan pembangunan
 "cgo", walaupun berkas sumber juga berisi "// +build cgo".
-Oleh karena itu, jika cgo dimatikan, berkas-berkas yang menggnakan `import
+Oleh karena itu, jika cgo dimatikan, berkas-berkas yang menggunakan `import
 "C"` tidak akan dibangun oleh perkakas go.
 (Untuk informasi lebih lanjut tentang batasan pembangunan lihat
-link:/cmd/go/#hdr-Build_constraints[Batasan Pembangunan]).
+link:/cmd/go/#hdr-Build_constraints[Batasan-batasan pembangunan^]).
 
 Saat kompilasi-silang, Anda harus menentukan _compiler_ C yang akan digunakan
 oleh cgo.
