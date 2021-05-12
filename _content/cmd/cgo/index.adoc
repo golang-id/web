@@ -1,0 +1,613 @@
+= Perintah cgo
+:sectlinks:
+:sectanchors:
+:cpp: C++
+
+Cgo membolehkan pembuatan paket Go yang memanggil kode C.
+
+
+[#hdr-Using_cgo_with_the_go_command]
+== Menggunakan cgo dengan perintah go
+
+Untuk menggunakan cgo, tulis kode Go seperti biasa yang mengimpor sebuah
+paket-pseudo "C".
+Kode Go kemudian dapat mengacu ke tipe-tipe seperti `C.size_T`,
+variabel-variabel seperti `C.stdout`, atau fungsi-fungsi seperti `C.putchar`.
+
+Jika deklarasi `import "C"` diawali oleh komentar, maka komentar tersebut
+(yang dikenal dengan _preamble_) digunakan sebagai _header_ saat mengompilasi
+bagian C dari paket tersebut.
+Contohnya,
+
+----
+// #include <stdio.h>
+// #include <errno.h>
+import "C"
+----
+
+_Preamble_ ini bisa berisi kode C apa pun, termasuk deklarasi dan definisi
+fungsi dan variabel.
+Fungsi dan variabel tersebut bisa diacu dari kode Go seperti didefinisikan
+dalam paket "C".
+Semua nama-nama yang dideklarasikan dalam _preamble_ bisa digunakan, bahkan
+yang diawali dengan huruf kecil.
+Pengecualian: variabel statik dalam _preamble_ sebaiknya tidak diacu dari kode
+Go; fungsi statik dibolehkan.
+
+Sebagai contoh lihat `$GOROOT/misc/cgo/stdio` dan `$GOROOT/misc/cgo/gmp`.
+Lihat link:/doc/articles/c_go_cgo.html["C? Go? Cgo!"] untuk pengenalan tentang
+penggunaan cgo.
+
+Variabel lingkungan `CFLAGS`, `CPPFLAGS`, `CXXFLAGS`, `FFLAGS`, dan `LDFLAGS`
+bisa didefinisikan dengan pseudo direktif `#cgo` dalam baris komentar tersebut
+untuk mengatur perilaku dari _compiler_ C, {cpp}, atau Fortran.
+Nilai-nilai yang didefinisikan dalam beberapa direktif akan secara otomatis
+digabungkan.
+Direktif tersebut bisa mengikutkan daftar batasan pembangunan yang membatasi
+efek penggunaan cgo terhadap sistem yang memenuhi salah satu dari batasan
+tersebut (lihat link:/cmd/go#hdr-Build_Constraints[Batasan-batasan
+pembangunan] untuk detail tentang sintaksis batasan).
+Contohnya:
+
+----
+// #cgo CFLAGS: -DPNG_DEBUG=1
+// #cgo amd64 386 CFLAGS: -DX86=1
+// #cgo LDFLAGS: -lpng
+// #include <png.h>
+import "C"
+----
+
+Cara lainnya, `CPPFLAGS` dan `LDFLAGS` bisa diambil lewat perkakas
+`pkg-config` menggunakan direktif '#cgo pkg-config:' diikuti dengan nama
+paket.
+Contohnya,
+
+----
+// #cgo pkg-config: png cairo
+// #include <png.h>
+import "C"
+----
+
+Perkakas bawaan untuk `pkg-config` dapat diganti dengan men-set variabel
+lingkungan `PKG_CONFIG`.
+
+Demi keamanan, hanya sekumpulan opsi yang dibolehkan, terutama `-D`, `-U`,
+`-I`, dan `-l`.
+Untuk membolehkan opsi tambahan, set `CGO_CFLAGS_ALLOW` ke _regular
+expression_ yang cocok dengan opsi yang baru.
+Untuk membatalkan opsi yang secara bawaan dibolehkan, set
+`CGO_CFLAGS_DISALLOW` ke sebuah _regular expression_ yang cocok dengan argumen
+yang akan dibatalkan.
+Pada kedua kasus tersebut _regular expression_ harus sesuai dengan argumen:
+untuk membolehkan `-mfoo=bar`, gunakan `CGO_CFLAGS_ALLOW='-mfoo=*'`, tidak saja
+`CGO_CFLAGS_ALLOW='-mfoo'`.
+
+Juga demi keamanan, hanya sekumpulan karakter yang dibolehkan, terutama
+karakter alfa-numerik dan beberapa simbol, seperti '.', supaya tidak akan
+diartikan dengan cara yang salah.
+Mencoba menggunakan karakter yang dilarang akan menyebabkan eror
+"malformed #cgo argument".
+
+Saat pembangunan, variabel lingkungan `CGO_FFLAGS`, `CGO_CPPFLAGS`,
+`CGO_CXXFLAGS`, `CGO_FFLAGS`, dan `CGO_LDFLAGS` ditambahkan ke opsi-opsi yang
+diturunkan dari direktif tersebut.
+Opsi-opsi yang spesifik terhadap paket sebaiknya diset menggunakan direktif,
+bukan variabel lingkungan, supaya pembangunan paket bekerja dalam lingkungan
+yang tidak perlu diubah.
+Opsi-opsi yang diambil dari variabel lingkungan tidak dipengaruhi oleh batasan
+keamanan yang dijelaskan di atas.
+
+Semua direktif `CPPFLAGS` dan `CFLAGS` cgo dalam sebuah paket digabungkan dan
+digunakan untuk mengompilasi berkas C dalam paket tersebut.
+Semua direktif `CPPFLAGS` dan `CXXFLAGS` dalam sebuah paket digabungkan dan
+digunakan untuk mengompilasi berkas {cpp} dalam paket tersebut.
+Semua direktif `CPPFLAGS` dan `FFLAGS` dalam sebuah paket digabungkan dan
+digunakan untuk mengompilasi berkas Fortran dalam paket tersebut.
+Semua direktif `LDFLAGS` di paket mana pun dalam program digabungkan dan
+digunakan pada saat melakukan _link_.
+Semua direktif `pkg-config` digabungkan dan dikirim ke `pkg-config` secara
+simultan untuk ditambahkan ke setiap opsi baris perintah yang sesuai.
+
+Saat direktif cgo diurai, setiap kemunculan `${SRCDIR}` akan diganti dengan
+path absolut ke direktori yang berisi berkas sumber.
+Hal ini membolehkan mengikutkan pustaka statik dalam direktori paket.
+Sebagai contohnya, jika paket `foo` berada dalam direktori `/go/src/foo`:
+
+----
+// #cgo LDFLAGS: -L${SRCDIR}/libs -lfoo
+----
+
+Akan dikembangkan menjadi:
+
+----
+// #cgo LDFLAGS: -L/go/src/foo/libs -lfoo
+----
+
+Saat perkakas Go menemukan satu atau lebih berkas Go menggunakan `import "C"`,
+ia akan mencari berkas-berkas non-Go lainnya dalam direktori dan mengompilasi
+mereka sebagai bagian dari paket Go.
+Setiap berkas .c, .s, .S, atau .sx akan dikompilasi menggunakan _compiler_ C.
+Setiap berkas .cc, .cpp, atau .cxx akan dikompilasi dengan _compiler_ C\+\+.
+Setiap berkas .f, .F, .for, atau .f90 akan dikompilasi dengan _compiler_
+fortran.
+Setiap berkas .h, .hh, .hpp, atau .hpp tidak akan dikompilasi terpisah, namun
+bila berkas _header_ ini berubah, paket (termasuk berkas selain Go) akan
+dikompilasi ulang.
+Perlu diingat bahwa perubahan pada berkas dalam direktori lain tidak
+menyebabkan paket dikompilasi ulang, supaya semua sumber kode selain Go untuk
+paket tersebut disimpan dalam direktori paket, bukan dalam sub-direktori.
+_Compiler_ bawaan untuk C dan {cpp} bisa diubah lewat variabel lingkungan `CC`
+dan `CXX`;
+variabel lingkungan tersebut bisa mengikutkan opsi-opsi baris perintah.
+
+Perkakas cgo selalu memanggil _compiler_ C dengan mengikutkan direktori sumber
+kode dalam "include" path; yaitu `-I${SRCDIR}`.
+Hal ini berarti jika sebuah berkas _header_ `foo/bar.h` ada dalam direktori
+sumber dan juga ada dalam direktori sistem (atau direktori lain yang
+dispesifikasikan lewat opsi `-I`), maka "#include <foo/bar.h>" akan selalu
+menggunakan versi lokal.
+
+Perkakas cgo selalu aktif untuk pembangunan pada sistem dan target yang sama
+(misalnya, pembangunan untuk target Linux di host Linux).
+Ia akan dimatikan saat melakukan kompilasi silang (_cross-compiling_).
+Anda dapat mengontrol hal ini dengan men-set variabel lingkungan `CGO_ENABLED`
+saat menjalankan perkakas go: set ke 1 untuk mengaktifkan penggunaan cgo, dan
+ke 0 untuk menonaktifkan.
+Perkakas go akan men-set batasan pembangunan "cgo" jika cgo diaktifkan.
+Menggunakan `import "C"` berarti selalu mengaktifkan batasan pembangunan
+"cgo", walaupun berkas sumber juga berisi "// +build cgo".
+Oleh karena itu, jika cgo dimatikan, berkas-berkas yang menggnakan `import
+"C"` tidak akan dibangun oleh perkakas go.
+(Untuk informasi lebih lanjut tentang batasan pembangunan lihat
+link:/cmd/go/#hdr-Build_constraints[Batasan Pembangunan]).
+
+Saat kompilasi-silang, Anda harus menentukan _compiler_ C yang akan digunakan
+oleh cgo.
+Anda dapat melakukan ini dengan menset `+CC_FOR_TARGET+` atau variabel
+lingkungan yang lebih spesifik `+CC_FOR_${GOOS}_${GOARCH}+` (misalnya,
+`+CC_FOR_linux_arm+`) saat membangun _toolchain_ menggunakan `make.bash`, atau
+Anda bisa men-set variabel lingkungan `CC` kapan pun Anda menjalankan perkakas
+go.
+
+Variabel lingkungan `+CXX_FOR_TARGET+`, `+CXX_FOR_${GOOS}_${GOARCH}+`, dan
+`CXX` bekerja dengan cara yang sama untuk kode {cpp}.
+
+
+[#hdr-Go_references_to_C]
+== Referensi dari Go ke C
+
+Dalam berkas Go, nama field dari struct C dapat diakses dengan memberikan
+prefiks _underscore_ '_': jika variabel `x` mengacu pada sebuah struct C dan
+kita ingin mengakses sebuah field dengan nama "type", maka `x._type` akan
+mengakses nilai dari field tersebut.
+
+Field struct C yang tidak dapat diekspresikan dalam Go, seperti _bit field_
+atau ukuran data yang tidak sama, diindahkan dalam struct Go, diganti dengan
+field yang di-_padding_ (disesuaikan ukurannya) untuk dapat mengakses field
+selanjutnya atau akhir dari struct.
+
+Standar tipe numerik pada C tersedia dengan nama `C.char`, `C.schar` (signed
+char), `C.uchar` (unsigned char), `C.short`, `C.ushort` (unsigned short),
+`C.int`, `C.uint` (unsigned int), `C.long`, `C.ulong` (unsigned long),
+`C.longlong` (long long), `C.ulonglong` (unsigned long long), `C.float`,
+`C.double`, `C.complexfloat` (complex float), dan `C.complexdouble` (complex
+double).
+Tipe C untuk `void*` direpresentasikan oleh Go `unsafe.Pointer`.
+Tipe C untuk `+__int128_t+` dan `+__uint128_t+` direpresentasikan dengan
+`[16]byte`.
+
+Beberapa tipe C khusus yang biasanya direpresentasikan dengan tipe pointer
+dalam Go direpresentasikan dengan sebuah `uintptr`.
+Lihat bagian "Kasus-kasus khusus" di bawah.
+
+Untuk mengakses langsung sebuah tipe struct, union, atau `enum`, beri prefiks
+dengan `struct_`, `union_`, atau `enum_`, misalnya `C.struct_stat`.
+
+Ukuran dari tipe `T` pada C tersedia sebagai `C.sizeof_<T>`, misalnya
+`C.sizeof_struct_stat`.
+
+Sebuah fungsi C bisa dideklarasikan dalam berkas Go dengan sebuah tipe
+parameter bernama khusus `+_GoString_+`.
+Fungsi ini bisa dipanggil dengan nilai string Go biasa.
+Panjang dari string, dan pointer ke isi dari string, bisa diakses dengan
+memanggil fungsi C
+
+----
+size_t _GoStringLen(_GoString_ s);
+const char *_GoStringPtr(_GoString_ s);
+----
+
+Fungsi-fungsi ini hanya bisa diakses dalam _preamble_, bukan di dalam berkas C
+yang lain.
+Kode C tidak boleh mengubah isi dari pointer yang dikembalikan oleh
+`+_GoStringPtr+`.
+Ingatlah bahwa isi dari string bisa saja tidak memiliki byte NUL di akhirnya.
+
+Secara Go tidak mendukung tipe `union` C, tipe ini direpresentasikan
+sebagai array dari byte pada Go dengan panjang yang sama.
+
+Struct pada Go tidak bisa menanam field dengan tipe-tipe dari C.
+
+Kode pada Go tidak bisa mengacu field berukuran nol yang biasanya ada pada
+akhir dari struct C yang tidak kosong.
+Untuk mendapatkan alamat dari field tersebut (satu-satunya operasi yang dapat
+Anda lakukan pada field dengan ukuran nol) Anda harus mengambil alamat dari
+struct kemudian menambahkan ukuran dari struct.
+
+Cgo menerjemahkan tipe-tipe C menjadi tipe-tipe Go yang tidak di-ekspor.
+Karena pemetaannya tidak di-ekspor, sebuah paket Go sebaiknya tidak
+meng-eskpor tipe-tipe C dalam API mereka: sebuah tipe C yang digunakan dalam
+sebuah paket Go berbeda dengan tipe C yang sama yang digunakan dalam paket
+yang lain.
+
+Fungsi C apa pun (bahkan fungsi void) bisa dipanggil dalam beberapa konteks
+perintah untuk menerima nilai kembalian (jika ada) dan variabel `errno` C
+sebagai eror (gunakan `_` untuk mengindahkan nilai kembalian jika fungsi
+mengembalikan `void`).
+Misalnya:
+
+----
+n, err = C.sqrt(-1)
+_, err := C.voidFunc()
+var n, err = C.sqrt(1)
+----
+
+Memanggil pointer ke fungsi C tidak bisa dilakukan, namun Anda bisa
+mendeklarasikan variabel Go yang menyimpan pointer ke fungsi C dan mengirimnya
+ke Go atau C.
+Kode C bisa memanggil pointer ke fungsi dari Go.
+Contohnya:
+
+----
+package main
+
+// typedef int (*intFunc) ();
+//
+// int
+// bridge_int_func(intFunc f)
+// {
+//		return f();
+// }
+//
+// int fortytwo()
+// {
+//	    return 42;
+// }
+import "C"
+import "fmt"
+
+func main() {
+	f := C.intFunc(C.fortytwo)
+	fmt.Println(int(C.bridge_int_func(f)))
+	// Output: 42
+}
+----
+
+Pada C, sebuah argumen array dengan ukuran tetap pada fungsi, sebenarnya
+membutuhkan pointer ke elemen pertama dari array.
+_Compiler_ C mengenali konvensi pemanggilan seperti itu, tetapi Go tidak.
+Pada Go, kita harus mengirim elemen pertama secara eksplisit: `C.f(&C.x[0])`.
+
+Melakukan pemanggilan fungsi C dengan argumen _variadic_ tidak didukung.
+Hal ini bisa diatasi dengan menggunakan pembungkus fungsi C.
+Misalnya:
+
+----
+package main
+
+// #include <stdio.h>
+// #include <stdlib.h>
+//
+// static void myprint(char* s) {
+//   printf("%s\n", s);
+// }
+import "C"
+import "unsafe"
+
+func main() {
+	cs := C.CString("Hello from stdio")
+	C.myprint(cs)
+	C.free(unsafe.Pointer(cs))
+}
+----
+
+Beberapa fungsi khusus mengonversi tipe antara Go dan C dengan membuat salinan
+dari data.
+Berikut definisinya dalam pseudo-Go:
+
+----
+// Konversi dari string pada Go ke string pada C.
+// C string dialokasikan dalam C heap menggunakan malloc.
+// Pemanggil bertanggung jawab untuk melepas penggunaan memori dari string
+// tersebut, dengan memanggil C.free (pastikan mengikutkan stdlib.h jika
+// C.free dibutuhkan).
+func C.CString(string) *C.char
+
+// Konversi Go []byte slice ke C array.
+// C array dialokasikan dalam C heap menggunakan malloc.
+// Pemanggil bertanggung jawab untuk melepas penggunaan memori, seperti dengan
+// memanggil C.free (pastikan mengikutkan stdlib.h jika C.free dibutuhkan).
+func C.CBytes([]byte) unsafe.Pointer
+
+// Konversi dari C string ke Go string.
+func C.GoString(*C.char) string
+
+// Konversi dari C data dengan panjang yang eksplisit ke Go string.
+func C.GoStringN(*C.char, C.int) string
+
+// Konversi C data dengan ukuran yang eksplisit ke Go []byte.
+func C.GoBytes(unsafe.Pointer, C.int) []byte
+----
+
+Kasus khusus lainnya, `C.malloc` tidak memanggil pustaka C `malloc` secara
+langsung namun memanggil fungsi bantuan Go yang membungkus pustaka C `malloc`
+yang menjamin tidak akan mengembalikan `nil`.
+Jika C `malloc` mengindikasikan kehabisan memori, maka fungsi bantuan akan
+membuat program _crash_, seperti halnya saat Go kehabisan memori.
+Secara `C.malloc` tidak bisa gagal, ia tidak mengembalikan dua nilai yang
+mengembalikan `errno`.
+
+
+[#hdr-C_references_to_Go]
+==  Referensi dari C ke Go
+
+Fungsi-fungsi pada Go dapat diekspor untuk digunakan oleh kode C dengan cara
+berikut:
+
+----
+//export MyFunction
+func MyFunction(arg1, arg2 int, arg3 string) int64 {...}
+
+//export MyFunction2
+func MyFunction2(arg1, arg2 int, arg3 string) (int64, *C.char) {...}
+----
+
+(Catatan: perhatikan kata kunci "//export" pada baris komentar sebelum
+deklarasi fungsi).
+
+Fungsi-fungsi tersebut akan tersedia dalam kode C sebagai:
+
+----
+extern GoInt64 MyFunction(int arg1, int arg2, GoString arg3);
+extern struct MyFunction2_return MyFunction2(int arg1, int arg2, GoString arg3);
+----
+
+yang dapat ditemukan dalam _header_ `+_cgo_export.h+` hasil pembangkitan,
+setelah semua _preamble_ disalin dari berkas input cgo.
+Fungsi pada Go yang mengembalikan nilai lebih dari satu dipetakan menjadi
+fungsi yang mengembalikan sebuah struct.
+
+Tidak semua tipe Go dapat dipetakan ke tipe C.
+Tipe struct pada Go tidak didukung; gunakan tipe struct C.
+Tipe array pada Go tidak didukung; gunakan sebuah pointer ke C.
+
+Fungsi-fungsi Go yang menerima argumen bertipe string dipanggil dengan tipe C
+`+_GoString_+`, seperti yang dijelaskan di atas.
+Tipe `+_GoString_+` akan otomatis didefinisikan pada _preamble_.
+Ingatlah bahwa kode C tidak bisa membuat nilai dengan tipe tersebut;
+ia hanya berguna untuk mengirim nilai string dari Go ke C dan balik lagi
+ke Go.
+
+Menggunakan "//export" dalam berkas kode membuat batasan dari _preamble_:
+secara ia nantinya akan disalin ke dua buah berkas C, ia tidak boleh berisi
+definisi, hanya deklarasi.
+Jika sebuah berkas berisi definisi dan deklarasi, maka dua berkas keluaran
+akan menghasilkan simbol yang duplikat yang menyebabkan _linker_ gagal.
+Untuk menghindari hal ini, definisi harus ditempatkan dalam _preamble_ di
+berkas yang lain, atau dalam berkas sumber C.
+
+
+[#hdr-Passing_pointers]
+== Mengirim pointer
+
+Go adalah bahasa pemrograman _garbage collected_, dan si _garbage collector_
+perlu mengetahui lokasi dari setiap pointer ke memori Go.
+Oleh sebab itu, ada batasan tentang mengirim pointer antara Go dan C.
+
+Dalam bagian ini istilah dari "Go pointer" artinya sebuah pointer ke memori
+yang dialokasikan oleh Go (seperti penggunaan operator `&` atau pemanggilan ke
+fungsi `new`) dan istilah "C pointer" berarti sebuah pointer ke memori yang
+dialokasikan oleh C (seperti pemanggilan ke `C.malloc`).
+Apakah sebuah pointer berupa Go pointer atau C pointer adalah properti dinamis
+yang ditentukan oleh bagaimana memori dialokasikan;
+ia tidak ada hubungannya dengan tipe dari pointer.
+
+Ingatlah bahwa nilai dari beberapa tipe Go, selain nilai kosong dari tipe,
+selalu mengikutkan Go pointer.
+Hal ini berlaku untuk tipe string, slice, interface, channel, map, dan fungsi.
+Sebuah tipe pointer bisa menyimpan sebuah Go pointer atau sebuah C pointer.
+Tipe array dan struct bisa saja memiliki Go pointer, bergantung pada elemen
+dari tipe.
+Semua diskusi di bawah ini tentang Go pointer berlaku tidak hanya untuk
+tipe-tipe pointer, tetapi juga ke tipe lainnya yang mengikutkan Go pointer.
+
+Kode Go bisa mengirim sebuah Go pointer ke C yang menunjuk ke memori pada Go
+yang tidak berisi Go pointer.
+Kode C harus mengenali properti berikut: kode C tidak boleh menyimpan Go
+pointer apa pun dalam memori Go, walaupun sementara.
+Saat mengirim sebuah pointer ke sebuah field dalam sebuah struct, memori yang
+ditunjuk pada Go adalah memori yang dipakai oleh field tersebut, bukan seluruh
+struct.
+Saat mengirim sebuah pointer ke elemen dalam array atau slice, memori Go yang
+ditunjuk adalah keseluruhan array atau keseluruhan array pendukung dari slice.
+
+Kode C sebaiknya tidak menyimpan salinan dari Go pointer setelah pemanggilan
+ke sebuah fungsi selesai.
+Hal ini termasuk tipe `+_GoString_+`, seperti yang telah dijelaskan di atas,
+mengikutkan sebuah Go pointer;
+nilai dari `+_GoString_+` sebaiknya tidak disimpan oleh kode C.
+
+Sebuah fungsi Go yang dipanggil oleh kode C sebaiknya tidak mengembalikan
+sebuah Go pointer (yang artinya tidak mengembalikan sebuah string, slice,
+channel, map, atau fungsi).
+Sebuah fungsi Go yang dipanggil oleh kode C bisa menerima C pointer sebagai
+argumen, dan ia bisa menyimpan data yang bukan pointer atau C pointer lewat
+argumen pointer tersebut, namun tidak boleh menyimpan sebuah Go pointer dalam
+memori yang menunjuk ke sebuah C pointer.
+Sebuah fungsi Go yang dipanggil oleh kode C bisa menerima sebuah Go pointer
+sebagai argumen, namun ia harus mengingat properti bahwa memori Go yang
+ditunjuk tidak memiliki Go pointer.
+
+Kode Go sebaiknya tidak menyimpan sebuah Go pointer dalam memori C.
+Kode C bisa menyimpan Go pointer dalam memori C, aturan di atas berlaku: ia
+harus berhenti menyimpan Go pointer saat fungsi C selesai.
+
+Aturan-aturan ini diperiksa secara dinamis saat _runtime_.
+Pemeriksaan ini dikontrol oleh pengaturan pada `cgocheck` dari variabel
+lingkungan `GODEBUG`.
+Pengaturan bawaannya yaitu `GODEBUG=cgocheck=1`, yang mengimplementasikan
+pemeriksaan dinamis yang ringan.
+Pemeriksaan ini bisa dimatikan menggunakan `GODEBUG=cgocheck=0`.
+Pemeriksaan keseluruhan pointer, dengan biaya waktu eksekusi, dapat dilakukan
+lewat `GODEBUG=cgocheck=2`.
+
+Semua pemeriksaan di atas bisa dilewati dengan menggunakan paket `unsafe`, dan
+tentu saja tidak ada yang bisa menghentikan kode C dari melakukan hal apa pun
+yang bisa ia lakukan.
+Namun, program-program yang melanggar aturan-aturan tersebut kemungkinan akan
+_crash_ dengan cara yang tidak terduga dan tidak dapat diprediksi.
+
+Tipe `runtime/cgo.Handle` dapat digunakan untuk secara aman mengirim nilai Go
+antara Go dan C.
+Lihat dokumentasi dari paket `runtime/cgo` untuk informasi lebih detail.
+
+Catatan: implementasi yang sekarang memiliki sebuah _bug_.
+Bila kode Go dibolehkan untuk menulis `nil` atau sebuah C pointer (bukan
+sebuah Go pointer) ke memori C, implementasi yang sekarang bisa saja
+terkadang menyebabkan eror _runtime_ jika isi dari memori C ternyata adalah Go
+pointer.
+Oleh karena itu, hindari mengirim memori C yang tidak diinisiasi ke kode Go
+jika kode Go akan menyimpan nilai dari pointer.
+Set semua nilai memori pada C dengan 0 (dengan `memset`) sebelum mengirim ke
+Go.
+
+
+[#hdr-Special_cases]
+==  Kasus-kasus khusus
+
+Beberapa tipe-tipe C khusus, yang biasanya direpresentasikan dengan sebuah
+tipe pointer dalam Go, direpresentasikan oleh sebuah `uintptr`.
+Tipe-tipe tersebut yaitu:
+
+. Tipe `*Ref` pada Darwin, seperti tipe `CFTypeRef` pada `CoreFoundation`.
+
+. Tipe-tipe objek dari antarmuka JNI pada Java:
++
+----
+jobject
+jclass
+jthrowable
+jstring
+jarray
+jbooleanArray
+jbyteArray
+jcharArray
+jshortArray
+jintArray
+jlongArray
+jfloatArray
+jdoubleArray
+jobjectArray
+jweak
+----
+
+. Tipe `EGLDisplay` dan `EGLConfig` dari API-nya EGL.
+
+Tipe-tipe ini berbentuk `uintptr` pada Go karena mereka akan membingungkan Go
+_garbage collector_;
+mereka terkadang sebenarnya bukanlah pointer tapi struktur data yang
+di-_encode_ menjadi sebuah tipe pointer.
+Semua operasi pada tipe-tipe tersebut harus dilakukan di kode C.
+Konstanta untuk menginisiasi nilai kosong dari tipe-tipe tersebut adalah 0,
+bukan `nil`.
+
+Kasus-kasus khusus tersebut diperkenalkan pada Go 1.10.
+Untuk memperbarui kode pada Go 1.9 dan sebelumnya, gunakan `cftype` atau `jni`
+pada perkakas Go fix:
+
+----
+go tool fix -r cftype <pkg>
+go tool fix -r jni <pkg>
+----
+
+Perkakas ini akan mengganti `nil` dengan `0` pada tipe-tipe yang sesuai.
+
+Kasus untuk `EGLDisplay` diperkenalkan pada Go 1.12.
+Gunakan opsi `egl` untuk memperbarui kode untuk Go 1.11 atau sebelumnya:
+
+----
+go tool fix -r egl <pkg>
+----
+
+Kasus `EGLConfig` diperkenalkan pada Go 1.15.
+Gunakan opsi `eglconfig` untuk memperbarui kode untuk Go 1.14 dan sebelumnya:
+
+----
+go tool fix -r eglconf <pkg>
+----
+
+
+[#hdr-Using_cgo_directly]
+==  Menggunakan cgo secara langsung
+
+Penggunaan:
+
+----
+go tool cgo [cgo options] [-- opsi compiler] gofiles...
+----
+
+Perintah cgo mengubah berkas sumber input Go menjadi beberapa sumber berkas
+keluaran Go dan C.
+
+Opsi _compiler_ dikirim tanpa diubah saat memanggil _compiler_ C untuk
+mengompilasi bagian C dari paket.
+
+Opsi-opsi berikut tersedia saat menjalankan cgo secara langsung:
+
+`-V`::
+	Mencetak versi cgo dan keluar.
+`-debug-define`::
+	Opsi pelacakan. Mencetak setiap perintah `#define`.
+`-debug-gcc`::
+	Opsi pelacakan.  Melacak eksekusi dan output dari _compiler_ C.
+`-dynimport <berkas>`::
+	Menulis daftar simbol yang diimpor oleh <berkas>.
+	Daftar tersebut ditulis ke dalam berkas pada argumen dari `-dynout` atau
+	ke _standard output_.
+	Opsi ini digunakan oleh perkakas go saat membangun paket cgo.
+`-dynlinker`::
+	Tulis keluaran dari _dynamic linker_ sebagai bagian dari keluaran
+	`-dynimport`.
+`-dynout <berkas>`::
+	Tulis keluaran dari `-dynimport` ke <berkas>.
+`-dynpackage <paket>`::
+	Set paket Go untuk keluaran `-dynimport`.
+`-exportheader <berkas>`::
+	Jika ada fungsi yang di-ekspor, tulis deklarasi ekspor ke <berkas>.
+	Kode C dapat meng-"#include" berkas ini untuk membaca deklarasinya.
+`-importpath string`::
+	Path impor untuk paket Go.
+	Opsional; digunakan untuk menambah komentar supaya lebih jelas dalam
+	berkas yang dibangkitkan.
+`-import_runtime_cgo`::
+	Jika di-set (secara bawaan aktif) maka "import runtime/cgo" ditambahkan
+	dalam keluaran.
+`-import_syscall`::
+	Jika di-set (secara bawaan aktif) maka "import syscall" ditambahkan dalam
+	keluaran.
+`-gccgo`::
+	Bangkitkan keluaran untuk _compiler_ gccgo, bukan untuk _compiler_ gc.
+`-gccgoprefix <prefiks>`::
+	Opsi `-fgo-prefix` untuk digunakan dengan gccgo.
+`-gccgopkgpath path`::
+	Opsi `-fgo-pkgpath` untuk digunakan dengan gccgo.
+`-godefs`::
+	Tulis berkas input dalam sintaksis Go mengganti nama paket C dengan nilai
+	aslinya.
+	Digunakan untuk membangkitkan berkas dalam paket `syscall` saat
+	mem-_bootstrap_ target yang baru.
+`-objdir direktori`::
+	Simpan semua berkas hasil pembangkitan ke dalam <direktori>.
+`-srcdir direktori`::
+	Gunakan <direktori> sebagai input untuk pencarian sumber berkas
+	pembangkitan cgo.

@@ -22,7 +22,9 @@ bernama `gofmt` dan `godoc` karena sering kali digunakan.
 Klik pada tautan berikut untuk membaca dokumentasi lebih lanjut, metode
 pemanggilan, dan detail penggunaan.
 
-link:/cmd/go/[go]
-
-Program `go` mengatur sumber kode Go and menjalankan perintah lainnya.
+link:/cmd/go/[go]:: Program `go` mengatur sumber kode Go and menjalankan
+perintah lainnya.
 Lihat dokumentasi perintah untuk penggunaan lebih detail.
+
+link:/cmd/cgo/[cgo]:: Program cgo membolehkan pembuatan paket Go yang
+memanggil kode C.
