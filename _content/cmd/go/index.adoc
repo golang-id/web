@@ -778,7 +778,7 @@ Lihat 'go help modules' dan 'go help gopath-get'.
 Lihat juga: go build, go install, go clean, go mod.
 
 
-[##hdr-Compile_and_install_packages_and_dependencies]
+[#hdr-Compile_and_install_packages_and_dependencies]
 ==  Kompilasi dan pasang paket dan dependensi
 
 Penggunaan:
@@ -1367,7 +1367,7 @@ Jika semua modul tidak pernah dimodifikasi, perintah `verify` mencetak
 berubah dan menyebabkan perintah 'go mod' keluar dengan status selain 0.
 
 
-[##hdr-Explain_why_packages_or_modules_are_needed]
+[#hdr-Explain_why_packages_or_modules_are_needed]
 ===  Jelaskan kenapa paket atau modul dibutuhkan
 
 Penggunaan:
