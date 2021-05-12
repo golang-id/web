@@ -1,0 +1,184 @@
+= C? Go? Cgo!
+Andrew Gerrand
+17 Maret 2011
+
+== Pendahuluan
+
+Cgo membolehkan paket Go memanggil kode C.
+Dengan sebuah sumber kode Go yang ditulis dengan fitur-fitur khusus, cgo
+menghasilkan berkas Go dan C yang dapat digabungkan menjadi sebuah paket Go.
+
+Sebagai contohnya, berikut sebuah paket Go yang menyediakan dua fungsi --
+Random dan Seed -- yang membungkus fungsi C `random` dan `srandom`.
+
+----
+package rand
+
+/*
+#include <stdlib.h>
+*/
+import "C"
+
+func Random() int {
+	return int(C.random())
+}
+
+func Seed(i int) {
+	C.srandom(C.uint(i))
+}
+----
+
+Mari kita lihat apa yang terjadi di sini, dimulai dari perintah "import".
+
+Paket `rand` meng-`import "C"`, namun Anda tidak akan menemukan paket tersebut
+dalam pustaka standar Go.
+Hal ini karena "C" adalah "paket-pseudo", sebuah nama khusus yang
+diartikan oleh cgo sebagai referensi ke ruang nama C.
+
+Paket `rand` berisi empat referensi ke paket C: pemanggilan ke `C.random` dan
+`C.srandom`, konversi `C.uint(i)`, dan perintah `import`.
+
+Fungsi `Random` memanggil fungsi `random` yang ada dalam pustaka standar C
+dan mengembalikan hasilnya.
+Dalam C, fungsi `random` mengembalikan sebuah nilai C bertipe `long`, yang
+direpresentasikan oleh cgo sebagai tipe `C.long`.
+Nilai tersebut harus dikonversi ke tipe Go sebelum dapat digunakan oleh kode
+Go lainnya, menggunakan konversi tipe Go biasa:
+
+----
+func Random() int {
+	return int(C.random())
+}
+----
+
+Berikut fungsi yang sama yang menggunakan variabel sementara untuk
+memperlihatkan konversi tipe lebih eksplisit:
+
+----
+func Random() int {
+	var r C.long = C.random()
+	return int(r)
+}
+----
+
+Fungsi `Seed` melakukan hal yang sama, namun terbalik.
+Fungsi tersebut menerima Go int, mengonversinya ke tipe C `unsigned int`, dan
+mengirimnya ke fungsi C `srandom`.
+
+----
+func Seed(i int) {
+	C.srandom(C.uint(i))
+}
+----
+
+Perlu diketahui bahwa cgo mengenal tipe `unsigned int` sebagai `C.uint`;
+lihat
+link:/cmd/cgo/[dokumentasi cgo^]
+untuk daftar komplit dari nama tipe numerik pada cgo.
+
+Salah satu perintah dari contoh di atas yang belum kita jelaskan yaitu
+komentar di atas perintah "import".
+
+----
+/*
+#include <stdlib.h>
+*/
+import "C"
+----
+
+Cgo mengenali komentar tersebut.
+Setiap baris komentar yang dimulai dengan `#cgo` diikuti oleh karakter spasi
+akan dihapus; baris tersebut akan menjadi direktif untuk cgo.
+Sisa baris berikutnya digunakan sebagai _header_ saat mengompilasi bagian C
+dari paket.
+Pada contoh ini, baris-baris tersebut adalah sebuah perintah "#include", namun
+ia bisa saja berupa kode C apa pun.
+Direktif `#cgo` digunakan untuk mengirim opsi bagi _compiler_ dan _linker_
+saat membangun bagian C dari paket.
+
+Aturan tersebut ada batasannya: jika program Anda menggunakan direktif
+"//export", maka kode C dalam komentar hanya boleh mengikutkan deklarasi
+(misalnya, `extern int f();`), bukan definisi
+(misalnya, `int f() { return 1; }`).
+Anda bisa menggunakan direktif "//export" untuk membuat fungsi Go dapat
+diakses oleh kode C.
+
+Direktif "#cgo" dan "//export" di-dokumentasikan dalam
+link:/cmd/cgo/[dokumentasi cgo^].
+
+
+==  Hal-hal yang berkaitan dengan string
+
+Tidak seperti Go, C tidak memiliki tipe string.
+String dalam C direpresentasikan oleh array dari `char` yang diakhiri oleh 0.
+
+Konversi string antara Go dan C dilakukan lewat fungsi `C.CString`,
+`C.GoString`, dan `C.GoStringN`.
+Konversi-konversi tersebut membuat salinan dari data string.
+
+Contoh berikut ini mengimplementasikan fungsi `Print` yang menulis sebuah
+string ke standar keluaran menggunakan fungsi C `fputs` dari pustaka `stdio`:
+
+----
+package print
+
+// #include <stdio.h>
+// #include <stdlib.h>
+import "C"
+import "unsafe"
+
+func Print(s string) {
+	cs := C.CString(s)
+	C.fputs(cs, (*C.FILE)(C.stdout))
+	C.free(unsafe.Pointer(cs))
+}
+----
+
+Alokasi memori yang dilakukan oleh C tidak diketahui oleh manajer memori pada
+Go.
+Saat Anda membuat sebuah C string dengan `C.CString` (atau alokasi memori apa
+pun pada C), jangan sampai lupa untuk melepaskan kembali memori tersebut saat
+selesai digunakan dengan memanggil `C.free`.
+
+Pemanggilan ke `C.CString` mengembalikan sebuah pointer ke awal dari array
+char, jadi sebelum fungsi Print selesai kita mengonversi pointer tersebut
+dengan
+https://golang.org/pkg/unsafe/#Pointer[`unsafe.Pointer`]
+dan melepaskan alokasi memori dengan `C.free`.
+Idiom umum dalam program cgo yaitu melakukan
+link:/blog/defer-panic-and-recover/[`defer`]
+untuk pelepasan memori langsung setelah alokasi (terutama saat kode yang
+dibuat lebih kompleks daripada sebuah pemanggilan fungsi saja), seperti pada
+versi Print berikut:
+
+----
+func Print(s string) {
+	cs := C.CString(s)
+	defer C.free(unsafe.Pointer(cs))
+	C.fputs(cs, (*C.FILE)(C.stdout))
+}
+----
+
+
+== Membangun paket-paket cgo
+
+Untuk membangun paket-paket cgo, cukup gunakan
+link:/cmd/go/#hdr-Compile_packages_and_dependencies['go build'^]
+atau
+link:/cmd/go/#hdr-Compile_and_install_packages_and_dependencies['go install'^]
+seperti biasa.
+Perkakas Go mengenali perintah khusus `import "C"` dan secara otomatis
+menggunakan cgo untuk berkas-berkas tersebut.
+
+
+== Sumber lain untuk cgo
+
+link:/cmd/cgo/[Dokumentasi perintah cgo^]
+berisi detail tentang paket-pseudo C dan proses pembangunannya.
+https://golang.org/misc/cgo/[Contoh-contoh cgo^] dalam sumber kode Go
+mendemonstrasikan konsep tersebut lebih lanjut.
+
+Terakhir, jika Anda penasaran bagaimana cgo bekerja secara internal,
+lihatlah komentar pendahuluan pada berkas
+https://golang.org/src/runtime/cgocall.go[cgocall.go^]
+pada paket `runtime`.

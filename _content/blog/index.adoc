@@ -60,6 +60,9 @@
 *  link:/blog/profiling-go-programs[Memprofil program Go],
    Juli 2011.  _Russ Cox_
 
+*  link:/blog/cgo/[C? Go? Cgo!^],
+   17 Maret 2011. _Andrew Gerrand_
+
 *  link:/blog/introducing-go-playground/[Memperkenalkan Go Playground],
    15 September 2010.  _Andrew Gerrand_
 
