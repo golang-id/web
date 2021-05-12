@@ -1,0 +1,37 @@
+= Program fix
+
+Program `fix` membaca sumber kode Go dan mencari penggunaan fitur-fitur
+lama dari bahasa dan pustaka dan menggantinya dengan yang baru.
+Setelah Anda memasang rilis Go terbaru, `fix` membantu Anda membuat perubahan
+yang diperlukan terhadap sumber kode Go Anda.
+
+Penggunaan:
+
+----
+go tool fix [-r name,...] [path ...]
+----
+
+Bila parameter "path" tidak diberikan, `fix` akan membaca standar input dan
+menulis hasilnya ke standar keluaran.
+
+Jika "path" adalah sebuah berkas, `fix` menulis ulang berkas tersebut.
+Jika "path" adalah sebuah direktori, `fix` menulis ulang semua berkas .go di
+dalam direktori tersebut.
+Saat `fix` menulis ulang sebuah berkas, ia akan menulis sebuah baris ke
+_standard error_ yang menjelaskan nama berkas dan perbaikan yang diterapkan.
+
+Jika opsi `-diff` di-set, tidak ada berkas yang ditulis ulang.
+Melainkan, `fix` mencetak perbedaan dari perbaikan yang akan diterapkan.
+
+Opsi `-r` membatasi kumpulan perbaikan yang akan diterapkan berdasarkan nilai
+yang diberikan.
+Secara bawaan, `fix` menerapkan semua perbaikan yang diketahui.
+Perbaikan yang dilakukan oleh `fix` adalah _idempotent_, sehingga aman untuk
+menjalankan `fix` ke sebagian kode bahkan tanpa menggunakan opsi `-r`.
+
+Untuk melihat daftar perbaikan yang dapat diterapkan, jalankan 'go tool fix
+-help'.
+
+Program `fix` tidak membuat salinan dari berkas yang ia tulis ulang.
+Gunakan fungsionalitas sistem _version control_ "diff" untuk memeriksa
+perubahan yang dibuat oleh `fix` sebelum menyimpannya.

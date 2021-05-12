@@ -1,0 +1,83 @@
+= Program vet
+
+Program `vet` memeriksa kode sumber dan melaporkan konstruksi yang
+mencurigakan, seperti pemanggilan `Printf` dengan argumen yang tidak sesuai
+dengan formatnya.
+Vet menggunakan heuristik yang tidak menjamin semua laporan adalah masalah
+yang benar, namun ia bisa menemukan eror yang tidak bisa ditangkap oleh
+_compiler_.
+
+Program `vet` biasanya dipanggil lewat perintah `go`.
+Perintah berikut memeriksa paket dalam direktori yang sekarang:
+
+----
+go vet
+----
+
+perintah berikut ini memeriksa paket-paket berdasarkan path yang diberikan:
+
+----
+go vet my/project/...
+----
+
+Gunakan "go help packages" untuk melihat cara lain untuk menentukan
+paket-paket yang akan di-vet.
+
+Kode keluaran dari `vet` adalah selain-nol untuk cara pemanggilan perkakas
+yang salah atau bila ada masalah yang dilaporkan, dan 0 bila sukses.
+Ingatlah bahwa `vet` tidak memeriksa setiap kemungkinan masalah dan bergantung
+pada heuristik yang tidak terjamin, jadi sebaiknya hanya digunakan sebagai
+panduan saja, bukan sebagai indikator dari kebenaran.
+
+Untuk melihat daftar pemeriksaan, jalankan "go tool vet help":
+
+`asmdecl`:: laporkan ketidak-sesuaian antara berkas _assembly_ dan deklarasi
+    Go.
+`assign`:: periksa penempatan yang tidak berguna.
+`atomic`:: periksa kesalahan umum dari penggunakan paket `sync/atomic`.
+`bools`:: periksa kesalahan umum dari operator boolean.
+`buildtag`:: periksa bahwa tag `+build` ditulis dan berada pada lokasi
+    yang benar.
+`cgocall`:: deteksi pelanggaran dari aturan pengiriman pointer dari cgo.
+`composites`:: periksa penulisan komposit tanpa _key_.
+`copylocks`:: periksa penguncian (mutex) yang dikirim dengan nilai.
+`httpresponse`:: periksa kesalahan menggunakan HTTP respons.
+`loopclosure`:: periksa referensi ke variabel dalam loop dari dalam fungsi
+    yang bersarang.
+`lostcancel`:: periksa fungsi pembatalan yang dikembalikan oleh
+`context.WithCancel`.
+`nilfunc`:: periksa pembandingan antara fungsi dan nil yang tidak berguna.
+`printf`:: periksa konsistensi dari format Printf dan argumennya.
+`shift`:: periksa operasi `shift` yang sama atau melebihi ukuran dari integer.
+`stdmethods`:: periksa penanda method dari interface yang dikenal.
+`structtag`:: periksa tag pada field pada struct apakah sesuai dengan
+    `reflect.StructTag.Get`.
+`tests`:: periksa kesalahan umum penggunaan dari deklarasi fungsi `TestXxx`
+    dan `ExampleXxx`.
+`unmarshal`:: laporkan pengiriman nilai-nilai selain pointer atau selain
+    interface pada saat melakukan unmarshal.
+`unreachable`:: periksa kode yang tidak terpakai.
+`unsafeptr`:: periksa konversi yang tidak valid dari `uintptr` ke
+    `unsafe.Pointer`.
+`unusedresult`:: periksa nilai kembalian dari pemanggilan fungsi yang tidak
+    digunakan.
+
+Untuk detail dan opsi dari setiap pemeriksaan, seperti `printf`, jalankan
+"go tool vet help printf".
+
+Secara bawaan, semua pemeriksaan dilakukan.
+Jika ada opsi yang secara eksplisit di-set ke "true", maka hanya opsi tersebut
+yang dijalankan.
+Sebaliknya, bila ada opsi yang di-set ke "false", hanya opsi tersebut yang
+tidak dijalankan.
+Maka `-printf=true` menjalankan pemeriksaan `printf`, dan `-printf=false`
+menjalankan semua pemeriksaan kecuali yang `printf`.
+
+Untuk informasi mengenai pembuatan pemeriksaan yang baru, lihat
+https://golang.org/x/tools/go/analysis[x/tools: go analysis^].
+
+Opsi-opsi inti:
+
+`-c=N`:: tampilkan baris yang menimbulkan masalah ditambah N baris yang
+    melingkupi konteks kesalahan tersebut.
+`-json`:: tampilkan diagnosis analisis (dan eror) dalam format JSON.

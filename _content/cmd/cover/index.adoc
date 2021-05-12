@@ -1,0 +1,25 @@
+= Perintah cover
+
+Cover adalah sebuah program untuk menganalisis hasil liputan _profile_ yang
+dibangkitkan oleh 'go test -coverprofile=cover.out'.
+
+Cover juga digunakan oleh 'go test -cover' untuk menulis ulang sumber kode
+dengan menambahkan anotasi untuk melacak bagian dari fungsi yang dieksekusi.
+Program ini beroperasi pada sumber berkas Go satu per satu, memproses
+informasi dasar setiap blok perintah dengan mempelajari sumber kode-nya.
+Oleh karena itu, program cover lebih portabel daripada perkakas _coverage_
+yang menulis-ulang _binary_, namun memiliki fungsi yang lebih sedikit.
+Contohnya, ia tidak menyelidiki ekspresi di dalam `&&` dan `||`, dan sedikit
+kebingungan bila sebuah perintah memiliki banyak fungsi.
+
+Saat memproses _coverage_ dari sebuah paket yang menggunakan cgo, perkakas
+cover harus diaplikasikan ke hasil dari pra-pemrosesan dari cgo, bukan
+input-nya, secara program cover menghapus komentar-komentar yang penting untuk
+cgo.
+
+Untuk informasi penggunaan, silakan lihat:
+
+----
+go help testflag
+go tool cover -help
+----

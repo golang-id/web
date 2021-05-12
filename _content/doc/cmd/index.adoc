@@ -22,9 +22,23 @@ bernama `gofmt` dan `godoc` karena sering kali digunakan.
 Klik pada tautan berikut untuk membaca dokumentasi lebih lanjut, metode
 pemanggilan, dan detail penggunaan.
 
-link:/cmd/go/[go]:: Program `go` mengatur sumber kode Go and menjalankan
-perintah lainnya.
-Lihat dokumentasi perintah untuk penggunaan lebih detail.
-
-link:/cmd/cgo/[cgo]:: Program cgo membolehkan pembuatan paket Go yang
-memanggil kode C.
+link:/cmd/go/[go]::
+    Program `go` mengatur sumber kode Go and menjalankan perintah lainnya.
+    Lihat dokumentasi perintah untuk penggunaan lebih detail.
+link:/cmd/cgo/[cgo]::
+    Program cgo membolehkan pembuatan paket Go yang memanggil kode C.
+link:/cmd/cover/[cover]::
+    Cover adalah sebuah program untuk membuat dan menganalisis hasil liputan
+    _profile_ yang dibangkitkan lewat "go test -coverprofile".
+link:/cmd/fix/[fix]::
+    Program `fix` membaca sumber kode Go dan mencari penggunaan fitur-fitur
+    lama dari bahasa dan pustaka dan menggantinya dengan yang baru.
+link:/cmd/gofmt/[fmt]::
+    Program `fmt` memformat sumber berkas Go.
+https://pkg.go.dev/golang.org/x/tools/cmd/godoc[godoc^]::
+    Program `godoc` mengekstrak dan membangkitkan dokumentasi dari paket-paket
+    Go.
+link:/cmd/vet/[vet]::
+    Program `vet` memeriksa kode sumber dan melaporkan konstruksi yang
+    mencurigakan, seperti pemanggilan `Printf` dengan argumen yang tidak
+    sesuai dengan formatnya.

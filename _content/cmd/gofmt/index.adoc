@@ -1,0 +1,157 @@
+= Perintah gofmt
+
+Perintah `gofmt` memformat program Go.
+Ia menggunakan tab untuk indentasi dan spasi untuk penjajaran.
+Penjajaran mengasumsikan bahwa _editor_ menggunakan font dengan lebar-tetap.
+
+Penggunaan:
+
+----
+gofmt [flags] [path ...]
+----
+
+Tanpa argumen "path", ia akan memroses standar input.
+Jika "path" adalah sebuah berkas, ia akan memroses berkas tersebut;
+bila diberikan sebuah direktori, ia akan memroses semua berkas .go dalam
+direktori tersebut, secara rekursif.
+(Berkas yang diawali dengan titik akan diindahkan.)
+Secara bawaan, `gofmt` mencetak sumber kode yang diformat ke standar keluaran.
+
+Opsi "flags" berupa:
+
+`-d`::
+    Jangan cetak sumber kode yang telah diformat ke standar keluaran.
+    Jika format sebuah berkas berbeda dengan hasil `gofmt`, cetak perbedaannya
+    ke standar keluaran.
+`-e`::
+    Cetak semua eror.
+`-l`::
+    Jangan cetak sumber kode yang telah diformat ke standar output.
+    Jika format sebuah berkas berbeda dengan hasil `gofmt`, cetak nama berkas
+    tersebut ke standar keluaran.
+`-G`::
+    Aktifkan kode generik, menggunakan parameter tipe.
+    Lihat golang.org/issues/43651 untuk informasi lebih lanjut.
+`-r rule`::
+    Terapkan aturan penulisan ulang terhadap sumber berkas sebelum melakukan
+    pemformatan.
+`-s`::
+    Coba sederhanakan kode (setelah menerapkan aturan tulis-ulang, jika ada).
+`-w`::
+    Jangan cetak sumber kode yang telah diformat ke standar keluaran.
+    Jika format sebuah berkas berbeda dengan hasil `gofmt`, timpa dengan hasil
+    `gofmt`.
+    Jika eror terjadi saat penimpaan, berkas yang asli dikembalikan dari
+    cadangan.
+
+Dukungan pelacakan:
+
+`-cpuprofile filename`::
+    Tulis _profile_ CPU ke berkas yang ditentukan.
+
+Aturan penulisan-ulang yang ditentukan lewat opsi `-r` haruslah berupa sebuah
+string dengan format berikut:
+
+----
+pola -> pengganti
+----
+
+Parameter "pola" dan "pengganti" haruslah berupa ekspresi Go yang valid.
+Pada parameter "pola", identifikasi karakter-tunggal huruf kecil berlaku
+sebagai pencocokan _wildcard_ terhadap sub-ekspresi apa pun;
+ekspresi-ekspresi tersebut akan diganti dengan identifikasi yang sama dengan
+parameter "pengganti".
+
+Saat `gofmt` membaca dari standar input, ia dapat menerima seluruh atau
+potongan dari program Go.
+Bila potongan dari program Go diberikan, ia haruslah secara sintaksis berupa
+deklarasi, perintah, atau ekspresi yang valid.
+Saat memformat potongan kode tersebut, `gofmt` menjaga indentasi berikut
+dengan spasi pada awal dan akhir setiap baris, supaya bagian-bagian individu
+dari program Go tersebut dapat diformat dengan mengirimnya ke `gofmt`.
+
+
+=== Examples
+
+Untuk memeriksa berkas-berkas yang memiliki kurung yang berlebihan:
+
+----
+gofmt -r '(a) -> a' -l *.go
+----
+
+Untuk menghapus tanda kurung yang berlebihan:
+
+----
+gofmt -r '(a) -> a' -w *.go
+----
+
+Untuk mengonversi isi paket dari menggunakan batas atas slice yang eksplisit
+menjadi implisit:
+
+----
+gofmt -r 'α[β:len(α)] -> α[β:]' -w $GOROOT/src
+----
+
+
+===  Perintah penyederhanaan
+
+Saat dipanggil dengan argumen `-s`, perintah `gofmt` akan membuat transformasi
+kode berikut bila memungkinkan.
+
+* Array, slice atau map dalam bentuk:
++
+----
+[]T{T{}, T{}}
+----
++
+akan disederhanakan menjadi:
++
+----
+[]T{{}, {}}
+----
+
+* Ekspresi slice dalam bentuk:
++
+----
+s[a:len(s)]
+----
++
+akan disederhanakan menjadi:
++
+----
+s[a:]
+----
+
+* Perintah `range` dalam bentuk:
++
+----
+for x, _ = range v {...}
+----
++
+akan disederhanakan menjadi:
++
+----
+for x = range v {...}
+----
+
+* Perintah `range` dalam bentuk:
++
+----
+for _ = range v {...}
+----
++
+akan disederhanakan menjadi:
++
+----
+for range v {...}
+----
+
+Hasilnya bisa jadi perubahan yang tidak kompatibel dengan versi Go sebelumnya.
+
+
+==  Bug
+
+☞ Implementasi dari `-r` sedikit lambat.
+
+☞ Jika `-w` gagal, berkas asli yang dikembalikan bisa jadi tidak memiliki
+atribut berkas yang sama dengan yang asli.
