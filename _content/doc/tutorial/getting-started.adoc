@@ -1,0 +1,239 @@
+= Tutorial: Go dari awal
+:toc:
+
+Dalam tutorial ini, kita akan mempelajari cara pemrograman Go dari awal.
+Nanti, kita akan:
+
+* Memasang Go (jika belum pernah).
+* Menulis kode "Hello, World!" sederhana.
+* Menggunakan perintah `go` untuk menjalankan kode.
+* Menggunakan perkakas pencarian paket Go untuk menemukan paket yang dapat
+  digunakan dalam kode kita.
+* Memanggil fungsi pada modul eksternal.
+
+NOTE: Untuk tutorial lainnya, lihat link:/doc/tutorial/[Tutorial].
+
+[#prerequisites]
+== Kebutuhan
+
+* *Pengalaman pemrograman kode*.  Kode yang dicontohkan di sini cukup
+  sederhana, namun akan lebih membantu bila pembaca paham tentang fungsi pada
+  pemrograman.
+* *Alat untuk menyunting kode*.  Penyunting teks apa pun dapat digunakan.
+  Kebanyakan penyunting teks memiliki dukungan untuk Go.
+  Yang paling terkenal yaitu VSCode (gratis), GoLand (berbayar), dan Vim
+  (gratis).
+* *Terminal*.  Go bekerja dengan baik menggunakan terminal apa pun di
+  Linux dan Mac, dan PowerShell atau `cmd` di Windows.
+
+
+[#install]
+==  Memasang Go
+
+Lihat langkah-langkahnya pada halaman
+link:/doc/install/[Unduh dan pasang].
+
+
+[#code]
+==  Menulis kode
+
+Mari kita menulis sebuah program yang mencetak "Hello, World!".
+
+. Buka terminal dan `cd` ke direktori _home_ Anda.
++
+--
+Di Linux atau Mac:
+
+----
+cd
+----
+
+Di Windows:
+
+----
+cd %HOMEPATH%
+----
+--
+
+. Buat direktori `hello` untuk menyimpan sumber kode Go yang akan kita buat.
++
+--
+Sebagai contohnya, gunakan perintah berikut:
+
+----
+mkdir hello
+cd hello
+----
+--
+
+. Aktif kan pelacakan dependensi pada kode kita.
++
+--
+Saat kode mengimpor paket dari modul lain, Go mengatur dependensi tersebut
+lewat modul.
+Sebuah modul didefinisikan oleh berkas bernama `go.mod` yang melacak
+modul-modul apa saja yang digunakan.
+Berkas `go.mod` tersebut disimpan bersama dengan kode, dimasukkan dalam
+repositori sumber kode.
+
+Untuk mengaktifkan pelacakan dependensi pada kode, dengan membuat sebuah
+berkas `go.mod`, jalankan
+link:/ref/mod#go-mod-init[perintah `go mod init`]
+dengan memberikan parameter nama dari modul untuk contoh kode kita sekarang.
+Nama tersebut berupa path dari modul.
+Umumnya, ia berupa lokasi repositori di mana sumber kode disimpan,
+seperti `github.com/<user>/mymodule`.
+Jika kita ingin menerbitkan modul supaya dapat digunakan oleh orang lain, maka
+path dari modul harus berupa lokasi yang dapat diunduh oleh perkakas Go.
+
+Dalam tutorial ini, kita akan menggunakan `example.com/hello` sebagai contoh
+saja.
+
+----
+$ go mod init example.com/hello
+go: creating new go.mod: module example.com/hello
+----
+--
+
+. Dalam direktori "hello", buat sebuah berkas `hello.go`
+
+. Salin kode berikut ke dalam berkas `hello.go` dan simpan.
++
+--
+----
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello, World!")
+}
+----
+
+Ini adalah kode Go.
+Dalam kode ini, kita:
+
+* Mendeklarasikan paket `main` (sebuah paket yaitu cara untuk mengelompokan
+  fungsi-fungsi, dan ia berisi kumpulan berkas-berkas dalam direktori yang
+  sama).
+* Meng-impor
+  https://pkg.go.dev/fmt/[paket `fmt`], yang berisi fungsi-fungsi untuk
+  memformat teks, termasuk pencetakan ke layar.
+  Paket ini adalah salah satu paket pada
+  https://pkg.go.dev/std[pustaka standar]
+  yang tersedia saat memasang Go.
+* Mengimplementasikan fungsi `main` untuk mencetak sebuah pesan ke layar.
+  Fungsi `main` dieksekusi secara bawaan saat kita menjalankan paket `main`.
+--
+
+. Jalankan kode tersebut untuk melihat pesan di layar.
++
+--
+----
+$ go run .
+Hello, World!
+----
+
+link:/cmd/go/#hdr-Compile_and_run_Go_program[Perintah `go run`]
+adalah salah satu dari banyak perintah go yang akan kita gunakan untuk bekerja
+dengan Go.
+Untuk melihat daftar perintah lainnya:
+
+----
+$ go help
+----
+--
+
+
+[#call]
+==  Memanggil kode dalam paket eksternal
+
+Saat kode Go butuh melakukan sesuatu yang telah diimplementasikan oleh orang
+lain, kita dapat mencari paket yang memiliki fungsi tersebut, yang dapat kita
+gunakan dalam kode.
+
+Berikut cara menggunakan fungsi orang lain, dengan mengubah contoh kode
+"Hello, World!" untuk memanggil fungsi eksternal, dari modul orang lain.
+
+. Buat pesan yang dicetak sedikit lebih menarik lewat sebuah fungsi dari modul
+  eksternal.
++
+--
+.. Kunjungi pkg.go.dev dan
+   https://pkg.go.dev/search?q=quote[cari paket "quote"].
+.. Cari dan klik paket `rsc.io` dalam hasil pencarian sebelumnya (jika
+   menemukan `rsc.io/quote/v3`, indahkan saja dahulu).
+.. Dalam bagian *Documentation*, di bawah *Index*, terdapat daftar fungsi yang
+   dapat kita panggil dalam kode.
+   Yang akan kita panggil dan gunakan dalam kode kita yaitu fungsi `Go`.
+.. Pada bagian atas halaman, perhatikan bahwa paket "quote" berada dalam modul
+   "rsc.io/quote".
+
+Kita dapat menggunakan situs pkg.go.dev untuk mencari modul-modul yang
+diterbitkan dan dibagi oleh orang lain, yang mana paket-paketnya memiliki
+fungsi yang dapat kita gunakan dalam kode.
+Kumpulan paket diterbitkan dalam sebuah modul -- seperti "rsc.io/quote" --
+yang dapat digunakan oleh orang lain.
+Modul-modul dikembangkan terus menerus lewat versi baru, dan kita dapat
+meningkatkan kode kita supaya menggunakan versi yang terbaru.
+--
+
+. Dalam contoh kode kita sebelumnya, impor lah paket "rsc.io/quote" dan
+  ganti string "Hello, World!" dengan pemanggilan ke fungsi `Go`.
++
+--
+Bentuk kode akan seperti berikut,
+----
+package main
+
+import "fmt"
+
+import "rsc.io/quote"
+
+func main() {
+	fmt.Println(quote.Go())
+}
+----
+--
+
+. Tambahkan dependensi pada modul dan hasil _sum_-nya.
++
+--
+Go akan menambahkan modul "quote" sebagai dependensi, berikut dengan berkas
+"go.sum" untuk digunakan dalam autentikasi modul.
+Untuk informasi lebih lanjut, lihat
+link:/ref/mod#authenticating[Autentikasi modul]
+dalam Referensi Modul Go.
+
+----
+$ go mod tidy
+go: finding module for package rsc.io/quote
+go: found rsc.io/quote in rsc.io/quote v1.5.2
+----
+--
+
+. Jalankan kembali kode untuk melihat pesan yang dibangkitkan oleh
+  pemanggilan fungsi `Go`.
++
+--
+----
+$ go run .
+Don't communicate by sharing memory, share memory by communicating.
+----
+
+Perhatikan sekarang, kode memanggil fungsi `Go`, mencetak sebuah pesan
+pribahasa tentang komunikasi.
+
+Saat kita menjalankan "go mod tidy", ia mencari dan mengunduh modul
+"rsc.io.quote" yang berisi paket yang kita impor.
+Secara bawaan, Go akan mengunduh versi yang paling terbaru -- v1.5.2.
+--
+
+
+[#write-more]
+==  Tutorial lebih lanjut
+
+Lewat pengenalan singkat ini, kita telah memasang Go dan mempelajari beberapa
+dasar-dasarnya.
+Untuk melanjutkan menulis kode dengan tutorial lain, lihatlah
+link:/doc/tutorial/create-module.html[Membuat modul Go].

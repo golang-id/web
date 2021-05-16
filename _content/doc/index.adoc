@@ -20,6 +20,12 @@ dinamis.
 
 Instruksi untuk mengunduh dan memasang Go.
 
+[#get-started-tutorial]
+===  link:/doc/tutorial/getting-started.html[Tutorial: Memulai dari awal]
+
+Tutorial singkat "Hello, world" untuk mulai dari awal.
+Mempelajari secara singkat tentang kode, perkakas, paket, dan modul pada Go.
+
 [#code]
 ===  link:/doc/code.html[Cara menulis kode Go]
 
