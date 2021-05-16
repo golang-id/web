@@ -50,9 +50,6 @@ li {
 	max-width: 50rem;
 	word-wrap: break-word;
 }
-li p {
-	margin: 2px;
-}
 p,
 pre,
 ul,
