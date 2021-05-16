@@ -67,6 +67,11 @@
 *  link:/blog/errors-are-values[Error adalah nilai^],
    12 Januari 2015.  Rob Pike.
 
+=== 2014
+
+*  link:/blog/pipelines[Pola konkurensi Go: _pipeline_ dan pembatalan^],
+   13 Maret 2014,  Sameer Ajmani.
+
 === 2013
 
 *  link:/blog/playground[Membedah Go Playground^],
