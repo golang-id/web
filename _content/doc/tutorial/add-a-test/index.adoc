@@ -1,0 +1,166 @@
+= Membuat sebuah tes
+
+Sekarang setelah kode kita menjadi stabil, tambahkan sebuah tes.
+Menguji kode Anda selama pengembangan dapat menangkap _bug_ yang mungkin
+terjadi saat perubahan dilakukan.
+Dalam topik ini, kita akan menambahkan sebuah tes untuk fungsi `Hello`.
+
+NOTE: Topik ini adalah bagian dari seri tutorial yang dimulai dengan
+link:/doc/tutorial/create-module/[Membuat sebuah Go modul^].
+
+Dukungan bawaan Go untuk unit tes membuat pengembang mudah membuat dan
+melakukan tes.
+Khususnya, dengan konvensi penamaan, paket "testing", dan perintah "go test",
+kita dapat dengan cepat menulis dan mengeksekusi tes.
+
+. Dalam direktori "greetings", buatlah sebuah berkas bernama
+  "greetings_test.go"
++
+--
+Dengan mengakhiri sebuah nama berkas dengan "_test.go" berarti memberitahu
+perintah "go test" bahwa berkas tersebut berisi fungsi-fungsi tes.
+--
+
+. Dalam "greetings_test.go", salin lah kode berikut ke dalam berkas dan
+  simpan.
++
+--
+----
+package greetings
+
+import (
+	"testing"
+	"regexp"
+)
+
+// TestHelloName memanggil greetings.Hello dengan sebuah nama, memeriksa
+// kembalian yang valid.
+func TestHelloName(t *testing.T) {
+	name := "Gladys"
+	want := regexp.MustCompile(`\b`+name+`\b`)
+	msg, err := Hello("Gladys")
+	if !want.MatchString(msg) || err != nil {
+		t.Fatalf(`Hello("Gladys") = %q, %v, want match for %#q, nil`, msg, err, want)
+	}
+}
+
+// TestHelloEmpty memanggil greetings.Hello dengan string kosong,
+// memeriksa jika ada eror.
+func TestHelloEmpty(t *testing.T) {
+	msg, err := Hello("")
+	if msg != "" || err == nil {
+		t.Fatalf(`Hello("") = %q, %v, want "", error`, msg, err)
+	}
+}
+----
+
+Dalam kode tersebut, kita:
+
+* Mengimplementasikan fungsi tes dalam paket yang sama dengan kode yang akan
+  kita uji.
+* Membuat dua fungsi tes untuk menguji fungsi "greetings.Hello".
+  Nama fungsi untuk tes haruslah dengan format `Test__Nama__`, yang mana
+  __Nama__ menyatakan apa yang akan diuji.
+  Fungsi-fungsi tes menerima sebuah pointer ke
+  https://pkg.go.dev/testing/#T[tipe `testing.T`]
+  sebagai parameter.
+  Kita menggunakan method-method pada parameter ini untuk melaporkan dan
+  mencatat hasil dari pengujian.
+* Mengimplementasikan dua tes:
+** `TestHelloName` memanggil fungsi `Hello` dengan mengirim sebuah nama.
+Fungsi tersebut seharusnya mengembalikan sebuah pesan yang valid.
+Jika pemanggilan mengembalikan eror atau sebuah pesan respon yang tidak
+diharapkan (misalnya pesan yang tidak berisi nama), kita akan gunakan
+https://pkg.go.dev/testing/#T.Fatalf[method `Fatalf`]
+pada parameter `t` untuk mencetak sebuah pesan ke layar dan mengakhiri
+pengujian.
+** `TestHelloEmpty` memanggil fungsi `Hello` dengan string kosong.
+Tes ini dirancang untuk mengonfirmasi bahwa penanganan eror berjalan dengan
+benar.
+Jika kembalian dari fungsi `Hello` berupa string yang tidak kosong tanpa ada
+eror, kita panggil method `Fatalf` dari parameter `t` untuk mencetak pesan dan
+mengakhiri pengujian.
+--
+
+. Dari _terminal_, dalam direktori "greetings", jalankan
+  link:/cmd/go/#hdr-Test_packages[perintah `go test`^]
+  untuk mengeksekusi tes.
++
+--
+Perintah "go test" mengeksekusi fungsi-fungsi tes (yang namanya dimulai dengan
+`Test`) dalam berkas-berkas tes (yang namanya berakhir dengan `_test.go`).
+Anda dapat menambahkan opsi `-v` untuk menampilkan pesan tambahan yang
+mencetak semua fungsi tes dan hasilnya.
+
+Pengujian seharusnya berhasil dengan sukses.
+
+----
+$ go test
+PASS
+ok      example.com/greetings   0.364s
+
+$ go test -v
+=== RUN   TestHelloName
+--- PASS: TestHelloName (0.00s)
+=== RUN   TestHelloEmpty
+--- PASS: TestHelloEmpty (0.00s)
+PASS
+ok      example.com/greetings   0.372s
+----
+--
+
+. Ganti fungsi "greetings.Hello" supaya tes gagal.
++
+--
+Fungsi tes `TestHelloName` memeriksa nilai kembalian berdasarkan nama yang
+kita kirim sebagai parameter ke fungsi `Hello`.
+Untuk dapat melihat hasil tes yang gagal, ubah fungsi "greetings.Hello" supaya
+mengembalikan pesan tanpa nama.
+
+Dalam "greetings/greetings.go", salin lah kode berikut mengganti fungsi
+`Hello` yang sudah ada.
+Kode yang baru ini mengganti nilai yang dikembalikan oleh fungsi, anggap
+seperti argumen nama secara tidak sengaja dihapus.
+
+----
+// Hello mengembalikan sebuah salam untuk nama seseorang.
+func Hello(name string) (string, error) {
+	// Jika nama kosong, kembalikan sebuah eror dengan pesan.
+	if name == "" {
+		return name, errors.New("empty name")
+	}
+	// Buat sebuah pesan dengan format yang acak.
+	// message := fmt.Sprintf(randomFormat(), name)
+	message := fmt.Sprint(randomFormat())
+	return message, nil
+}
+----
+--
+
+. Pada _terminal_, di dalam direktori "greetings", jalankan "go test" untuk
+  mengeksekusi tes.
++
+--
+Kali ini, jalankan "go test" tanpa opsi `-v`.
+Keluaran dari perintah tersebut berupa hasil tes yang gagal, yang berguna bila
+kita memiliki banyak tes.
+Tes pada `TestHelloName` seharusnya gagal, sementara `TestHelloEmpty` tetap
+berhasil.
+----
+$ go test
+--- FAIL: TestHelloName (0.00s)
+    greetings_test.go:15: Hello("Gladys") = "Hail, %v! Well met!", <nil>, want match for `\bGladys\b`, nil
+FAIL
+exit status 1
+FAIL    example.com/greetings   0.182s
+----
+--
+
+Pada topik selanjutnya (dan yang terakhir), kita akan melihat bagaimana
+mengompilasi dan memasang kode supaya dapat dijalankan secara lokal.
+
+Lanjut: link:/doc/tutorial/compile-install/[Mengompilasi dan memasang
+aplikasi].
+
+Balik: link:/doc/tutorial/greetings-multiple-people/[Mengembalikan salam untuk
+beberapa orang].

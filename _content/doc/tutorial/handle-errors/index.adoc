@@ -1,0 +1,137 @@
+= Mengembalikan dan menangani eror
+:toc:
+
+Penanganan eror adalah fitur penting pada kode yang solid.
+Pada bagian ini, kita akan menambahkan sedikit kode yang mengembalikan sebuah
+eror pada modul "greetings", kemudian menangani-nya pada sisi pemanggil (modul
+"hello").
+
+NOTE: Topik ini adalah bagian dari seri tutorial yang dimulai dengan
+link:/doc/tutorial/create-module/[Membuat sebuah Go modul^].
+
+. Di dalam "greetings/greetings.go", perbarui kode menjadi seperti di bawah.
++
+--
+Tidak masuk akal bila mengucapkan salam bila kita tidak tahu siapa yang akan
+kita salami.
+Maka, kembalikan sebuah eror jika si pemanggil fungsi `Hello` mengirim `name`
+yang kosong.
+Salin kode berikut ke "`greetings.go`" dan simpan berkas tersebut.
+
+----
+package greetings
+
+import (
+	"errors"
+	"fmt"
+)
+
+// Hello mengembalikan sebuah salaman untuk nama seseorang.
+func Hello(name string) (string, error) {
+	// Jika name kosong, kembalikan sebuah eror dengan pesan tertentu.
+	if name == "" {
+		return "", errors.New("empty name")
+	}
+
+	// Jika nama tidak kosong, kembalikan sebuah pesan salam yang menanam
+	// nama tersebut.
+	message := fmt.Sprintf("Hi, %v. Welcome!", name)
+	return message, nil
+}
+----
+
+Dalam kode tersebut, kita:
+
+* Mengubah fungsi `Hello` sehingga mengembalikan dua nilai: sebuah string dan
+  sebuah eror.
+  Yang memanggil fungsi tersebut akan memeriksa nilai kembalian kedua untuk
+  mengetahui jika ada eror yang terjadi.
+  (Fungsi pada Go dapat mengembalikan banyak nilai.
+  Untuk informasi lebih lanjut, lihat
+  link:/doc/effective_go.html#multiple-returns[Efektif Go^].)
+* Impor paket "errors" dari pustaka standar supaya dapat menggunakan
+  https://pkg.go.dev/errors/#example-New[fungsi `errors.New`^].
+* Menambahkan perintah `if` untuk memeriksa pemanggilan yang tidak valid (pada
+  kasus ini yaitu nama yang kosong) dan mengembalikan sebuah eror jika
+  pemanggilan tidak valid.
+  Fungsi `errors.New` mengembalikan sebuah eror dengan pesan di dalamnya.
+* Menambahkan `nil` (artinya tidak ada eror) sebagai nilai kedua pada saat
+  kembalian sukses.
+  Dengan cara ini, pemanggil fungsi dapat memeriksa bila mana fungsi sukses.
+--
+
+. Dalam berkas "hello/hello.go", tangani kembalian eror dari fungsi `Hello`,
+  berikut juga nilai yang tidak eror.
++
+--
+Salin kode berikut ke "hello.go".
+
+----
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"example.com/greetings"
+)
+
+func main() {
+	// Set properti dari Logger, termasuk prefiks dan flag untuk
+	// menon-aktifkan pencetakan waktu, sumber berkas, dan nomor baris.
+	log.SetPrefix("greetings: ")
+	log.SetFlags(0)
+
+	// Ambil pesan salam.
+	message, err := greetings.Hello("")
+
+	// Jika ada eror, cetak ke layar dan keluar dari program.
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Jika tidak ada eror, cetak pesan yang dikembalikan ke layar.
+	fmt.Println(message)
+}
+----
+
+Dalam kode tersebut, kita:
+
+* Mengonfigurasi
+  https://pkg.go.dev/log/[paket `log`^] untuk mencetak nama perintah
+  ("greetings: ") di awal pesan log, tanpa penanda waktu atau informasi sumber
+  berkas.
+* Menyimpan nilai kembalian dari `Hello`, termasuk eror, ke variabel.
+* Mengubah argumen ke fungsi `Hello` dari string "Glady" ke string kosong,
+  supaya kita dapat mencoba kode pas penanganan eror.
+* Memeriksa nilai eror yang tidak nil.
+  Jika eror, stop program.
+* Gunakan fungsi dari paket `log` untuk menampilkan informasi eror.
+  Jika ada error, gunakan
+  https://pkg.go.dev/log?tab=doc#Fatal[fungsi `Fatal`^] pada paket `log` untuk
+  mencetak eror dan menghentikan program.
+--
+
+. Pada _terminal_, di dalam direktori "hello", jalankan "hello.go" untuk
+  memeriksa apakah kode berjalan dengan benar atau tidak.
++
+--
+Sekarang, karena kita mengirim nama yang kosong, kita akan mendapatkan sebuah
+eror.
+
+----
+$ go run .
+greetings: empty name
+exit status 1
+----
+--
+
+Contoh penanganan eror tersebut sangat umum dalam Go: Kembalikan sebuah eror
+sebagai nilai supaya pemanggil dapat memeriksanya.
+
+Selanjutnya, kita akan menggunakan sebuah slice untuk mengembalikan pesan
+salam yang dipilih secara acak.
+
+Lanjut: link:/doc/tutorial/random-greeting/[Mengembalikan salam acak].
+
+Balik: link:/doc/tutorial/call-module-code/[Memanggil kode dari modul lain].

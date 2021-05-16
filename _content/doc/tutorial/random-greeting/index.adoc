@@ -1,0 +1,151 @@
+= Mengembalikan salam acak
+:toc:
+
+Pada bagian ini, kita akan mengubah kode supaya tidak hanya mengembalikan satu
+bentuk salam saja, tetapi mengembalikan satu dari beberapa pesan salam yang
+telah ditentukan.
+
+NOTE: Topik ini adalah bagian dari seri tutorial yang dimulai dengan
+link:/doc/tutorial/create-module/[Membuat sebuah Go modul^].
+
+Untuk melakukan hal ini, kita akan menggunakan sebuah slice.
+Sebuah slice yaitu seperti sebuah array, namun ukurannya dapat berubah secara
+dinamis saat kita menambah atau menghapus item dalam slice.
+Slice adalah salah satu dari tipe yang sangat berguna pada Go.
+
+Kita akan membuat slice berukuran kecil yang berisi tiga pesan salam,
+kemudian kita kembalikan salah satu dari pesan tersebut secara acak.
+Untuk informasi lebih lanjut tentang slice, lihat
+link:/blog/slices-intro/[Go slice].
+
+. Dalam "greetings/greetings.go", ubah kode kita supaya seperti di bawah.
++
+--
+----
+package greetings
+
+import (
+	"errors"
+	"fmt"
+	"math/rand"
+	"time"
+)
+
+// Hello returns a greeting for the named person.
+func Hello(name string) (string, error) {
+	// If no name was given, return an error with a message.
+	if name == "" {
+		return name, errors.New("empty name")
+	}
+	// Create a message using a random format.
+	message := fmt.Sprintf(randomFormat(), name)
+	return message, nil
+}
+
+// init sets initial values for variables used in the function.
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+// randomFormat returns one of a set of greeting messages. The returned
+// message is selected at random.
+func randomFormat() string {
+	// A slice of message formats.
+	formats := []string{
+		"Hi, %v. Welcome!",
+		"Great to see you, %v!",
+		"Hail, %v! Well met!",
+	}
+
+	// Return a randomly selected message format by specifying
+	// a random index for the slice of formats.
+	return formats[rand.Intn(len(formats))]
+}
+----
+
+Dalam kode tersebut, kita:
+
+* Menambahkan fungsi `randomFormat` yang mengembalikan format untuk pesan
+  salam secara acak.
+  Ingatlah bahwa `randomFormat` diawali dengan huruf kecil, membuatnya hanya
+  dapat diakses oleh kode di dalam paketnya sendiri (dengan kata lain, tidak
+  dieskpor).
+* Dalam `randomFormat`, kita mengisi sebuah slice string dengan tiga format
+  pesan.
+  Saat mendeklarasikan sebuah slice, kita tidak mengisi ukuran dalam tanda
+  kurung siku, seperti ini: `[]string`.
+  Perintah ini mengatakan ukuran dari array di balik slice dapat diubah secara
+  dinamis.
+* Menggunakan
+  https://pkg.go.dev/math/rand/[paket "`math/rand`"^]
+  untuk membangkitkan angka acak untuk memilih sebuah item di dalam slice.
+* Menambahkan fungsi `init` untuk menanam paket `rand` dengan waktu sekarang.
+  Go mengeksekusi fungsi `init` secara otomatis pada saat program berjalan,
+  setelah semua global variabel diinisiasi.
+  Untuk informasi lebih lanjut tentang fungsi `init`, lihat
+  link:/doc/effective_go.html#init[Efektif Go^].
+* Dalam fungsi `Hello`, panggil fungsi `randomFormat` untuk mendapatkan format
+  dari pesan yang akan dikembalikan, kemudian gunakan format tersebut beserta
+  value dari `name` untuk membuat pesan.
+* Kembalikan pesan tersebut (atau sebuah eror) seperti sebelumnya.
+--
+
+. Dalam "hello/hello.go", ubah kode kita supaya seperti di bawah.
++
+--
+Kirim string "Glady" (atau nama apa pun yang Anda sukai) sebagai argumen dari
+fungsi `Hello` dalam hello.go.
+
+----
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"example.com/greetings"
+)
+
+func main() {
+	// Set properti dari Logger, termasuk prefiks dan flag untuk
+	// menon-aktifkan pencetakan waktu, sumber berkas, dan nomor baris.
+	log.SetPrefix("greetings: ")
+	log.SetFlags(0)
+
+	// Ambil pesan salam.
+	message, err := greetings.Hello("Gladys")
+
+	// Jika ada eror, cetak ke layar dan keluar dari program.
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Jika tidak ada eror, cetak pesan yang dikembalikan ke layar.
+	fmt.Println(message)
+}
+----
+--
+
+. Pada _terminal_, di dalam direktori "hello", jalankan "hello.go" untuk
+  memastikan program berjalan.
+  Jalankan beberapa kali, untuk melihat perubahan pada pesan salam yang
+  dihasilkan.
++
+----
+$ go run .
+Great to see you, Gladys!
+
+$ go run .
+Hi, Gladys. Welcome!
+
+$ go run .
+Hail, Gladys! Well met!
+----
+
+Selanjutnya, kita akan menggunakan slice untuk membuat pesan salam untuk
+beberapa orang.
+
+Lanjut: link:/doc/tutorial/greetings-multiple-people/[Mengembalikan salam
+untuk beberapa orang].
+
+Balik: link:/doc/tutorial/handle-errors/[Mengembalikan dan menangani eror].

@@ -1,0 +1,136 @@
+= Mengompilasi dan memasang aplikasi
+
+Pada topik terakhir ini, kita akan mempelajari beberapa perintah `go`.
+Bila perintah "go run" berguna sebagai cara singkat untuk mengompilasi dan
+menjalankan sebuah program, ia tidak menghasilkan sebuah berkas yang bisa
+dieksekusi.
+
+Topik ini memperkenalkan dua perintah tambahan untuk membangun kode:
+
+* link:/cmd/go/#hdr-Compile_packages_and_dependencies[Perintah `go build`^]
+  mengompilasi paket-paket, bersama dengan dependensi-nya, tetapi tidak
+  memasang hasil kompilasi.
+* link:/ref/mod#go-install[Perintah `go install`^] mengompilasi dan memasang
+  paket-paket.
+
+NOTE: Topik ini adalah bagian dari seri tutorial yang dimulai dengan
+link:/doc/tutorial/create-module/[Membuat sebuah Go modul^].
+
+. Pada _terminal_, dalam direktori "hello", jalankan perintah "go build" untuk
+  mengompilasi kode menjadi sebuah program.
++
+--
+----
+$ go build
+----
+
+Perintah tersebut menghasilkan sebuah berkas program bernama "hello" (atau
+"hello.exe" pada Windows).
+--
+
+. Pada _terminal_, dalam direktori "hello", jalankan program `hello` untuk
+  memastikan bahwa kode bekerja dengan benar.
++
+--
+Berkas program hasil Anda bisa berbeda bergantung pada apakah Anda mengubah
+kembali "greetings.go" setelah kita melakukan pengujian.
+
+* Pada Linux atau Mac:
++
+----
+$ ./hello
+map[Darrin:Great to see you, Darrin! Gladys:Hail, Gladys! Well met! Samantha:Hail, Samantha! Well met!]
+----
+
+* Pada Windows:
++
+----
+$ hello.exe
+map[Darrin:Great to see you, Darrin! Gladys:Hail, Gladys! Well met! Samantha:Hail, Samantha! Well met!]
+----
+
+Kita telah mengompilasi aplikasi menjadi sebuah program supaya dapat
+dijalankan.
+Namun supaya dapat berjalan dengan benar, direktori _terminal_ kita haruslah
+berada dalam direktori yang sama dengan program, atau dengan menspesifikasikan
+path dari program.
+
+Selanjutnya, kita akan memasang program tersebut supaya dapat dijalankan
+tanpa menspesifikasikan path.
+--
+
+. Temukan path pemasangan dari Go, di mana perintah `go` akan memasang
+  paket-paket hasil kompilasi.
++
+--
+Kita dapat mengetahui path pemasangan dengan menjalankan
+link:/cmd/go/#hdr-List_packages_or_modules[perintah `go list`^],
+seperti pada contoh berikut:
+
+----
+$ go list -f '{{.Target}}'
+----
+
+Contohnya, keluaran dari perintah tersebut bisa berbentuk
+"/home/gopher/bin/hello", artinya program akan dipasang ke direktori
+"/home/gopher/bin/".
+Kita akan membutuhkan direktori pemasangan ini pada langkah selanjutnya.
+--
+
+. Tambahkan direktori pemasangan Go ke sistem path.
++
+--
+Dengan cara ini, kita dapat menjalankan program tanpa menspesifikasikan path
+di mana program tersebut berada.
+
+* Pada Linux atau Mac, jalankan perintah berikut:
++
+----
+$ export PATH=$PATH:/path/ke/direktori/pemasangan
+----
+
+* Pada Windows, jalankan perintah berikut:
++
+----
+$ set PATH=%PATH%;C:\path\ke\direktori\pemasangan
+----
+
+Sebagai alternatif, jika Anda telah memiliki direktori "$HOME/bin" dalam path
+sistem dan Anda ingin supaya Go memasang program ke sana, Anda dapat mengubah
+target direktori pemasangan dengan men-set variabel lingkungan `GOBIN`
+menggunakan
+link:/cmd/go/#hdr-Print_Go_environment_information[perintah `go env`^]:
+
+----
+$ go env -w GOBIN=/path/to/your/bin
+----
+
+atau pada Windows,
+
+----
+$ go env -w GOBIN=C:\path\to\your\bin
+----
+--
+
+. Setelah path sistem di-set, jalankan perintah "go install" untuk
+  mengompilasi dan memasang paket.
++
+----
+$ go install
+----
+
+. Jalankan program Anda cukup dengan mengetikan namanya.
+  Buka _terminal_ yang baru dan jalankan program `hello` di direktori yang
+  berbeda.
++
+----
+$ hello
+map[Darrin:Hail, Darrin! Well met! Gladys:Great to see you, Gladys! Samantha:Hail, Samantha! Well met!]
+----
+
+Dengan ini tutorial Go kita berakhir!
+
+Lanjut: link:/doc/tutorial/module-conclusion/[Kesimpulan dan informasi lebih
+lanjut].
+
+Balik: link:/doc/tutorial/add-a-test/[Menambahkan sebuah tes].

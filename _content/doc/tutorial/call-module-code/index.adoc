@@ -1,0 +1,189 @@
+= Memanggil kode dari modul lain
+
+Pada
+link:/doc/tutorial/create-module/[bagian sebelumnya],
+kita telah membuat sebuah modul "greetings".
+Pada bagian ini, kita akan menulis kode, dalam bentuk aplikasi yang bisa
+dieksekusi, yang memanggil fungsi `Hello` dalam modul tersebut.
+
+NOTE: Topik ini adalah bagian dari seri tutorial yang dimulai dengan
+link:/doc/tutorial/create-module/[Membuat sebuah Go modul^].
+
+. Buat sebuah direktori "hello" untuk sumber kode modul Go.
+  Di direktori ini kita akan menulis kode yang memanggil modul sebelumnya.
++
+--
+Setelah membuat direktori tersebut, Anda seharusnya memiliki dua direktori:
+"hello" dan "greetings" dengan hirarki yang sama, seperti berikut:
+
+----
+<home>/
+ |-- greetings/
+ |-- hello/
+----
+
+Misalnya, jika _terminal_ sekarang berada dalam direktori "greetings", Anda
+dapat menggunakan perintah berikut:
+
+----
+cd ..
+mkdir hello
+cd hello
+----
+--
+
+. Aktif kan pelacakan dependensi pada kode yang akan kita tulis.
++
+--
+Pelacakan dependensi dapat diaktifkan dengan menjalankan perintah "`go mod
+init`", dengan memberikan nama dari modul tempat kode akan disimpan.
+
+Dalam tutorial ini, kita menggunakan "example.com/hello" sebagai path modul.
+
+----
+$ go mod init example.com/hello
+go: creating new go.mod: module example.com/hello
+----
+--
+
+. Dalam direktori "hello", buatlah sebuah berkas bernama "hello.go".
+
+. Tulis lah kode yang memanggil fungsi `Hello`, kemudian cetak nilai kembalian
+  dari fungsi tersebut.
++
+--
+Salin lah kode berikut ke dalam berkas "hello.go".
+
+----
+package main
+
+import (
+	"fmt"
+
+	"example.com/greetings"
+)
+
+func main() {
+	// Ambil pesan salaman dari fungsi Hello dan cetak ke layar.
+	message := greetings.Hello("Gladys")
+	fmt.Println(message)
+}
+----
+
+Dalam kode ini, kita:
+
+* Mendeklarasikan paket `main`.
+  Dalam Go, kode yang dieksekusi sebagai aplikasi _haruslah_ berada dalam
+  paket `main`.
+* Meng-impor dua paket: "example.com/greetings" dan "`fmt`".
+  Dengan ini kode kita dapat mengakses fungsi-fungsi di dalam paket-paket
+  tersebut.
+  Mengimpor "`example.com/greetings`" (paket di dalam modul yang kita buat
+  sebelumnya) membolehkan kita mengakses fungsi `Hello`.
+  Kita juga mengimpor "`fmt`", yang berisi fungsi-fungsi yang menangani teks
+  input dan output (seperti pencetakan teks ke layar).
+* Ambil pesan salaman dengan memanggil fungsi `Hello` dari paket "greetings".
+--
+
+. Sunting modul "example.com/hello" supaya menggunakan modul
+  "example.com/greetings" yang ada di lokal Anda.
++
+--
+Untuk penggunaan dalam lingkungan _production_, Anda sebaiknya menerbitkan
+modul "example.com/greetings" pada sebuah repositori (dengan path modul yang
+merefleksikan lokasi diterbitkan), yang mana perkakas Go dapat temukan untuk
+mengunduhnya.
+Untuk sekarang, karena kita belum menerbitkan modul, kita harus mengadaptasi
+modul "example.com/hello" supaya dapat menemukan kode "example.com/greetings"
+dalam sistem berkas lokal Anda.
+
+Untuk melakukan hal tersebut, gunakan perintah "go mod init" untuk menyunting
+modul "example.com/hello" supaya mengarahkan perkakas Go dari path modul-nya
+ke direktori lokal.
+
+. Dari _terminal_, masih dalam direktori "hello", jalankan perintah berikut:
++
+--
+----
+$ go mod edit -replace=example.com/greetings=../greetings
+----
+
+Perintah tersebut memberitahu supaya mengganti "example.com/greetings" dengan
+"../greetings" saat mencari lokasi dependensi.
+Setelah perintah dijalankan, berkas "go.mod" dalam direktori "hello" akan
+berisi sebuah direktif "replace":
+
+----
+module example.com/hello
+
+go 1.16
+
+replace example.com/greetings => ../greetings
+----
+--
+
+. Dari _terminal_, masih di dalam direktori "hello", jalankan perintah "go mod
+  tidy" untuk men-sinkronisasi dependensi modul "example.com/hello",
+  menambahkan modul-modul yang dibutuhkan oleh kode tetapi belum dilacak
+  oleh modul.
++
+--
+----
+$ go mod tidy
+go: found example.com/greetings in example.com/greetings v0.0.0-00010101000000-000000000000
+----
+
+Setelah perintah selesai, berkas "go.mod" dalam modul "example.com/hello" akan
+berisi seperti berikut:
+
+----
+module example.com/hello
+
+go 1.16
+
+replace example.com/greetings => ../greetings
+
+require example.com/greetings v0.0.0-00010101000000-000000000000
+----
+
+Perintah tersebut menemukan modul lokal dalam direktori "greetings", kemudian
+menambahkan
+link:/doc/modules/gomod-ref#require[direktif "require"]
+untuk menspesifikasikan bahwa "example.com/hello" membutuhkan
+"example.com/greetings".
+Kita memakai dependensi ini saat kita mengimpor paket "greetings" dalam
+"hello.go".
+
+Angka setelah path modul adalah versi-palsu -- sebuah angka yang dibangkitkan
+sebagai pengganti dari angka versi semantik (yang belum gunakan oleh modul
+"greetings").
+
+Untuk mengarahkan ke modul yang telah diterbitkan, sebuah berkas go.mod
+tidak menggunakan direktif "replace" tapi hanya menggunkan direktif "require"
+dengan angka versi dibagian belakangnya.
+
+----
+require example.com/greetings v1.1.0
+----
+
+Untuk informasi lebih lanjut tentang angka versi, lihat
+link:/doc/modules/version-numbers[Angka versi pada modul].
+--
+--
+
+. Pada _terminal_, masih di dalam direktori "hello", jalankan kode Anda untuk
+  memastikan ia bekerja dengan benar.
++
+----
+$ go run .
+Hi, Gladys. Welcome!
+----
+
+Selamat!
+Anda telah menulis dua modul yang berfungsi dengan benar.
+
+Pada topik selanjutnya, kita akan menambahkan beberapa penanganan eror.
+
+Lanjut: link:/doc/tutorial/handle-errors/[Mengembalikan dan menangani eror]
+
+Balik: link:/doc/tutorial/create-module/[Membuat sebuah Go modul]

@@ -1,0 +1,180 @@
+= Mengembalikan salam untuk beberapa orang
+:toc:
+
+Pada bagian ini, kita akan menambah fungsionalitas pada modul "greetings"
+supaya dapat mengembalikan pesan salam untuk beberapa orang dalam satu
+pemanggilan.
+Dengan kata lain, kita akan menangani input dengan banyak nilai, kemudian
+memasangkan nilai input tersebut dengan nilai output.
+Untuk melakukan hal ini, kita akan mengirim sekumpulan nama ke sebuah fungsi
+yang dapat mengembalikan salam untuk setiap nama tersebut.
+
+NOTE: Topik ini adalah bagian dari seri tutorial yang dimulai dengan
+link:/doc/tutorial/create-module/[Membuat sebuah Go modul^].
+
+Namun ada sedikit masalah.
+Mengubah parameter fungsi `Hello` dari satu nama menjadi beberapa nama akan
+mengubah _signature_ dari fungsi tersebut.
+Jika Anda telah menerbitkan modul "example.com/greetings" sebelumnya dan user
+telah menulis kode yang telah memanggil `Hello`, perubahan tersebut akan
+membuat program mereka gagal dikompilasi.
+
+Dalam situasi ini, pilihan yang terbaik yaitu membuat sebuah fungsi baru
+dengan nama yang berbeda.
+Fungsi yang baru tersebut akan menerima satu atau lebih nilai.
+Dengan ini kita menjaga fungsi yang lama demi menjaga kompatibilitas.
+
+. Dalam "greetings/greetings.go", ubah lah kode Anda supaya seperti berikut.
++
+--
+----
+package greetings
+
+import (
+	"errors"
+	"fmt"
+	"math/rand"
+	"time"
+)
+
+// Hello mengembalikan sebuah salam untuk nama seseorang.
+func Hello(name string) (string, error) {
+	// Jika nama kosong, kembalikan sebuah eror dengan pesan.
+	if name == "" {
+		return name, errors.New("empty name")
+	}
+	// Buat sebuah pesan salam dengan format acak.
+	message := fmt.Sprintf(randomFormat(), name)
+	return message, nil
+}
+
+// Hellos mengembalikan sebuah map yang mengasosiasikan setiap nama orang
+// dengan sebuah pesan salam.
+func Hellos(names []string) (map[string]string, error) {
+	// Sebuah map yang memetakan nama dengan pesan.
+	messages := make(map[string]string)
+
+	// Iterasi slice "names", panggil fungsi Hello untuk mendapatkan
+	// sebuah pesan untuk setiap nama.
+	for _, name := range names {
+		message, err := Hello(name)
+		if err != nil {
+			return nil, err
+		}
+		// Di dalam map, asosiasikan nama (kunci) dengan pesan (nilai).
+		messages[name] = message
+	}
+	return messages, nil
+}
+
+// init men-set pengacak angka.
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+// randomFormat mengembalikan sekumpulan pesan acak.  Pesan yang dikembalikan
+// dipilih secara acak.
+func randomFormat() string {
+	// Slice dari sekumpulan format pesan.
+	formats := []string{
+		"Hi, %v. Welcome!",
+		"Great to see you, %v!",
+		"Hail, %v! Well met!",
+	}
+
+	// Kembalikan salah satu format pesan secara acak.
+	return formats[rand.Intn(len(formats))]
+}
+----
+
+Dalam kode ini, kita:
+
+* Menambah fungsi `Hellos` dengan parameter sebuah slice string bukan sebuah
+  nama.
+  Kita juga mengubah tipe kembalian dari sebuah string menjadi sebuah map
+  supaya kita dapat mengasosiasikan parameter nama dengan pesan salam.
+* Membuat fungsi `Hellos` yang memanggil fungsi `Hello` yang sudah ada.
+  Hal ini cukup membantu mengurangi duplikasi kode.
+* Membuat sebuah map ucapan salam yang mengasosiasikan setiap nama yang
+  diterima (sebagai kunci) dengan pesan yang dibangkitkan (sebagai sebuah
+  nilai).
+  Dalam Go, kita menginisiasi map dengan sintaksis berikut:
+  `make(map[tipe-key]tipe-nilai)`.
+  Kita membuat fungsi `Hellos` untuk mengembalikan map tersebut ke pemanggil.
+  Untuk informasi lebih lanjut tentang map lihat
+  link:/blog/maps[Cara kerja map pada Go].
+* Melakukan pengulangan terhadap daftar nama yang diterima fungsi `Hellos`,
+  memeriksa apakah nilainya tidak kosong, kemudian mengasosiasikan setiap
+  pesan dengan nama yang dikirim.
+  Dalam pengulangan ini, perintah `range` mengembalikan dua nilai: indeks dari
+  item dan salinan dari nilai item.
+  Karena kita tidak membutuhkan indeks, maka digunakan identifikasi kosong
+  ('_') untuk mengindahkannya.
+  Untuk informasi lebih lanjut tentang identifikasi kosong, lihat
+  link:/doc/effective_go.html#blank[pengidentifikasi kosong] dalam Efektif Go.
+--
+
+. Dalam "hello.go", ubah kode Anda menjadi seperti berikut.
++
+--
+----
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"example.com/greetings"
+)
+
+func main() {
+	// Set properti dari Logger, termasuk prefiks dan opsi untuk mematikan
+	// pencetakan waktu, sumber berkas, dan nomor baris.
+	log.SetPrefix("greetings: ")
+	log.SetFlags(0)
+
+	// Sebuah slice yang berisi nama-nama.
+	names := []string{"Gladys", "Samantha", "Darrin"}
+
+	// Panggil fungsi Hellos untuk mendapatkan pesan salam untuk setiap nama.
+	messages, err := greetings.Hellos(names)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Jika tidak ada eror, cetak map yang diterima dari ke layar.
+	fmt.Println(messages)
+}
+----
+
+Dalam perubahan ini, kita:
+
+* Membuat variabel `names` bertipe slice yang menyimpan tiga nama.
+* Mengirim variabel `names` sebagai argumen ke fungsi `Hellos`.
+--
+
+. Pada _terminal_, pindah lah ke direktori yang menyimpan "hello/hello.go",
+  kemudian jalankan "go run" untuk memastikan kode bekerja dengan benar.
++
+--
+Keluaran dari perintah tersebut harusnya representasi dari nama dan pesan
+salam, kurang lebih seperti berikut:
+
+----
+$ go run .
+map[Darrin:Hail, Darrin! Well met! Gladys:Hi, Gladys. Welcome! Samantha:Hail, Samantha! Well met!]
+----
+
+Topik kali ini memperkenalkan map yang merepresentasikan pasangan kunci dan
+nilai.
+Topik ini juga memperkenalkan ide tentang menjaga kompatibilitas dengan
+mengimplementasikan sebuah fungsi baru untuk fungsionalitas yang baru atau
+yang berubah dalam sebuah modul.
+Untuk informasi lebih lanjut tentang menjaga kompatibilitas, lihatlah
+link:/blog/module-compatibility[Menjaga modul tetap kompatibel].
+
+Selanjutnya, kita akan menggunakan fungsi bawaan Go untuk membuat sebuah unit
+tes dalam kode kita.
+
+Lanjut: link:/doc/tutorial/add-a-test/[Membuat sebuah tes]
+
+Sebelumnya: link:/doc/tutorial/randomg-greeting/[Mengambalikan salam acak]

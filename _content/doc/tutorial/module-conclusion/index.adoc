@@ -1,0 +1,17 @@
+= Kesimpulan
+
+Dalam tutorial ini, kita telah menulis fungsi-fungsi dipaketkan ke dalam dua
+modul: satu modul untuk fungsi mendapatkan ucapan salam (modul "greetings");
+dan satu modul yang memakai modul "greetings" tersebut (modul "hello").
+
+NOTE: Topik ini adalah bagian dari seri tutorial yang dimulai dengan
+link:/doc/tutorial/create-module/[Membuat sebuah Go modul^].
+
+Untuk informasi lebih lanjut tentang mengatur dependensi dalam kode, lihat lah
+link:/doc/modules/managing-dependencies/[Mengatur dependensi^].
+Untuk informasi lebih lanjut tentang pengembangan modul untuk dapat digunakan
+oleh orang lain, lihat
+link:/doc/modules/developing/[Mengembangkan dan menerbitkan modul^].
+
+Untuk pendahuluan tentang fitur-fitur dari bahasa Go, coba lah
+https://tour.golang-id.org/welcome/1[Tur Bahasa Go^].

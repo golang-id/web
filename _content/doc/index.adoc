@@ -26,6 +26,12 @@ Instruksi untuk mengunduh dan memasang Go.
 Tutorial singkat "Hello, world" untuk mulai dari awal.
 Mempelajari secara singkat tentang kode, perkakas, paket, dan modul pada Go.
 
+[#create-module-tutorial]
+===  link:/doc/tutorial/create-module/[Tutorial: Membuat sebuah modul]
+
+Sebuah tutorial tentang topik-topik singkat yang memperkenalkan fungsi,
+penanganan eror, array, map, unit tes, dan mengompilasi.
+
 [#code]
 ===  link:/doc/code.html[Cara menulis kode Go]
 

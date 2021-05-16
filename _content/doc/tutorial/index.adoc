@@ -1,0 +1,17 @@
+= Tutorial
+
+Jika Anda baru belajar tentang Go, bacalah tautan tutorial di bawah ini.
+
+Jika Anda belum pernah memasang Go sebelumnya, lihat
+link:/doc/install/[Unduh dan pasang^].
+
+link:/doc/tutorial/getting-started/[Go dari awal^]::
+  Membuat program "Hello, World!" dengan Go.
+
+link:/doc/tutorial/create-module/[Membuat sebuah modul Go^]::
+  Tutorial dengan beberapa langkah yang memperkenalkan fitur bahasa
+  pemrograman umum dari perspektif Go.
+
+https://tour.golang-id.org/welcome/1[Tur Go^]::
+  Pengenalan interaktif untuk Go: sintaksis dan struktur data dasar; method
+  dan interface; dan primitif konkurensi pada Go.

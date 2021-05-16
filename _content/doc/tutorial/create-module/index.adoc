@@ -1,0 +1,196 @@
+= Tutorial: Membuat sebuah Go modul
+:toc:
+:sectanchors:
+:sectlinks:
+
+Artikel ini adalah bagian pertama dari seri tutorial yang memperkenalkan
+beberapa fitur fundamental dari bahasa Go.
+Jika Anda baru saja memulai belajar Go, pastikan membaca
+link:/doc/tutorial/getting-started/[Tutorial: Go dari awal]
+terlebih dahulu,
+yang secara singkat mengenalkan perintah `go`, modul Go, dan kode Go.
+
+Dalam tutorial ini kita akan membuat dua modul.
+Modul yang pertama adalah sebuah pustaka yang mana nanti akan di-impor oleh
+pustaka atau aplikasi yang lain.
+Modul yang kedua adalah aplikasi yang akan menggunakan modul yang pertama.
+
+Seri tutorial ini mengikutkan tujuh topik yang tiap-tiapnya memaparkan bagian
+berbeda dari bahasa Go.
+
+. Membuat sebuah modul -- Menulis sebuah modul yang fungsi-fungsinya dapat
+  dipanggil dari modul lain.
+. link:/doc/tutorial/call-module-code/[Memanggil kode dari modul lain^] --
+  Impor dan gunakan modul yang baru.
+. link:/doc/tutorial/handle-errors/[Mengembalikan dan menangani eror^] --
+  Menambahkan penanganan eror sederhana.
+. link:/doc/tutorial/random-greeting/[Mengembalikan salam acak^] -- Penanganan
+  data dalam slice (array dengan ukuran dinamis pada Go).
+. link:/doc/tutorial/greetings-multiple-people/[Mengembalikan salam untuk
+  beberapa orang^] -- Menyimpan pasangan kunci-nilai dalam sebuah `map`.
+. link:/doc/tutorial/add-a-test[Membuat sebuah tes^] -- Penggunaan fitur
+  unit tes Go untuk menguji kode kita.
+. link:/doc/tutorail/compile-install/[Mengompilasi dan memasang aplikasi^] --
+  Mengompilasi dan memasang kode kita secara lokal.
+
+NOTE: Untuk tutorial lainnya, lihat link:/doc/tutorial/[Tutorial^].
+
+
+[#prerequisites]
+== Kebutuhan
+
+* *Pengalaman memrogram kode*.  Kode yang dicontohkan di sini cukup
+  sederhana, namun akan lebih membantu bila pembaca paham tentang fungsi,
+  pengulangan, dan array.
+* *Alat untuk menyunting kode*.  Penyunting teks apa pun dapat digunakan.
+  Kebanyakan penyunting teks memiliki dukungan untuk Go.
+  Yang paling terkenal yaitu VSCode (gratis), GoLand (berbayar), dan Vim
+  (gratis).
+* *Terminal*.  Go bekerja dengan baik menggunakan terminal apa pun di
+  Linux dan Mac, dan PowerShell atau `cmd` di Windows.
+
+
+[#start]
+== Membuat modul yang bisa digunakan orang lain
+
+Memulai dengan membuat sebuah Go modul.
+Dalam sebuah modul, kita mengumpulkan satu atau lebih paket untuk sekumpulan
+fungsi yang diskret dan berguna.
+Contohnya, kita bisa membuat sebuah modul untuk paket-paket yang memiliki
+fungsi-fungsi yang melakukan analisis finansial sehingga orang lain yang
+membuat aplikasi finansial dapat menggunakan karya kita.
+Untuk informasi lebih lanjut tentang pengembangan dengan modul, lihat
+link:/doc/modules/developing/[Membangun dan menerbitkan modul^].
+
+Kode Go dikelompokkan ke dalam paket-paket, dan paket-paket dikelompokkan ke
+dalam modul.
+Modul menspesifikasikan dependensi yang dibutuhkan untuk menjalankan semua
+kode dalam paket-paket, termasuk versi Go dan sekumpulan modul lain yang
+dibutuhkan.
+
+Saat kita menambahkan atau memperbaiki fungsionalitas dalam modul, kita
+menerbitkan versi terbaru dari modul.
+Pengembang lain yang memanggil fungsi dalam modul kita dapat meng-impor
+paket-paket yang diperbarui dari modul kita dan mengujinya dengan versi yang
+terbaru sebelum menggunakan untuk _production_.
+
+. Buka _terminal_ dan pindah (`cd`) ke direktori _home_.
++
+--
+Di Linux atau Mac:
+
+----
+cd
+----
+
+Di Windows:
+
+----
+cd %HOMEPATH%
+----
+--
+
+. Buat direktori "greetings" untuk menyimpan sumber kode Go.
++
+--
+Contohnya, dari dalam direktori _home_ jalankan perintah berikut:
+
+----
+mkdir greetings
+cd greetings
+----
+--
+
+. Buatlah Go modul menggunakan perintah link:/ref/mod#go-mod-init[`go mod
+  init`^]
++
+--
+Jalankan perintah "`go mod init`", dengan memberikan parameter path modul --
+pada contoh ini, gunakan "`example.com/greeting`".
+Jika Anda ingin menerbitkan modul, path modul ini haruslah _path_ yang bisa
+diunduh oleh perkakas Go, yaitu repositori kode Anda.
+
+----
+$ go mod init example.com/greetings
+go: creating new go.mod: module example.com/greetings
+----
+
+Perintah "`go mod init`" membuat sebuah berkas `go.mod` untuk melacak
+dependensi dari kode Anda.
+Sejauh ini, berkas tersebut mengikutkan hanya nama dari modul dan versi Go
+yang didukung oleh kode Anda.
+Namun, saat Anda menambahkan dependensi, berkas go.mod tersebut akan berisi
+daftar modul orang lain berikut versinya yang kode Anda butuhkan.
+Hal ini membuat pembangunan dari kode Anda dapat direka-ulang dan memberikan
+Anda kontrol penuh terhadap versi modul yang digunakan.
+--
+
+. Dalam direktori "greetings" tersebut, buatlah sebuah berkas untuk menyimpan
+  kode Go dengan nama "greetings.go".
+
+. Salin lah kode berikut ke dalam berkas "greetings.go" dan simpan.
++
+--
+----
+package greetings
+
+import "fmt"
+
+// Hello mengembalikan sebuah salam untuk nama orang tertentu.
+func Hello(name string) string {
+	// Kembalikan sebuah salam yang berisi `name` dalam sebuah pesan.
+	message := fmt.Sprintf("Hi, %v. Welcome!", name)
+	return message
+}
+----
+
+Ini adalah kode pertama Anda dalam modul.
+Ia berisi sebuah fungsi `Hello` yang mengembalikan sebuah salam untuk setiap
+pemanggilan.
+Kita akan menulis kode yang memanggil fungsi tersebut di langkah selanjutnya.
+
+Dalam kode ini, kita:
+
+* Mendeklarasikan sebuah paket bernama "`greetings`" yang berisi fungsi-fungsi
+  yang berkaitan dengan salam.
+* Mengimplementasikan sebuah fungsi `Hello` yang mengembalikan sebuah pesan
+  salaman.
++
+--
+Fungsi ini menerima sebuah parameter `name` bertipe string.
+Fungsi ini mengembalikan sebuah string.
+Dalam Go, sebuah fungsi yang namanya diawali dengan huruf kapital dapat
+dipanggil oleh fungsi dari paket yang berbeda.
+Dalam Go hal ini dikenal dengan nama yang diekspor.
+Untuk lebih lanjut tentang nama-nama yang diekspor, lihat
+https://tour.golang-id.org/basics/3[Nama-nama yang diekspor]
+dalam tur Go.
+
+image:/doc/tutorial/create-module/function-syntax.png[]
+--
+
+* Mendeklarasikan sebuah variabel `message` yang menyimpan salam.
++
+--
+Dalam Go, operator `:=` adalah cara singkat untuk mendeklarasikan dan
+menginisiasi sebuah variabel dalam satu baris (Go menggunakan nilai pada
+sebelah kanan untuk menentukan tipe dari variabel).
+Cara panjangnya, bisa ditulis seperti berikut:
+
+----
+var message string
+message = fmt.Sprintf("Hi, %v. Welcome!", name)
+----
+--
+
+* Menggunakan https://pkg.go.dev/fmt/#Sprintf[fungsi Sprintf] dari paket `fmt`
+  untuk membuat pesan salaman yang disimpan dalam `message`.
+  Argumen yang pertama dari fungsi tersebut yaitu format dari string, dan
+  `Sprintf` akan mengganti format "`%v`" dengan nilai dari parameter `name`.
+
+* Mengembalikan teks salam yang telah di-format ke pemanggil.
+--
+
+Pada langkah selanjutnya, kita akan memanggil fungsi ini dari modul yang lain.
+
+Lanjut: link:/doc/tutorial/call-module-code/[Memanggil kode dari modul lain].

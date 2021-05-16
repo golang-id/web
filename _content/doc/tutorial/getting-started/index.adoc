@@ -16,7 +16,7 @@ NOTE: Untuk tutorial lainnya, lihat link:/doc/tutorial/[Tutorial].
 [#prerequisites]
 == Kebutuhan
 
-* *Pengalaman pemrograman kode*.  Kode yang dicontohkan di sini cukup
+* *Pengalaman memprogram kode*.  Kode yang dicontohkan di sini cukup
   sederhana, namun akan lebih membantu bila pembaca paham tentang fungsi pada
   pemrograman.
 * *Alat untuk menyunting kode*.  Penyunting teks apa pun dapat digunakan.
