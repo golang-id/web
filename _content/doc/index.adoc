@@ -1,5 +1,4 @@
 =  Dokumentasi
-:en-cmd-go: https://golang.org/cmd/go/
 
 Bahasa pemrograman Go adalah proyek _open source_ untuk menjadikan pemrograman
 lebih produktif.
@@ -13,16 +12,21 @@ kenyamanan _garbage collection_ dan refleksi _run-time_ yang tangguh.
 Go adalah bahasa pemrograman dengan tipe statis namun berasa seperti bertipe
 dinamis.
 
+[#getting-started]
+==  Memulai dari awal
 
-==  Memasang Go
+[#installing]
+===  link:/doc/install[Memasang Go^]
 
-===  link:/doc/install[Memulai dari awal]
+Instruksi untuk mengunduh dan memasang Go.
 
-Instruksi untuk mengunduh dan memasang _compiler_, peralatan, dan pustaka dari
-Go.
+[#code]
+===  link:/doc/code.html[Cara menulis kode Go]
 
-[#learning]
-==  Belajar Go
+Dokumen ini menjelaskan cara mengembangkan sejumlah kecil paket Go dalam
+sebuah modul, dan juga menjelaskan cara menggunakan
+link:/cmd/go/[go program^]
+untuk membangun dan menjalankan tes pada paket.
 
 [#go_tour]
 ===  https://tour.golang-id.org[Tur Bahasa Pemrograman Go]
@@ -41,19 +45,8 @@ Perintah di atas akan membuat sebuah program bernama `tour` di dalam direktori
 `bin` di ruang-kerja anda.
 
 
-[#code]
-===  link:/doc/code.html[Cara menulis kode Go]
-
-Dokumen ini menjelaskan cara menggunakan program {en-cmd-go}[go] untuk
-mengambil, membuat, dan memasang paket-paket, program, dan menjalankan tes.
-
-
-[#editors]
-===  link:/doc/editors.html[Plugin untuk editor dan IDE]
-
-Dokumen yang berisi _plugin_ untuk _editor_ dan _IDE_ yang umum digunakan,
-yang mendukung Go.
-
+[#learning]
+==  Menggunakan dan memahami Go
 
 [#effective_go]
 ===  link:/doc/effective_go.html[Efektif Go]
@@ -64,6 +57,11 @@ Sebuah tulisan yang harus dibaca bagi yang baru memprogram Go.
 Dokumen ini menggabungkan spesifikasi bahasa dan tur, yang mana keduanya
 sebaiknya dibaca terlebih dahulu.
 
+[#editors]
+===  link:/doc/editors.html[Plugin untuk editor dan IDE]
+
+Dokumen yang berisi _plugin_ untuk _editor_ dan _IDE_ yang umum digunakan,
+yang mendukung Go.
 
 [#diagnostics]
 ===  link:/doc/diagnostics.html[Diagnostik]
