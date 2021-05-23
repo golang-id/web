@@ -124,6 +124,9 @@
    interface pada Go^],
    25 Mei 2011.  Rob Pike.
 
+*  link:/blog/introducing-gofix/[Memperkenalkan gofix^],
+   15 April 2011.  Russ Cox.
+
 *  link:/blog/godoc/[godoc: Mendokumentasikan kode Go^],
    31 Maret 2011.  Andrew Gerrand.
 

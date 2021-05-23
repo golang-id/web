@@ -1,0 +1,124 @@
+= Memperkenalkan gofix
+Russ Cox
+15 April 2011
+
+Rilis Go berikutnya akan mengikutkan perubahan API yang signifikan pada
+beberapa paket Go yang fundamental.
+Kode yang mengimplementasikan
+https://codereview.appspot.com/4239076[penanganan server HTTP^],
+https://codereview.appspot.com/4244055[pemanggilan `net.Dial`^],
+atau
+https://codereview.appspot.com/4281055[penggunaan paket "reflect"^]
+tidak akan bisa dibangun kecuali diperbarui menggunakan API yang baru.
+Semenjak rilis kita
+https://blog.golang.org/2011/03/go-becomes-more-stable.html[lebih stabil dan jarang^],
+situasi seperti ini akan lebih sering terjadi.
+Setiap perubahan API ini terjadi pada _snapshot_ Go di minggu yang berbeda;
+bersamaan, mereka merepresentasikan sejumlah perubahan manual yang signifikan
+untuk memperbarui kode yang sudah ada.
+
+link:/cmd/fix/[Gofix^] adalah sebuah perkakas baru yang mengurangi jumlah
+pekerjaan untuk memperbarui kode.
+Ia membaca berkas sumber kode, mencari penggunaan API yang lama, menulis ulang
+sumber kode tersebut supaya menggunakan API yang baru.
+Tidak semua perubahan API menjaga fungsionalitas dari API yang lama, jadi
+gofix tidak selalu bekerja dengan sempurna.
+Saat gofix tidak dapat menulis ulang API yang lama, ia akan melaporkan
+peringatan tersebut dengan mencetak nama berkas dan nomor baris pada kode
+lama, supaya pengembang dapat memeriksa dan menulis ulang kode secara manual.
+Gofix mengerjakan perubahan yang gampang, repetitif, dan memakan waktu,
+sehingga pengembang dapat fokus pada perubahan yang membutuhkan perhatian
+saja.
+
+Setiap kali kita membuat perubahan API yang signifikan kita akan memperbarui
+kode pada gofix untuk melakukan konversi, sebanyak mungkin.
+Saat Anda memperbarui Go ke rilis yang baru and kode Anda tidak lagi bisa
+dibangun, cukup jalankan gofix pada direktori sumber kode Anda.
+
+Anda dapat mengembangkan gofix untuk mendukung perubahan pada API Anda
+sendiri.
+Program gofix adalah sebuah pustaka sederhana yang membungkus _plugin_ bernama
+"fixes" yang menangani perubahan API tertentu.
+Saat ini, menulis sebuah perbaikan yang baru membutuhkan pemindaian dan
+penulisan sintaksis "go/ast", biasanya sebanding dengan seberapa kompleks
+perubahan API yang terjadi.
+Jika Anda ingin mengeksplorasi,
+https://go.googlesource.com/go/+/go1/src/cmd/fix/netdial.go[netdialFix^],
+https://go.googlesource.com/go/+/go1/src/cmd/fix/osopen.go[osopenFix^],
+https://go.googlesource.com/go/+/go1/src/cmd/fix/httpserver.go[httpserverFix^],
+dan
+https://go.googlesource.com/go/+/go1/src/cmd/fix/reflect.go[reflectFix^]
+memberikan contoh-contoh yang berguna.
+
+Tentu saja, kami menulis kode Go juga, dan kode kami dipengaruhi oleh
+perubahan API tersebut seperti halnya Anda.
+Biasanya, kami menulis dukungan gofix bersamaan dengan perubahan API dan
+kemudian menggunakan gofix untuk menulis ulang kode dalam sumber kode utama.
+Kami menggunakan gofix untuk memperbarui basis kode Go lain dan proyek-proyek
+pribadi.
+Kami bahkan menggunakan gofix untuk memperbarui sumber kode internal pada
+Google saat waktunya membangun dengan rilis Go yang baru.
+
+Sebagai contohnya, gofix dapat menulis ulang kode seperti
+http://codereview.appspot.com/4353043/diff/10001/src/pkg/fmt/print.go#newcode657[potongan
+kode dari "fmt/print.go"^]:
+
+----
+switch f := value.(type) {
+case *reflect.BoolValue:
+	p.fmtBool(f.Get(), verb, field)
+case *reflect.IntValue:
+	p.fmtInt64(f.Get(), verb, field)
+	// ...
+case reflect.ArrayOrSliceValue:
+	// Byte slices are special.
+	if f.Type().(reflect.ArrayOrSliceType).Elem().Kind() == reflect.Uint8 {
+		// ...
+	}
+	// ...
+}
+----
+
+untuk mengadopsi API "reflect" yang baru:
+
+----
+switch f := value; f.Kind() {
+case reflect.Bool:
+	p.fmtBool(f.Bool(), verb, field)
+case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	p.fmtInt64(f.Int(), verb, field)
+	// ...
+case reflect.Array, reflect.Slice:
+	// Byte slices are special.
+	if f.Type().Elem().Kind() == reflect.Uint8 {
+		// ...
+	}
+	// ...
+}
+----
+
+Hampir semua baris di atas berubah dengan cara yang berbeda.
+Perubahan yang baru sangat banyak namun hampir semuanya bersifat mekanis,
+bentuk perubahan yang sangat baik ditangani oleh komputer.
+
+Gofix memungkinkan karena Go memiliki pustaka standar untuk
+https://golang.org/pkg/go/parser[mengurai berkas sumber Go menjadi pohon
+sintaksis^]
+dan juga untuk
+https://golang.org/pkg/go/printer[menulis pohon sintaksis tersebut kembali
+menjadi sumber kode Go^].
+Yang paling penting, pustaka penulisan Go menulis kode dalam format resmi
+(yang biasanya dilakukan perkakas gofmt), membolehkan gofix untuk membuat
+perubahan bersifat mekanis terhadap Go program tanpa menyebabkan perubahan
+format yang beragam.
+Faktanya, salah satu motivasi dari membuat perkakas gofmt -- selain
+menghindari debat tentang posisi kurung buka -- yaitu untuk menyederhanakan
+pembuatan perkakas yang menulis program Go, seperti yang gofix lakukan.
+
+Gofix menjadi tidak tergantikan.
+Khususnya, perubahan terbaru pada "reflect" akan sangat tidak menyenangkan
+bila tidak ada konversi otomatis.
+Gofix memberikan kami kemampuan untuk memperbaiki kesalahan atau sepenuhnya
+menulis ulang kembali API pada paket tanpa perlu khawatir dengan biaya (waktu
+dan tenaga) mengonversi kode yang sudah ada.
+Kami berharap gofix berguna dan cocok bagi Anda.
