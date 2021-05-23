@@ -92,6 +92,9 @@
 *  link:/blog/maps/[Go map^],
    6 Februari 2013.  Andrew Gerrand.
 
+*  link:/blog/gofmt/[Go fmt kode Anda],
+   23 Januari 2013.  Andrew Gerrand.
+
 === 2012
 
 *  link:/blog/organizing-go-code/[Mengorganisasi kode Go^],

@@ -1,0 +1,133 @@
+= Go fmt kode Anda
+Andrew Gerrand
+23 Januari 2013
+
+==  Pendahuluan
+
+link:/cmd/gofmt/[Gofmt^] adalah sebuah perkakas yang secara otomatis
+memformat sumber kode Go.
+
+Kode yang menggunakan `gofmt`:
+
+* mudah untuk ditulis: tidak perlu khawatir tentang masalah format saat
+  menulis kode
+* mudah untuk dibaca: saat semua kode tampak sama, kita tidak perlu terlalu
+  berpikir mengonversi gaya format orang lain ke bentuk yang kita pahami.
+* mudah di rawat: perubahan mekanis terhadap kode tidak menyebabkan perubahan
+  lain yang tidak berkaitan dengan format isi berkas; perkakas _diff_
+  (yang membantu melihat perubahan sebelum dan sesudah)
+  memperlihatkan hanya yang berubah.
+* tidak kontroversial: tidak perlu debat tentang spasi atau posisi kurung buka
+  lagi!
+
+
+== Memformat kode Anda
+
+Kita baru-baru ini melakukan survei terhadap paket-paket Go di luar sana
+dan menemukan bahwa 70% telah di-format menurut aturan-aturan `gofmt`.
+Hal ini lebih baik dari yang diduga -- dan terima kasih kepada semua orang
+yang menggunakan gofmt -- tapi akan lebih bagus bila sisanya juga demikian.
+
+Untuk mem-format kode Go, Anda dapat menggunakan perkakas `gofmt`:
+
+----
+gofmt -w yourcode.go
+----
+
+atau menggunakan perintah
+link:/cmd/go/#hdr-Gofmt__reformat__package_sources["go fmt"^]:
+
+----
+go fmt path/to/your/package
+----
+
+Untuk menjaga kode Anda supaya tetap dengan gaya kanonis, repositori Go
+menyediakan pendukung untuk _editor_ dan sistem kontrol versi yang mempermudah
+menjalankan gofmt pada kode Anda.
+
+Bagi pengguna Vim,
+https://github.com/fatih/vim-go[plugin Vim untuk Go^] memiliki perintah `:Fmt`
+yang menjalankan `gofmt` pada _buffer_ yang sekarang.
+
+Bagi pengguna emacs,
+https://github.com/dominikh/go-mode.el[go-mode.el^]
+menyediakan sebuah pembantu gofmt-before-save yang dapat dipasang dengan
+menambahkan baris berikut ke berkas .emacs:
+
+----
+(add-hook 'before-save-hook #'gofmt-before-save)
+----
+
+Bagi pengguna Eclipse atau Sublime Text, proyek
+https://github.com/GoClipse/goclipse[GoClipse^] dan
+https://github.com/DisposaBoy/GoSublime[GoSublime^]
+menambah fasilitas gofmt ke penyunting tersebut.
+
+Dan untuk pengguna Git, skrip
+https://github.com/golang/go/blob/release-branch.go1.1/misc/git/pre-commit[misc/git/pre-commit^]
+adalah pembantu pra-__commit__ yang menjaga supaya kode Go yang salah format
+tidak ter-__commit__.
+Jika Anda pengguna Mercurial,
+https://bitbucket.org/fhs/hgstyle/overview[pembantu hgstyle^]
+menyediakan pembantu pra-__commit__ untuk gofmt.
+
+
+== Mekanisme transformasi sumber
+
+Salah satu keunggulan dari kode yang diformat-mesin yaitu ia dapat
+ditransformasi secara mekanis tanpa menyebabkan gangguan format yang tidak
+berkaitan pada saat _diff_.
+Transformasi mekanis sangat berguna saat bekerja dalam basis kode yang besar,
+karena ia lebih komprehensif dan jarang gagal daripada membuat perubahan
+secara manual.
+Tentu saja, saat bekerja pada skala yang besar (seperti yang kami lakukan di
+Google) sangatlah tidak praktis melakukan perubahan seperti itu secara manual.
+
+Cara paling mudah mengubah kode Go yaitu dengan opsi `-r` pada perintah
+"gofmt".
+Opsi tersebut menentukan aturan penggantian dalam bentuk:
+
+----
+pola -> pengganti
+----
+
+yang mana "pola" dan "pengganti" adalah ekspresi Go yang valid.
+Pada "pola", huruf kecil tunggal berfungsi sebagai _wildcard_ yang menerima
+sub-ekspresi apa pun, dan ekspresi tersebut akan diganti dengan
+pengidentifikasi yang sama pada bagian "pengganti".
+
+Misalnya,
+https://golang.org/cl/7038051[perubahan terbaru^]
+pada sumber kode Go menulis ulang penggunaan
+https://golang.org/pkg/bytes/#Compare[`bytes.Compare`^]
+dengan menggunakan fungsi
+https://golang.org/pkg/bytes/#Equal[`bytes.Equal`^]
+yang lebih efisien.
+Kontributor membuat perubahan tersebut menggunakan pemanggilan `gofmt` dua
+kali:
+
+----
+gofmt -r 'bytes.Compare(a, b) == 0 -> bytes.Equal(a, b)'
+gofmt -r 'bytes.Compare(a, b) != 0 -> !bytes.Equal(a, b)'
+----
+
+Gofmt juga mengaktifkan
+link:/cmd/fix/[`gofix`^],
+yang dapat membantu transformasi sumber kode yang kompleks.
+Gofix adalah perkakas yang sangat berguna selama masa-masa awal saat kami
+sering membuat perubahan yang besar terhadap bahasa dan pustaka.
+Misalnya, sebelum Go 1 interface error bawaan belum ada dan konvensinya adalah
+menggunakan tipe `os.Error`.
+Saat kami
+https://golang.org/doc/go1.html#errors[memperkenalkan "error"^],
+kita menyediakan modul gofix yang menulis ulang semua penggunaan `os.Error`
+berikut dengan fungsi-fungsi pembantu lainnya supaya menggunakan `error` dan
+https://golang.org/pkg/errors/[paket "errors"^]
+yang baru.
+Akan sangat lama dan sukar apabila hal ini dilakukan secara manual,
+namun dengan kode yang sudah di-format akibatnya perubahan yang hampir
+menyentuh semua kode Go tersebut mudah untuk disiapkan, dieksekusi, dan
+ditinjau.
+
+Untuk informasi lebih lanjut tentang gofix, lihat
+link:/blog/introducing-gofix/[artikel berikut^].
