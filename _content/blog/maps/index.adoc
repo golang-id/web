@@ -1,0 +1,354 @@
+= Go map
+Andrew Gerrand
+6 Februari 2013
+:toc:
+
+==  Pendahuluan
+
+Salah satu struktur data paling berguna dalam ilmu komputer adalah tabel
+_hash_.
+Kebanyakan implementasi tabel _hash_ memiliki banyak properti, tetapi secara
+umum mereka memiliki kecepatan pencarian, penambahan, dan penghapusan.
+Go menyediakan tipe map bawaan yang mengimplementasikan sebuah tabel _hash_.
+
+==  Deklarasi dan inisiasi
+
+Sebuah tipe map pada Go bentuknya seperti berikut:
+
+----
+map[TipeKey]TipeNilai
+----
+
+yang mana `TipeKey` bisa tipe apa saja yang dapat
+link:/ref/spec#Comparison_operators[dibandingkan^]
+(lebih lanjut akan kita bahas nanti), dan `TipeNilai` yang bisa bertipe apa
+pun, termasuk map juga!
+
+Variabel `m` berikut adalah sebuah map dengan kunci bertipe `string` dan
+nilai bertipe `int`:
+
+----
+var m map[string]int
+----
+
+Tipe map adalah tipe referensi, seperti pointer atau slice, sehingga nilai
+dari variabel `m` di atas adalah `nil`;
+ia tidak menunjuk ke map yang telah diinisiasi.
+Sebuah map yang `nil` bersifat seperti map kosong saat pembacaan, namun
+mencoba menulis ke sebuah map yang `nil` akan menyebabkan _panic_;
+maka dari itu jangan pernah melakukan penulisan ke map yang belum diinisiasi.
+Untuk menginisiasi map, gunakan fungsi bawaan `make`:
+
+----
+m = make(map[string]int)
+----
+
+Fungsi `make` membuat alokasi dan menginisiasi sebuah struktur data map _hash_
+dan mengembalikan sebuah nilai map yang menunjuk ke _hash_ tersebut.
+Spesifikasi dari struktur data tersebut adalah detail implementasi dari
+_runtime_.
+Dalam artikel ini kita akan fokus pada penggunaan map, bukan implementasinya.
+
+
+==  Menggunakan map
+
+Go menyediakan sintaksis umum untuk bekerja dengan map.
+Perintah berikut men-set kunci "route" untuk nilai `66`:
+
+----
+m["route"] = 66
+----
+
+Perintah berikut mengambil nilai yang disimpan dengan kunci "route" dan
+menyimpannya dalam sebuah variabel baru:
+
+----
+i := m["route"]
+----
+
+Jika kunci tidak ada, kita akan mendapatkan sebuah nilai kosong.
+Pada kasus ini secara tipe dari nilai adalah `int`, maka nilai kosongnya
+adalah 0:
+
+----
+j := m["root"]
+// j == 0
+----
+
+Fungsi bawaan `len` mengembalikan jumlah item dalam sebuah map:
+
+----
+n := len(m)
+----
+
+Fungsi bawaan `delete` menghapus sebuah item dalam map:
+
+----
+delete(m, "route")
+----
+
+Fungsi `delete` tidak mengembalikan nilai, dan akan tetap sukses bila kunci
+yang diberikan tidak ada dalam map.
+
+Penempatan dua-nilai memeriksa keberadaan dari sebuah kunci:
+
+----
+i, ok := m["route"]
+----
+
+Pada perintah tersebut, nilai yang pertama (`i`) diisi dengan nilai yang
+disimpan dalam kunci "route".
+Jika kunci tersebut tidak ada, maka nilai `i` akan kosong (0).
+Nilai yang kedua (`ok`) adalah sebuah tipe `bool` yang akan `true` jika kunci
+ada dalam map, dan `false` jika tidak ada.
+
+Untuk memeriksa sebuah kunci ada atau tidak tanpa mengambil nilainya, gunakan
+karakter garis-bawah pada nilai pertama:
+
+----
+_, ok := m["route"]
+----
+
+Untuk mengiterasi isi dari sebuah map, gunakan `range`:
+
+----
+for key, value := range m {
+	fmt.Println("Key:", key, "Value:", value)
+}
+----
+
+Untuk menginisiasi map dengan beberapa data, gunakan literal map:
+
+----
+commits := map[string]int{
+	"rsc": 3711,
+	"r":   2138,
+	"gri": 1908,
+	"adg": 912,
+}
+----
+
+Sintaksis yang sama dapat digunakan untuk menginisiasi map kosong, yang secara
+fungsionalitas identik dengan fungsi `make`:
+
+----
+m = map[string]int{}
+----
+
+
+== Eksploitasi nilai kosong
+
+Telah kita ketahui bahwa pembacaan sebuah nilai dengan kunci yang tidak ada
+pada map akan mengembalikan sebuah nilai kosong.
+
+Misalnya, sebuah map dengan nilai boolean dapat digunakan untuk struktur data
+_set_ (ingatlah bahwa nilai kosong dari tipe boolean adalah `false`).
+Contoh berikut mengiterasi _linked list_ dari `Node` dan mencetak nilainya.
+Ia menggunakan sebuah map dengan kunci berupa pointer ke Node untuk memeriksa
+apakah Node pernah dikunjungi dari dalam daftar.
+
+----
+type Node struct {
+	Next  *Node
+	Value interface{}
+}
+var first *Node
+
+visited := make(map[*Node]bool)
+for n := first; n != nil; n = n.Next {
+	if visited[n] {
+		fmt.Println("cycle detected")
+		break
+	}
+	visited[n] = true
+	fmt.Println(n.Value)
+}
+----
+
+Ekspresi `visited[n]` bernilai `true` jika `n` pernah dikunjungi, atau `false`
+jika `n` tidak ada.
+Tidak perlu menggunakan bentuk penempatan dua-nilai untuk memeriksa keberadaan
+`n` dalam map;
+nilai kosong bawaan dari tipe `bool` telah melakukan hal tersebut.
+
+Contoh penggunaan nilai kosong lainnya yaitu map dari slice.
+Menambahkan sebuah item ke dalam slice yang nil akan mengalokasikan slice yang
+baru, sehingga cukup satu baris untuk menambahkan sebuah nilai ke dalam sebuah
+map dari slice;
+tidak perlu memeriksa apakah kunci ada atau tidak.
+Pada contoh berikut, variabel slice `people` diisi dengan nilai `Person`.
+Setiap `Person` memiliki `Name` dan slice `Likes`.
+Contoh ini membuat sebuah map untuk mengasosiasikan setiap _like_ dengan
+daftar orang yang menyukainya.
+
+----
+type Person struct {
+	Name  string
+	Likes []string
+}
+var people []*Person
+
+likes := make(map[string][]*Person)
+for _, p := range people {
+	for _, l := range p.Likes {
+		likes[l] = append(likes[l], p)
+	}
+}
+----
+
+Untuk mencetak daftar orang yang menyukai "cheese":
+
+----
+for _, p := range likes["cheese"] {
+	fmt.Println(p.Name, "likes cheese.")
+}
+----
+
+Untuk mencetak jumlah orang yang menyukai "bacon":
+
+----
+fmt.Println(len(likes["bacon"]), "people like bacon.")
+----
+
+Ingat lah bahwa secara `range` dan `len` menganggap slice yang nil sebagai
+slice dengan panjang 0, kedua contoh tersebut akan berjalan walaupun tidak ada
+orang (dalam variabel `people`) yang menyukai "cheese" atau "bacon".
+
+
+== Tipe-tipe kunci dari map
+
+Seperti yang dibahas sebelumnya, kunci dari map bisa berupa tipe apa pun yang
+dapat dibandingkan.
+link:/ref/spec#Comparison_operators[Spesifikasi bahasa^]
+mendefinisikan hal ini lebih jelas, namun singkatnya, tipe-tipe yang dapat
+dibandingkan yaitu boolean, numeric, string, pointer, channel, interface, dan
+struct atau array yang berisi hanya tipe tersebut.
+Berarti tipe yang tidak dapat dibandingkan yaitu slice, map, dan fungsi;
+tipe-tipe tersebut tidak dapat dibandingkan lewat operator `==`, dan tidak
+bisa digunakan sebagai kunci dari map.
+
+Kalau tipe seperti string, int, dan tipe dasar lainnya cukup jelas kenapa bisa
+digunakan sebagai kunci dari map, namun yang mungkin kurang jelas adalah
+penggunakan struct sebagai kunci.
+Struct dapat digunakan sebagai kunci data dengan banyak dimensi.
+Contohnya, map dari map berikut dapat digunakan untuk menghitung kunjungan
+halaman web berdasarkan negara:
+
+----
+hits := make(map[string]map[string]int)
+----
+
+Map tersebut yaitu map dari string ke (map dari string ke int).
+Kunci dari map bagian luar adalah path ke sebuah halaman web dengan nilainya
+adalah sebuah map sendiri.
+Kunci dari map bagian dalam adalah dua-huruf kode negara dengan nilai dari map
+yaitu jumlah kunjungan.
+Ekspresi berikut mengambil jumlah kunjungan halaman "/doc" dari negara
+Australia:
+
+----
+n := hits["/doc/"]["au"]
+----
+
+Sayangnya, pendekatan seperti ini menjadi sukar pada saat menambah data,
+untuk setiap kunci bagian luar, kita harus memeriksa apakah map bagian dalam
+telah diinisiasi atau belum, dan menginisiasi-nya bila diperlukan:
+
+----
+func add(m map[string]map[string]int, path, country string) {
+	mm, ok := m[path]
+	if !ok {
+		mm = make(map[string]int)
+		m[path] = mm
+	}
+	mm[country]++
+}
+add(hits, "/doc/", "au")
+----
+
+Di sisi lain, pendekatan dengan menggunakan struct sebagai kunci mempermudah
+semua hal tersebut:
+
+----
+type Key struct {
+	Path, Country string
+}
+
+hits := make(map[Key]int)
+----
+
+Saat seseorang dari Vietnam mengunjungi halaman depan ("/"), meningkatkan
+nilai (dan juga membuat nilai baru) penghitung menjadi satu-baris saja:
+
+----
+hits[Key{"/", "vn"}]++
+----
+
+Begitu juga, cukup mudah untuk melihat berapa banyak orang dari Swiss yang
+telah membaca halaman spesifikasi ("/ref/spec"):
+
+----
+n := hits[Key{"/ref/spec", "ch"}]
+----
+
+
+== Konkurensi
+
+link:/doc/faq#atomic_maps[Map tidak aman digunakan secara konkuren^]:
+tidak didefinisikan apa yang akan terjadi bila kita membaca dan menulis pada
+map yang sama secara simultan.
+Jika kita harus membaca dan menulis ke sebuah map dari goroutine yang berbeda,
+akses ke map tersebut harus di-mediasi oleh sebuah mekanisme sinkronisasi.
+Salah satu cara umum untuk melindungi map yaitu dengan
+https://golang.org/pkg/sync/#RWMutex[sync.RWMutex^].
+
+Perintah berikut mendeklarasikan sebuah variabel `counter` bertipe struct
+anonim yang berisi sebuah map dan menanam `sync.RWMutex`.
+
+----
+var counter = struct{
+	sync.RWMutex
+	m map[string]int
+}{m: make(map[string]int)}
+----
+
+Untuk membaca dari nilai map dari `counter`, gunakan pengunci baca:
+
+----
+counter.RLock()
+n := counter.m["some_key"]
+counter.RUnlock()
+fmt.Println("some_key:", n)
+----
+
+Untuk menulis ke `counter`, gunakan pengunci tulis:
+
+----
+counter.Lock()
+counter.m["some_key"]++
+counter.Unlock()
+----
+
+
+== Urutan iterasi
+
+Saat mengiterasi sebuah map lewat pengulangan `range`, urutan iterasi tidak
+menentu dan tidak dijamin sama dari satu iterasi ke iterasi selanjutnya.
+Jika Anda membutuhkan iterasi yang stabil, Anda harus menyimpan sebuah
+struktur data terpisah yang menentukan urutan kunci.
+Contoh berikut menggunakan slice sebagai urutan kunci untuk mencetak sebuah
+`map[int]string` secara terurut:
+
+----
+import "sort"
+
+var m map[int]string
+var keys []int
+for k := range m {
+	keys = append(keys, k)
+}
+sort.Ints(keys)
+for _, k := range keys {
+	fmt.Println("Key:", k, "Value:", m[k])
+}
+----

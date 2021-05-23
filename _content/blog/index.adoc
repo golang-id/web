@@ -89,6 +89,9 @@
 *  link:/blog/race-detector[Memperkenalkan pendeteksi _data race_^],
    26 Juni 2013. Dmitry Vyukov dan Andrew Gerrand.
 
+*  link:/blog/maps/[Go map^],
+   6 Februari 2013.  Andrew Gerrand.
+
 === 2012
 
 *  link:/blog/organizing-go-code/[Mengorganisasi kode Go^],
