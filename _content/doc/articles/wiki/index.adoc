@@ -1,0 +1,856 @@
+= Membuat aplikasi web
+:toc:
+
+==  Pendahuluan
+
+Dalam tutorial ini kita akan belajar tentang:
+
+* Membuat sebuah struktur data dengan method-method untuk membaca dan
+  menyimpan data
+* Menggunakan paket `net/http` untuk membangun aplikasi web
+* Menggunakan paket `html/template` untuk memroses templat HTML
+* Menggunakan paket `regexp` untuk validasi input dari pengguna
+* Menggunakan _closure_
+
+Pengetahuan yang diperlukan:
+
+* Pengalaman pemrograman
+* Pemahaman dari dasar teknologi web (HTTP, HTML)
+* Pengetahuan tentang perintah pada UNIX/DOS
+
+
+==  Memulai
+
+Untuk memulai, kita membutuhkan mesin FreeBSD, Linux, OS X, atau Windows
+supaya dapat menjalankan Go.
+Kita akan menggunakan `$` untuk merepresentasikan baris perintah.
+
+Pasanglah Go (lihat link:/doc/install/[Instruksi Pemasangan^]).
+
+Buatlah sebuah direktori baru untuk tutorial ini di dalam GOPATH Anda dan
+pindah lah ke sana:
+
+----
+$ mkdir gowiki
+$ cd gowiki
+----
+
+Buat sebuah berkas bernama `wiki.go`, sunting dengan menambahkan baris
+berikut:
+
+----
+package main
+
+import (
+	"fmt"
+	"io/ioutil"
+)
+----
+
+Kita mengimpor paket `fmt` dan `ioutil` dari pustaka standar Go.
+Nanti, saat kita mengimplementasikan fungsionalitas, kita akan menambahkan
+paket lain ke dalam deklarasi impor tersebut.
+
+
+==  Struktur Data
+
+Mari kita mulai dengan mendefinisikan struktur data.
+Sebuah wiki terdiri dari sekumpulan halaman yang saling terhubung, setiap
+halaman memiliki sebuah judul dan isi.
+Di sini, kita definisikan `Page` sebagai sebuah struct dengan dua _field_ yang
+merepresentasikan judul (`Title`) dan isi (`Body`).
+
+----
+type Page struct {
+	Title string
+	Body  []byte
+}
+----
+
+Tipe `[]byte` artinya "potongan byte". (Lihat
+link:/blog/go-slices-usage-and-internals/[Slice: penggunaan dan internal^]
+untuk informasi lebih lanjut tentang slice).
+Elemen dari Body adalah `[]byte` bukan `string` karena tipe tersebut yang
+diharapkan oleh pustaka `io` yang akan kita gunakan, seperti yang dapat kita
+lihat di bawah.
+
+Struct `Page` menjelaskan bagaimana data dari sebuah halaman disimpan dalam
+memori.
+Lalu bagaimana dengan penyimpanan yang permanen?
+Kita dapat menyelesaikan masalah tersebut dengan membuat method `save` pada
+struct `Page`:
+
+----
+func (p *Page) save() error {
+	filename := p.Title + ".txt"
+	return ioutil.WriteFile(filename, p.Body, 0600)
+}
+----
+
+Method tersebut dibaca: "Method ini bernama `save` dengan penerima `p`, sebuah
+pointer ke `Page`.
+Ia tidak menerima parameter, dan mengembalikan sebuah nilai bertipe error."
+
+Method tersebut akan menyimpan `Body` (isi) dari `Page` (halaman) ke dalam
+berkas.
+Untuk memudahkan, kita akan menggunakan `Title` (judul) sebagai nama berkas.
+
+Method `save` mengembalikan sebuah nilai `error` dari fungsi `WriteFile`
+(fungsi dari pustaka standar yang menulis slice byte ke dalam berkas).
+Method `save` mengembalikan nilai error tersebut, supaya aplikasi dapat
+menangani-nya bila ada kesalahan saat menulis ke berkas.
+Jika semua berjalan dengan lancar, `Page.save()` akan mengembalikan `nil`
+(sebuah nilai kosong untuk pointer, interface, dan beberapa tipe lainnya).
+
+Nilai integer oktal 0600, yang dikirim sebagai parameter ketiga pada
+`WriteFile`, mengindikasikan bahwa berkas dibuat dengan akses baca-tulis untuk
+pengguna yang sekarang.
+(Lihat halaman manual Unix untuk
+https://man.archlinux.org/man/open.2[`open(2)`]
+untuk lebih detail.)
+
+Selain menyimpan halaman, kita juga ingin membaca halaman dari berkas:
+
+----
+func loadPage(title string) *Page {
+	filename := title + ".txt"
+	body, _ := ioutil.ReadFile(filename)
+	return &Page{Title: title, Body: body}
+}
+----
+
+Fungsi `loadPage` membuat nama berkas dari parameter `title` (judul), membaca
+isi dari berkas ke dalam variabel `body`, dan mengembalikan sebuah pointer ke
+`Page` yang berisi nilai `title` dan `body`.
+
+Fungsi dapat mengembalikan beberapa nilai.
+Fungsi `io.ReadFile` dari pustaka standar mengembalikan `[]byte` dan `error`.
+Di dalam `loadPage`, eror belum ditangani; "pengidentifikasi kosong"
+direpresentasikan dengan simbol garis-bawah (_) digunakan untuk mengindahkan
+nilai kembalian (intinya, tidak mengisi nilai kembalian ke apa pun).
+
+Tetapi apa yang terjadi bila `ReadFile` mendapatkan eror?
+Misalnya, berkas bisa saja tidak ada.
+Kita sebaiknya tidak mengindahkan eror tersebut.
+Mari kita ubah fungsi tersebut supaya mengembalikan `*Page` dan `error`.
+
+----
+func loadPage(title string) (*Page, error) {
+	filename := title + ".txt"
+	body, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return &Page{Title: title, Body: body}, nil
+}
+----
+
+Siapa pun yang memanggil fungsi ini dapat memeriksa nilai kembalian kedua;
+jika `nil` berarti sebuah `Page` telah sukses dibaca.
+Jika tidak, maka akan ada `error` yang harus ditangani oleh si pemanggil
+fungsi (lihat
+link:/ref/spec#Errors[spesifikasi bahasa^]
+untuk lebih detail).
+
+Sekarang kita telah memiliki sebuah struktur data sederhana dan kemampuan
+untuk menyimpan dan membaca dari berkas.
+Mari kita tulis sebuah fungsi `main` untuk menguji apa yang telah kita tulis:
+
+----
+func main() {
+	p1 := &Page{Title: "TestPage", Body: []byte("This is a sample Page.")}
+	p1.save()
+	p2, _ := loadPage("TestPage")
+	fmt.Println(string(p2.Body))
+}
+----
+
+Setelah mengompilasi dan mengeksekusi kode tersebut, sebuah berkas bernama
+`TestPage.txt` akan dibuat, berisi nilai dari `p1.Body`.
+Berkas tersebut kemudian dibaca ke dalam struct `p2`, dengan elemen `Body`
+dicetak ke layar.
+
+Anda dapat mengompilasi dan menjalankan program seperti berikut:
+
+----
+$ go build wiki.go
+$ ./wiki
+This is a sample Page.
+----
+
+(Jika Anda menggunakan sistem Windows, Anda harus mengetikan "wiki" tanpa "./"
+untuk menjalankan program.)
+
+link:/doc/articles/wiki/part1.go[Klik di sini untuk melihat apa yang telah
+kita buat^].
+
+
+==  Memperkenalkan paket `net/http`
+
+Berikut contoh peladen web yang sederhana:
+
+----
+// +build ignore
+
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+}
+
+func main() {
+	http.HandleFunc("/", handler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+----
+
+Fungsi `main` dimulai dengan memanggil ke `http.HandleFunc`, yang memberitahu
+paket `http` supaya mengirim semua permintaan dari path "/" ke fungsi
+`handler`.
+
+Dalam pemanggilan `http.ListenAndServe`, kita menspesifikasikan bahwa peladen
+(_server_) akan mendengarkan permintaan pada _port_ 8080 di semua jaringan
+(":8080").
+Tidak perlu khawatir dengan parameter kedua, `nil`, untuk saat sekarang.
+Fungsi ini akan mem-blok sampai program dihentikan.
+
+Fungsi `ListenAndServe` selalu mengembalikan sebuah nilai `error` yang tidak
+`nil` bila sebuah kesalahan tidak terduga terjadi.
+Supaya dapat mencatat kesalahan tersebut, kita membungkus pemanggilan fungsi
+dengan `log.Fatal`
+
+Fungsi `handler` bertipe `http.HandlerFunc`.
+Ia menerima sebuah `http.ResponseWriter` dan sebuah `http.Request`.
+
+Nilai dari `http.ResponseWriter` mengumpulkan respon untuk HTTP server;
+dengan menulis lewat nilai tersebut, kita mengirim data ke klien HTTP.
+
+Sebuah `http.Request` adalah struktur data yang merepresentasikan permintaan
+dari klien HTTP.
+`r.URL.Path` adalah komponen path dari URL.
+Sintaksis `[1:]` pada akhir baris artinya "buat potongan slice pada `Path`
+dari karakter 1 sampai akhir."
+Perintah ini memotong awalan "/" pada nilai path.
+
+Jika kita menjalankan program ini dan mengakses URL:
+
+----
+http://localhost:8080/monkeys
+----
+
+maka program akan menampilkan sebuah halaman berisi:
+
+----
+Hi there, I love monkeys!
+----
+
+
+== Menggunakan `net/http` untuk melayani halaman wiki
+
+Untuk menggunakan paket `net/http`, ia harus lah diimpor:
+
+----
+import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+)
+----
+
+Mari kita buat sebuah fungsi `viewHandler` yang membolehkan pengguna untuk
+melihat sebuah halaman wiki.
+Fungsi tersebut akan menangani URL dengan prefiks "/view/".
+
+----
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/view/"):]
+	p, _ := loadPage(title)
+	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+}
+----
+
+Sekali lagi, perhatikan penggunaan `_` untuk mengindahkan nilai kembalian eror
+dari `loadPage`.
+Hal ini kita lakukan supaya lebih simpel tetapi praktik yang buruk.
+Kita akan membahas hal ini nanti.
+
+Pertama, fungsi tersebut mengekstrak judul halaman dari `r.URL.Path`, komponen
+path dari URL yang diminta.
+Nilai `Path` kemudian dipotong dengan `[len("/view/"):]` untuk memotong
+komponen `"/view/"` dari path.
+Hal ini karena path akan selalu dimulai dengan "/view/", yang bukan bagian
+dari judul halaman.
+
+Fungsi tersebut kemudian memuat data halaman, mem-format halaman dengan sebuah
+HTML sederhana, dan menulisnya ke `w`, instan dari `http.ResponseWriter`.
+
+Untuk menggunakan fungsi ini, kita tulis ulang fungsi `main` supaya
+menginisiasi `http` menggunakan `viewHandler` untuk menangani permintaan ke
+path "/view/"`.
+
+----
+func main() {
+ 	http.HandleFunc("/view/", viewHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+----
+
+link:/doc/articles/wiki/part2.go[Klik di sini untuk melihat kode yang telah kita tulis.^]
+
+Mari kita buat sebuah halaman, `test.txt`, kompilasi kode, dan mencoba
+melayani halaman wiki.
+
+Buka berkas `test.txt`, dan simpan string "Hello world" (tanpa tanda kutip) ke
+dalamnya.
+
+----
+$ go build wiki.go
+$ ./wiki
+----
+
+(Jika Anda menggunakan Windows, Anda harus menulis "wiki" tanpa "./" untuk
+menjalakan program.)
+
+Saat peladen web telah berjalan, membuka
+http://localhost:8080/view/test[localhost:8080/view/test^]
+akan menampilkan sebuah halaman berjudul "test" berisi kata "Hello world".
+
+
+== Menyunting halaman
+
+Sebuah aplikasi wiki bukanlah _wiki_ bila tidak bisa menyunting halaman.
+Mari kita buat dua buah _handler_: satu bernama `editHandler` untuk
+menampilkan form `menyunting halaman`, dan yang lain bernama `saveHandler`
+untuk menyimpan data yang diinput pada form suntingan.
+
+Pertama, kita tambahkan ke fungsi `main()`:
+
+----
+func main() {
+	http.HandleFunc("/view/", viewHandler)
+	http.HandleFunc("/edit/", editHandler)
+	http.HandleFunc("/save/", saveHandler)
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+----
+
+Fungsi `editHandler` membaca halaman (atau, jika tidak ada, membuat sebuah
+struct `Page` yang kosong), dan menampilkan sebuah form HTML.
+
+----
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/edit/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	fmt.Fprintf(w, "<h1>Editing %s</h1>"+
+		"<form action=\"/save/%s\" method=\"POST\">"+
+		"<textarea name=\"body\">%s</textarea><br>"+
+		"<input type=\"submit\" value=\"Save\">"+
+		"</form>",
+		p.Title, p.Title, p.Body)
+}
+----
+
+Fungsi ini bekerja, namun kode HTML yang ditulis sangat jelek.
+Tentu saja, ada cara yang lebih baik.
+
+
+== Paket `html/template`
+
+Paket `html/template` adalah bagian dari pustaka standar Go.
+Kita dapat menggunakan `html/template` untuk menyimpan HTML pada berkas yang
+berbeda, membolehkan kita mengubah struktur HTML dari halaman sunting tanpa
+mengubah kode Go.
+
+Pertama, kita impor `html/template`.
+Secara kita tidak menggunakan `fmt` lagi, jadi kita bisa hapus dari impor.
+
+----
+import (
+	"html/template"
+	"io/ioutil"
+	"net/http"
+)
+----
+
+Mari kita buat sebuah berkas templat yang berisi form HTML.
+Buat lah sebuah berkas bernama `edit.hmtl`, dan tambahkan baris berikut:
+
+----
+<h1>Editing {{.Title}}</h1>
+
+<form action="/save/{{.Title}}" method="POST">
+<div><textarea name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea></div>
+<div><input type="submit" value="Save"></div>
+</form>
+----
+
+Ubah `editHandler` supaya menggunakan templat tersebut:
+
+----
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/edit/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	t, _ := template.ParseFiles("edit.html")
+	t.Execute(w, p)
+}
+----
+
+Fungsi `template.ParseFiles` akan membaca isi dari berkas `edit.html` dan
+mengembalikan `*template.Template`.
+
+Method `t.Execute` mengeksekusi templat, menulis HTML hasil pembangkitan ke
+`http.ResponseWriter`.
+Variabel dengan awalan titik `.Title` dan `.Body` mengacu pada `p.Title` dan
+`p.Body`.
+
+Direktif templat ditandai oleh kurung kurawal ganda.
+Perintah '`printf "%s" .Body`' yaitu pemanggilan fungsi yang mencetak `.Body`
+sebagai string, sama seperti memanggil `fmt.Printf`.
+Paket `html/template` menjamin hanya HTML yang aman dan benar dibangkitkan
+oleh aksi templat.
+Misalnya, ia secara otomatis mengganti karakter '>' dengan `&amp;gt;`, untuk
+memastikan data pengguna tidak merusak format HTML.
+
+Secara kita sekarang bekerja dengan templat, mari buat sebuah templat lagi
+untuk `viewHandler` yang bernama `view.html`.
+
+----
+<h1>{{.Title}}</h1>
+
+<p>[<a href="/edit/{{.Title}}">edit</a>]</p>
+
+<div>{{printf "%s" .Body}}</div>
+----
+
+Ubah `viewHandler` menjadi:
+
+----
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/view/"):]
+	p, _ := loadPage(title)
+	t, _ := template.ParseFiles("view.html")
+	t.Execute(w, p)
+}
+----
+
+Perhatikan bahwa kita hampir menggunakan kode templat yang sama pada kedua
+_handler_.
+Mari kita coba hapus duplikasi ini dengan memindahkan kode templat ke
+fungsinya sendiri.
+
+----
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+	t, _ := template.ParseFiles(tmpl + ".html")
+	t.Execute(w, p)
+}
+----
+
+Dan mengubah _handler_ supaya menggunakan fungsi tersebut:
+
+----
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/view/"):]
+	p, _ := loadPage(title)
+	renderTemplate(w, "view", p)
+}
+
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/edit/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	renderTemplate(w, "edit", p)
+}
+----
+
+Jika kita tutup registrasi dari fungsi `save` yang belum diimplementasikan
+dalam fungsi `main`, kita dapat membangun dan menguji program kita.
+link:/doc/articles/wiki/part3.go[Klik di sini untuk melihat kode yang telah
+kita tulis sejauh ini].
+
+
+== Menangani halaman yang tidak ada
+
+Apa yang terjadi bila kita mengunjungi
+http://localhost:8080/view/HalamanYangTidakAda[`/view/HalamanYangTidakAda`^]?
+Kita akan melihat sebuah halaman yang berisi HTML.
+Hal ini karena kita mengindahkan error dari `loadPage` dan melanjutkan mencoba
+mengisi templat dengan data yang tidak ada.
+Jika halaman yang diminta tidak ada, aplikasi seharusnya mengalihkan klien ke
+halaman sunting supaya isinya bisa dibuat:
+
+----
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/view/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		return
+	}
+	renderTemplate(w, "view", p)
+}
+----
+
+Fungsi `http.Redirect` men-set HTTP status kode `http.StatusFound` (302) dan
+_header_ `Location` pada respon HTTP.
+
+
+==  Menyimpan halaman
+
+Fungsi `saveHandler` akan menangani penyimpan form dari halaman sunting.
+Setelah membuka komentar baris `http.HandleFunc("/save/", saveHandler)` pada
+fungsi `main`, mari kita implementasi fungsi tersebut:
+
+----
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/save/"):]
+	body := r.FormValue("body")
+	p := &Page{Title: title, Body: []byte(body)}
+	p.save()
+	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+----
+
+Judul halaman (yang diberikan lewat URL) dan satu-satunya kolom pada form,
+`Body`, disimpan dalam `Page` yang baru.
+Method `save()` kemudian dipanggil untuk menulis data ke dalam sebuah berkas,
+dan klien dialihkan ke halaman "/view/".
+
+Nilai yang dikembalikan oleh `FormValue` bertipe string.
+Kita harus mengonversi nilai tersebut ke `[]byte` sebelum dapat disimpan dalam
+struct `Page`.
+Kita menggunakan `[]byte(body)` untuk melakukan konversi.
+
+== Penanganan eror
+
+Ada beberapa tempat dalam program kita yang mana eror diindahkan.
+Hal ini merupakan praktik yang buruk, karena saat eror terjadi program akan
+memiliki perilaku yang tidak terduga.
+Solusi yang lebih baik yaitu menangani eror dan mengembalikan pesan eror
+kepada pengguna.
+Dengan cara ini jika sesuatu kesalahan terjadi, peladen akan berfungsi seperti
+yang kita inginkan dan pengguna dapat diberi tahu.
+
+Pertama, mari kita tangani eror dalam `renderTemplate`:
+
+----
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+	t, err := template.ParseFiles(tmpl + ".html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = t.Execute(w, p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+----
+
+Fungsi `http.Error` mengirim kode HTTP respon tertentu (dalam kasus ini
+"Internal Server Error") dan pesan eror.
+
+Sekarang kita perbaiki `saveHandler`:
+
+----
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/save/"):]
+	body := r.FormValue("body")
+	p := &Page{Title: title, Body: []byte(body)}
+	err := p.save()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+----
+
+Setiap eror yang terjadi selama `p.save()` akan dilaporkan ke pengguna.
+
+
+== Tembolok templat
+
+Kode kita ada yang tidak efisien: `renderTemplate` memanggil `ParseFiles`
+setiap kali sebuah halaman dibangkitkan.
+Pendekatan yang lebih bagus yaitu dengan memanggil `ParseFiles` sekali saat
+program diinisiasi, membaca semua berkas templat ke dalam sebuah `*Template`.
+Kemudian kita dapat menggunakan method
+http://golang.org/pkg/html/template/#Template.ExecuteTemplate[`ExecuteTemplate`]
+untuk menulis templat tertentu.
+
+Pertama kita buat sebuah variabel global bernama `templates` dan
+menginisiasi-nya dengan `ParseFiles`.
+
+----
+var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+----
+
+Fungsi `template.Must` adalah pembungkus yang akan `panic` bila ada eror, dan
+mengembalikan `*Template` bila tidak ada eror.
+Sebuah `panic` cocok dilakukan untuk kasus ini;
+jika template tidak dapat dibaca satu-satunya hal yang masuk akal dilakukan
+yaitu menghentikan program.
+
+Fungsi `ParseFiles` menerima berapa pun argumen string yang merujuk ke berkas
+templat, dan membaca berkas tersebut menjadi templat yang diberi nama sesuai
+dengan nama berkas.
+Jika kita ingin menambahkan templat baru ke program, kita tinggal tambah nama
+berkas ke argumen pada pemanggilan `ParseFiles`.
+
+Kita kemudian mengubah fungsi `renderTemplate` untuk memanggil method
+`templates.ExecuteTemplate` dengan nama templat yang sesuai:
+
+----
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+----
+
+Nama templat yaitu nama berkas templat itu sendiri, jadi kita harus
+menambahkan ".html" ke argument `tmpl`.
+
+
+==  Validasi
+
+Jika kita perhatikan, program kita ini memiliki celah sekuriti: pengguna bisa
+memberikan path apa pun untuk dibaca/ditulis di server.
+Untuk menghindari hal ini, kita dapat menulis fungsi untuk validasi judul yang
+dikirim dengan sebuah _regular expression_.
+
+Pertama, tambahkan paket "regexp" ke daftar impor.
+Kemudian kita buat variabel global untuk menyimpan validasi path:
+
+----
+var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+----
+
+Fungsi `regexp.MustCompile` akan mengurai dan mengompilasi _regular
+expression_, dan mengembalikan `regexp.Regexp`.
+`MustCompile` berbeda dari `Compile` karena ia akan _panic_ jika ekspresi
+kompilasi gagal, sementara `Compile` mengembalikan sebuah error pada parameter
+kedua.
+
+Sekarang mari kita tulis sebuah fungsi yang menggunakan ekspresi pada
+`validPath` untuk memvalidasi path dan mengekstrak judul halaman:
+
+----
+func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
+	m := validPath.FindStringSubmatch(r.URL.Path)
+	if m == nil {
+		http.NotFound(w, r)
+		return "", errors.New("invalid Page Title")
+	}
+	return m[2], nil // The title is the second subexpression.
+}
+----
+
+Jika judul yang diberikan valid, maka ia akan dikembalikan bersama dengan
+nilai `nil` untuk error.
+Jika judul tidak valid, fungsi tersebut akan mengirim error "404 Not Found" ke
+koneksi HTTP klien, dan mengembalikan sebuah error ke yang memanggil.
+Untuk membuat error yang baru, kita harus mengimpor paket `errors`.
+
+Mari kita gunakan `getTitle` pada setiap _handler_:
+
+----
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title, err := getTitle(w, r)
+	if err != nil {
+		return
+	}
+	p, err := loadPage(title)
+	if err != nil {
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		return
+	}
+	renderTemplate(w, "view", p)
+}
+
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	title, err := getTitle(w, r)
+	if err != nil {
+		return
+	}
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	renderTemplate(w, "edit", p)
+}
+
+func saveHandler(w http.ResponseWriter, r *http.Request) {
+	title, err := getTitle(w, r)
+	if err != nil {
+		return
+	}
+	body := r.FormValue("body")
+	p := &Page{Title: title, Body: []byte(body)}
+	err = p.save()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+----
+
+
+== Memperkenalkan fungsi dan _closure_
+
+Menangkap kondisi eror di setiap _handler_ mengakibatkan banyaknya kode yang
+sama.
+Bagaimana jika seandainya kita dapat membungkus setiap _handler_ tersebut
+dalam sebuah fungsi yang melakukan validasi dan melakukan pemeriksaan eror?
+Fungsi pada Go memiliki fungsionalitas abstraksi yang dapat membantu kita.
+
+Pertama, kita tulis ulang definisi fungsi dari setiap _handler_ untuk menerima
+string judul:
+
+----
+func viewHandler(w http.ResponseWriter, r *http.Request, title string)
+func editHandler(w http.ResponseWriter, r *http.Request, title string)
+func saveHandler(w http.ResponseWriter, r *http.Request, title string)
+----
+
+Selanjutnya kita definisikan sebuah fungsi pembungkus yang menerima sebuah
+fungsi dari tipe di atas, dan mengembalikan sebuah fungsi bertipe
+`http.HandlerFunc` (cocok untuk dikirim ke fungsi `http.HandleFunc`):
+
+----
+func makeHandler(fn func (http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Di sini kita akan mengekstrak judul halaman dari Request, dan
+		// memanggil fungsi `fn`.
+	}
+}
+----
+
+Fungsi yang dikembalikan disebut dengan _closure_ karena ia membungkus nilai
+yang didefinisikan di luar fungsi tersebut.
+Dalam kasus ini, variabel `fn` (satu-satunya argument pada fungsi
+`makeHandler`) dibungkus oleh _closure_.
+Variabel `fn` akan menjadi satu-satunya fungsi yang menangani penyimpanan,
+penyuntingan, dan melihat halaman wiki.
+
+Selanjutnya kita bisa gunakan kode dari `getTitle` dan menggunakannya di sini
+(dengan sedikit modifikasi):
+
+----
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		m := validPath.FindStringSubmatch(r.URL.Path)
+		if m == nil {
+			http.NotFound(w, r)
+			return
+		}
+		fn(w, r, m[2])
+	}
+}
+----
+
+_Closure_ yang dikembalikan oleh `makeHandler` adalah sebuah fungsi yang
+menerima `http.ResponseWriter` dan `http.Request` (dengan kata lain, sebuah
+`http.HandlerFunc`).
+_Closure_ tersebut mengekstrak judul berdasarkan _path_, dan memvalidasinya
+dengan _regexp_ `validPath`.
+Jika judul yang diterima tidak valid, sebuah eror akan ditulis ke
+`ResponseWriter` menggunakan fungsi `http.NotFound`.
+Jika judul valid, fungsi `fn` akan dipanggil dengan `ResponseWriter`,
+`Request`, dan judul sebagai argument.
+
+Sekarang kita dapat membungkus fungsi-fungsi _handler_ dengan `makeHandler`
+dari dalam `main`, sebelum diregistrasi lewat paket `http`:
+
+----
+func main() {
+	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/edit/", makeHandler(editHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler))
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+----
+
+Terakhir, kita hapus pemanggilan ke `getTitle` dari fungsi-fungsi _handler_,
+membuatnya lebih sederhana:
+
+----
+func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
+	p, err := loadPage(title)
+	if err != nil {
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		return
+	}
+	renderTemplate(w, "view", p)
+}
+
+func editHandler(w http.ResponseWriter, r *http.Request, title string) {
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	renderTemplate(w, "edit", p)
+}
+
+func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+	body := r.FormValue("body")
+	p := &Page{Title: title, Body: []byte(body)}
+	err := p.save()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+----
+
+
+== Cobalah!
+
+link:/doc/articles/wiki/final.go[Klik di sini untuk melihat hasil akhir kode].
+
+Kompilasi ulang kode, dan jalankan aplikasi:
+
+----
+$ go build wiki.go
+$ ./wiki
+----
+
+Membuka halaman berikut
+http://localhost:8080/view/ANewPage[localhost:8080/view/ANewPage^]
+seharusnya memperlihatkan halaman penyuntingan.
+Anda seharusnya bisa menginput teks, klik 'Save', dan dialihkan ke halaman
+yang baru dibuat.
+
+
+== Pekerjaan tambahan
+
+Berikut beberapa pekerjaan yang bisa Anda tambahkan sendiri:
+
+* Menyimpan templat dalam `tmpl/` dan halaman wiki dalam `data/`.
+* Membuat sebuah _handler_ untuk mengalihkan halaman depan ke
+  `/view/FrontPage`.
+* Mengembangkan halaman templat supaya menjadi HTML yang valid dan
+  menambahkan beberapa aturan CSS.
+* Mengimplementasikan penautan antar-halaman dengan mengonversi teks
+  `[PageName]` ke `<a href="/view/PageName">PageName</a>`.
+  (petunjuk: Anda dapat menggunakan `regexp.ReplaceAllFunc` untuk melakukan
+  hal ini).

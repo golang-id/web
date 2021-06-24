@@ -32,6 +32,11 @@ Mempelajari secara singkat tentang kode, perkakas, paket, dan modul pada Go.
 Sebuah tutorial tentang topik-topik singkat yang memperkenalkan fungsi,
 penanganan eror, array, map, unit tes, dan mengompilasi.
 
+[#writing-web-applications]
+===  link:/doc/articles/wiki[Menulis aplikasi web]
+
+Membuat sebuah aplikasi web yang sederhana.
+
 [#code]
 ===  link:/doc/code.html[Cara menulis kode Go]
 
