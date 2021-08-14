@@ -1,0 +1,388 @@
+=  Cara menulis kode Go
+:toc:
+:en-go-tool: https://golang.org/cmd/go/
+:en-gopath: https://golang.org/cmd/go/#hdr-GOPATH_environment_variable
+
+
+[#Introduction]
+==  Pendahuluan
+
+Dokumen ini mendemonstrasikan cara membuat sebuah paket Go yang sederhana
+dalam sebuah modul dan memperkenalkan
+link:/cmd/go[perkakas go^],
+cara standar untuk mengambil, membuat, dan memasang modul, paket, dan perintah
+Go.
+
+Catatan: dokumen ini mengasumsikan bahwa Anda menggunakan Go 1.13 atau terbaru
+dan variabel lingkungan GO111MODULE tidak di-set.
+Jika Anda mencari versi dokumen pra-modul, bisa dilihat
+link:/doc/gopath_code/[di sini].
+
+[#Organization]
+==  Organisasi kode
+
+Program Go disusun menjadi paket-paket.
+Sebuah paket adalah koleksi dari sumber berkas di dalam direktori yang sama
+yang dikompilasi bersamaan.
+Fungsi, tipe, variabel, dan konstanta yang didefinisikan dalam sebuah sumber
+berkas dapat dilihat dan digunakan oleh sumber berkas lain dalam paket yang
+sama.
+
+Sebuah repositori berisi satu atau lebih modul.
+Sebuah modul adalah koleksi dari paket-paket Go yang berkaitan yang dirilis
+secara bersamaan.
+Sebuah repositori Go biasanya hanya berisi satu modul.
+Sebuah berkas bernama `go.mod` di dalam repositori mendeklarasikan path dari
+modul: sebuah path impor prefiks untuk semua paket dalam modul.
+Modul berisi paket-paket di dalam direktori yang berisi berkas go.mod beserta
+sub-direktori di dalamnya.
+
+A repository contains one or more modules. A module is a collection of related Go packages that are released together. A Go repository typically contains only one module, located at the root of the repository. A file named go.mod there declares the module path: the import path prefix for all packages within the module. The module contains the packages in the directory containing its go.mod file as well as subdirectories of that directory, up to the next subdirectory containing another go.mod file (if any).
+
+Note that you don't need to publish your code to a remote repository before you can build it. A module can be defined locally without belonging to a repository. However, it's a good habit to organize your code as if you will publish it someday.
+
+Each module's path not only serves as an import path prefix for its packages, but also indicates where the go command should look to download it. For example, in order to download the module golang.org/x/tools, the go command would consult the repository indicated by https://golang.org/x/tools (described more here).
+
+An import path is a string used to import a package. A package's import path is its module path joined with its subdirectory within the module. For example, the module github.com/google/go-cmp contains a package in the directory cmp/. That package's import path is github.com/google/go-cmp/cmp. Packages in the standard library do not have a module path prefix.
+
+
+[#Command]
+===  Program pertama
+//{{{
+Untuk mengompilasi dan menjalankan sebuah program sederhana, pertama pilih
+sebuah _path_ untuk paket (kita akan gunakan `github.com/user/hello`) dan
+buat direktori untuk paket tersebut di dalam ruang-kerja:
+
+----
+$ mkdir $GOPATH/src/github.com/user/hello
+----
+
+Selanjutnya, buat sebuah berkas bernama `hello.go` di dalam direktori
+tersebut, yang berisi kode Go berikut.
+
+----
+package main
+
+import "fmt"
+
+func main() {
+	fmt.Println("Hello, world.")
+}
+----
+
+Sekarang kita bisa membuat dan memasang program tersebut dengan perkakas `go`:
+
+----
+$ go install github.com/user/hello
+----
+
+Ingatlah bahwa program tersebut bisa dijalankan di mana pun dalam sistem.
+Perkakas `go` mencari sumber kode dengan melihat paket `github.com/user/hello`
+di dalam ruang-kerja yang dispesifikasikan oleh `GOPATH`.
+
+Kita bisa mengindahkan _path_ paket jika menjalankan `go install` dari dalam
+direktori paket:
+
+----
+$ cd $GOPATH/src/github.com/user/hello
+$ go install
+----
+
+Perintah tersebut membangun program `hello`, menghasilkan sebuah binari yang
+dapat dieksekusi.
+Perintah tersebut kemudian memasang binari tersebut ke direktori `bin` di
+ruang-kerja sebagai `hello` (atau, pada Windows, `hello.exe`).
+Pada contoh ini, binari tersebut akan dibuat di `$GOPATH/bin/hello`, atau sama
+dengan `$HOME/go/bin/hello`.
+
+Perkakas `go` akan menampilkan pesan eror bila terjadi kesalahan, jadi bila
+tidak ada eror yang ditampilkan, berarti perintah tersebut dieksekusi dengan
+sukses.
+
+Anda sekarang dapat menjalankan program tersebut dengan cara:
+
+----
+$ $GOPATH/bin/hello
+Hello, world.
+----
+
+Atau, bila telah menambahkan `$GOPATH/bin` ke dalam `PATH`, tinggal mengetikan
+nama program:
+
+----
+$ hello
+Hello, world.
+----
+
+Jika menggunakan sistem _source control_ (misalnya, Git), sekarang
+adalah saat yang bagus untuk menginisiasi repositori, menambahkan berkas,
+dan melakukan _commit_ yang pertama.
+Sekali lagi, langkah ini adalah opsional: tidak perlu menggunakan
+_source control_ untuk menulis kode Go.
+
+----
+$ cd $GOPATH/src/github.com/user/hello
+$ git init
+Initialized empty Git repository in /home/user/go/src/github.com/user/hello/.git/
+$ git add hello.go
+$ git commit -m "commit pertama"
+[master (root-commit) 0b4507d] initial commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 hello.go
+----
+
+Memuat kode ke repositori luar sengaja diindahkan sebagai latihan bagi
+pembaca.
+//}}}
+
+[#Library]
+===  Pustaka pertama
+//{{{
+Sekarang mari kita coba membuat sebuah paket pustaka dan menggunakannya dalam
+program `hello`.
+
+Langkah pertama yaitu memilih _path_ untuk paket pustaka (kita akan gunakan
+`github.com/user/stringutil`) dan membuat direktori paket:
+
+----
+$ mkdir $GOPATH/src/github.com/user/stringutil
+----
+
+Selanjutnya, buat sebuah berkas dengan nama `reverse.go` di dalam direktori
+tersebut yang berisi:
+
+----
+// Package stringutil berisi fungsi-fungsi untuk bekerja dengan strings.
+package stringutil
+
+// Reverse mengembalikan sebuah string yang dibalik dari kanan ke kiri.
+func Reverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
+}
+----
+
+Sekarang, tes apakah paket tersebut dapat di- _compile_ dengan `go build`:
+
+----
+$ go build github.com/user/stringutil
+----
+
+Atau, jika sekarang berada dalam direktori sumber paket, tinggal:
+
+----
+$ go build
+----
+
+Perintah tersebut tidak akan membuat berkas apa pun.
+Namun, ia akan menyimpan paket yang telah terkompilasi di dalam _cache_
+internal.
+
+Setelah memastikan paket `stringutil` dapat dibangun, ubah `hello.go`
+(yang ada di `$GOPATH/src/github.com/user/hello`) untuk menggunakan paket
+`stringutil`:
+
+----
+package main
+
+import (
+	"fmt"
+
+	"github.com/user/stringutil"
+)
+
+func main() {
+	fmt.Println(stringutil.Reverse("!oG ,olleH"))
+}
+----
+
+Pasang kembali program `hello`:
+
+----
+$ go install github.com/user/hello
+----
+
+Jalankan versi terbaru dari program tersebut, akan terlihat pesan yang
+dibalik:
+
+----
+$ hello
+Hello, Go!
+----
+
+Setelah mengikuti langkah-langkah di atas, ruang-kerja akan seperti berikut:
+
+----
+bin/
+    hello                 # program yang dapat dieksekusi
+src/
+    github.com/user/
+        hello/
+            hello.go      # sumber program
+        stringutil/
+            reverse.go    # sumber paket
+----
+//}}}
+
+[#PackageNames]
+===  Nama paket
+//{{{
+Perintah pertama dalam sebuah sumber kode Go haruslah
+
+----
+package name
+----
+
+yang mana _name_ adalah nama untuk paket yang di- _import_.
+(Semua berkas di dalam sebuah paket harus menggunakan nama yang sama.)
+
+Konvensi dari Go yaitu nama paket adalah elemen terakhir dari _import path_:
+paket yang diimpor dengan `"crypto/rot13"` seharusnya bernama `rot13`.
+
+Semua program yang dapat dieksekusi harus menggunakan paket dengan nama
+`main`.
+
+Tidak ada keharusan bahwa nama paket harus unik di antara semua paket-paket
+dalam membuat sebuah program, hanya saja nama _import path_ haruslah unik.
+
+Lihatlah dokumen
+link:/doc/effective_go.html#names[Efektif Go]
+untuk belajar lebih lanjut tentang konvensi penamaan pada Go.
+//}}}
+
+[#Testing]
+==  Pengujian
+//{{{
+Go memiliki _framework_ (kerangka) pengujian yang ringan, terdiri dari
+perintah `go test` dan paket `testing`.
+
+Pengujian dibuat dalam sebuah berkas yang berakhiran `_test.go` yang
+berisi fungsi-fungsi bernama `TestXXX` dengan format
+`func TestXxx(t *testing.T)`.
+Kerangka tes menjalankan setiap fungsi `TestXXX` tersebut;
+Jika fungsi tes memanggil sebuah fungsi perintah kesalahan, seperti
+`t.Error` atau `t.Fail`, maka tes dianggap gagal.
+
+Tambahkan sebuah tes ke paket `stringutil` dengan membuat berkas
+`$GOPATH/src/github.com/user/stringutil/reverse_test.go` yang berisi kode Go
+berikut.
+
+----
+package stringutil
+
+import "testing"
+
+func TestReverse(t *testing.T) {
+	cases := []struct {
+		in, want string
+	}{
+		{"Hello, world", "dlrow ,olleH"},
+		{"Hello, 世界", "界世 ,olleH"},
+		{"", ""},
+	}
+	for _, c := range cases {
+		got := Reverse(c.in)
+		if got != c.want {
+			t.Errorf("Reverse(%q) == %q, want %q", c.in, got, c.want)
+		}
+	}
+}
+----
+
+Kemudian jalankan tes dengan `go test`:
+
+----
+$ go test github.com/user/stringutil
+ok  	github.com/user/stringutil 0.165s
+----
+
+Seperti biasa, jika menjalankan perintah `go` dari dalam direktori paket,
+kita bisa mengindahkan _path_ dari paket:
+
+----
+$ go test
+ok  	github.com/user/stringutil 0.165s
+----
+
+Jalankan
+https://golang.org/cmd/go/#hdr-Test_packages[`go help test`]
+dan lihat
+https://golang.org/pkg/testing/[dokumentasi dari paket testing]
+untuk belajar lebih lanjut.
+//}}}
+
+[#remote]
+==  Paket eksternal
+//{{{
+Sebuah _import path_ mendeskripsikan bagaimana mendapatkan sumber kode dari
+paket menggunakan sebuah sistem kontrol revisi seperti Git atau Mercurial.
+Perkakas `go` menggunakan properti ini untuk secara otomatis mengambil paket
+dari repositori luar.
+Misalnya, contoh-contoh yang diuraikan dalam dokumen ini juga tersimpan di
+dalam sebuah repositori Git pada
+https://github.com/golang/example[github.com/golang/example].
+Jika mengikutkan URL dari repositori pada _import path_, `go get` akan
+mengambil, membuat, dan memasangnya secara otomatis:
+
+----
+$ go get github.com/golang/example/hello
+$ $GOPATH/bin/hello
+Hello, Go examples!
+----
+
+Jika paket yang disebutkan tidak ada di dalam ruang-kerja, `go get` akan
+menyimpannya di dalam ruang-kerja pertama yang diset dalam `GOPATH`.
+(Jika paket sudah ada, `go get` akan melewatkan pengambilan dari luar dan
+berjalan seperti halnya `go install`.)
+
+Setelah menjalankan perintah `go get` di atas, direktori ruang-kerja akan
+berbentuk seperti berikut:
+
+----
+bin/
+    hello                           # program yang bisa dieksekusi
+src/
+    github.com/golang/example/
+        .git/                       # metadata repositori Git
+        hello/
+            hello.go                # sumber program
+        stringutil/
+            reverse.go              # sumber paket
+            reverse_test.go         # sumber tes
+    github.com/user/
+        hello/
+            hello.go                # sumber program
+        stringutil/
+            reverse.go              # sumber paket
+            reverse_test.go         # sumber tes
+----
+
+Program `hello` yang disimpan di Github bergantung pada paket `stringutil`
+pada repositori yang sama.
+_Import path_ di dalam berkas `hello.go` menggunakan konvensi yang sama,
+sehingga perintah `go get` dapat menemukan dan memasang paket dependensi.
+
+----
+import "github.com/golang/example/stringutil"
+----
+
+Konvensi ini adalah cara mudah untuk membuat paket Go yang dapat digunakan
+oleh orang lain.
+Halaman
+https://golang.org/wiki/Projects[Go Wiki] dan situs
+https://godoc.org/[godoc.org] menyediakan daftar proyek dan paket eksternal
+dari Go.
+
+Untuk informasi lebih lanjut tentang menggunakan repositori luar dengan
+perkakas `go`, lihatlah
+https://golang.org/cmd/go/#hdr-Remote_import_paths[`go help importpath`].
+//}}}
+
+[#next]
+==  Selanjutnya
+
+Ikuti https://tour.golang-id.org[Tur Bahasa Go] untuk belajar bahasa Go secara
+daring.
