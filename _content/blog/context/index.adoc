@@ -1,0 +1,462 @@
+=  Pola Konkurensi Go: Context
+Sameer Ajmani
+29 Juli 2014
+:toc:
+:sectanchors:
+:sectlinks:
+
+Catatan: Artikel ini membutuhkan pengalaman dan pengetahuan tentang membuat
+layanan peladen (_server_), seperti peladen HTTP.
+
+==  Pendahuluan
+
+Dalam peladen (_server_) yang dibuat dengan Go, setiap permintaan yang masuk
+ditangani oleh _goroutine_-nya sendiri.
+Fungsi yang menangani permintaan (disebut juga _handler_) terkadang
+menjalankan _goroutine_ tambahan untuk mengakses _backend_ lainnya seperti
+layanan basis-data dan _Remote Procedure Call_ (RPC).
+Kumpulan _goroutine_ yang bekerja dalam sebuah _handler_ biasanya membutuhkan
+akses ke nilai tertentu seperti identitas pengguna, token otorisasi, dan
+tenggat (_deadline_) permintaan.
+Saat sebuah permintaan dibatalkan atau kehabisan waktu, semua _goroutine_ yang
+sedang bekerja pada permintaan tersebut seharusnya segera berhenti supaya
+sistem dapat mengambil alih kembali sumber daya yang mereka gunakan.
+
+Di Google, kami mengembangkan sebuah paket `context` yang mempermudah
+mengirim nilai sesuai skop-permintaan, sinyal pembatalan, dan tenggat ke semua
+_goroutine_ yang ikut serta dalam menangani sebuah permintaan.
+Paket tersebut tersedia secara publik sebagai
+https://golang.org/pkg/context[context^].
+Artikel ini menjelaskan bagaimana menggunakan paket tersebut dan menyediakan
+sebuah contoh kerjanya.
+
+==  Context
+
+Inti dari paket `context` adalah tipe `Context`:
+
+----
+// Sebuah Context membawa sebuah tenggat (Deadline), sinyal pembatalan (Done),
+// dan nilai-nilai (Value) sesuai skop-permintaan.
+// Method-method nya aman digunakan secara simultan oleh banyak _goroutine_.
+type Context interface {
+    // Done mengembalikan sebuah kanal yang tertutup saat Context ini
+    // dibatalkan atau waktunya telah habis.
+    Done() <-chan struct{}
+
+    // Err mengindikasikan kenapa context dibatalkan, setelah kanal Done
+    // tertutup.
+    Err() error
+
+    // Deadline mengembalikan waktu saat Context ini akan dibatalkan, jika
+    // ada.
+    Deadline() (deadline time.Time, ok bool)
+
+    // Value mengembalikan nilai yang berasosiasi dengan key, atau nil jika
+    // key tidak ada.
+    Value(key interface{}) interface{}
+}
+----
+
+(Deskripsi dari tipe Context di atas telah diringkas; lihat
+https://golang.org/pkg/context[godoc^]
+untuk lebih lengkapnya.)
+
+Method `Done` mengembalikan sebuah kanal yang berlaku sebagai sinyal pembatalan
+terhadap fungsi-fungsi yang berjalan dengan `Context`: saat kanal tersebut
+tertutup, fungsi-fungsi tersebut sebaiknya berhenti bekerja.
+Method `Err` mengembalikan sebuah `error` yang mengindikasikan kenapa
+`Context` tersebut dibatalkan.
+Artikel
+link:/blog/pipelines[_pipeline_ dan pembatalan]
+mendiskusikan idiom dari kanal `Done` lebih detail.
+
+Sebuah `Context` _tidak_ memiliki method `Cancel` dengan alasan yang sama
+kenapa kanal `Done` hanya menerima-saja: fungsi yang menerima sinyal
+pembatalan biasanya bukan yang mengirim sinyal.
+Pada khususnya, saat sebuah induk operasi memulai beberapa _goroutine_ untuk
+sub-operasi, maka sub-operasi tersebut tidak bisa membatalkan induk.
+Namun, fungsi `WithCancel` (yang dijelaskan di bawah) menyediakan cara untuk
+membatalkan sebuah nilai `Context` yang baru.
+
+Sebuah `Context` aman digunakan secara simultan oleh beberapa _goroutine_.
+Kode dapat mengirim sebuah `Context` ke sejumlah _goroutine_ dan membatalkan
+`Context` tersebut untuk mengirim sinyal ke semua _goroutine_.
+
+Method `Deadline` membolehkan fungsi menentukan apakah mereka harus mulai
+bekerja atau tidak;
+jika waktu yang tersedia tinggal sedikit, maka pekerjaan mungkin sebaiknya
+tidak dilakukan.
+Kode juga bisa menggunakan sebuah tenggat untuk men-set batas waktu untuk
+operasi input/output (I/O).
+
+Method `Value` membolehkan sebuah `Context` membawa data sesuai
+skop-permintaan.
+Data tersebut haruslah aman untuk digunakan secara simultan oleh beberapa
+_goroutine_.
+
+== Context turunan
+
+Paket `context` menyediakan fungsi-fungsi untuk _menurunkan_ nilai `Context`
+baru dari yang sudah ada.
+Nilai-nilai `Context` tersebut membentuk sebuah pohon: saat sebuah `Context`
+dibatalkan, semua `Context` turunannya juga akan ikut dibatalkan.
+
+Fungsi `Background` adalah akar dari semua pohon `Context`; ia tidak pernah
+dibatalkan:
+
+----
+// Background mengembalikan sebuah Context kosong.
+// Ia tidak pernah dibatalkan, dan tidak punya tenggat, dan tidak memiliki
+// nilai.
+// Fungsi Background biasanya digunakan dalam main, init, dan tes, dan sebagai
+// Context induk pada penanganan permintaan yang masuk.
+func Background() Context
+----
+
+Fungsi `WithCancel` dan `WithTimeout` mengembalikan turunan dari nilai
+`Context` yang dapat dibatalkan lebih awal dari `Context` induk-nya.
+`Context` yang berasosiasi dengan permintaan masuk biasanya dibatalkan saat
+_handler_ selesai.
+Fungsi `WithCancel` berguna untuk membatalkan permintaan yang duplikat saat
+menggunakan beberapa replika.
+Fungsi `WithTimeout` berguna untuk men-set sebuah tenggat saat mengirim
+permintaan ke peladen _backend_ lain.
+
+----
+// WithCancel mengembalikan sebuah salinan dari Content `parent` dengan kanal
+// Done tertutup setelah parent.Done ditutup atau saat cancel dipanggil.
+func WithCancel(parent Context) (ctx Context, cancel CancelFunc)
+
+// CancelFunc membatalkan sebuah Context.
+type CancelFunc func()
+
+// WithTimeout mengembalikan salinan dari Context `parent` dengan kanal Done
+// ditutup setelah parent.Done ditutup, atau cancel dipanggil, atau timeout
+// telah lewat.
+// Tenggat dari Context yang baru yaitu lebih kecil dari now+timeout dan dari
+// tenggat `parent`, jika ada.
+// Jika timer masih tetap berjalan, fungsi cancel melepaskan sumber daya
+// mereka.
+func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)
+----
+
+Fungsi `WithValue` menyediakan sebuah cara untuk mengasosikan nilai-nilai
+skop-permintaan dengan sebuah `Context`:
+
+----
+// WithValue mengembalikan sebuah salinan dari Context parent yang mana method
+// `Value`-nya mengembalikan `val` dari `key`.
+func WithValue(parent Context, key interface{}, val interface{}) Context
+----
+
+Cara paling baik untuk melihat bagaimana paket `context` digunakan yaitu lewat
+sebuah contoh kode, seperti yang akan kita bahas di bawah.
+
+==  Contoh: Pencarian Web Google
+
+Contoh ini yaitu sebuah peladen HTTP yang menangani URL seperti 
+`/search?q=golang&timeout=1s` dengan meneruskan kueri "golang" ke
+https://developers.google.com/web-search/docs/[API Google Web Search^]
+dan menampilkan hasilnya.
+Parameter `timeout` memberitahu peladen untuk membatalkan permintaan tersebut
+setelah durasi habis.
+
+Kode ini dibagi dalam tiga paket:
+
+* link:/blog/context/server/server.go[server^] menyediakan fungsi main dan
+  penanganan untuk `/search`.
+* link:/blog/context/userip/userip.go[userip^] menyediakan fungsi-fungsi untuk
+  mengekstraksi alamat IP dari _request_ dan menghubungkan dengan sebuah
+  `Context`.
+* link:/blog/context/google/google.go[google^] menyediakan fungsi `Search`
+  untuk mengirim sebuah kueri ke Google.
+
+
+===  Program peladen
+
+Program
+link:/blog/context/server/server.go[peladen]
+menangani permintaan seperti `/search?q=golang` dengan
+mengembalikan beberapa hasil pencarian pertama dari Google untuk kata
+`golang`.
+Peladen tersebut memiliki fungsi `handleSearch` untuk menangani permintaan
+ke `/search`.
+Fungsi tersebut membuat sebuah `Context` induk bernama `ctx` yang mengatur
+supaya dibatalkan saat fungsi selesai.
+Jika permintaan mengikutkan parameter `timeout` pada kueri URL, maka `Context`
+akan dibatalkan secara otomatis saat `timeout` telah habis:
+
+----
+func handleSearch(w http.ResponseWriter, req *http.Request) {
+    // ctx adalah Context dari fungsi ini.
+    // Memanggil cancel akan menutup kanal ctx.Done, yang merupakan sinyal
+    // pembatalan untuk permintaan yang dimulai oleh fungsi ini.
+    var (
+        ctx    context.Context
+        cancel context.CancelFunc
+    )
+    timeout, err := time.ParseDuration(req.FormValue("timeout"))
+    if err == nil {
+        // Permintaan memiliki batas waktu, jadi buatlah sebuah context
+        // yang dibatalkan secara otomatis saat timeout selesai.
+        ctx, cancel = context.WithTimeout(context.Background(), timeout)
+    } else {
+        ctx, cancel = context.WithCancel(context.Background())
+    }
+    defer cancel() // Batalkan ctx saat handleSearch selesai.
+----
+
+Fungsi `handleSearch` mengekstrak kueri dan alamat IP klien dari HTTP
+_request_ dengan memanggil paket `userip`.
+Alamat IP dari klien dibutuhkan untuk permintaan ke _backend_, jadi
+`handleSearch` memasukkan-nya ke dalam `ctx`:
+
+----
+    // Periksa kueri pencarian.
+    query := req.FormValue("q")
+    if query == "" {
+        http.Error(w, "no query", http.StatusBadRequest)
+        return
+    }
+
+    // Simpan alamat pengguna dalam ctx untuk digunakan oleh kode dalam paket
+    // lain.
+    userIP, err := userip.FromRequest(req)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+    ctx = userip.NewContext(ctx, userIP)
+----
+
+Fungsi `handleSearch` kemudian memanggil `google.Search` dengan mengirim `ctx`
+dan `query`:
+
+----
+    // Jalankan pencarian Google dan cetak hasilnya.
+    start := time.Now()
+    results, err := google.Search(ctx, query)
+    elapsed := time.Since(start)
+----
+
+Jika pencarian sukses, fungsi tersebut menampilkan hasilnya:
+
+----
+    if err := resultsTemplate.Execute(w, struct {
+        Results          google.Results
+        Timeout, Elapsed time.Duration
+    }{
+        Results: results,
+        Timeout: timeout,
+        Elapsed: elapsed,
+    }); err != nil {
+        log.Print(err)
+        return
+    }
+----
+
+=== Paket userip
+
+Paket
+link:/blog/context/userip/userip.go[`userip`]
+menyediakan fungsi-fungsi untuk mengekstrak alamat IP pengguna
+dari sebuah permintaan dan menanamnya dalam sebuah Context.
+Sebuah `Context` menyediakan pemetaan kunci-nilai, yang mana kunci dan nilai
+bertipe `interface{}`.
+Tipe dari kunci haruslah mendukung
+link:/ref/spec#Comparison_operators[ekualitas^],
+dan tipe dari nilai haruslah aman digunakan secara simultan oleh beberapa
+_goroutine_.
+Paket seperti `userip` menyembunyikan detail dari pemetaan ini dan menyediakan
+akses ke nilai `Context` tertentu.
+
+Untuk menghindari bentrok dengan kunci yang lain, `userip` mendefinisikan tipe
+`key` yang tidak diekspor dan menggunakan nilai dari tipe tersebut sebagai
+kunci dari context:
+
+----
+// Tipe key tidak diekspor untuk mencegah bentrok dengan kunci-kunci dari
+// context yang didefinisikan dalam paket yang lain.
+type key int
+
+// userIPkey adalah kunci context untuk alamat IP pengguna.
+// Nilainya bisa 0 atau nilai integer lain.
+// Jika paket ini mendefinisikan kunci-kunci context lainnya, maka nilai
+// setiap kunci tersebut haruslah memiliki nilai integer yang berbeda.
+const userIPKey key = 0
+----
+
+Fungsi `FromRequest` mengekstrak sebuah nilai `userIP` dari `http.Request`:
+
+----
+func FromRequest(req *http.Request) (net.IP, error) {
+    ip, _, err := net.SplitHostPort(req.RemoteAddr)
+    if err != nil {
+        return nil, fmt.Errorf("userip: %q is not IP:port", req.RemoteAddr)
+    }
+----
+
+Fungsi `NewContext` mengembalikan sebuah `Context` baru yang membawa nilai
+`userIP`:
+
+----
+func NewContext(ctx context.Context, userIP net.IP) context.Context {
+    return context.WithValue(ctx, userIPKey, userIP)
+}
+----
+
+Fungsi `FromContext` mengekstrak sebuah `userIP` dari sebuah `Context`:
+
+----
+func FromContext(ctx context.Context) (net.IP, bool) {
+    // ctx.Value mengembalikan nil jika ctx tidak memiliki nilai sesuai key;
+    // konversi tipe net.IP mengembalikan ok=false jika kunci tidak ada atau
+    // nilai IP adalah nil.
+    userIP, ok := ctx.Value(userIPKey).(net.IP)
+    return userIP, ok
+}
+----
+
+
+===  Paket google
+
+Fungsi
+link:/blog/context/google/google.go[`google.Search`^]
+membuat permintaan HTTP ke
+https://developers.google.com/web-search/docs/[Google Web Search API^]
+dan mengurai kembalian dalam bentuk JSON.
+Fungsi tersebut menerima sebuah `Context` parameter `ctx` dan selesai bila
+`ctx.Done` ditutup walau permintaan masih tetap berjalan.
+
+Permintaan untuk Google Web Search API mengikutkan `query` pencarian dan
+alamat IP pengguna sebagai parameter kueri:
+
+----
+func Search(ctx context.Context, query string) (Results, error) {
+    // Persiapkan permintaan untuk Google Search API.
+    req, err := http.NewRequest("GET", "https://ajax.googleapis.com/ajax/services/search/web?v=1.0", nil)
+    if err != nil {
+        return nil, err
+    }
+    q := req.URL.Query()
+    q.Set("q", query)
+
+    // Jika ctx membawa alamat IP pengguna, teruskan ke peladen.
+    // Google API menggunakan alamat IP pengguna untuk membedakan permintaan
+    // yang diinisiasi oleh server dengan permintaan dari user.
+    if userIP, ok := userip.FromContext(ctx); ok {
+        q.Set("userip", userIP.String())
+    }
+    req.URL.RawQuery = q.Encode()
+----
+
+Fungsi `Search` menggunakan fungsi pembantu, `httpDo`, untuk membuat dan
+membatalkan permintaan HTTP bila `ctx.Done` ditutup saat permintaan atau
+respon masih dalam proses.
+Fungsi `Search` mengirim sebuah _closure_ ke `httpDo` untuk menangani respon
+HTTP:
+
+----
+    var results Results
+    err = httpDo(ctx, req, func(resp *http.Response, err error) error {
+        if err != nil {
+            return err
+        }
+        defer resp.Body.Close()
+
+        // Urai hasil pencarian dalam bentuk JSON.
+        // https://developers.google.com/web-search/docs/#fonje
+        var data struct {
+            ResponseData struct {
+                Results []struct {
+                    TitleNoFormatting string
+                    URL               string
+                }
+            }
+        }
+        if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+            return err
+        }
+        for _, res := range data.ResponseData.Results {
+            results = append(results, Result{Title: res.TitleNoFormatting, URL: res.URL})
+        }
+        return nil
+    })
+    // httpDo menunggu closure yang kita berikan selesai, jadi aman untuk
+    // membaca hasilnya di sini.
+    return results, err
+----
+
+Fungsi `httpDo` menjalankan permintaan HTTP dan memproses respon dalam sebuah
+_goroutine_ yang baru.
+Ia membatalkan permintaan jika `ctx.Done` ditutup sebelum _goroutine_ selesai:
+
+----
+func httpDo(ctx context.Context, req *http.Request, f func(*http.Response, error) error) error {
+    // Jalankan permintaan HTTP dalam sebuah goroutine dan kirim respon-nya ke
+    // f.
+    c := make(chan error, 1)
+    req = req.WithContext(ctx)
+    go func() { c <- f(http.DefaultClient.Do(req)) }()
+    select {
+    case <-ctx.Done():
+        <-c // Tunggu sampai f selesai.
+        return ctx.Err()
+    case err := <-c:
+        return err
+    }
+}
+----
+
+
+==  Adaptasi kode untuk `Context`
+
+Banyak kerangka peladen menyediakan paket dan tipe untuk membawa nilai-nilai
+sesuai-nilai sesuai-nilai sesuai-nilai sesuai skop-permintaan.
+Kita dapat mendefinisikan implementasi baru dari interface `Context` untuk
+menjembatani antara kode yang menggunakan kerangka yang telah ada dan kode
+yang mengharapkan sebuah parameter `Context`.
+
+Misalnya, paket
+http://www.gorillatoolkit.org/pkg/context[github.com/gorilla/context^]
+pada kerangka peladen HTTP Gorilla membolehkan fungsi-fungsi mengasosiasikan
+data dengan permintaan yang masuk dengan menyediakan sebuah pemetaan dari
+permintaan HTTP ke pasangan kunci-nilai.
+Dalam
+https://blog.golang.org/context/gorilla/gorilla.go[gorilla.go^],
+kami menyediakan sebuah implementasi `Context` dengan method `Value`
+mengembalikan nilai-nilai yang diasosiasikan dengan permintaan HTTP tertentu
+dalam paket Gorilla.
+
+Paket-paket lain telah menyediakan dukungan pembatalan yang mirip dengan
+`Context`.
+Contohnya,
+https://godoc.org/gopkg.in/tomb.v2[Tomb^]
+menyediakan sebuah method `Kill` yang mengirim sinyal pembatalan dengan
+menutup kanal `Dying`.
+`Tomb` juga menyediakan method-method untuk menunggu _goroutine_ selesai,
+mirip dengan `sync.WaitGroup`.
+Dalam
+https://blog.golang.org/context/tomb/tomb.go[tomb.go^],
+kami menyediakan sebuah implementasi `Context` yang dibatalkan saat `Context`
+induk-nya dibatalkan atau saat `Tomb` dihentikan.
+
+
+==  Kesimpulan
+
+Di Google, kita mengharuskan programmer Go mengirim sebuah parameter `Context`
+sebagai argumen pertama pada semua fungsi antara permintaan masuk dan keluar.
+Hal ini membolehkan kode Go yang dikembangkan oleh banyak tim yang berbeda
+saling terhubung dengan baik.
+Ia menyediakan kontrol sederhana terhadap batas waktu dan pembatalan dan
+memastikan nilai-nilai penting seperti kredensial keamanan terkirim dalam
+program Go dengan benar.
+
+Kerangka peladen yang ingin dibangun dengan `Context` sebaiknya menyediakan
+implementasi `Context` untuk menjembatani antara paket mereka dengan paket
+yang mengharapkan sebuah parameter `Context`.
+Pustaka klien mereka kemudian menerima sebuah `Context` dari kode yang
+dipanggil.
+Dengan menjalin sebuah antarmuka umum untuk data dengan skop-permintaan dan
+pembatalan, `Context` mempermudah pengembang paket berbagi kode untuk membuat
+layanan-layanan yang mudah dikembangkan.

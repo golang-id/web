@@ -69,6 +69,9 @@
 
 === 2014
 
+*  link:/blog/context[Pola konkurensi Go: Context^],
+   29 Juli 2014.  Sameer Ajmani.
+
 *  link:/blog/pipelines[Pola konkurensi Go: _pipeline_ dan pembatalan^],
    13 Maret 2014,  Sameer Ajmani.
 
