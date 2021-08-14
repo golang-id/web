@@ -24,7 +24,7 @@ dan terjemahannya dapat diakses lewat tautan
 https://golang-id.org/blog/using-go-modules[https://golang-id.org/blog/using-go-modules].
 
 
-==  Dokumentasi
+==  link:/doc/[Dokumentasi]
 
 Untuk mengetahui cara memasang bahasa Go di sistem operasi anda dan belajar
 lebih lanjut, silakan buka halaman link:/doc[dokumentasi].
