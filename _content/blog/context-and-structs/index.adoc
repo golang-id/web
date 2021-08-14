@@ -1,0 +1,233 @@
+= Context dan struct
+Jean de Klerk, Matt T. Proud
+24 Februari 2021
+:toc:
+:sectanchors:
+:sectlinks:
+
+
+==  Pendahuluan
+
+Pada kebanyakan Go API, terutama yang baru, argumen pertama dari fungsi dan method biasanya
+https://golang.org/pkg/context/[`context.Context`^].
+Context menyediakan cara untuk mengirim tenggat (_deadline_), pembatalan, dan
+nilai-nilai dengan skop-permintaan melewati batas-batas API dan antar proses.
+Context juga sering digunakan pada pustaka yang berinteraksi --langsung atau
+tidak langsung-- dengan peladen _remote_ lainnya, seperti basis-data, HTTP API,
+dan lainnya.
+
+https://golang.org/pkg/context/[Dokumentasi dari `context`^] menyatakan:
+
+[quote]
+Context sebaiknya tidak disimpan di dalam sebuah tipe struct, namun kirimlah
+ke setiap fungsi yang membutuhkannya.
+
+Artikel ini menjelaskan alasan dan contoh kenapa sangat penting mengirim
+`Context` ke fungsi daripada menyimpannya ke dalam tipe struct.
+Artikel ini juga menjelaskan kasus khusus di mana menyimpan Context ke dalam
+tipe struct bisa jadi masuk akal, dan bagaimana melakukan-nya dengan aman.
+
+
+==  Gunakan context yang dikirim sebagai argumen
+
+Untuk memahami kenapa tidak menyimpan context ke dalam struct, mari kita lihat
+pendekatan context-sebagai-argumen:
+
+----
+type Worker struct { /* … */ }
+
+type Work struct { /* … */ }
+
+func New() *Worker {
+    return &Worker{}
+}
+
+func (w *Worker) Fetch(ctx context.Context) (*Work, error) {
+    _ = ctx // Sebuah ctx digunakan per-panggilan untuk pembatalan, tenggat, dan metadata.
+}
+
+func (w *Worker) Process(ctx context.Context, work *Work) error {
+    _ = ctx // Sebuah ctx digunakan per-panggilan untuk pembatalan, tenggat, dan metadata.
+}
+----
+
+Kita dapat melihat bahwa method `(*Worker).Fetch` dan `(*Worker).Process`
+menerima sebuah `Context`.
+Dengan cara dikirim-sebagai-argumen ini, user dapat men-set tenggat,
+pembatalan, dan metadata per panggilan, satu panggilan satu context.
+Cukup jelas bagaimana `context.Context` yang dikirim ke setiap method akan
+digunakan: `context.Context` yang dikirim ke sebuah method tidak akan
+digunakan oleh method lainnya.
+Hal ini karena context memiliki skop, yang meningkatkan penggunaan dan
+kejelasan dari context tersebut.
+
+
+==  Menyimpan context ke dalam struct menyebabkan kebingungan
+
+Mari kita lihat kembali contoh `Worker` di atas dengan pendekatan
+context-dalam-struct.
+Permasalahan dengan model ini yaitu saat kita menyimpan context ke dalam
+sebuah struct, kita menggantungkan durasi hidup pada yang memanggil, atau
+lebih buruk lagi mencampuradukkan dua skop bersamaan dengan cara yang tidak
+bisa diprediksi:
+
+----
+type Worker struct {
+    ctx context.Context
+}
+
+func New(ctx context.Context) *Worker {
+    return &Worker{ctx: ctx}
+}
+
+func (w *Worker) Fetch() (*Work, error) {
+    _ = w.ctx // Sebuah w.ctx yang sama digunakan untuk pembatalan, tenggat, dan metadata.
+}
+
+func (w *Worker) Process(work *Work) error {
+    _ = w.ctx // Sebuah w.ctx yang sama digunakan untuk pembatalan, tenggat, dan metadata.
+}
+----
+
+Kedua method `(*Worker).Fetch` dan `(*Worker).Process` menggunakan sebuah
+context yang disimpan dalam `Worker`.
+Hal ini membuat pemanggilan ke `Fetch` dan `Process` (yang bisa saja memiliki
+context yang berbeda) tidak bisa menspesifikasikan tenggat, melakukan
+pembatalan, dan menempelkan metadata per-pemanggilan yang berbeda.
+Misalnya: pengguna tidak bisa menyediakan tenggat hanya untuk
+`(*Worker).Fetch`, atau membatalkan pemanggilan `(*Worker).Process` saja.
+Durasi hidup dari si pemanggil bercampur dengan context yang berbagi, dan
+context tersebut memiliki skop dengan durasi hidup yang dibatasi oleh di mana
+`Worker` dibuat.
+
+API-nya juga membingungkan bagi pengguna dibandingkan dengan pendekatan
+kirim-lewat-argumen.
+User bisa bertanya-tanya:
+
+* Secara `New` menerima sebuah `context.Context`, apakah fungsi tersebut
+  memiliki pekerjaan yang butuh pembatalan atau tenggat?
+* Apakah `context.Context` yang dikirim ke `New` dipakai pada
+  `(*Worker).Fetch` dan `(*Worker).Process`?
+  Tidak sama sekali? Atau salah satu saja?
+
+API tersebut akan membutuhkan dokumentasi yang jelas untuk memberitahu
+pengguna bagaimana `context.Context` digunakan.
+Pengguna bisa jadi terpaksa membaca kode, untuk mengetahui bagaimana context
+bekerja, bukan bergantung kepada struktur dari API.
+
+Terakhir, agak berbahaya merancang sebuah peladen yang setiap permintaan-nya
+tidak memiliki sebuah context yang tidak bisa dibatalkan.
+Tanpa kemampuan untuk men-set tenggat per-pemanggilan,
+https://sre.google/sre-book/handling-overload/[proses Anda bisa menimbun^]
+dan menghabiskan sumber daya (seperti memori)!
+
+
+==  Pengecualian dari aturan: menjaga kompatibilitas
+
+Saat Go 1.7 dirilis --yang
+https://golang.org/doc/go1.7[memperkenalkan `context.Context`^]--
+sejumlah besar API harus menambahkan dukungan `context` namun tetap menjaga
+kompatibilitas.
+Misalnya,
+https://golang.org/pkg/net/http/[method-method `Client` pada `net/http`^],
+seperti `Get` dan `Do`, adalah kandidat yang bagus untuk `context`.
+Setiap pemanggilan pada method ini akan diuntungkan dengan memiliki dukungan
+tenggat, pembatalan, dan metadata yang ada pada `context.Context`.
+
+Ada dua pendekatan untuk menambahkan dukungan `context.Context` dengan tetap
+menjaga kompatibilitas: memasukkan sebuah context ke dalam struct, seperti
+yang akan kita lihat nanti, dan menggandakan fungsi dengan membuat fungsi baru
+yang menerima `context.Context` dan memiliki sufiks `Context` pada nama
+fungsi.
+Pendekatan penggandaan lebih disukai daripada menambahkan context dalam
+struct, dan telah didiskusikan dalam
+link:/blog/module-compatibility[Menjaga modul Anda tetap kompatibel^].
+Namun, pendekatan penggandaan ini pada beberapa kasus tidak praktis: misalnya,
+jika API Anda mengekspor sejumlah fungsi, maka membuat duplikat untuk setiap
+fungsi bisa jadi memungkinkan.
+
+Paket `net/http` memilih pendekatan context-dalam-struct, yang dalam hal ini
+menyediakan sebuah studi kasus yang berguna.
+Mari kita lihat method `Do` pada `net/http`.
+Sebelum adanya `context.Context`, `Do` didefinisikan sebagai:
+
+----
+// Do sends an HTTP request and returns an HTTP response [...]
+func (c *Client) Do(req *Request) (*Response, error)
+----
+
+Setelah Go 1.7, `Do` seharusnya menjadi seperti berikut, jika bukan karena
+harus menjaga kompatibilitas:
+
+----
+// Do sends an HTTP request and returns an HTTP response [...]
+func (c *Client) Do(ctx context.Context, req *Request) (*Response, error)
+----
+
+Namun, demi menjaga kompatibilitas dan memenuhi
+https://golang.org/doc/go1compat[jaminan kompatibilitas Go 1^]
+sangat penting untuk pustaka standar, pengembang memilih untuk menambahkan
+`context.Context` pada struct `http.Request` supaya dapat mendukung
+`context.Context` tanpa memutus jaminan kompatibilitas:
+
+----
+// A Request represents an HTTP request received by a server or to be sent by a client.
+// ...
+type Request struct {
+  ctx context.Context
+
+  // ...
+}
+
+// NewRequestWithContext returns a new Request given a method, URL, and optional
+// body.
+// [...]
+// The given ctx is used for the lifetime of the Request.
+func NewRequestWithContext(ctx context.Context, method, url string, body io.Reader) (*Request, error) {
+  // Simplified for brevity of this article.
+  return &Request{
+    ctx: ctx,
+    // ...
+  }
+}
+
+// Do sends an HTTP request and returns an HTTP response [...]
+func (c *Client) Do(req *Request) (*Response, error)
+----
+
+Saat mengubah API Anda untuk mendukung context, mungkin masuk akal untuk
+menambahkan `context.Context` ke dalam sebuah struct, seperti di atas.
+Namun, pertimbangkan lah untuk menggandakan fungsi Anda terlebih dahulu, yang
+membolehkan `context.Context` dengan cara yang menjamin kompatibilitas tanpa
+mengorbankan utilitas dan pemahaman.
+Misalnya:
+
+----
+// Call menggunakan context.Background secara internal; untuk mengirim
+// context, gunakakan CallContext.
+func (c *Client) Call() error {
+    return c.CallContext(context.Background())
+}
+
+func (c *Client) CallContext(ctx context.Context) error {
+    // ...
+}
+----
+
+
+==  Kesimpulan
+
+Context mempermudah mengirim informasi penting antar-pustaka dan antar-API.
+Namun, ia harus digunakan secara konsisten dan jelas supaya tetap mudah
+dipahami, mudah dilacak, dan efektif.
+
+Saat dikirim sebagai argumen pertama dalam sebuah method, bukan disimpan dalam
+sebuah tipe struct, pengguna mendapatkan keuntungan penuh dari context supaya
+dapat membangun informasi pembatalan, tenggat, dan metadata lewat sekumpulan
+pemanggilan.
+Kelebihan lainnya, skop dari context tersebut sangat mudah dipahami bila
+dikirim sebagai argumen, membuatnya mudah dipahami dan mempermudah
+pelacakan dari hulu sampai hilir.
+
+Saat merancang API dengan context, ingatlah saran berikut: kirim
+`context.Context` sebagai argumen; jangan simpan dalam struct.

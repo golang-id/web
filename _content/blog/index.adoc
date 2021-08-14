@@ -5,6 +5,12 @@
 
 ==  Indeks
 
+=== 2021
+
+*  link:/blog/context-and-structs/[Context dan struct^],
+   24 Februari 2021.
+   Jean de Klerk; Matt T. Proud
+
 === 2020
 
 *  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap
