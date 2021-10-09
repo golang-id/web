@@ -117,3 +117,7 @@ Spesifikasi bahasa Go yang resmi.
 Sebuah dokumen yang menspesifikasikan kondisi-kondisi di mana pembacaan sebuah
 variabel pada sebuah goroutine dapat dijamin mengobservasi nilai yang
 dihasilkan oleh penulisan ke variabel yang sama dalam goroutine yang berbeda.
+
+===  link:/proposal[Proposal]
+
+Dokumentasi proposal perubahan pada bahasa Go dalam Bahasa Inggris.
