@@ -19,7 +19,7 @@ build: generate
 install: generate
 	go install ./cmd/$(PROGRAM_NAME)
 
-serve: generate
+serve:
 	DEBUG=1 go run ./cmd/$(PROGRAM_NAME) -port=5080
 
 deploy: build-deploy
