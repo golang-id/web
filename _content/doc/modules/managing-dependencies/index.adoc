@@ -1,0 +1,623 @@
+= Manajemen dependensi
+
+Bila kode Anda menggunakan paket-paket eksternal, paket tersebut (yang
+didistribusi dalam modul) menjadi dependensi.
+Suatu saat, Anda mungkin ingin memperbarui atau mengganti paket tersebut.
+Go menyediakan perkakas manajemen dependensi yang membantu menjaga aplikasi Go
+Anda aman saat menggunakan dependensi eksternal.
+
+Topik ini menjelaskan bagaimana melakukan manajemen dependensi pada kode Anda
+dengan perkakas Go.
+Topik ini juga menjelaskan beberapa pekerjaan lain yang berkaitan dengan
+dependensi yang mungkin suatu saat nanti berguna.
+
+**Lihat juga**
+
+*  Jika Anda baru belajar tentang dependensi dengan modul, lihatlah
+   link:/doc/tutorial/getting-started[Tutorial: memulai dari awal^]
+   untuk pengenalan singkat.
+
+*  Menggunakan perintah `go` untuk mengatur dependensi modul memastikan
+   kebutuhan Anda konsisten dan isi dari berkas go.mod selalu valid.
+   Untuk referensi dari perintah tersebut, lihat
+   link:/cmd/go[Perintah go^].
+   Anda juga bisa membaca bantuan lewat baris perintah dengan mengetikan `go
+   help` _nama-perintah_, misalnya `go help mod tidy`.
+
+*  Perintah go untuk mengatur dependensi mengubah berkas `go.mod`.
+   Untuk informasi lebih lanjut tentang format berkas ini, lihat
+   https://golang.org/doc/modules/gomod-ref[Referensi berkas go.mod^].
+
+*  Membuat program penyunting atau _Integrated Development Environment_ (IDE)
+   Anda supaya mendukung Go modul untuk mempermudah pekerjaan manajemen
+   dependensi.
+   Untuk informasi tentang program penyunting yang mendukung Go, lihat
+   link:/doc/editors.html[Plugin untuk editor dan IDE^].
+
+*  Topik ini tidak menjelaskan bagaimana mengembangkan, menerbitkan, dan
+   memberi versi pada modul supaya dapat digunakan oleh orang lain.
+   Untuk informasi tentang hal tersebut, lihat
+   https://golang.org/doc/modules/developing[Mengembangkan dan menerbitkan modul^].
+
+
+[#workflow]
+== Alur kerja menggunakan dan mengatur dependensi
+
+Anda bisa mengambil dan menggunakan paket-paket eksternal menggunakan perkakas
+Go.
+Pada situs
+https://pkg.go.dev[pkg.go.dev],
+Anda bisa mencari paket yang akan digunakan, kemudian menggunakan perintah
+`go` untuk mengimpor paket tersebut ke dalam kode Anda untuk memanggil
+fungsinya.
+
+Berikut daftar langkah-langkah yang sering digunakan dalam manajemen
+dependensi.
+Untuk informasi lebih lanjut tentang setiap langkah, lihat bagian-bagian dari
+topik ini.
+
+. link:#locating_packages[Carilah paket yang akan digunakan] di
+  https://pkg.go.dev[pkg.go.dev]
+. link:#locating_packages[Impor paket] tersebut ke dalam kode.
+. Tambahkan kode Anda ke dalam sebuah modul untuk melacak dependensi (jika
+  belum berada dalam modul).
+  Lihat link:#enable_tracking[Mengaktifkan pelacakan dependensi].
+. link:#adding_dependency[Tambahkan paket eksternal sebagai dependensi] supaya
+  Anda dapat mengaturnya.
+. link:#upgrading[Perbarui versi dependensi] bila diperlukan.
+
+
+[#modules]
+== Mengatur dependensi modul
+
+Dalam Go, dependensi adalah modul-modul yang berisi paket-paket yang kita
+impor.
+Proses pengaturan dependensi ini didukung oleh:
+
+*  Sebuah **sistem terdesentralisasi untuk menerbitkan** modul dan mengambil
+   kode.
+   Pengembang kode membuat modul mereka tersedia untuk digunakan oleh
+   pengembang lain lewat repositori mereka sendiri dan menerbitkannya dengan
+   nomor
+   versi.
+*  Sebuah **mesin pencari paket** dan penjelajah dokumentasi (pkg.go.dev) di
+   mana Anda dapat mencari modul.
+   Lihat
+   link:#locating_packages[Mencari dan mengimpor paket].
+*  Sebuah **konvensi penomoran versi** modul yang membantu Anda memahami
+   stabilitas dan jaminan kompatibilitas modul.
+   lihat
+   https:/golang.org/doc/modules/version-numbers[Penomoran versi modul^].
+*  **Perkakas go** yang mempermudah Anda mengatur dependensi, termasuk
+   mendapatkan sumber kode, memperbarui, dan lainnya.
+   Lihat topik ini lebih lanjut pada bagian selanjutnya.
+
+
+[#locating_packages]
+== Mencari dan mengimpor paket
+
+Anda dapat menggunakan situs
+https://pkg.go.dev[pkg.go.dev^]
+untuk mencari paket-paket dengan fungsi yang akan Anda gunakan.
+
+Saat paket yang ingin Anda gunakan telah ditemukan, cari impor _path_ dari
+paket tersebut pada bagian atas halaman dan klik tombol "Copy path" untuk
+menyalin.
+Dalam kode Anda, salin lah _path_ tersebut menjadi perintah impor, seperti
+contoh berikut:
+
+----
+import "rsc.io/quote"
+----
+
+Setelah kode Anda mengimpor paket tersebut, aktif kan pelacakan dependensi dan
+ambil kode paket untuk mengompilasi.
+Lebih lanjut, lihat
+link:#enable_tracking[Mengaktifkan pelacakan dependensi pada kode Anda]
+dan
+link:#adding_dependency[Menambahkan dependensi].
+
+
+[#enable_tracking]
+== Mengaktifkan pelacakan dependensi pada kode Anda
+
+Untuk melacak dan mengatur dependensi yang Anda tambahkan, kita mulai dengan
+memasukkan kode Anda ke dalam modul-nya sendiri.
+Langkah ini akan membuat berkas go.mod pada direktori paling atas dari
+repositori Anda.
+Dependensi yang Anda tambahkan akan tercatat dalam berkas tersebut.
+
+Untuk memasukkan kode Anda ke dalam sebuah modul, gunakan
+https://golang.org/ref/mod#go-mod-init[perintah `go mod init`^].
+Misalnya, lewat baris perintah, pindah lah ke direktori sumber kode Anda,
+kemudian jalankan perintah berikut:
+
+----
+$ go mod init example.com/mymodule
+----
+
+Argumen dari perintah `go mod init` adalah _path_ ke modul Anda.
+Jika memungkinkan, _path_ dari modul seharusnya lokasi repositori dari sumber
+kode Anda.
+Jika Anda belum tahu lokasi dari repositori Anda, gunakan pengganti yang aman,
+seperti nama dari domain yang Anda miliki atau `example.com`, bersama dengan
+_path_ yang berisi nama modul atau direktori sumber kode.
+Untuk lebih lanjut lihat
+link:#naming_module[Penamaan sebuah modul]
+
+Saat Anda menggunakan perkakas Go untuk mengatur dependensi, perkakas tersebut
+akan memperbarui berkas go.mod untuk menyimpan daftar dependensi.
+
+Saat Anda menambahkan dependensi, perkakas Go membuat sebuah berkas go.sum
+yang berisi _checksum_ dari modul yang Anda pakai.
+Go menggunakan berkas go.sum untuk memverifikasi integritas dari berkas modul
+yang diunduh, terutama untuk pengembang lain yang bekerja dalam proyek Anda.
+
+Masukan berkas go.mod dan go.sum ke dalam repositori berikut dengan kode Anda.
+
+Lihat
+link:/doc/modules/gomod-ref[referensi go.mod]
+untuk informasi lebih lanjut.
+
+[#naming_module]
+==  Penamaan sebuah modul
+
+Saat Anda menjalankan perintah "go mod init <path-modul>" untuk membuat sebuah
+modul untuk melacak dependensi, Anda mengirim sebuah parameter _path-modul_
+yang berfungsi sebagai nama modul.
+_Path_ dari modul menjadi prefiks untuk paket-paket dalam modul tersebut.
+Pastikan memberi nama _path_ modul yang tidak konflik dengan _path_ modul yang
+lain.
+
+Sebuah _path_ modul digunakan untuk menunjukkan asal dari modul, seperti nama
+sebuah perusahaan atau nama penerbit atau pemilik.
+Namun _path_ tersebut juga bisa lebih deskriptif, menjelaskan tujuan dan/atau
+fungsi dari modul.
+
+_Path_ dari modul biasanya memiliki format berikut:
+
+----
+<prefiks>/<teks-penjelasan>
+----
+
+* _Prefiks_ biasanya sebuah string yang menjelaskan modul, seperti sebuah
+  string yang menjelaskan asalnya.
+  Ia bisa berupa:
+
+** Lokasi repositori tempat perkakas Go dapat mengambil sumber kode
+(dibutuhkan jika Anda akan menerbitkan modul).
++
+Misalnya, ia bisa berbentuk `github.com/<nama-proyek>/`.
++
+Gunakan praktik ini jika Anda akan menerbitkan modul untuk orang lain.
+Untuk informasi lebih lanjut tentang penerbitan modul, lihat
+https://golang.org/doc/modules/developing[Pengembangan dan penerbitan modul^].
+
+** Sebuah nama yang dapat Anda atur.
++
+Jika Anda tidak menggunakan sebuah repositori, pastikan memilih prefiks yang
+Anda percaya tidak digunakan oleh orang lain.
+Pilihan yang baik biasanya berupa nama perusahaan Anda.
+Hindari istilah seperti `widgets`, `utilities`, atau `app`.
+
+* Untuk _teks-penjelasan_, pilihan yang bagus yaitu nama proyek.
+Ingatlah bahwa nama paket lebih menjelaskan fungsionalitas.
+_Path_ modul berfungsi sebagai sebuah _namespace_ atau pengelompokan untuk
+nama-nama paket tersebut.
+
+
+**Prefiks _path_ modul yang telah dipakai**
+
+Go menjamin kata-kata berikut tidak bisa digunakan sebagai nama paket.
+
+* `test` -- Anda bisa menggunakan `test` sebagai prefiks pada _path_ modul
+  untuk modul yang dirancang menguji fungsi-fungsi di dalam modul lain.
++
+Gunakan prefiks `test` untuk modul-modul yang dibuat sebagai bagian dari
+sebuah tes.
+Misalnya, tes Anda bisa saja menjalankan `go mod init test` dan kemudian
+menyiapkan modul tersebut dengan cara tertentu untuk mengujinya dengan
+perkakas analisis Go.
+
+* `example` -- Digunakan sebagai prefiks _path_ modul pada beberapa
+  dokumentasi Go, seperti tutorial-tutorial membuat modul untuk melacak
+  dependensi.
++
+Ingatlah bahwa dokumentasi Go juga menggunakan `example.com` sebagai contoh
+bagi modul yang akan diterbitkan.
+
+
+[#adding_dependency]
+== Menambahkan sebuah dependensi
+
+Saat Anda mengimpor paket dari sebuah modul, Anda dapat menambahkan modul
+tersebut ke dalam dependensi dengan menggunakan
+link:/cmd/go/#hdr-Add_dependencies_to_current_module_and_install_them][perintah `go get`^].
+
+Perintah tersebut melakukan hal-hal berikut:
+
+*  Jika diperlukan, perintah tersebut akan menambahkan direktif `require` ke
+   berkas go.mod untuk modul-modul yang dibutuhkan membangun name paket yang
+   diberikan pada baris perintah.
+   Sebuah direktif `require` melacak versi minimum dari sebuah modul yang
+   dibutuhkan oleh modul Anda.
+   Lihat
+   https://golang.org/doc/modules/gomod-ref[referensi go.mod^]
+   untuk lebih lanjut.
+*  Jika diperlukan, ia akan mengunduh sumber kode modul supaya dapat
+   mengompilasi paket-paket yang bergantung pada modul tersebut.
+   Ia bisa mengunduh modul lewat sebuah modul proksi seperti proxy.golang.org
+   atau langsung dari repositori.
+   Sumber kode tersebut disimpan dalam tembolok lokal.
++
+Anda dapat mengatur lokasi tempat perkakas Go mengunduh modul.
+Untuk lebih lanjut, lihat
+link:#proxy_server[Menentukan peladen proksi modul].
+
+Hal berikut menjelaskan beberapa contohnya.
+
+*  Untuk menambahkan semua dependensi dari sebuah paket ke dalam modul,
+   jalankan perintah seperti di bawah ("." mengacu ke paket dalam direktori
+   sekarang):
+
+   $ go get .
+
+*  Untuk menambahkan sebuah dependensi, tulis _path_ modul sebagai argumen
+   dari perintah
+
+   $ go get example.com/theirmodule
+
+Perintah tersebut juga mengautentikasi setiap modul yang diunduh.
+Hal ini untuk memastikan bahwa modul tidak berubah setelah diterbitkan.
+Jika modul telah berubah sejak diterbitkan --misalnya, pengembang mengubah
+isi dari _commit_-- perkakas Go akan menampikan pesan galat keamanan.
+Pemeriksaan autentikasi ini melindungi Anda dari modul yang mungkin telah
+dirusak.
+
+
+[#getting_version]
+== Mengambil versi tertentu dari sebuah dependensi
+
+Anda bisa mengambil versi tertentu dari sebuah modul dengan menentukan
+versi-nya dalam perintah `go get`.
+Perintah tersebut memperbarui direktif `require` dalam berkas `go.mod`
+(walaupun sebenarnya Anda bisa menyunting secara manual).
+
+Anda melakukan hal ini jika:
+
+*  Anda ingin mengambil versi pra-rilis dari sebuah modul untuk mencobanya.
+*  Anda menemukan bahwa versi yang sekarang Anda gunakan tidak bekerja dengan
+   seharusnya, sehingga Anda ingin mengambil versi yang Anda tahu bekerja
+   dengan benar.
+*  Anda ingin meningkatkan atau menurunkan versi sebuah modul yang Anda
+   butuhkan.
+
+Berikut contoh-contoh untuk menggunakan
+https://golang.org/ref/mod#go-get[perintah `go get`^]:
+
+*  Untuk mendapatkan nomor versi tertentu, tambahkan _path_ modul dengan tanda
+   @ diikuti dengan versi yang Anda inginkan:
+
+   $ go get example.com/theirmodule@v1.3.4
+
+*  Untuk mendapatkan versi terakhir, tambahkan _path_ modul dengan `@latest`:
+
+   $ go get example.com/theirmodule@latest
+
+Berkas go.mod berikut mengilustrasikan contoh direktif `require` (lihat
+https://golang.org/doc/modules/gomod-ref[referensi go.mod^]
+untuk lebih lanjut)
+yang membutuhkan nomor versi tertentu:
+
+----
+require example.com/theirmodule v1.3.4
+----
+
+
+[#discovering_updates]
+==  Menemukan pembaruan yang tersedia
+
+Anda bisa memeriksa apakah ada versi terbaru dari dependensi yang Anda gunakan
+dalam modul Anda.
+Gunakan perintah `go list` untuk mencetak daftar dari dependensi modul Anda,
+berikut dengan versi terbaru yang tersedia untuk modul tersebut.
+Saat Anda menemukan pembaruan, Anda bisa mencobanya pada kode Anda untuk
+menentukan apakah bisa ditingkatkan ke versi yang baru atau tidak.
+
+Untuk lebih lanjut tentang perintah `go list`, lihat
+https://golang.org/ref/mod#go-list-m[`go list -m`^].
+
+Berikut beberapa contoh.
+
+*  Cetak semua dependensi dari modul Anda sekarang,
+   berikut dengan versi terbaru yang tersedia:
+
+   $ go list -m -u all
+
+*  Cetak versi terakhir yang tersedia pada modul tertentu:
+
+   $ go list -m -u example.com/theirmodule
+
+
+[#upgrading]
+==  Meningkatkan atau menurunkan versi dari sebuah dependensi
+
+Anda bisa meningkatkan atau menurunkan nomor versi dari sebuah dependensi
+modul menggunakan perkakas Go dengan mencari versi yang tersedia kemudian
+menambahkan versi yang diinginkan sebagai dependensi.
+
+.  Untuk menemukan daftar versi, gunakan perintah `go list` seperti yang
+   dijelaskan dalam
+   link:#discovering_updates[Menemukan pembaruan yang tersedia].
+
+.  Untuk mengatur dependensi ke versi tertentu, gunakan perintah `go get`
+   seperti yang dijelaskan dalam
+   link:#getting_version[Mengambil versi tertentu dari dependensi].
+
+
+[#synchronizing]
+==  Sinkronisasi dependensi kode Anda
+
+Anda bisa memastikan bahwa semua dependensi dari kode telah tersimpan atau
+semua dependensi dari paket-paket yang tidak diimpor lagi telah dihapus.
+
+Hal ini bisa berguna saat Anda telah melakukan perubahan pada kode dan
+dependensi Anda, bisa jadi dengan membuat sekumpulan dependensi baru dan/atau
+mengunduh modul yang tidak lagi digunakan oleh paket dalam kode Anda.
+
+Supaya dependensi Anda tetap rapi, gunakan perintah `go mod tidy`.
+Dari sekumpulan paket-paket yang diimpor dalam kode Anda, perintah ini
+mengubah berkas go.mod untuk menambahkan modul yang dibutuhkan tapi belum
+disimpan dalam go.mod.
+Ia juga menghapus modul yang tidak digunakan.
+
+Perintah tersebut tidak memiliki argumen kecuali satu opsi, -v, yang mencetak
+informasi tentang modul yang dihapus.
+
+----
+$ go mod tidy
+----
+
+
+[#unpublished]
+==  Mengembang dan menguji kode modul yang belum diterbitkan
+
+Anda bisa menentukan kode Anda supaya menggunakan dependensi yang mungkin
+tidak akan diterbitkan.
+Kode dari modul-modul ini bisa jadi dalam repositori-nya sendiri, dalam
+_fork_ repositori-nya sendiri, atau dalam satu perangkat penyimpanan dengan
+modul yang sekarang.
+
+Anda bisa melakukan hal ini saat:
+
+*  Anda ingin membuat perubahan tersendiri terhadap kode modul eksternal,
+   seperti setelah _forking_ dan/atau _cloning_.
+   Misalnya, Anda ingin menyiapkan perbaikan terhadap modul tersebut, kemudian
+   mengirim perbaikan ke pengembang modul.
+*  Anda mengembangkan modul baru dan belum menerbitkannya, jadi modul tersebut
+   tidak tersedia dalam sebuah repositori yang dapat diambil oleh perintah
+   `go get`.
+
+
+[#local_directory]
+===  Menggunakan kode modul dalam direktori lokal
+
+Anda bisa menentukan bahwa kode dari modul yang dibutuhkan berada dalam
+perangkat yang sama dengan kode yang membutuhkannya.
+Hal ini bisa berguna bila Anda:
+
+*  Mengembangkan modul Anda sendiri yang terpisah dan ingin mengujinya pada
+   modul yang sekarang.
+*  Memperbaiki isu atau menambah fitur pada modul eksternal dan ingin
+   mengujinya pada modul yang sekarang.
+   (Ingatlah bahwa Anda bisa menggunakan modul eksternal dari _fork_ Anda
+   sendiri.
+   Untuk lebih lanjut, lihat
+   link:#external_fork[Menggunakan kode modul eksternal dari _fork_ repositori
+   Anda].)
+
+Untuk memberitahu perintah Go menggunakan salinan lokal dari kode modul,
+gunakan direktif `replace` dalam berkas go.mod untuk mengganti _path_ modul
+pada direktif `require`.
+Lihat
+https://golang.org/doc/modules/gomod-ref[referensi go.mod^]
+untuk informasi lebih lanjut tentang direktif tersebut.
+
+Dalam contoh berkas go.mod berikut, modul yang sekarang membutuhkan modul
+eksternal `example.com/theirmodule`, dengan nomor versi yang tidak ada
+(`v0.0.0-unpublished`) digunakan untuk memastikan penggantian bekerja dengan
+benar.
+Direktif `replace` kemudian mengganti _path_ modul asli dengan `../theirmodule`,
+sebuah direktori yang berada pada tingkat yang sama dengan direktori modul
+yang sekarang.
+
+----
+module example.com/mymodule
+
+go 1.16
+
+require example.com/theirmodule v0.0.0-unpublished
+
+replace example.com/theirmodule v0.0.0-unpublished => ../theirmodule
+----
+
+Saat menyiapkan pasangan `require`/`replace`, gunakan perintah
+https://golang.org/ref/mod#go-mod-edit[`go mod edit`^]
+dan
+https://golang.org/ref/mod#go-get[`go get`^]
+untuk memastikan kebutuhan-kebutuhan yang ada di dalam berkas tetap konsisten:
+
+----
+$ go mod edit -replace=example.com/theirmodule@v0.0.0-unpublished=../theirmodule
+$ go get -d example.com/theirmodule@v0.0.0-unpublished
+----
+
+NOTE: Saat menggunakan direktif `replace`, perkakas Go tidak mengautentikasi
+eksternal modul seperti yang dijelaskan dalam
+link:#adding_dependency[Menambahkan sebuah dependensi]
+
+Untuk informasi lebih lanjut tentang nomor versi, lihat
+https://golang.org/doc/modules/version-numbers[Penomoran versi modul^].
+
+
+[#external_fork]
+===  Menggunakan kode modul eksternal dari repositori _fork_ Anda sendiri
+
+Saat Anda telah mem-_fork_ sebuah repositori dari modul eksternal (seperti
+memperbaiki isu dalam kode modul atau menambahkan sebuah fitur), Anda bisa
+mengatur supaya perkakas Go untuk menggunakan _fork_ Anda tersebut sebagai
+pengganti dari modul asli.
+Hal ini bisa berguna untuk menguji perubahan pada kode Anda.
+(Ingatlah bahwa Anda bisa menggunakan modul eksternal lewat direktori di
+dalam lokal sistem.
+Untuk lebih lanjut, lihat
+link:#local_directory[Menggunakan kode modul dalam direktori lokal].)
+
+Anda bisa melakukan hal ini dengan menggunakan direktif `replace` dalam berkas
+go.mod untuk mengganti _path_ asli dari modul eksternal dengan _path_ ke
+_fork_ dari repositori Anda.
+Direktif tersebut mengarahkan perkakas Go supaya menggunakan _path_ pengganti
+(lokasi dari _fork_) saat mengompilasi, namun tetap menggunakan perintah
+`import` yang sama, tidak berubah dari _path_ modul yang asli.
+
+Untuk lebih lanjut tentang direktif `replace`, lihat
+https://golang.org/doc/modules/gomod-ref[referensi berkas go.mod^].
+
+Dalam contoh berkas go.mod berikut, modul yang sekarang membutuhkan modul
+eksternal `example.com/theirmodule`.
+Direktif `replace` kemudian mengganti _path_ modul asli dengan
+`example.com/myfork/theirmodule`, sebuah _fork_ dari repositori `theirmodule`.
+
+----
+module example.com/mymodule
+
+go 1.16
+
+require example.com/theirmodule v1.2.3
+
+replace example.com/theirmodule v1.2.3 => example.com/myfork/theirmodule v1.2.3-fixed
+----
+
+Saat menyiapkan pasangan `require`/`replace`, gunakan perkakas Go untuk
+memastikan bahwa kebutuhan-kebutuhan yang ada di dalam berkas tetap konsisten.
+Gunakan perintah
+https://golang.org/ref/mod#go-list-m[`go list`^]
+untuk melihat versi yang digunakan pada modul yang sekarang.
+Kemudian gunakan perintah
+https://golang.org/ref/mod#go-mod-edit[`go mod edit`^]
+untuk mengganti modul yang dibutuhkan dengan _fork_-nya:
+
+----
+$ go list -m example.com/theirmodule
+example.com/theirmodule v1.2.3
+$ go mod edit -replace=example.com/theirmodule@v1.2.3=example.com/myfork/theirmodule@v1.2.3-fixed
+----
+
+NOTE: Saat Anda menggunakan direktif `replace`, perkakas Go tidak
+mengautentikasi modul eksternal seperti yang dijelaskan dalam
+link:#adding_dependency[Menambahkan sebuah dependensi].
+
+Untuk lebih lanjut tentang nomor versi, lihat
+https://golang.org/doc/modules/version-numbers[Penomoran versi modul^].
+
+
+[#repo_identifier]
+==  Menggunakan versi _commit_ sebagai versi dependensi modul
+
+Anda dapat menggunakan perintah `go get` untuk mengambil kode yang belum
+dirilis dari sebuah modul dengan identifikasi _commit_ tertentu yang ada dalam
+repositori.
+
+Untuk melakukan hal ini, gunakan perintah `go get`, tentukan _commit_ yang
+Anda inginkan dengan tanda `@`.
+Saat menggunakan `go get`, perintah tersebut akan menambah direktif
+`require` ke dalam berkas go.mod, menggunakan nomor versi-pseudo berdasarkan
+detil tentang _commit_.
+
+Berikut beberapa contoh penggunaan versi _commit_.
+Contoh ini berdasarkan pada sebuah modul yang sumber kodenya disimpan dalam
+repositori git.
+
+*  Untuk menggunakan modul pada _commit_ tertentu, gunakan format berikut
+   @`commithash`:
+
+   $ go get example.com/theirmodule@4cf76c2
+
+*  Untuk menggunakan modul pada _branch_ tertentu, gunakan format berikut
+   @`branchname`:
+
+   $ go get example.com/theirmodule@bugfixes
+
+
+[#removing_dependency]
+==  Menghapus sebuah dependensi
+
+Saat kode Anda tidak lagi menggunakan paket-paket yang ada dalam sebuah modul,
+Anda dapat berhenti melacak modul tersebut sebagai dependensi.
+
+Untuk menghapus semua modul yang sudah tidak digunakan lagi,
+jalankan perintah
+https://golang.org/ref/mod#go-mod-tidy[`go mod tidy`^].
+Perintah ini secara otomatis akan menghapus semua modul dalam berkas go.mod
+yang sudah tidak digunakan lagi.
+
+----
+$ go mod tidy
+----
+
+Untuk menghapus sebuah dependensi tertentu gunakan perintah
+https://golang.org/ref/mod#go-get[`go get`^],
+dengan memberikan _path_ modul dan menambahkan `@none`, seperti pada contoh
+berikut:
+
+----
+$ go get example.com/theirmodule@none
+----
+
+Perintah `go get` akan menurunkan atau menghapus dependensi lain yang
+bergantung pada modul yang dihapus.
+
+
+[#proxy_server]
+==  Menentukan peladen proksi dari modul
+
+Saat Anda menggunakan perkakas Go saat bekerja dengan modul, perkakas tersebut
+secara bawaan mengunduh modul-modul lewat proxy.golang.org (peladen modul
+publik yang disediakan oleh Google) atau secara langsung lewat modul
+repositori.
+Anda dapat menyuruh perkakas Go untuk menggunakan peladen proksi yang lain
+untuk mengunduh dan mengautentikasi modul.
+
+Anda bisa saja melakukan hal ini jika Anda (atau tim Anda) telah menyiapkan
+atau memilih peladen proksi modul yang berbeda.
+Misalnya, beberapa orang menggunakan peladen proksi sendiri supaya memiliki
+kontrol lebih terhadap dependensi yang digunakan.
+
+Untuk menentukan peladen proksi tertentu pada perkakas Go, set variabel
+sistem `GOPROXY` ke URL dari satu atau lebih peladen.
+Perkakas Go akan mencoba setiap URL tersebut secara berurutan.
+Secara bawaan, `GOPROXY` berisi peladen proksi modul milik Google, kemudian
+pengunduhan langsung dari modul repositori (seperti yang ditentukan dari
+_path_ modul):
+
+----
+GOPROXY="https://proxy.golang.org,direct"
+----
+
+Untuk lebih lanjut tentang variabel sistem `GOPROXY`, termasuk nilai-nilai
+yang mempengaruhi perilakunya, lihat
+link:/cmd/go/#hdr-Module_downloading_and_verification[referensi perintah `go`^].
+
+Anda dapat men-set variabel tersebut ke peladen proksi modul yang lain, dengan
+memisahkan URL dengan sebuah karaketer koma atau batang (`|`).
+
+*  Saat Anda menggunakan koma, perkakas Go akan mencoba URL selanjutnya dari
+   dalam daftar jika URL yang sekarang mengembalikan HTTP status kode 404 atau
+   410.
+
+   GOPROXY="https://proxy.example.com,https://proxy2.example.com"
+
+*  Saat Anda menggunakan karakter batang (`|`), perkakas Go akan mencoba URL
+   selanjutnya dalam daftar tanpa memeriksa HTTP status kode:
+
+   GOPROXY="https://proxy.example.com|https://proxy2.example.com"

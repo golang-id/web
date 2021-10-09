@@ -86,6 +86,12 @@ yang mendukung Go.
 Dokumen yang berisi ringkasan perkakas dan metodologi untuk mendiagnosis
 permasalahan dalam program.
 
+[#dependencies]
+===  link:/doc/modules/managing-dependencies/[Mengatur dependensi]
+
+Bila kode Anda menggunakan paket-paket eksternal, paket tersebut (yang
+didistribusikan sebagai module) menjadi dependensi.
+
 [#faq]
 ===  link:/doc/faq/index.html[Tanya jawab]
 
