@@ -46,3 +46,6 @@ install-local-macos:
 
 deploy-local: build
 	sudo cp -f ./$(PROGRAM_NAME) /usr/local/bin/
+
+deploy-vm: build
+	rsync ./$(PROGRAM_NAME) golang-id.local:~/bin/
