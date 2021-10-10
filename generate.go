@@ -11,14 +11,14 @@ import (
 )
 
 func main() {
-	opts := &ciigo.GenerateOptions{
+	opts := &ciigo.EmbedOptions{
 		ConvertOptions: ciigo.ConvertOptions{
 			Root:         "_content",
 			HtmlTemplate: "_content/html.tmpl",
 		},
-		GenPackageName: "main",
-		GenVarName:     "memFS",
-		GenGoFileName:  "cmd/www-golangid/static.go",
+		PackageName: "main",
+		VarName:     "memFS",
+		GoFileName:  "cmd/www-golangid/static.go",
 	}
-	ciigo.Generate(opts)
+	ciigo.GoEmbed(opts)
 }
