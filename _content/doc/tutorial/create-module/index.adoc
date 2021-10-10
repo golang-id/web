@@ -6,7 +6,7 @@
 Artikel ini adalah bagian pertama dari seri tutorial yang memperkenalkan
 beberapa fitur fundamental dari bahasa Go.
 Jika Anda baru saja memulai belajar Go, pastikan membaca
-link:/doc/tutorial/getting-started/[Tutorial: Go dari awal]
+link:/doc/tutorial/getting-started/[Tutorial: Go dari awal^]
 terlebih dahulu,
 yang secara singkat mengenalkan perintah `go`, modul Go, dan kode Go.
 
@@ -33,7 +33,8 @@ berbeda dari bahasa Go.
 . link:/doc/tutorail/compile-install/[Mengompilasi dan memasang aplikasi^] --
   Mengompilasi dan memasang kode kita secara lokal.
 
-NOTE: Untuk tutorial lainnya, lihat link:/doc/tutorial/[Tutorial^].
+NOTE: Untuk tutorial lainnya, lihat
+link:/doc/tutorial/[Tutorial^].
 
 
 [#prerequisites]
@@ -101,8 +102,8 @@ cd greetings
 ----
 --
 
-. Buatlah Go modul menggunakan perintah link:/ref/mod#go-mod-init[`go mod
-  init`^]
+. Buatlah Go modul menggunakan perintah
+  link:/ref/mod#go-mod-init[`go mod init`^]
 +
 --
 Jalankan perintah "`go mod init`", dengan memberikan parameter path modul --
@@ -163,7 +164,7 @@ Dalam Go, sebuah fungsi yang namanya diawali dengan huruf kapital dapat
 dipanggil oleh fungsi dari paket yang berbeda.
 Dalam Go hal ini dikenal dengan nama yang diekspor.
 Untuk lebih lanjut tentang nama-nama yang diekspor, lihat
-https://tour.golang-id.org/basics/3[Nama-nama yang diekspor]
+https://tour.golang-id.org/basics/3[Nama-nama yang diekspor^]
 dalam tur Go.
 
 image:/doc/tutorial/create-module/function-syntax.png[]
@@ -183,8 +184,9 @@ message = fmt.Sprintf("Hi, %v. Welcome!", name)
 ----
 --
 
-* Menggunakan https://pkg.go.dev/fmt/#Sprintf[fungsi Sprintf] dari paket `fmt`
-  untuk membuat pesan salaman yang disimpan dalam `message`.
+* Menggunakan
+  https://pkg.go.dev/fmt/#Sprintf[fungsi Sprintf^]
+  dari paket `fmt` untuk membuat pesan salaman yang disimpan dalam `message`.
   Argumen yang pertama dari fungsi tersebut yaitu format dari string, dan
   `Sprintf` akan mengganti format "`%v`" dengan nilai dari parameter `name`.
 
@@ -193,4 +195,5 @@ message = fmt.Sprintf("Hi, %v. Welcome!", name)
 
 Pada langkah selanjutnya, kita akan memanggil fungsi ini dari modul yang lain.
 
-Lanjut: link:/doc/tutorial/call-module-code/[Memanggil kode dari modul lain].
+Lanjut:
+link:/doc/tutorial/call-module-code/[Memanggil kode dari modul lain].

@@ -13,11 +13,11 @@ Tulisan ini adalah bagian ke 2 dari sebuah seri.
 
 Proyek-proyek Go menggunakan beragam strategi manajemen dependensi.
 Perkakas
-https://golang.org/cmd/go/#hdr-Vendor_Directories[vendor]
+https://golang.org/cmd/go/#hdr-Vendor_Directories[vendor^]
 seperti
-https://github.com/golang/dep[dep]
+https://github.com/golang/dep[dep^]
 dan
-https://github.com/Masterminds/glide[glide]
+https://github.com/Masterminds/glide[glide^]
 cukup terkenal, namun mereka memiliki perbedaan yang luas dalam perilaku dan
 tidak saling bekerja satu sama lain.
 Beberapa proyek bahkan menyimpan semua sumber kode di GOPATH dalam sebuah
@@ -92,8 +92,7 @@ $
 
 "go mod init" membuat berkas "go.mod" yang baru dan secara otomatis mengimpor
 dependensi dari "Godeps.json", "Gopkg.lock", atau sejumlah
-https://go.googlesource.com/go/+/362625209b6cd2bc059b6b0a67712ddebab312d9/src/cmd/go/internal/modconv/modconv.go#9[format
-lain yang didukung].
+https://go.googlesource.com/go/+/362625209b6cd2bc059b6b0a67712ddebab312d9/src/cmd/go/internal/modconv/modconv.go#9[format lain yang didukung^].
 Argumen dari "go mod init" adalah path modul, lokasi di mana modul dapat
 ditemukan.
 
@@ -193,7 +192,7 @@ Tanpa adanya berkas konfigurasi dari manajemen dependensi lainnya,
 "go mod init" hanya akan membuat berkas "go.mod" yang berisi _directive_
 "module" dan "go".
 Dalam contoh ini, kita men-set path modul ke "golang.org/x/blog" karena itulah
-https://golang.org/cmd/go/#hdr-Remote_import_paths[path impornya].
+link:/cmd/go#hdr-Remote_import_paths[path impornya^].
 Pengguna bisa mengimpor paket-paket dengan path tersebut, dan pemilik modul
 harus berhati-hati supaya tidak mengubahnya sewaktu-waktu.
 
@@ -302,7 +301,7 @@ Terakhir, Anda sebaiknya memberi tag dan merilis versi baru dari modul Anda.
 Hal ini adalah opsional bila Anda belum pernah merilis versi sebelumnya, namun
 tanpa adanya rilis resmi, pengguna lain akan bergantung pada _commit_ tertentu
 menggunakan
-https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo],
+https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo^],
 yang mungkin lebih sukar untuk didukung.
 
 ----
@@ -318,7 +317,7 @@ sebuah _backward-compatible_ (modul Anda masih bisa digunakan oleh pengguna
 lain tanpa adanya kerusakan di sisi mereka) -- namun hal ini adalah perubahan
 yang signifikan, dan bisa saja menimbulkan permasalahan nantinya.
 Jika Anda sudah memiliki tag dengan versi, Anda harus meningkatkan
-https://semver.org/lang/id/spec/v2.0.0.html#spec-item-7[versi minor].
+https://semver.org/lang/id/spec/v2.0.0.html#spec-item-7[versi minor^].
 Lihat
 link:/blog/publishing-go-modules[Menerbitkan Go Modul]
 untuk belajar bagaimana meningkatkan dan menerbitkan versi.
@@ -331,18 +330,18 @@ Setiap perintah "import" yang mengacu ke sebuah paket dalam modul haruslah
 memiliki prefiks path modul.
 Namun, perintah "go" bisa menemukan sebuah repositori yang berisi modul lewat
 banyak
-https://golang.org/cmd/go/#hdr-Remote_import_paths[path impor remote]
+https://golang.org/cmd/go/#hdr-Remote_import_paths[path impor remote^]
 yang berbeda.
 Sebagai contohnya, "golang.org/x/lint" dan "github.com/golang/lint" mengacu
 pada repositori yang sama yang disimpan di
-https://go.googlesource.com/lint[go.googlesource.com/lint].
-https://go.googlesource.com/lint/+/refs/heads/master/go.mod[Berkas go.mod]
+https://go.googlesource.com/lint[go.googlesource.com/lint^].
+https://go.googlesource.com/lint/+/refs/heads/master/go.mod[Berkas go.mod^]
 di dalam repositori tersebut mendeklarasikan path-nya ke "golang.org/x/lint",
 jadi hanya path tersebut lah yang berkorespondensi ke modul yang valid.
 
 Go 1.4 menyediakan mekanisme untuk mendeklarasikan path impor kanonis
 menggunakan
-https://golang.org/cmd/go/#hdr-Import_path_checking[komentar "// import"],
+https://golang.org/cmd/go/#hdr-Import_path_checking[komentar "// import"^],
 namun pembuat paket tidak selalu menuliskannya.
 Akibatnya, kode yang ditulis sebelum adanya modul bisa saja menggunakan path
 impor yang tidak kanonis tanpa menimbulkan kesalahan penamaan.
@@ -374,9 +373,9 @@ dan cara-cara untuk men-_debug_ situasi-situasi yang aneh.
 
 Bila ada tanggapan dan bantuan untuk membantu manajemen dependensi di Go,
 silakan kirim
-https://golang.org/issue/new[laporan kesalahan]
+https://golang.org/issue/new[laporan kesalahan^]
 atau
-https://golang.org/wiki/ExperienceReports[laporan pengalaman].
+https://golang.org/wiki/ExperienceReports[laporan pengalaman^].
 
 Terima kasih untuk semua tanggapan dan bantuan yang telah menjadikan Go modul
 lebih baik.

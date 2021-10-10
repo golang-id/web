@@ -6,8 +6,7 @@ _Diperbarui oleh Shenghou Ma, Mei 2013_
 
 Pada pertemuan _Scala Days_ 2011, Robert Hundt mempresentasikan sebuah makalah
 berjudul
-http://research.google.com/pubs/pub37122.html[Loop Recognition in
-C++/Java/Go/Scala].
+https://research.google.com/pubs/pub37122.html[Loop Recognition in C++/Java/Go/Scala^].
 Makalah tersebut mengimplementasikan algoritme pencarian pengulangan
 (_loop finding_) khusus,
 yang biasa digunakan dalam analisis alur pada sebuah _compiler_, dalam
@@ -60,7 +59,7 @@ done
 ----
 
 Kita telah mengambil
-https://github.com/hundt98847/multi-language-bench[program benchmark dari Hundt]
+https://github.com/hundt98847/multi-language-bench[program benchmark dari Hundt^]
 dalam C++ dan Go, menggabungkan setiap sumber kode dalam sebuah sumber berkas
 tersendiri dan menghapus semua keluaran kecuali sebuah baris.
 Kita akan ukur waktu program menggunakan utilitas `time` pada Linux dengan
@@ -97,7 +96,7 @@ tool pprof", bukan mengulangi hasil dari makalah.)
 
 Untuk mulai men-_tuning_ program Go, kita harus menyalakan profil.
 Seandainya kode tersebut ditulis menggunakan fungsi _benchmark_ dari
-https://golang.org/pkg/testing/[paket Go `testing`],
+https://pkg.go.dev/testing[paket Go `testing`^],
 kita dapat menggunakan opsi standar dari `gotest` yaitu `-cpuprofile` dan
 `-memprofile`.
 Dalam program seperti ini, kita harus mengimpor `runtime/pprof` dan
@@ -120,13 +119,13 @@ func main() {
 ----
 
 Kode yang baru mendefinisikan sebuah opsi `cpuprofile`, memanggil
-https://golang.org/pkg/flag/[pustaka Go `flag`]
+https://pkg.go.dev/flag[pustaka Go `flag`^]
 untuk memindai opsi pada baris perintah saat program dijalankan, dan kemudian,
 jika opsi `cpuprofile` telah di-set pada baris perintah,
-https://golang.org/pkg/runtime/pprof/#StartCPUProfile[jalankan profil CPU]
+https://pkg.go.dev/runtime/pprof#StartCPUProfile[jalankan profil CPU^]
 yang kemudian disimpan ke dalam berkas yang ditentukan.
 Fungsi profil (_profiler_) tersebut butuh memanggil
-https://golang.org/pkg/runtime/pprof/#StopCPUProfile[StopCPUProfile]
+https://pkg.go.dev/runtime/pprof#StopCPUProfile[StopCPUProfile^]
 untuk memastikan penulisan ke berkas terjadi sepenuhnya, sebelum program
 berhenti;
 kita menggunakan `defer` untuk memastikan hal tersebut terjadi saat `main`
@@ -146,7 +145,7 @@ Welcome to pprof!  For help, type 'help'.
 ----
 
 Program "go tool pprof" adalah varian dari
-https://github.com/gperftools/gperftools[Google pprof C++ profiler].
+https://github.com/gperftools/gperftools[Google pprof C++ profiler^].
 Perintah yang paling penting yaitu `topN`, yang menampilkan `N` sampel teratas
 dalam profil:
 
@@ -212,14 +211,15 @@ dan memuatnya lewat peramban.
 (Terdapat juga perintah `gv` yang membuat berkas PostScript dan membukanya
 menggunakan Ghostview.
 Untuk kedua perintah tersebut, Anda butuh memasang program
-http://www.graphviz.org/[graphviz].)
+https://www.graphviz.org/[graphviz^]
+.)
 
 ----
 (pprof) web
 ----
 
 Potongan kecil dari
-https://rawgit.com/rsc/benchgraffiti/master/havlak/havlak1.svg[grafik]
+https://rawgit.com/rsc/benchgraffiti/master/havlak/havlak1.svg[grafik^]
 berbentuk seperti ini:
 
 image:/blog/profiling-go-programs/profiling-go-programs_havlak1a-75.png[,650]
@@ -285,9 +285,9 @@ _assembly_ bukan menampilkan daftar sumber kode;
 bila jumlah sampel cukup perintah tersebut dapat membantu Anda melihat
 instruksi mana yang memakan biaya.
 Perintah `weblist` menggabungkan kedua mode tersebut: ia memperlihatkan
-https://rawgit.com/rsc/benchgraffiti/master/havlak/havlak1.html[daftar sumber
-kode dan pada saat sebuah baris di klik ia akan menampilkan _assembly_ dari
-baris tersebut].
+https://rawgit.com/rsc/benchgraffiti/master/havlak/havlak1.html[daftar sumber kode^]
+dan pada saat sebuah baris di klik ia akan menampilkan _assembly_ dari
+baris tersebut.
 
 Secara kita telah mengetahui bahwa waktu program banyak dihabiskan untuk
 pencarian pada `map` yang diimplementasikan oleh fungsi hash, kita akan
@@ -316,7 +316,7 @@ $
 ----
 
 (Lihat
-https://github.com/rsc/benchgraffiti/commit/58ac27bcac3ffb553c29d0b3fb64745c91c95948[perbedaan antara `havlak1` dan `havlak2`])
+https://github.com/rsc/benchgraffiti/commit/58ac27bcac3ffb553c29d0b3fb64745c91c95948[perbedaan antara `havlak1` dan `havlak2`^])
 
 Kita jalankan _profiler_ kembali untuk memastikan `main.DFS` tidak lagi
 menghabiskan banyak waktu saat dijalankan:
@@ -376,7 +376,7 @@ $
 ----
 
 (Lihat
-https://github.com/rsc/benchgraffiti/commit/b78dac106bea1eb3be6bb3ca5dba57c130268232[perubahan dari `havlak2`])
+https://github.com/rsc/benchgraffiti/commit/b78dac106bea1eb3be6bb3ca5dba57c130268232[perubahan dari `havlak2`^])
 
 Kita gunakan "go tool pprof" dengan cara yang sama.
 Sekarang sampel-sampel tersebut berisi alokasi memori, bukan waktu penggunaan
@@ -501,8 +501,7 @@ $
 ----
 
 (Lihat
-https://github.com/rsc/benchgraffiti/commit/245d899f7b1a33b0c8148a4cd147cb3de5228c8a[perubahan
-untuk `havlak3`])
+https://github.com/rsc/benchgraffiti/commit/245d899f7b1a33b0c8148a4cd147cb3de5228c8a[perubahan untuk `havlak3`^])
 
 Sekarang program kita 2.11x lebih cepat dari semula.
 Mari kita lihat profil CPU sekali lagi.
@@ -664,8 +663,7 @@ $
 ----
 
 (Lihat
-https://github.com/rsc/benchgraffiti/commit/2d41d6d16286b8146a3f697dd4074deac60d12a4[perubahan
-untuk `havlak4`])
+https://github.com/rsc/benchgraffiti/commit/2d41d6d16286b8146a3f697dd4074deac60d12a4[perubahan untuk `havlak4`^])
 
 Ada banyak lagi yang dapat kita lakukan untuk membersihkan program dan
 membuatnya lebih cepat, tetapi tidak ada lagi yang membutuhkan teknik profil
@@ -676,8 +674,7 @@ dengan "node pool" terpisah yang dibangkitkan selama berjalan.
 Hal yang sama, penyimpanan "loop graph" dapat dipakai ulang pada setiap
 iterasi bukan dengan mengalokasikan kembali.
 Selain perubahan kinerja,
-https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak6.go[versi
-terakhir]
+https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak6.go[versi terakhir^]
 ditulis menggunakan gaya idiomatis Go, menggunakan struktur data dan method.
 Perubahan kode hanya memiliki efek minor pada _run-time_: algoritme dan
 batasan-batasannya tidak berubah.
@@ -710,8 +707,7 @@ Tentu saja, sudah tidak adil lagi membandingkan program Go dengan program C++
 yang aslinya, yang menggunakan struktur data yang tidak efisien seperti `set`
 yang mana `vector` sebenarnya lebih cocok.
 Untuk pemeriksaan, kami menerjemahkan program Go yang terakhir ke
-https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak6.cc[kode C++
-yang sama].
+https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak6.cc[kode C++ yang sama^].
 Waktu eksekusi mirip dengan program Go:
 
 ----
@@ -735,9 +731,9 @@ $
 ----
 
 (Lihat
-https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak6.cc[havlak6.cc]
+https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak6.cc[havlak6.cc^]
 dan
-https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak6.go[havlak6.go]
+https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak6.go[havlak6.go^]
 )
 
 Hasil dari sebuah _benchmark_ sama bagusnya dengan program yang diukur.
@@ -750,12 +746,12 @@ _garbage_ dihasilkan dalam pengulangan.
 
 Sumber kode program, binari-binari Linux x86-64, dan profil-profil yang
 digunakan untuk menulis artikel ini tersedia di
-https://github.com/rsc/benchgraffiti/[proyek benchgraffiti di Github].
+https://github.com/rsc/benchgraffiti/[proyek benchgraffiti di Github^].
 
 Seperti yang telah disebutkan juga di atas,
-https://golang.org/cmd/go/#Test_packages[`go test`]
+https://pkg.go.dev/cmd/go#hdr-Test_packages[`go test`^]
 sudah mengikutkan kedua opsi profil tersebut: definisikan sebuah
-https://golang.org/pkg/testing/[fungsi benchmark]
+https://pkg.go.dev/testing[fungsi benchmark^]
 dan ia sudah siap digunakan.
 Terdapat juga standar HTTP interface untuk mendapatkan data profil.
 Dalam sebuah server HTTP, menambahkan

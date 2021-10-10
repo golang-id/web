@@ -10,9 +10,9 @@
 
 Dokumen ini adalah referensi manual untuk bahasa pemrograman Go.
 Untuk informasi dan dokumentasi lainnya lihat
-https://golang.org[golang.org (Inggris)]
+https://golang.org[golang.org (Inggris)^]
 atau
-link:/[golang-id.org (Indonesia)].
+link:/[golang-id.org (Indonesia)^].
 
 Go adalah bahasa pemrograman yang dirancang untuk pemrograman sistem.
 Go adalah bahasa dengan tipe yang kuat dan dengan _garbage-collection_ dan
@@ -65,7 +65,7 @@ bahasa Go.
 ==  Representasi sumber kode
 
 Sumber kode adalah teks Unicode dalam
-https://id.wikipedia.org/wiki/UTF-8[UTF-8].
+https://id.wikipedia.org/wiki/UTF-8[UTF-8^].
 Teks tersebut tidak kanonis, sehingga titik kode dengan aksen berbeda dengan
 karakter yang sama yang dibangun dari menggabungkan sebuah aksen dan sebuah
 huruf;
@@ -96,7 +96,7 @@ unicode_letter = /* titik kode Unicode dikelompokkan sebagai "Letter" (huruf) */
 unicode_digit  = /* titik kode Unicode dikelompokkan sebagai "Number, decimal digit" */ .
 ----
 
-https://www.unicode.org/versions/Unicode8.0.0/[The Unicode Standard 8.0],
+https://www.unicode.org/versions/Unicode8.0.0/[The Unicode Standard 8.0^],
 Bagian 4.5 "General Category" mendefinisikan sekumpulan kategori karakter.
 Go mengenali semua karakter dalam kategori Letter berikut Lu, Ll, Lt, Lm, atau
 Lo sebagai huruf Unicode, dan yang berada dalam kategori Number Nd sebagai
@@ -753,7 +753,7 @@ rune        alias untuk int32
 
 Nilai dari _n_-bit integer yaitu _n_ bit lebarnya dan direpresentasikan
 menggunakan
-https://en.wikipedia.org/wiki/Two's_complement[aritmetika komplemen ganda].
+https://en.wikipedia.org/wiki/Two's_complement[aritmetika komplemen ganda^].
 
 Ada juga kumpulan tipe numerik yang ukurannya tergantung pada arsitektur:
 
@@ -987,7 +987,7 @@ Deklarasi field bisa ditambah dengan literal string _tag_, yang menjadi
 atribut dari field.
 Tag kosong berarti tidak ada tag.
 Tag bisa diakses lewat
-https://golang.org/pkg/reflect/#StructTag[interface refleksi]
+https://golang.org/pkg/reflect/#StructTag[interface refleksi^]
 dan ambil bagian dalam
 <<Type_identity,identitas tipe>>
 dari struct.
@@ -3343,7 +3343,7 @@ x = q*y + r  dan  |r| < |y|
 ----
 
 dengan `x / y` dibulatkan ke nol
-https://en.wikipedia.org/wiki/Modulo_operation[(pembagian dibulatkan)].
+https://en.wikipedia.org/wiki/Modulo_operation[(pembagian dibulatkan)^].
 
 ----
  x     y     x / y     x % y
@@ -5546,7 +5546,7 @@ di-compile dan bisa jadi relatif terhadap repositori dari paket yang dipasang.
 
 Batasan implementasi: _Compiler_ bisa membatasi ImportPath menjadi string yang
 tidak kosong menggunakan hanya karakter yang berada dalam kategori umum
-https://www.unicode.org/versions/Unicode6.3.0/[Unicode]
+https://www.unicode.org/versions/Unicode6.3.0/[Unicode^]
 L, M, N, P, dan S (karakter grafik tanpa spasi) dan bisa juga tidak
 mengikutkan karaketer `!"#$%&'()*,:;<=>?[\]^`{|}` dan karakter pengganti
 Unicode U+FFFD.

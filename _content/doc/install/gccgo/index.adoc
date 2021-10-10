@@ -10,12 +10,13 @@ banyak digunakan.
 Walaupun antar-muka itu sendiri berada di bawah lisensi model-BSD, gccgo
 biasanya digunakan sebagai bagian dari GCC oleh karena itu dilindungi oleh
 lisensi
-https://www.gnu.org/licenses/gpl.html[GNU General Public License]
+https://www.gnu.org/licenses/gpl.html[GNU General Public License^]
 (lisensi ini melingkupi gccgo sebagai bagian dari GCC; tidak mengikutkan kode
 yang dihasilkan oleh gccgo).
 
 Ingatlah bahwa gccgo bukan _compiler_ gc; lihat instruksi
-link:/doc/install/[Memasang Go] untuk _compiler_ tersebut.
+link:/doc/install/[Memasang Go^]
+untuk _compiler_ tersebut.
 
 
 [#Releases]
@@ -24,7 +25,7 @@ link:/doc/install/[Memasang Go] untuk _compiler_ tersebut.
 Cara paling gampang untuk memasang gccgo yaitu dengan memasang rilis dari
 program GCC yang mengikutkan dukungan Go.
 Rilis program GCC tersedia pada
-https://gcc.gnu.org/install/binaries.html[situs berikut]
+https://gcc.gnu.org/install/binaries.html[situs berikut^]
 dan biasanya sudah tersedia pada kebanyakan distribusi GNU/Linux.
 Umumnya distro sudah membangun program GCC yang mengikutkan dukungan
 terhadap Go.
@@ -62,7 +63,7 @@ GCC rilis 9 mengikutkan implementasi dari Go rilis 1.12.2.
 Jika Anda tidak bisa menggunakan versi rilis, atau lebih menyukai membangun
 gccgo dari awal, kode sumber gccgo tersedia lewat Git.
 Situs GCC memiliki
-https://gcc.gnu.org/git.html[instruksi untuk mendapatkan kode sumber GCC].
+https://gcc.gnu.org/git.html[instruksi untuk mendapatkan kode sumber GCC^].
 Kode sumber gccgo sudah termasuk di dalamnya.
 Versi stabil dari dukungan Go tersedia dalam cabang `devel/gccgo` pada
 repositori utama dari GCC: `git://gcc.gnu.org/git/gcc.git`.
@@ -72,7 +73,7 @@ Perlu diketahui, walaupun gcc.gnu.org adalah salah satu cara umum untuk
 mendapatkan kode sumber untuk antar-muka Go, repositori itu bukanlah sumber
 utama sebenarnya.
 Jika Anda ingin berkontribusi pada antar-muka _compiler_ Go, lihatlah halaman
-link:/doc/gccgo_contribute.html[Berkontribusi pada gccgo].
+link:/doc/gccgo_contribute.html[Berkontribusi pada gccgo^].
 
 
 [#Building]
@@ -81,7 +82,7 @@ link:/doc/gccgo_contribute.html[Berkontribusi pada gccgo].
 Pembangunan gccgo seperti membangun GCC biasa dengan satu atau dua opsi
 tambahan.
 Lihat
-https://gcc.gnu.org/install/[instruksi pada situs gcc].
+https://gcc.gnu.org/install/[instruksi pada situs gcc^].
 Saat Anda menjalankan `configure`, tambahkan opsi
 `+--enable-languages=c,c++,go+` (beserta dengan bahasa pemrograman lain yang
 ingin dibangun).
@@ -128,7 +129,7 @@ gunakan opsi `+--with-ld+=_GOLD_BINARY_`.
 
 Sejumlah kebutuhan awal diperlukan untuk membangun GCC, seperti yang
 dijelaskan pada
-https://gcc.gnu.org/install/prerequisites.html[situs GCC].
+https://gcc.gnu.org/install/prerequisites.html[situs GCC^].
 Sangatlah penting untuk memasang semua kebutuhan awal tersebut sebelum
 menjalankan skrip `configure` pada gcc.
 Pustaka-pustaka untuk kebutuhan awal dapat diunduh menggunakan skrip
@@ -158,7 +159,7 @@ make install
 _Compiler_ gccgo bekerja seperti antar-muka gcc lainnya.
 Pada GCC 5, pemasangan gccgo mengikutkan versi dari perintah go, yang bisa
 digunakan untuk membangun program Go seperti yang dijelaskan di
-https://golang.org/cmd/go.
+link:/cmd/go[Perintah Go^].
 
 Untuk mengompilasi sebuah berkas tanpa menggunakan perkakas `go`,
 ----
@@ -189,7 +190,7 @@ Di sini `${prefix}` adalah opsi `+--prefix+` saat membangun gccgo,
 biasanya `/usr`.
 Apakah menggunakan `lib` atau `lib64` bergantung kepada target.
 Biasanya `lib64` untuk sistem `x86_64`, dan `lib` untuk sistem lainnya.
-Intinya adalah untuk menentukan direktori tempat `libgo.so` disimpan.
+Inti-nya adalah untuk menentukan direktori tempat `libgo.so` disimpan.
 --
 
 * Mengirim opsi `-WL,-R` saat melakukan langkah pengaitan (ganti `lib` dengan
@@ -232,13 +233,13 @@ Opsi ini tidak dibutuhkan jika Anda membangun dengan perkakas go.
 [#Imports]
 ==  Impor
 
-Saat Anda mengompilasi sebuah berkas yang meng-ekspor sesuatu, informasi
+Saat Anda mengompilasi sebuah berkas yang mengekspor sesuatu, informasi
 tentang ekspor ini disimpan langsung dalam berkas objek.
 Jika Anda membangun dengan gccgo, bukan dengan perkakas go, maka saat Anda
-meng-impor sebuah paket, Anda harus memberitahu gccgo bagaimana mencari berkas
+mengimpor sebuah paket, Anda harus memberitahu gccgo bagaimana mencari berkas
 tersebut.
 
-Saat Anda meng-impor paket _FILE_ dengan gccgo, ia akan mencari data impor
+Saat Anda mengimpor paket _FILE_ dengan gccgo, ia akan mencari data impor
 dalam berkas-berkas berikut, dan menggunakan berkas pertama yang ditemukan.
 
 * __FILE__.gox
@@ -407,9 +408,9 @@ pada _compiler_ gc.
 Nama dari fungsi-fungsi Go yang diakses dari C bisa berubah sewaktu-waktu.
 Sekarang ini nama dari fungsi Go yang tidak memiliki _receiver_ yaitu
 `prefix.package.Functionname`.
-Nilai dari `prefix` diset lewat opsi `-fgo-prefix` saat paket dikompilasi;
-jika opsi ini tidak diset, maka nilai bakunya adalah `go`.
-Untuk memanggil fungsi tersebut dari C Anda harus menset nama tersebut
+Nilai dari `prefix` di set lewat opsi `-fgo-prefix` saat paket dikompilasi;
+jika opsi ini tidak di set, maka nilai baku-nya adalah `go`.
+Untuk memanggil fungsi tersebut dari C Anda harus mengeset nama tersebut
 menggunakan ekstensi GCC.
 
 ----
@@ -422,7 +423,7 @@ extern int go_function(int) __asm__ ("myprefix.mypackage.Function");
 Versi Go pada GCC mendukung pembangkit otomatis deklarasi Go dari kode C.
 Fasilitas ini sedikit aneh, dan pengguna pada umumnya sebaiknya menggunakan
 program
-link:/cmd/cgo[cgo]
+link:/cmd/cgo[cgo^]
 dengan opsi `-gccgo`.
 
 Kompilasi kode C Anda seperti biasa, dan tambahkan opsi

@@ -7,17 +7,17 @@
 ==  Pendahuluan
 
 Paket
-https://golang.org/pkg/image/[image]
+https://pkg.go.dev/image/[image^]
 dan
-https://golang.org/pkg/image/color[image/color]
+https://pkg.go.dev/image/color[image/color^]
 berisi sejumlah tipe: `color.Color` dan `color.Model` yang mendeskripsikan
 warna, `image.Point` dan `image.Rectangle` yang mendeskripsikan geometri 2-D,
 dan `image.Image` yang menggabungkan kedua konsep tersebut untuk
 representasi sebuah kotak persegi panjang berisi warna-warna.
 Sebuah
-link:/blog/go-imagedraw-package[artikel terpisah]
+link:/blog/go-imagedraw-package[artikel terpisah^]
 membahas cara melakukan komposisi gambar dengan dengan paket
-https://golang.org/pkg/image/draw/[image/draw].
+https://pkg.go.dev/image/draw/[image/draw^].
 
 Catatan: artikel ini membutuhkan pengetahuan tentang konsep warna dan gambar
 dalam domain komputer.
@@ -25,7 +25,7 @@ dalam domain komputer.
 
 ==  Warna dan Model Warna
 
-https://golang.org/pkg/image/color/#Color[Color]
+https://pkg.go.dev/image/color#Color[Color^]
 adalah interface yang mendefinisikan sekumpulan method untuk tipe bentukan
 supaya dapat dianggap sebagai sebuah warna: yang bisa dikonversi ke merah,
 hijau, biru, dan nilai _alpha_.
@@ -54,7 +54,7 @@ adalah 65536, untuk menjamin bahwa perkalian dua nilai tersebut tidak
 mengakibatkan _overflow_.
 Perkalian tersebut terjadi saat menggabungkan dua warna menurut nilai _alpha_
 dari warna ketiga, dengan cara aljabar klasik
-https://en.wikipedia.org/wiki/Alpha_compositing[Porter dan Duff]:
+https://en.wikipedia.org/wiki/Alpha_compositing[Porter dan Duff^]:
 
 ----
 dstr, dstg, dstb, dsta := dst.RGBA()
@@ -74,7 +74,7 @@ menggunakan nilai _alpha_ yang telah dihitung sebelumnya.
 Paket image/color juga mendefinisikan sejumlah tipe konkret yang
 mengimplementasikan interface `Color`.
 Sebagai contohnya,
-https://golang.org/pkg/image/color/#RGBA[RGBA]
+https://pkg.go.dev/image/color#RGBA[RGBA^]
 adalah sebuah struct yang merepresentasikan warna klasik "8 bits per kanal".
 
 ----
@@ -88,18 +88,19 @@ perkalian-_alpha_ dengan rentang [0,255].
 `RGBA` memenuhi interface `Color` dengan mengalikan nilai tersebut dengan
 0x101 untuk menghasilkan warna perkalian-_alpha_ dalam rentang [0, 65535].
 Hal yang sama, tipe struct
-https://golang.org/pkg/image/color/#NRGBA[NRGBA]
+https://pkg.go.dev/image/color#NRGBA[NRGBA^]
 merepresentasikan 8 bits warna tanpa perkalian-_alpha_, seperti yang digunakan
 oleh format PNG.
 Saat memanipulasi field-field NRGBA, nilainya adalah non perkalian-_alpha_,
 namun saat memanggil method RGBA(), nilai kembaliannya dikalikan dengan nilai
 _alpha_.
 
-Sebuah https://golang.org/pkg/image/color/#Model[Model]
+Sebuah
+https://pkg.go.dev/image/color#Model[Model^]
 yaitu interface yang dapat mengonversi `Color` ke `Color` lainnya, bisa jadi
 secara _lossy_.
 Misalnya, `GrayModel` bisa mengonversi `Color` apa pun menjadi
-https://golang.org/pkg/image/color/#Gray[Gray].
+https://pkg.go.dev/image/color#Gray[Gray^].
 Sebuah `Palette` bisa mengonversi `Color` apa pun ke salah satu _palette_
 terbatas.
 
@@ -114,7 +115,7 @@ type Palette []Color
 ==  Point (titik) dan Rectangle (persegi panjang)
 
 Sebuah
-https://golang.org/pkg/image/#Point[Point]
+https://pkg.go.dev/image#Point[Point^]
 yaitu sebuah koordinat (x,y) pada _grid_ integer, dengan poros ke kanan dan ke
 bawah.
 Ia bukanlah sebuah _pixel_ dan bukan pula sebuah kotak segi empat.
@@ -134,7 +135,7 @@ p := image.Point{2, 1}
 ----
 
 Sebuah
-https://golang.org/pkg/image/#Rectangle[Rectangle]
+https://pkg.go.dev/image#Rectangle[Rectangle^]
 yaitu persegi panjang dalam _grid_ integer, didefinisikan `Point` pada
 bagian atas-kiri dan bawah-kanan.
 Sebuah `Rectangle` juga tidak memiliki warna, namun visualisasi di bawah ini
@@ -197,7 +198,7 @@ argumen `Point`, atau empat argumen `int`.
 ==  Image (Gambar)
 
 Sebuah
-https://golang.org/pkg/image/#Image[Image]
+https://pkg.go.dev/image#Image[Image^]
 memetakan setiap kotak _grid_ dalam sebuah `Rectangle` menjadi `Color` dari
 sebuah `Model`.
 "_Pixel_ pada (x,y)" mengacu pada warna dari kotak _grid_ yang didefinisikan
@@ -235,7 +236,7 @@ for y := b.Min.Y; y < b.Max.Y; y++ {
 
 Implementasi `Image` tidak harus berbasiskan slice dari data _pixel_.
 Contohnya, sebuah
-https://golang.org/pkg/image/#Uniform[Uniform]
+https://pkg.go.dev/image#Uniform[Uniform^]
 yaitu sebuah `Image` yang memiliki garis batas yang sangat besar dengan satu
 warna, yang representasi di _memory_ hanyalah warna saja.
 
@@ -247,8 +248,9 @@ type Uniform struct {
 
 Biasanya, program menginginkan sebuah gambar yang berbasis slice.
 Tipe struct seperti
-https://golang.org/pkg/image/#RGBA[RGBA] dan
-https://golang.org/pkg/image/#Gray[Gray]
+https://pkg.go.dev/image#RGBA[RGBA^]
+dan
+https://pkg.go.dev/image#Gray[Gray^]
 (yang dipanggil oleh paket lain sebagai `image.RGBA` dan `image.Gray`)
 menyimpan slice dari data _pixel_ dan mengimplementasikan interface `Image`.
 
@@ -296,7 +298,7 @@ gambar.
 Pada contoh di atas, pixel-pixel yang ditutupi oleh `m1.Pix` diwarnai dengan
 biru.
 Untuk kode tingkat-tinggi, seperti method `At()` dan `Set()` atau
-https://golang.org/pkg/image/draw/[paket image/draw],
+https://pkg.go.dev/image/draw/[paket image/draw^],
 akan memotong operasi pixel sesuai dengan garis batas gambar.
 
 
@@ -306,7 +308,7 @@ Pustaka bawaan mendukung sejumlah format gambar umum, seperti GIF, JPEG, dan
 PNG.
 Jika anda mengetahui format dari berkas gambar, anda dapat men- _decode_
 langsung dari
-https://golang.org/pkg/io/#Reader[io.Reader].
+https://pkg.go.dev/io#Reader[io.Reader^].
 
 ----
 import (
@@ -326,7 +328,7 @@ func convertJPEGToPNG(w io.Writer, r io.Reader) error {
 ----
 
 Jika anda memiliki gambar dengan format tidak diketahui, fungsi
-https://golang.org/pkg/image/#Decode[image.Decode]
+https://pkg.go.dev/image#Decode[image.Decode^]
 dapat digunakan untuk mendeteksi formatnya.
 Kumpulan format yang dikenali dibentuk pada saat _runtime_ dan tidak terbatas
 hanya pada yang ada di pustaka bawaan.

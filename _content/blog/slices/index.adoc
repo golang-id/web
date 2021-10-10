@@ -1,6 +1,6 @@
 =  Array, slice (dan string): Mekanisme 'append'
-:author: Rob Pike
-:date: 26 September 2013
+Rob Pike
+26 September 2013
 
 ==  Pendahuluan
 
@@ -179,7 +179,7 @@ Anda akan sering mendengar pemrogram Go yang berpengalaman berbicara tentang
 "header slice" karena itulah yang disimpan dalam sebuah variabel slice.
 Contohnya, saat Anda memanggil sebuah fungsi yang menerima sebuah slice
 sebagai argumen, seperti
-https://golang.org/pkg/bytes/#IndexRune[bytes.IndexRune],
+https://pkg.go.dev/bytes#IndexRune[bytes.IndexRune^],
 header itulah yang dikirim ke fungsi.
 Dalam pemanggilan berikut,
 
@@ -786,7 +786,7 @@ benar.
 
 Ada banyak contoh lain dari `append`, `copy`, dan cara lain untuk menggunakan
 slice dalam
-https://golang.org/wiki/SliceTricks[halaman wiki "Slice Tricks"]
+https://golang.org/wiki/SliceTricks[halaman wiki "Slice Tricks"^]
 yang dibangun oleh komunitas.
 
 
@@ -894,7 +894,7 @@ model untuk penanganan string yang efisien.
 Beberapa _benchmark_ memperlihatkan peningkatan kecepatan yang besar.
 
 Ada lebih banyak lagi bahasan tentang string, dan sebuah
-link:/blog/strings[blog terpisah]
+link:/blog/strings[blog terpisah^]
 mengover hal tersebut lebih mendalam.
 
 
@@ -917,13 +917,13 @@ fungsi bawaan `copy` dan `append`.
 
 Ada banyak informasi yang dapat ditemukan di Internet tentang slice dalam Go.
 Seperti yang disebutkan sebelumnya,
-https://golang.org/wiki/SliceTricks[halaman Wiki "Slice Tricks"]
+https://golang.org/wiki/SliceTricks[halaman Wiki "Slice Tricks"^]
 memiliki banyak contoh dari penggunaan slice.
 Blog tentang
-link:/blog/go-slices-usage-and-internals[Slice pada Go]
+link:/blog/go-slices-usage-and-internals[Slice pada Go^]
 menjelaskan lebih rinci layout memori dengan diagram yang jelas.
 Artikel Russ Cox tentang
-https://research.swtch.com/godata[Struktur Data Go]
+https://research.swtch.com/godata[Struktur Data Go^]
 berisi diskusi tentang slice berikut dengan beberapa struktur data
 internal dari Go.
 

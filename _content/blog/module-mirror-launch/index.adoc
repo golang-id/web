@@ -3,42 +3,40 @@
 :date: 29 Agustus 2019
 
 Kami sangat senang memberitahu bahwa modul
-https://proxy.golang.org/[_mirror_],
-https://index.golang.org/[indeks],
+https://proxy.golang.org/[_mirror_^],
+https://index.golang.org/[indeks^],
 dan
-https://sum.golang.org/[basisdata _checksum_]
+https://sum.golang.org/[basisdata _checksum_^]
 telah diluncurkan!
 Perintah go akan menggunakan modul _mirror_ dan basisdata _checksum_ secara
 baku untuk
-https://golang.org/doc/go1.13#introduction[pengguna Go 1.13 modul].
+https://golang.org/doc/go1.13#introduction[pengguna Go 1.13 modul^].
 Lihat
-https://proxy.golang.org/privacy[halaman privasi]
+https://proxy.golang.org/privacy[halaman privasi^]
 untuk informasi privasi penggunaan layanan tersebut dan
-https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[dokumentasi
-perintah go]
+https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[dokumentasi perintah go^]
 untuk detail konfigurasi, termasuk cara mematikan fitur modul tanpa
 menggunakan server tersebut atau menggunakan server yang berbeda.
 Jika Anda bergantung pada modul yang tidak publik, lihat
-https://golang.org/cmd/go/#hdr-Module_configuration_for_non_public_modules[dokumentasi
-konfigurasi untuk lingkungan Anda].
+https://golang.org/cmd/go/#hdr-Module_configuration_for_non_public_modules[dokumentasi konfigurasi untuk lingkungan Anda^].
 
 Artikel ini akan menjelaskan tentang layanan-layanan ini and keuntungan dari
 menggunakan mereka, dan menyimpulkan beberapa poin dari wicara
-https://youtu.be/KqTySYYhPUE[_Go Module Proxy: Life of a Query_]
+https://youtu.be/KqTySYYhPUE[_Go Module Proxy: Life of a Query_^]
 di Gophercon 2019.
 Lihat wicara tersebut jika Anda tertarik melihat keseluruhan diskusi.
 
 ==  Modul _mirror_
 
-link:/blog/versioning-proposal[Modul]
+link:/blog/versioning-proposal[Modul^]
 adalah sekumpulan paket-paket Go yang diberi versi, dan isi dari setiap versi
 tersebut adalah _immutable_ (kekal).
 Sifat kekekalan tersebut membuatnya bisa di-_cache_ dan diautentikasi.
 Bila "go get" berjalan dengan mode modul, ia harus mengambil modul yang berisi
 paket yang diminta, berikut dengan dependensinya, mengubah berkas
-https://golang.org/cmd/go/#hdr-The_go_mod_file[go.mod]
+https://golang.org/cmd/go/#hdr-The_go_mod_file[go.mod^]
 dan
-https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[go.sum]
+https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[go.sum^]
 bila diperlukan.
 Mengambil modul langsung lewat _version control_ sangat membutuhkan biaya,
 baik secara latensi atau penyimpanan, dalam sistem Anda:
@@ -64,10 +62,11 @@ aslinya.
 Hal ini bisa mempercepat pengunduhan dan melindungi Anda dari dependensi yang
 hilang.
 Lihat
-link:/blog/modules2019[Go Modul di 2019] untuk informasi lebih lanjut.
+link:/blog/modules2019[Go Modul di 2019^]
+untuk informasi lebih lanjut.
 
 Tim Go menjaga sebuah modul _mirror_, di
-https://proxy.golang.org/[proxy.golang.org],
+https://proxy.golang.org/[proxy.golang.org^],
 yang mana akan digunakan oleh perintah `go` secara baku untuk pengguna modul
 sejak Go 1.13.
 Jika Anda menggunakan versi terdahulu dari perintah `go`, maka Anda dapat
@@ -95,8 +94,7 @@ dengan yang lainnya: ia bisa saja berbeda dengan baris `go.sum` yang perintah
 memberikan kode jahat yang ditargetkan kepada Anda.
 
 Solusi Go yaitu sebuah sumber global dari baris-baris `go.sum`, yang disebut
-https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md#checksum-database[basisdata
-_checksum_],
+https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md#checksum-database[basisdata _checksum_^],
 yang memastikan supaya perintah `go` selalu menghasilkan baris yang sama untuk
 setiap berkas `go.sum`.
 Setiap kali perintah `go` menerima sumber kode baru, ia dapat memverifikasi
@@ -104,11 +102,12 @@ _hash_ dari kode tersebut dengan basisdata global untuk memastikan bahwa
 _hash_-nya sama, memastikan bahwa semua orang menggunakan kode yang sama untuk
 versi tertentu.
 
-Basisdata _checksum_ dilayani oleh https://sum.golang.org/[sum.golang.org],
+Basisdata _checksum_ dilayani oleh
+https://sum.golang.org/[sum.golang.org^],
 dan dibangun di atas
-https://research.swtch.com/tlog[_Transparent Log_]
+https://research.swtch.com/tlog[_Transparent Log_^]
 (atau "Merkle tree") dari hash-hash yang didukung oleh
-https://github.com/google/trillian[Trillian].
+https://github.com/google/trillian[Trillian^].
 Keuntungan utama dari _Merkle tree_ yaitu tahan rusak dan memiliki properti
 yang tidak membolehkan perilaku jahat tidak terdeteksi, yang membuatnya lebih
 dipercaya daripada hanya basisdata biasa.
@@ -121,8 +120,7 @@ Berikut ini adalah sebuah contoh dari sebuah _tree_ tersebut.
 image:https://blog.golang.org/module-mirror-launch/tree.png[,700]
 
 Basisdata _chekcsum_ mendukung
-https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md#checksum-database[sekumpulan
-_endpoint_]
+https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md#checksum-database[sekumpulan _endpoint_^]
 yang digunakan oleh perintah `go` untuk meminta dan memverifikasi baris-baris
 `go.sum`.
 _Endpoint_ `/lookup` menyediakan sebuah "signed tree head" (STH) dan
@@ -145,7 +143,7 @@ atau suatu hari mengubah kode pada versi tertentu tanpa terdeteksi.
 
 Jika Anda menggunakan Go 1.12 atau sebelumnya, Anda dapat secara manual
 memeriksa berkas "go.sum" dengan basisdata _checksum_ dengan
-https://godoc.org/golang.org/x/mod/gosumcheck[gosumcheck]:
+https://godoc.org/golang.org/x/mod/gosumcheck[gosumcheck^]:
 
 ----
 $ go get golang.org/x/mod/gosumcheck
@@ -162,11 +160,11 @@ komunitas Go akan menjalankannya.
 ==  Modul indeks
 
 Modul indeks dilayani oleh
-https://index.golang.org/[index.golang.org],
+https://index.golang.org/[index.golang.org^],
 yang berisi daftar versi modul yang baru yang tersedia dalam
-https://proxy.golang.org/[proxy.golang.org].
+https://proxy.golang.org/[proxy.golang.org^].
 Hal ini sangat berguna bagi pengembang perkakas yang ingin menyimpan _cache_
-https://proxy.golang.org/[proxy.golang.org]
+https://proxy.golang.org/[proxy.golang.org^]
 buat mereka sendiri, atau untuk selalu tetap mutakhir dengan modul-modul
 terbaru yang orang gunakan.
 
@@ -174,5 +172,5 @@ terbaru yang orang gunakan.
 
 Kami berharap layanan-layanan ini meningkatkan pengalaman Anda dengan modul,
 dan mendukung Anda untuk
-https://github.com/golang/go/issues/new?title=proxy.golang.org[melaporkan isu]
+https://github.com/golang/go/issues/new?title=proxy.golang.org[melaporkan isu^]
 jika Anda menemukan masalah atau memiliki umpan balik!

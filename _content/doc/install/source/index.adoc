@@ -6,18 +6,18 @@
 Topik ini menjelaskan cara membangun dan menjalankan Go dari kode sumbernya
 langsung.
 Untuk memasang Go lewat aplikasi, lihat
-link:/doc/install[Unduh dan pasang].
+link:/doc/install[Unduh dan pasang^].
 
 ==  Pendahuluan
 
 Go adalah sebuah proyek sumber terbuka, didistribusikan di bawah
-https://golang.org/LICENSE[lisensi model-BSD].
+https://golang.org/LICENSE[lisensi model-BSD^].
 Dokumen ini menjelaskan cara mengambil kode sumber, membangunnya dalam mesin
 Anda, dan menjalankannya.
 
 Umumnya pengguna tidak perlu melakukan hal ini, namun cukup memasang dari
 paket biner yang sudah dikompilasi seperti yang dijelaskan pada artikel
-link:/doc/install[Unduh dan pasang].
+link:/doc/install[Unduh dan pasang^].
 Jika Anda ingin membantu membangun kode sumber yang ada pada paket-paket
 pra-kompilasi, silakan lanjutkan membaca artikel.
 
@@ -25,7 +25,7 @@ Ada dua _compiler_ resmi Go: `gc` dan `gccgo`.
 Dokumen ini fokus pada `gc`, _compiler_ dan perkakas Go.
 Untuk informasi tentang cara bekerja dengan `gccgo`, _compiler_ tradisional
 yang menggunakan GCC, lihat
-link:/doc/install/gccgo/[Penyiapan dan penggunaan gccgo].
+link:/doc/install/gccgo/[Penyiapan dan penggunaan gccgo^].
 
 _Compiler_ Go mendukung kumpulan instruksi berikut:
 
@@ -48,7 +48,7 @@ s390x::
     IBM z/Architecture.
 
 wasm::
-    https://webassembly.org/[WebAssembly].
+    https://webassembly.org/[WebAssembly^].
 
 Go _compiler_ dapat ditujukan untuk sistem operasi AIX, Android, DragonFly
 BSD, FreeBSD, Illumos, Linux, macOS/iOS (Darwin), NetBSD, OpenBSD, Plan 9,
@@ -56,14 +56,13 @@ Solaris, dan Windows (walaupun tidak semua sistem operasi mendukung semua
 arsitektur).
 
 Daftar dukungan yang dianggap "kelas pertama" tersedia pada halaman wiki
-https://golang.org/wiki/PortingPolicy#first-class-ports[dukungan kelas
-pertama].
+https://golang.org/wiki/PortingPolicy#first-class-ports[dukungan kelas pertama^].
 
 Seluruh kombinasi yang didukung ada dalam daftar
 <<environment,variabel lingkungan>> di bawah.
 
 Lihat halaman pemasangan untuk
-link:/doc/install#requirements[kebutuhan sistem keseluruhan].
+link:/doc/install#requirements[kebutuhan sistem keseluruhan^].
 Batasan berikut berlaku untuk sistem yang dapat dibangun hanya dari sumber:
 
 * Untuk Linux pada PowerPC 64-bit, versi kernel minimum yaitu 2.6.37, artinya
@@ -85,14 +84,14 @@ digunakan untuk membangun perkakas dari awal.
 ===  Perkakas _bootstrap_ dari rilis biner
 
 Untuk menggunakan rilis biner sebagai perkakas _bootstrap_, lihat
-https://golang.org/dl/[halaman unduhan]
+https://golang.org/dl/[halaman unduhan^]
 atau gunakan paket distribusi Go lainnya.
 
 ===  Perkakas _bootstrap_ dari sumber
 
 Untuk membangun perkakas _bootstrap_ dari kode sumber, gunakan cabang
 (_branch_) git `release-branch.go1.4` atau unduh
-https://dl.google.com/go/go1.4-bootstrap-20171003.tar.gz[go1.4-bootstrap-20171003.tar.gz],
+https://dl.google.com/go/go1.4-bootstrap-20171003.tar.gz[go1.4-bootstrap-20171003.tar.gz^],
 yang berisi kode sumber Go 1.4 dengan beberapa perbaikan yang menjaga supaya
 perkakas dapat berjalan pada sistem operasi terbaru.
 (Go 1.4 adalah distribusi terakhir yang ditulis menggunakan C.)
@@ -113,7 +112,7 @@ diasumsikan berada pada direktori GOROOT_BOOTSTRAP.
 Untuk membuat perkakas _bootstrap_ dari hasil kompilasi-silang, untuk sistem
 yang Go 1.4 tidak punya targetnya (misalnya, `linux/ppc64le`), pasang Go di
 sistem yang berbeda kemudian jalankan
-https://golang.org/src/bootstrap.bash[bootstrap.bash].
+https://golang.org/src/bootstrap.bash[bootstrap.bash^].
 
 Misalnya, saat dijalankan sebagai berikut
 ----
@@ -145,14 +144,14 @@ Untuk melanjutkan ke langkah selanjutnya, Anda harus memasang Git.
 (Periksa apakah Anda sudah memiliki perintah `git` sebelum melanjutkan.)
 
 Jika Anda belum memasang Git, ikuti instruksi pada halaman
-https://git-scm.com/downloads[mengunduh Git].
+https://git-scm.com/downloads[mengunduh Git^].
 
 
 [#ccompiler]
 ==  Pasang _compiler_ C (opsional)
 
 Untuk membuat Go dengan dukungan
-https://golang.org/cmd/cgo[cgo],
+link:/cmd/cgo[cgo^],
 yang membolehkan Go program mengimpor pustaka C, _compiler_ C seperti `gcc`
 atau `clang` haruslah terpasang terlebih dahulu.
 Pasanglah _compiler_ C sesuai dengan metode pemasangan di sistem Anda.
@@ -190,7 +189,7 @@ Lihat bagian tentang <<gopath,GOPATH>> di bawah.
 ==  Pindah ke cabang master (opsional)
 
 Jika Anda berniat untuk mengubah kode sumber Go, dan
-link:/doc/contribute.html[berkontribusi]
+link:/doc/contribute.html[berkontribusi^]
 ke proyek ini, maka pindahlah dari cabang rilis ke cabang `master` (cabang
 pengembangan).
 Jika bukan demikian, lewati langkah ini.
@@ -271,7 +270,7 @@ Anda hampir selesai.
 Anda hanya perlu sedikit pengaturan.
 
 Dokumen
-link:/doc/code.html[Bagaimana menulis kode Go]
+link:/doc/code[Bagaimana menulis kode Go^]
 menyediakan *instruksi pengaturan yang penting* untuk menggunakan perkakas Go.
 
 
@@ -279,9 +278,9 @@ menyediakan *instruksi pengaturan yang penting* untuk menggunakan perkakas Go.
 ==  Pasang perkakas tambahan
 
 Sumber kode untuk beberapa perkakas Go tambahan (termasuk
-link:/cmd/godoc/[godoc])
+link:/cmd/godoc/[godoc^])
 disimpan di
-https://golang.org/x/tools[repositori tools].
+https://golang.org/x/tools[repositori tools^].
 Untuk memasang salah satu perkakas tersebut (misalnya `godoc`):
 
 ----
@@ -292,7 +291,7 @@ Untuk memasang perkakas tambahan tersebut, perintah `go get` membutuhkan
 <<git,Git>> terpasang di lokal.
 
 Anda juga harus memiliki sebuah ruang kerja (GOPATH); lihatlah
-link:/doc/code.html[Bagaimana menulis kode Go]
+link:/doc/code[Bagaimana menulis kode Go^]
 untuk lebih detail.
 
 
@@ -300,8 +299,9 @@ untuk lebih detail.
 == Komunitas
 
 Sumber komunitas biasa seperti kanal `#go-nuts` di server IRC
-https://freenode.net/[Freenode] dan milis 
-https://groups.google.com/group/golang-nuts[Go Nuts]
+https://freenode.net/[Freenode^]
+dan milis 
+https://groups.google.com/group/golang-nuts[Go Nuts^]
 memiliki beberapa orang yang aktif yang dapat membantu masalah Anda selama
 pemasangan.
 Bagi yang ingin selalu terbarui, ada milis lain yaitu
@@ -367,7 +367,7 @@ Namun, bila Anda menyalin kode sumber Go ke `$HOME/go`, Anda harus menset
 $GOBIN::
 Direktori di mana program-program selain perkakas distribusi Go akan
 dipasang oleh
-link:/cmd/go/[perintah go].
+link:/cmd/go/[perintah go^].
 Misalnya, perintah `go get golang.org/x/tools/cmd/godoc` akan mengunduh,
 membangun, dan memasang program `godoc` di dalam direktori `$GOBIN`.
 Bila kosong, `$GOBIN` diset ke `$GOPATH/bin` (atau `$HOME/go/bin` bila
@@ -505,14 +505,14 @@ Nilai bakunya yaitu `power8`.
 * GOPPC64=power9: gunakan instruksi ISA v3.00
 
 $GOWASM (hanya untuk `wasm`)::  Variabel ini berisi daftar fitur-fitur
-https://github.com/WebAssembly/proposals[eksperimental WebAssembly]
+https://github.com/WebAssembly/proposals[eksperimental WebAssembly^]
 yang hasil pembangunan program WebAssembly dapat gunakan.
 Nilai bakunya yaitu kosong (tidak ada fitur eksperimental yang digunakan).
 +
 * GOWASM=satconv: gunakan fitur
-  https://github.com/WebAssembly/nontrapping-float-to-int-conversions/blob/master/proposals/nontrapping-float-to-int-conversion/Overview.md[konversi float-to-int]
+  https://github.com/WebAssembly/nontrapping-float-to-int-conversions/blob/master/proposals/nontrapping-float-to-int-conversion/Overview.md[konversi float-to-int^]
 * GOWASM=signext: gunakan fitur
-https://github.com/WebAssembly/sign-extension-ops/blob/master/proposals/sign-extension-ops/Overview.md[operator sign-extension]
+https://github.com/WebAssembly/sign-extension-ops/blob/master/proposals/sign-extension-ops/Overview.md[operator sign-extension^]
 
 
 Ingatlah bahwa $GOOS dan $GOARCH mengidentifikasi _target_ lingkungan,

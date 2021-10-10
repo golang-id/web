@@ -106,7 +106,7 @@ Nilai integer oktal 0600, yang dikirim sebagai parameter ketiga pada
 `WriteFile`, mengindikasikan bahwa berkas dibuat dengan akses baca-tulis untuk
 pengguna yang sekarang.
 (Lihat halaman manual Unix untuk
-https://man.archlinux.org/man/open.2[`open(2)`]
+https://man.archlinux.org/man/open.2[`open(2)`^]
 untuk lebih detail.)
 
 Selain menyimpan halaman, kita juga ingin membaca halaman dari berkas:
@@ -181,8 +181,7 @@ This is a sample Page.
 (Jika Anda menggunakan sistem Windows, Anda harus mengetikan "wiki" tanpa "./"
 untuk menjalankan program.)
 
-link:/doc/articles/wiki/part1.go[Klik di sini untuk melihat apa yang telah
-kita buat^].
+link:/doc/articles/wiki/part1.go[Klik di sini untuk melihat apa yang telah kita buat^].
 
 
 ==  Memperkenalkan paket `net/http`
@@ -479,8 +478,7 @@ func editHandler(w http.ResponseWriter, r *http.Request) {
 
 Jika kita tutup registrasi dari fungsi `save` yang belum diimplementasikan
 dalam fungsi `main`, kita dapat membangun dan menguji program kita.
-link:/doc/articles/wiki/part3.go[Klik di sini untuk melihat kode yang telah
-kita tulis sejauh ini].
+link:/doc/articles/wiki/part3.go[Klik di sini untuk melihat kode yang telah kita tulis sejauh ini^].
 
 
 == Menangani halaman yang tidak ada
@@ -590,7 +588,7 @@ setiap kali sebuah halaman dibangkitkan.
 Pendekatan yang lebih bagus yaitu dengan memanggil `ParseFiles` sekali saat
 program diinisiasi, membaca semua berkas templat ke dalam sebuah `*Template`.
 Kemudian kita dapat menggunakan method
-http://golang.org/pkg/html/template/#Template.ExecuteTemplate[`ExecuteTemplate`]
+https://pkg.go.dev/html/template#Template.ExecuteTemplate[`ExecuteTemplate`^]
 untuk menulis templat tertentu.
 
 Pertama kita buat sebuah variabel global bernama `templates` dan
@@ -825,7 +823,7 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 
 == Cobalah!
 
-link:/doc/articles/wiki/final.go[Klik di sini untuk melihat hasil akhir kode].
+link:/doc/articles/wiki/final.go[Klik di sini untuk melihat hasil akhir kode^].
 
 Kompilasi ulang kode, dan jalankan aplikasi:
 

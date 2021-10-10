@@ -29,21 +29,23 @@ buat dapat dengan mudah dibaca oleh pemrogram Go yang lain.
 Dokumen ini memberikan beberapa petunjuk untuk menulis kode Go yang bersih dan
 idiomatis.
 Ia menggabungkan
-{en-ref-spec}[spesifikasi dari bahasa Go],
-{id-tour}[Tur bahasa Go], dan
-{id-doc-code}[Cara menulis kode Go],
+{en-ref-spec}[spesifikasi dari bahasa Go^],
+{id-tour}[Tur bahasa Go^], dan
+{id-doc-code}[Cara menulis kode Go^],
 yang mana sebaiknya harus dibaca terlebih dahulu.
 
 
 [#examples]
 ===  Contoh
 
-https://golang.org/src/[Sumber paket Go] bertujuan untuk menyediakan tidak
+https://golang.org/src/[Sumber paket Go^]
+bertujuan untuk menyediakan tidak
 hanya pustaka inti tapi juga sebagai contoh bagaimana menggunakan bahasa ini.
 Lebih lanjut lagi, banyak dari paket-paket tersebut memiliki contoh-contoh
 kode yang dapat dieksekusi yang dapat dijalankan secara langsung, seperti
-yang https://golang.org/pkg/strings/#example_Map[satu ini] (jika perlu, klik
-pada kata "Example" untuk membukanya).
+yang
+https://pkg.go.dev/strings/#example_Map[satu ini^]
+(jika perlu, klik pada kata "Example" untuk membukanya).
 Jika ada pertanyaan tentang bagaimana menyelesaikan suatu masalah
 atau bagaimana mengimplementasikan sesuatu, dokumentasi ini, kode, dan
 contoh-contoh dalam pustaka dapat menyediakan jawaban, gagasan dan latar
@@ -181,8 +183,9 @@ lainnya seperti +_ini_+ akan menghasilkan keluaran yang sama dan sebaiknya tidak
 digunakan.
 Salah satu pengaturan yang dimiliki oleh `godoc` yaitu menampilkan teks yang
 memiliki identasi dengan fonta baku, cocok untuk menampilkan potongan kode.
-Komentar https://golang.org/pkg/fmt/[paket `fmt`] menggunakan cara ini untuk
-memberikan efek yang bagus.
+Komentar
+https://pkg.go.dev/fmt/[paket `fmt`^]
+menggunakan cara ini untuk memberikan efek yang bagus.
 
 Bergantung kepada konteks, `godoc` bisa saja tidak memformat komentar, jadi
 pastikan ia tampak bagus dari awal: gunakan tata tulis dan struktur kalimat
@@ -205,9 +208,9 @@ func Compile(str string) (*Regexp, error) {
 
 Jika setiap komentar dokumentasi dimulai dengan nama item yang dideskripsikan,
 kita dapat menggunakan sub perintah
-{en-cmd-go-show}[`doc`]
+{en-cmd-go-show}[`doc`^]
 dari perkakas
-{en-cmd-go}[`go`]
+{en-cmd-go}[`go`^]
 dan mengambil keluarannya dengan `grep`.
 Bayangkan misalnya kita lupa nama fungsi "Compile" tapi ingin mencari fungsi
 untuk mengurai _regular expression_, kita tinggal menjalankan perintah
@@ -2850,7 +2853,7 @@ jika _buffer_ -nya penuh, berarti menunggu sampai penerima setidaknya telah
 menerima sebuah nilai.
 
 `channel` dengan buffer dapat digunakan untuk
-https://id.wikipedia.org/wiki/Semafor_(pemrograman)[semafor],
+https://id.wikipedia.org/wiki/Semafor_(pemrograman)[semafor^],
 misalnya untuk membatasi hasil keluaran.
 Pada contoh berikut, permintaan yang masuk dikirim ke sebuah _handle_, yang
 mengirim sebuah nilai ke `channel`, memproses permintaan, dan kemudian
@@ -3081,7 +3084,7 @@ func (v Vector) DoAll(u Vector) {
 Daripada menggunakan sebuah nilai konstan untuk `numCPU`, kita dapat
 menanyakan pada _runtime_ nilai yang sesuai dengan sistem kita.
 Fungsi
-https://golang.org/pkg/runtime#NumCPU[runtime.NumCPU]
+https://pkg.go.dev/runtime#NumCPU[runtime.NumCPU^]
 mengembalikan jumlah _core_ CPU pada mesin, jadi kita bisa tulis
 
 ----
@@ -3089,7 +3092,7 @@ var numCPU = runtime.NumCPU()
 ----
 
 Ada juga fungsi
-https://golang.org/pkg/runtime#GOMAXPROCS[runtime.GOMAXPROCS],
+https://pkg.go.dev/runtime#GOMAXPROCS[runtime.GOMAXPROCS^],
 yang melaporkan (atau menset) jumlah _core_ yang dispesifikasikan oleh
 pengguna untuk membatasi jumlah _core_ yang dapat berjalan secara bersamaan
 dalam sebuah program Go.
@@ -3112,7 +3115,7 @@ Walaupun fitur konkurensi dari Go dapat mempermudah membentuk komputasi secara
 paralel, Go adalah bahasa yang konkuren, bukan paralel, dan tidak semua
 permasalahan paralelisasi cocok dengan model Go.
 Untuk diskusi mengenai perbedaan dari keduanya, lihat pembicaraan dalam
-{en-blog-concurrency}[blog berikut].
+{en-blog-concurrency}[blog berikut^].
 //}}}
 
 [#leaky_buffer]
@@ -3461,8 +3464,8 @@ dalam sebuah URL dalam bentuk HTTP _query_.
 Program kita ini menyediakan sebuah antar muka dari layanan tersebut dengan
 menyediakan sebuah form data: berikan sebuah teks, web server kita akan akan
 memanggil layanan grafik Google untuk menghasilkan sebuah
-https://id.wikipedia.org/wiki/Kode_QR[kode QR], hasil dari enkode teks
-tersebut.
+https://id.wikipedia.org/wiki/Kode_QR[kode QR^],
+hasil dari enkode teks tersebut.
 Kode QR tersebut dapat dipindai dengan kamera ponsel pintar kita dan
 diinterpretasikan sebagai sebuah URL, mengurangi pengetikan ulang URL ke dalam
 _keyboard_ telepon yang kecil.
@@ -3555,12 +3558,12 @@ sendiri sehingga teks aman untuk ditampilkan.
 Sisa dari teks _template_ yaitu elemen HTML untuk ditampilkan saat halaman
 dimuat.
 Jika penjelasan ini terlalu cepat, lihat
-https://golang.org/pkg/html/template/[dokumentasi]
+https://pkg.go.dev/html/template[dokumentasi^]
 untuk paket `template` untuk penjelasan yang lebih lengkap.
 
 Untuk mencoba kode di atas, simpanlah ke dalam sebuah berkas berekstensi `.go`
 dalam sebuah
-link:/doc/code.html#Workspaces[ruang kerja] dan jalankan,
+link:/doc/code.html#Workspaces[ruang kerja^] dan jalankan,
 
 ----
 	$ go run .

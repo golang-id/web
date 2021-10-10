@@ -8,7 +8,7 @@ sama: siapa saja yang menggunakan Go, apa yang mereka buat dengan Go, dan
 bagaimana cara saya menemukan paket Go yang berguna?
 
 Hari ini kita meluncurkan
-https://go.dev[go.dev],
+https://go.dev[go.dev^],
 sebuah pusat kegiatan baru untuk pengembang Go, untuk membantu menjawab
 pertanyaan-pertanyaan tersebut.
 Di sana Anda akan menemukan banyak sumber pembelajaran bahasa Go,
@@ -17,24 +17,24 @@ contoh-contoh kasus, dan studi kasus dari perusahaan yang menggunakan Go.
 image:https://blog.golang.org/go.dev/home.png[,600]
 
 (Ingat bahwa
-https://golang.org[golang.org]
+https://golang.org[golang.org^]
 masih merupakan rumah bagi proyek sumber terbuka dan distribusi dari Go.
 Go.dev adalah situs pembantu yang menyediakan sumber-sumber pendukung
 tersebut.)
 
 Dengan membuka "Explore" Anda akan dibawa ke
-https://pkg.go.dev[pkg.go.dev],
+https://pkg.go.dev[pkg.go.dev^],
 sebuah pusat sumber informasi tentang paket-paket dan modul-modul Go.
 Seperti
-https://godoc.org[godoc.org],
+https://godoc.org[godoc.org^],
 pkg.go.dev melayani dokumentasi Go.
 Namun, situs ini juga mengenal modul dan memiliki informasi tentang semua
 versi dari sebuah paket, termasuk
-https://pkg.go.dev/std?tab=versions[semua rilis dari pustaka standard]!
+https://pkg.go.dev/std?tab=versions[semua rilis dari pustaka standard^]!
 Dan ia juga dapat mendeteksi dan menampilkan lisensi dan memiliki algoritme
 pencarian yang lebih baik.
 Anda dapat mengikuti
-https://golang.org/issue/33654[Go isu 33654]
+https://golang.org/issue/33654[Go isu 33654^]
 untuk pengembangan selanjutnya.
 
 image:https://blog.golang.org/go.dev/http.png[,600]

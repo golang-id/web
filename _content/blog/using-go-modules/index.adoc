@@ -7,26 +7,26 @@
 Tulisan ini adalah bagian pertama dari sebuah seri.
 
 *  Bagian 1 - Menggunakan Go Modul (tulisan ini)
-*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul]
-*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul]
-*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya]
+*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul^]
+*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul^]
+*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya^]
 
 Go 1.11 dan 1.12 mengikutkan
-https://golang.org/doc/go1.11#modules[dukungan awal untuk modul],
-https://blog.golang.org/versioning-proposal[sistem manajemen dependensi baru]
+https://golang.org/doc/go1.11#modules[dukungan awal untuk modul^],
+https://blog.golang.org/versioning-proposal[sistem manajemen dependensi baru^]
 dari Go yang membuat versi informasi dependensi eksplisit dan mudah diatur.
 Artikel ini adalah pengenalan dari operasi dasar yang dibutuhkan untuk memulai
 menggunakan modul.
 
 Sebuah modul adalah kumpulan dari
-link:/ref/spec#Packages[paket-paket Go]
+link:/ref/spec#Packages[paket-paket Go^]
 yang disimpan dalam sebuah pohon berkas dengan berkas `go.mod` di atasnya.
 Berkas `go.mod` mendefinisikan _module path_ dari modul, yang juga merupakan
 path impor yang digunakan pada direktori teratas, dan _kebutuhan dependensi_
 nya, yang merupakan modul-modul lain yang dibutuhkan untuk pembangunan supaya
 berhasil.
 Setiap kebutuhan dependensi ditulis sebagai sebuah path modul dan sebuah
-http://semver.org/[versi semantik].
+https://semver.org/[versi semantik^].
 
 Pada Go 1.11, perintah `go` membolehkan penggunaan modul saat direktori yang
 digunakan sekarang atau direktori di atasnya memiliki sebuah `go.mod`, selama
@@ -34,7 +34,7 @@ direktori tersebut berada _di luar_ `$GOPATH/src`.
 (Di dalam `$GOPATH/src`, untuk kompatibilitas, perintah `go` masih tetap
 berjalan dengan mode GOPATH lama, walaupun `go.mod` ditemukan.
 Lihat
-link:/cmd/go/#hdr-Preliminary_module_support[dokumentasi perintah go]
+link:/cmd/go/#hdr-Preliminary_module_support[dokumentasi perintah go^]
 untuk lebih detil.)
 Mulai dari Go 1.13, mode modul akan menjadi baku untuk semua pengembangan.
 
@@ -172,7 +172,7 @@ Saat ia menemui sebuah `import` dari sebuah paket yang tidak ditemukan dalam
 `go.mod`, perintah `go` otomatis mencari modul yang berisi paket tersebut dan
 menambahkannya ke `go.mod`, menggunakan versi yang terakhir.
 ("Terakhir" didefinisikan sebagai versi terakhir yang di tag sebagai stabil --
-https://semver.org/#spec-item-9[yang bukan pra-rilis],
+https://semver.org/#spec-item-9[yang bukan pra-rilis^],
 atau versi pra-release terakhir yang di tag, atau versi terakhir yang tidak di
 tag.)
 Dalam contoh di atas, "go test" menangani impor yang baru "rsc.io/quote" ke
@@ -208,7 +208,7 @@ Modul anda sekarang benar-benar _bergantung_ pada dependensi baru dalam ruang
 yang rawan, beberapa hal harus diperhatikan seperti ketepatan, keamanan, dan
 lisensi.
 Untuk pertimbangan lebih lanjut, lihat artikel dari Russ Cox,
-https://research.swtch.com/deps["Our Software Dependency Problem"].
+https://research.swtch.com/deps["Our Software Dependency Problem"^].
 
 Seperti yang telah kita lihat di atas, menambah satu dependensi secara
 langsung terkadang membawa dependensi tidak langsung juga.
@@ -229,13 +229,12 @@ yang diurut berdasar path modul.
 
 Baris "golang.org/x/text version v0.0.0-20170915032832-14c0d48ead0c" adalah
 sebuah contoh dari
-https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo],
+https://golang.org/cmd/go#hdr-Pseudo_versions[versi-pseudo^],
 yang merupakan sintaksis untuk commit yang tidak ada tag-nya.
 
 Selain "go.mod", perintah go juga membuat sebuah berkas bernama "go.sum" yang
 berisi
-https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[hash
-kriptografi]
+https://golang.org/cmd/go#hdr-Module_downloading_and_verification[hash kriptografi^]
 dari isi modul pada versi tertentu:
 
 ----
@@ -426,7 +425,7 @@ dimulai dari v2, path haruslah berakhir dengan versi mayor.
 Pada contoh di atas, v3 dari "rsc.io/quote" tidak lagi "rsc.io/quote":
 tetapi ia teridentifikasi oleh path modul "rsc.io/quote/v3".
 Konvensi ini disebut dengan
-https://research.swtch.com/vgo-import[semantic import versioning],
+https://research.swtch.com/vgo-import[semantic import versioning^],
 yang membolehkan paket-paket yang tidak kompatibel (yang berbeda versi
 mayor) menggunakan nama yang berbeda.
 Sebaliknya, v1.6.0 dari "rsc.io/quote" seharusnya kompatibel dengan v1.5.2,
@@ -476,7 +475,7 @@ $
 ----
 
 (Keluaran di atas telah diketahui memiliki sebuah
-https://golang.org/issue/30778[_bug_];
+https://golang.org/issue/30778[_bug_^];
 path impor ditampilkan tanpa ada "/v3")
 
 Kita dapat memperbarui penggunaan "quote.Hello()" dalam "hello.go" dengan
@@ -606,8 +605,8 @@ Kami menyarankan anda untuk mulai menggunakan modul dalam pengembangan dan
 menambahkan berkas "go.mod" dan "go.sum" ke dalam proyek anda.
 Bila Anda memiliki umpan balik dan bantuan dalam pengembangan manajemen
 dependensi di Go di masa depan, mohon kirim
-https://golang.org/issue/new[laporan _bug_]
+https://golang.org/issue/new[laporan _bug_^]
 atau
-https://golang.org/wiki/ExperienceReports[laporan pengalaman].
+https://golang.org/wiki/ExperienceReports[laporan pengalaman^].
 
 Terima kasih untuk semua saran dan bantuan Anda dalam meningkatkan modul.

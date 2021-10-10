@@ -11,7 +11,8 @@ dalam sistem konkuren.
 _Data race_ terjadi saat dua goroutine mengakses variabel yang sama secara
 bersamaan dengan salah satu metoda akses adalah tulis.
 Lihat
-link:/ref/mem/[Model memori pada Go] untuk lebih rinci.
+link:/ref/mem/[Model memori pada Go^]
+untuk lebih rinci.
 
 Berikut contoh _data race_ yang bisa membuat program _crash_ dan korupsi pada
 memori:
@@ -342,7 +343,7 @@ saat mengakses memori prosesor.
 Cara paling umum untuk memperbaiki _data race_ seperti ini yaitu dengan
 menggunakan sebuah kanal (_channel_) atau `mutex`.
 Supaya bebas-penguncian, bisa menggunakan paket
-https://golang.org/pkg/sync/atomic/[`sync/atomic`].
+https://pkg.go.dev/sync/atomic/[`sync/atomic`^].
 
 ----
 type Watchdog struct{ last int64 }
@@ -381,8 +382,8 @@ close(c)
 ----
 
 Menurut
-link:/ref/mem[Memori model pada Go], pengiriman ke kanal terjadi sebelum
-penerimaan dari kanal selesai.
+link:/ref/mem[Memori model pada Go^],
+pengiriman ke kanal terjadi sebelum penerimaan dari kanal selesai.
 Untuk sinkronisasi operasi kirim-dan-tutup, gunakan operasi penerimaan untuk
 menjamin bahwa pengiriman selesai sebelum operasi tutup dilakukan:
 
@@ -412,7 +413,7 @@ umumnya penggunaan memori bisa meningkat 5-10x dan waktu eksekusi bertambah
 Pendeteksi _data race_ saat ini mengalokasikan 8 byte tambahan per perintah
 `defer` dan `recover`.
 Alokasi tambahan ini
-https://golang.org/issue/26813[tidak berkurang sampai goroutine selesai].
+https://golang.org/issue/26813[tidak berkurang sampai goroutine selesai^].
 Hal ini berarti jika Anda memiliki goroutine yang berjalan lama yang secara
 periodik memanggil `defer` dan `recover`, penggunaan memori program Anda bisa
 bertambah tanpa batas.

@@ -1,7 +1,7 @@
 =  JSON dan Go
 :author: Andrew Gerrand
 :date: 25 Januari 2011
-:package-json: https://golang.org/pkg/encoding/json
+:package-json: https://pkg.go.dev/encoding/json
 
 ==  Pendahuluan
 
@@ -10,17 +10,19 @@ Secara sintaks ia menyerupai objek dan _list_ dari JavaScript.
 Ia umumnya digunakan untuk komunikasi antara web back-end dan program
 JavaScript yang berjalan di peramban, namun ia digunakan diberbagai tempat
 lainnya juga.
-Situsnya, https://json.org[json.org], menyediakan definisi standar yang jelas
-dan ringkas.
+Situsnya,
+https://json.org[json.org^],
+menyediakan definisi standar yang jelas dan ringkas.
 
-{package-json}[Paket json] menyediakan cara yang cepat untuk membaca dan
-menulis data JSON dalam program Go anda.
+{package-json}[Paket json^]
+menyediakan cara yang cepat untuk membaca dan menulis data JSON dalam program
+Go anda.
 
 
 ==  Penulisan (_encoding_)
 
 Untuk meng-_encode_ data JSON kita menggunakan fungsi
-https://golang.org/pkg/encoding/json#Marshal[Marshal].
+https://pkg.go.dev/encoding/json#Marshal[Marshal^].
 
 ----
 func Marshal(v interface{}) ([]byte, error)
@@ -79,7 +81,7 @@ dalam keluaran JSON.
 ==  Pembacaan (_decoding_)
 
 Untuk membaca data JSON kita menggunakan fungsi
-https://golang.org/pkg/encoding/json#Unmarshal[Unmarshal].
+https://pkg.go.dev/encoding/json#Unmarshal[Unmarshal^].
 
 ----
 func Unmarshal(data []byte, v interface{}) error
@@ -116,8 +118,8 @@ Untuk JSON dengan key "Foo", `Unmarshal` akan mencari field dalam struct
 tujuan (dengan urutan berikut):
 
 *  Field yang diekspor dengan tag "Foo" (lihat
-   https://golang.org/ref/spec#Struct_types[spesifikasi Go] untuk informasi
-   lebih lanjut tentang tag pada struct),
+   https://golang.org/ref/spec#Struct_types[spesifikasi Go^]
+   untuk informasi lebih lanjut tentang tag pada struct),
 
 *  Field yang diekspor bernama "Foo", atau
 
@@ -317,9 +319,9 @@ atau `Msg` yang bernilai `nil`.
 Paket json menyediakan tipe `Decoder` dan `Encoder` untuk mendukung operasi
 pembacaan dan penulisan data JSON berkelanjutan (_streaming_).
 Fungsi `NewDecoder` dan `NewEncoder` membungkus tipe interface
-https://golang.org/pkg/io/#Reader[io.Reader]
+https://pkg.go.dev/io/#Reader[io.Reader^]
 dan
-https://golang.org/pkg/io/#Writer[io.Writer].
+https://pkg.go.dev/io/#Writer[io.Writer^].
 
 ----
 func NewDecoder(r io.Reader) *Decoder
@@ -367,6 +369,6 @@ ke koneksi HTTP, WebSocket, atau berkas.
 ==  Referensi
 
 Untuk informasi lebih lanjut lihat
-https://golang.org/pkg/encoding/json/[dokumentasi paket json].
+https://pkg.go.dev/encoding/json/[dokumentasi paket json^].
 Untuk contoh penggunaan json lihat sumber berkas dari
-https://golang.org/pkg/net/rpc/jsonrpc/[paket jsonrpc].
+https://pkg.go.dev/net/rpc/jsonrpc/[paket jsonrpc^].

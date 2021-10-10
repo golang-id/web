@@ -5,15 +5,14 @@
 ==  Pendahuluan
 
 Dengan suka cita kami merilis revisi mayor dari Go API untuk
-https://developers.google.com/protocol-buffers[protocol buffers], format
-pertukaran data yang mendukung banyak bahasa pemrograman dari Google.
+https://developers.google.com/protocol-buffers[protocol buffers^],
+format pertukaran data yang mendukung banyak bahasa pemrograman dari Google.
 
 
 ==  Motivasi bagi API yang baru
 
 _Protocol buffers_ yang pertama untuk Go
-https://blog.golang.org/third-party-libraries-goprotobuf-and[diumumkan oleh
-Rob Pike]
+https://blog.golang.org/third-party-libraries-goprotobuf-and[diumumkan oleh Rob Pike^]
 pada bulan Maret 2010.
 Go 1 belum dirilis sampai dua tahun kemudian.
 
@@ -24,7 +23,7 @@ Kebutuhan pengguna pun semakin besar juga.
 Banyak orang ingin menulis program yang menggunakan refleksi untuk memeriksa
 _message_ dalam _protocol buffer_.
 Paket
-https://pkg.go.dev/reflect[reflect]
+https://pkg.go.dev/reflect[reflect^]
 menyediakan tipe dan nilai untuk Go, tetapi mengindahkan informasi dari sistem
 tipe _protocol buffer_.
 Misalnya, kita ingin memiliki sebuah fungsi yang memeriksa isi sebuah pesan
@@ -39,7 +38,7 @@ saat di-kompilasi.
 
 Kami juga menelaah bahwa sebuah sumber permasalahan yang sering ditemukan
 yaitu interface
-https://pkg.go.dev/github.com/golang/protobuf/proto?tab=doc#Message[proto.Message],
+https://pkg.go.dev/github.com/golang/protobuf/proto?tab=doc#Message[proto.Message^],
 yang mengidentifikasi nilai dari tipe _Message_ yang dibangkitkan
 (_generated_), memiliki manfaat yang sedikit dalam menjelaskan perilaku dari
 tipe-tipe tersebut.
@@ -67,7 +66,7 @@ Kami harap Anda menyukainya.
 Refleksi adalah fitur andalan dari implementasi yang baru.
 Mirip dengan bagaimana paket `reflect` menyediakan sebuah tipe dan nilai pada
 Go, paket
-https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc[`google.golang.org/protobuf/reflect/protoreflect`]
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc[`google.golang.org/protobuf/reflect/protoreflect`^]
 menyediakan sebuah nilai menurut sistem tipe _protocol buffer_.
 
 Deskripsi lengkap dari paket `protoreflect` akan terlalu panjang bila
@@ -75,7 +74,7 @@ dijelaskan di sini, tetapi mari kita lihat bagaimana kita dapat menulis fungsi
 yang membersihkan pesan _log_ seperti yang kita sebut sebelumnya.
 
 Pertama, kita tulis berkas `.proto` mendefinisikan ekstensi dari tipe
-https://github.com/protocolbuffers/protobuf/blob/b96241b1b716781f5bc4dc25e1ebb0003dfaba6a/src/google/protobuf/descriptor.proto#L509[`google.protobuf.FieldOptions`]
+https://github.com/protocolbuffers/protobuf/blob/b96241b1b716781f5bc4dc25e1ebb0003dfaba6a/src/google/protobuf/descriptor.proto#L509[`google.protobuf.FieldOptions`^]
 supaya kita dapat menambahkan anotasi pada field-field yang berisi informasi
 yang sensitif atau tidak.
 
@@ -108,7 +107,7 @@ func Redact(pb proto.Message) {
 ----
 
 Fungsi ini menerima sebuah
-https://pkg.go.dev/google.golang.org/protobuf/proto?tab=doc#Message[`proto.Message`],
+https://pkg.go.dev/google.golang.org/protobuf/proto?tab=doc#Message[`proto.Message`^],
 tipe interface yang diimplementasikan oleh semua tipe message hasil
 pembangkitan.
 Tipe tersebut adalah alias dari yang tipe yang didefinisikan dalam paket
@@ -122,7 +121,7 @@ type ProtoMessage interface {
 
 Untuk menghindari penuhnya _namespace_ dari `Message` hasil pembangkitan,
 interface tersebut hanya berisi sebuah method yang mengembalikan
-https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Message[`protoreflect.Message`],
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Message[`protoreflect.Message`^],
 yang menyediakan akses ke isi `message`.
 
 Kenapa alias?
@@ -131,7 +130,7 @@ Karena `protoreflect.Message` memiliki method yang mengembalikan
 (_import cycle_) antara kedua paket tersebut.
 
 Method
-https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Message.Range[`protoreflect.Message.Range`]
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Message.Range[`protoreflect.Message.Range`^]
 memanggil sebuah fungsi untuk setiap field dalam sebuah `Message`.
 
 ----
@@ -143,13 +142,13 @@ m.Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
 ----
 
 Fungsi `Range` dipanggil dengan sebuah
-https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#FieldDescriptor[`protoreflect.FieldDescriptor`]
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#FieldDescriptor[`protoreflect.FieldDescriptor`^]
 yang mendeskripsikan tipe _protocol buffer_ dari field, dan sebuah
-https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Value[`protoreflect.Value`]
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Value[`protoreflect.Value`^]
 yang berisi nilai dari field.
 
 Method
-https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Descriptor.Options[`protoreflect.FieldDescriptor.Options`]
+https://pkg.go.dev/google.golang.org/protobuf/reflect/protoreflect?tab=doc#Descriptor.Options[`protoreflect.FieldDescriptor.Options`^]
 mengembalikan field sebagai sebuah `google.protobuf.FieldOptions`.
 
 ----
@@ -176,10 +175,10 @@ bukan dalam sistem tipe Go.
 
 Hal ini juga merupakan contoh wilayah di mana kita telah menyederhanakan API
 dari paket `proto`.
-https://pkg.go.dev/github.com/golang/protobuf/proto?tab=doc#GetExtension[`proto.GetExtension`]
+https://pkg.go.dev/github.com/golang/protobuf/proto?tab=doc#GetExtension[`proto.GetExtension`^]
 yang aslinya mengembalikan sebuah nilai dan sebuah error.
 Fungsi
-https://pkg.go.dev/google.golang.org/protobuf/proto?tab=doc#GetExtension[`proto.GetExtension`]
+https://pkg.go.dev/google.golang.org/protobuf/proto?tab=doc#GetExtension[`proto.GetExtension`^]
 yang baru mengembalikan hanya nilai, atau nilai baku dari field bila tidak
 ada.
 Kesalahan dekode dari ekstensi dilaporkan saat `Unmarshal`.
@@ -227,11 +226,11 @@ APIv1 dan APIv2 adalah implementasi dalam Go yang mendukung versi bahasa
 `proto2` dan `proto3`.)
 
 Modul
-https://pkg.go.dev/github.com/golang/protobuf?tab=overview[`github.com/golang/protobuf`]
+https://pkg.go.dev/github.com/golang/protobuf?tab=overview[`github.com/golang/protobuf`^]
 adalah APIv1.
 
 Modul
-https://pkg.go.dev/google.golang.org/protobuf?tab=overview[`google.golang.org/protobuf`]
+https://pkg.go.dev/google.golang.org/protobuf?tab=overview[`google.golang.org/protobuf`^]
 adalah APIv2.
 Kami telah mengambil mengubah path impor dengan beralih ke tempat yang tidak
 bergantung pada penyedia layanan hosting.
@@ -283,26 +282,25 @@ pembaruan dependensi).
 ==  Catatan fitur tambahan
 
 Paket
-https://pkg.go.dev/google.golang.org/protobuf/encoding/protojson[`google.golang.org/protobuf/encoding/protojson`]
+https://pkg.go.dev/google.golang.org/protobuf/encoding/protojson[`google.golang.org/protobuf/encoding/protojson`^]
 mengonversi _protocol buffer_ `Message` dari dan ke JSON menggunakan
-https://developers.google.com/protocol-buffers/docs/proto3#json[pemetaan JSON
-kanonis],
+https://developers.google.com/protocol-buffers/docs/proto3#json[pemetaan JSON kanonis^],
 dan memperbaiki sejumlah isu dengan paket `jsonpb` yang lama yang sulit diubah
 tanpa menyebabkan masalah bagi pengguna yang ada.
 
 Paket
-https://pkg.go.dev/google.golang.org/protobuf/types/dynamicpb[`google.golang.org/protobuf/types/dynamicpb`]
+https://pkg.go.dev/google.golang.org/protobuf/types/dynamicpb[`google.golang.org/protobuf/types/dynamicpb`^]
 menyediakan sebuah implementasi dari `proto.Message` untuk `message` yang tipe
 _protocol buffer_-nya dibangkitkan saat _runtime_.
 
 Paket
-https://pkg.go.dev/google.golang.org/protobuf/testing/protocmp[`google.golang.org/protobuf/testing/protocmp`]
+https://pkg.go.dev/google.golang.org/protobuf/testing/protocmp[`google.golang.org/protobuf/testing/protocmp`^]
 menyediakan fungsi-fungsi untuk membandingkan `Message` _protocol buffer_
 dengan paket
-https://pkg.go.dev/github.com/google/go-cmp/cmp[`github.com/google/go-cmp/cmp`].
+https://pkg.go.dev/github.com/google/go-cmp/cmp[`github.com/google/go-cmp/cmp`^].
 
 Paket
-https://pkg.go.dev/google.golang.org/protobuf/compiler/protogen?tab=doc[`google.golang.org/protobuf/compiler/protogen`]
+https://pkg.go.dev/google.golang.org/protobuf/compiler/protogen?tab=doc[`google.golang.org/protobuf/compiler/protogen`^]
 menyediakan dukungan untuk menulis _plugin_ untuk _compiler protocol buffer_.
 
 

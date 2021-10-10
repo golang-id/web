@@ -1,14 +1,14 @@
 =  Cara menulis kode Go
 :toc:
-:en-go-tool: https://golang.org/cmd/go/
-:en-gopath: https://golang.org/cmd/go/#hdr-GOPATH_environment_variable
 
 
 [#Introduction]
 ==  Pendahuluan
 
 Dokumen ini mendemonstrasikan cara membuat sebuah paket Go yang sederhana dan
-memperkenalkan perkakas {en-go-tool}[go], cara standar untuk mengambil,
+memperkenalkan perkakas
+link:/cmd/go[go^],
+cara standar untuk mengambil,
 membuat, dan memasang paket-paket dan program Go.
 
 Perkakas `go` membutuhkan programmer untuk menyusun kode dengan cara tertentu.
@@ -82,7 +82,7 @@ repositori (`example` dan `image`).
 Repositori `example` memiliki dua program (`hello` dan `outyet`) dan sebuah
 pustaka (`stringutil`).
 Repositori `image` memiliki paket `bmp` dan
-https://godoc.org/golang.org/x/image[beberapa paket lainnya].
+https://pkg.go.dev/golang.org/x/image[beberapa paket lainnya^].
 
 Sebuah ruang-kerja pada umumnya memiliki banyak sumber repositori yang
 mengandung banyak paket dan program.
@@ -129,7 +129,8 @@ $ export GOPATH=$(go env GOPATH)
 ----
 
 Untuk belajar lebih lanjut tentang variabel lingkungan `GOPATH`, lihat
-{en-gopath}[go help gopath].
+link:/cmd/go#hdr-GOPATH_environment_variable[go help gopath^].
+
 //}}}
 
 [#ImportPaths]
@@ -369,7 +370,7 @@ Tidak ada keharusan bahwa nama paket harus unik di antara semua paket-paket
 dalam membuat sebuah program, hanya saja nama _import path_ haruslah unik.
 
 Lihatlah dokumen
-link:/doc/effective_go.html#names[Efektif Go]
+link:/doc/effective_go.html#names[Efektif Go^]
 untuk belajar lebih lanjut tentang konvensi penamaan pada Go.
 //}}}
 
@@ -428,9 +429,9 @@ ok  	github.com/user/stringutil 0.165s
 ----
 
 Jalankan
-https://golang.org/cmd/go/#hdr-Test_packages[`go help test`]
+link:/cmd/go#hdr-Test_packages[`go help test`^]
 dan lihat
-https://golang.org/pkg/testing/[dokumentasi dari paket testing]
+https://pkg.go.dev/testing/[dokumentasi dari paket testing^]
 untuk belajar lebih lanjut.
 //}}}
 
@@ -443,7 +444,7 @@ Perkakas `go` menggunakan properti ini untuk secara otomatis mengambil paket
 dari repositori luar.
 Misalnya, contoh-contoh yang diuraikan dalam dokumen ini juga tersimpan di
 dalam sebuah repositori Git pada
-https://github.com/golang/example[github.com/golang/example].
+https://github.com/golang/example[github.com/golang/example^].
 Jika mengikutkan URL dari repositori pada _import path_, `go get` akan
 mengambil, membuat, dan memasangnya secara otomatis:
 
@@ -492,17 +493,20 @@ import "github.com/golang/example/stringutil"
 Konvensi ini adalah cara mudah untuk membuat paket Go yang dapat digunakan
 oleh orang lain.
 Halaman
-https://golang.org/wiki/Projects[Go Wiki] dan situs
-https://godoc.org/[godoc.org] menyediakan daftar proyek dan paket eksternal
-dari Go.
+https://golang.org/wiki/Projects[Go Wiki^]
+dan situs
+https://pkg.go.dev/[pkg.go.dev^]
+menyediakan daftar proyek dan paket eksternal dari Go.
 
 Untuk informasi lebih lanjut tentang menggunakan repositori luar dengan
 perkakas `go`, lihatlah
-https://golang.org/cmd/go/#hdr-Remote_import_paths[`go help importpath`].
+link:/cmd/go#hdr-Remote_import_paths[`go help importpath`^].
+
 //}}}
 
 [#next]
 ==  Selanjutnya
 
-Ikuti https://tour.golang-id.org[Tur Bahasa Go] untuk belajar bahasa Go secara
-daring.
+Ikuti
+https://tour.golang-id.org[Tur Bahasa Go^]
+untuk belajar bahasa Go secara daring.

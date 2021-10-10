@@ -23,7 +23,7 @@ tahun 2019.
 ==  Rilis
 
 Go 1.11, dirilis pada Agustus 2018, memperkenalkan
-https://golang.org/doc/go1.11#modules[dukungan awal untuk modul].
+https://golang.org/doc/go1.11#modules[dukungan awal untuk modul^].
 Pada saat sekarang, dukungan modul dapat digunakan bersamaan dengan mekanisme
 tradisional berbasis GOPATH.
 Perintah `go` akan menggunakan mode modul secara baku saat dijalankan di
@@ -56,7 +56,7 @@ telah dibuat yang mengasumsikan sumber kode Go disimpan dalam GOPATH.
 Berpindah ke modul membutuhkan perubahan semua kode yang menggunakan asumsi
 tersebut.
 Kami telah merancang sebuah paket baru,
-https://godoc.org/golang.org/x/tools/go/packages[golang.org/x/tools/go/packages],
+https://godoc.org/golang.org/x/tools/go/packages[golang.org/x/tools/go/packages^],
 yang mengabstraksikan operasi pencarian dan pemuatan informasi tentang sumber
 kode Go untuk sebuah target yang diberikan.
 Paket baru ini secara otomatis mengadopsi mode modul dan GOPATH dan ia juga
@@ -70,7 +70,7 @@ Sebagai bagian dari usaha ini, kami juga telah bekerja menggabungkan berbagai
 perkakas pencari sumber kode seperti gocode, godef, dan go-outline menjadi
 sebuah perkakas tunggal yang dapat digunakan lewat _command line_ (baris
 perintah) dan juga mendukung
-https://langserver.org/[protokol server bahasa]
+https://langserver.org/[protokol server bahasa^]
 yang digunakan oleh IDE modern.
 
 Transisi ke modul dan perubahan dalam pemuatan paket juga mengakibatkan
@@ -82,7 +82,7 @@ Dalam kerangka ini, analisis dari sebuah paket dapat menulis fakta-fakta yang
 dapat digunakan untuk menganalisis paket-paket lainnya yang meng-impor yang
 pertama.
 Misalnya, analisis `go vet` terhadap
-https://pkg.go.dev/pkg/log/[paket log]
+https://pkg.go.dev/pkg/log/[paket log^]
 menentukan dan mencatat fakta bahwa `log.Printf` adalah sebuah pembungkus dari
 `fmt.Printf`.
 Kemudian `go vet` dapat memeriksa string format bergaya printf dalam
@@ -152,9 +152,8 @@ menandai secara kriptografi pernyataan dalam bentuk "modul M pada versi V
 memiliki hash H."
 Layanan _notary_ ini akan menerbitkan _hash_ yang telah disahkan yang dapat
 di-_query_ dengan
-https://www.certificate-transparency.org/[Transparansi Sertifikat]
-http://static.usenix.org/event/sec09/tech/full_papers/crosby.pdf[tamper-proof
-log],
+https://www.certificate-transparency.org/[Transparansi Sertifikat^]
+https://static.usenix.org/event/sec09/tech/full_papers/crosby.pdf[tamper-proof log^],
 supaya orang lain dapat menverifikasi bahwa notaris bekerja secara benar.
 Catatan tersebut akan tersedia secara publik, seperti berkas "go.sum" global
 yang dapat digunakan `go get` untuk autentikasi modul saat menambah atau

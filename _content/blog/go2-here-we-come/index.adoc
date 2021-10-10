@@ -6,8 +6,9 @@
 
 Di GopherCon 2017, Russ Cox secara resmi mulai membayangkan versi besar
 selanjutnya dari Go dengan wicara tentang
-https://www.youtube.com/watch?v=0Zbh_vmAKvk[Masa depan Go]
-(https://blog.golang.org/toward-go2[blog]).
+https://www.youtube.com/watch?v=0Zbh_vmAKvk[Masa depan Go^]
+(
+https://blog.golang.org/toward-go2[blog^]).
 Kita menyebut masa depan bahasa secara informal dengan Go 2, walaupun sekarang
 kita paham bahwa ia akan datang secara inkremental bukan dengan tiba-tiba
 dalam sebuah rilis mayor.
@@ -24,7 +25,7 @@ pustaka-pustaka yang tidak kita ketahui sejak awal, dan hal ini bisa terjadi
 lewat umpan balik dari komunitas Go.
 
 Pada tahun 2015 kami memperkenalkan
-https://golang.org/s/proposal[proses proposal]
+https://golang.org/s/proposal[proses proposal^]
 untuk mengumpulkan umpan balik: proposal untuk perubahan bahasa dan pustaka.
 Sebuah komite yang terdiri dari anggota tim Go secara berkala telah mengulas,
 kategorisasi, dan menentukan proposal-proposal yang masuk.
@@ -42,15 +43,15 @@ perlu sebuah rencana.
 ==  Status
 
 Saat artikel ini ditulis, ada sebanyak 120
-https://github.com/golang/go/issues?page=1&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2&utf8=%E2%9C%93[isu
-terbuka berlabel Go 2 proposal].
+https://github.com/golang/go/issues?page=1&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2&utf8=%E2%9C%93[isu terbuka berlabel Go 2 proposal^].
 Setiap proposal mengajukan perubahan bahasa atau pustaka yang signifikan,
 sering kali ada yang tidak memenuhi
-https://golang.org/doc/go1compat[jaminan kompatibilitas Go 1].
+https://golang.org/doc/go1compat[jaminan kompatibilitas Go 1^].
 Ian Lance Taylor dan Saya telah melihat proposal-proposal tersebut dan
 mengategorikan mereka
-(https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2+label%3AGo2Cleanup[Go2Cleanup],
-https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2+label%3ANeedsDecision[NeedsDecision],
+(
+https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2+label%3AGo2Cleanup[Go2Cleanup^],
+https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2+label%3ANeedsDecision[NeedsDecision^],
 dan lain-lain)
 untuk mendapatkan ide tentang apa saja yang ada di sana dan mempermudah
 bekerja dengan mereka nantinya.
@@ -61,13 +62,13 @@ Ide-ide dari proposal yang tersisa bisa jadi memengaruhi bahasa dan pustaka
 dari Go 2.
 Dua tema utama muncul: dukungan untuk penanganan error yang lebih baik, dan
 generik.
-https://blog.golang.org/go2draft[Rancangan draf]
+https://blog.golang.org/go2draft[Rancangan draf^]
 untuk kedua area ini telah diterbitkan pada GopherCon tahun ini, dan lebih
 banyak eksplorasi dibutuhkan.
 
 Lalu bagaimana dengan sisanya?
 Kami
-https://blog.golang.org/toward-go2[dibatasi]
+https://blog.golang.org/toward-go2[dibatasi^]
 oleh fakta bahwa kita sekarang punya jutaan pemrogram Go dan sejumlah besar
 kode Go, dan kita harus membawa semuanya secara bersamaan, mengurangi risiko
 terpecahnya ekosistem.
@@ -85,8 +86,7 @@ Proses tersebut kurang lebih berjalan secara paralel dengan siklus rilis dan
 terdiri dari langkah-langkah berikut:
 
 1.  _Pemilihan proposal_.  Tim Go memilih sejumlah kecil
-https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3AGo2+label%3AProposal[Go
-2 proposal]
+https://github.com/golang/go/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3AGo2+label%3AProposal[Go 2 proposal^]
 yang layak diterima, tanpa membuat keputusan akhir.
 Lihat bagian bawah untuk kriteria pemilihan.
 
@@ -108,10 +108,10 @@ Lihat bagian bawah untuk kriteria pemilihan.
     mengumpulkan umpan balik selanjutnya.
 
 5.  _Mengambil keputusan_.  Di akhir
-https://github.com/golang/go/wiki/Go-Release-Cycle[siklus pengembangan] tiga
-bulan (saat repositori dibekukan sebelum rilis), dan berdasarkan pengalaman
-dan umpan balik yang diterima selama siklus rilis, tim Go membuat keputusan
-terakhir tentang menerbitkan setiap perubahan.
+https://github.com/golang/go/wiki/Go-Release-Cycle[siklus pengembangan^]
+tiga bulan (saat repositori dibekukan sebelum rilis),
+dan berdasarkan pengalaman dan umpan balik yang diterima selama siklus rilis,
+tim Go membuat keputusan terakhir tentang menerbitkan setiap perubahan.
 Hal ini menyediakan kesempatan untuk mempertimbangkan apakah perubahan telah
 mendapatkan keuntungan yang diharapkan atau menciptakan biaya yang tidak
 terduga.
@@ -177,20 +177,21 @@ Dari semua yang telah kita bahas, kami mengajukan beberapa pilihan berikut
 dari proposal Go 2 untuk rilis Go 1.13 (langkah 1 dalam proses evaluasi
 proposal):
 
-1. https://github.com/golang/go/issues/20706[#20706] Identifikasi Unicode
-   umum berdasarkan
-   http://unicode.org/reports/tr31/[Unicode TR31]: Isu ini penting bagi
-   pemrogram Go yang menggunakan alfabet selain latin dan seharusnya memiliki
-   impak yang sedikit atau tidak sama sekali pada orang lain.
+1. https://github.com/golang/go/issues/20706[#20706^]
+   Identifikasi Unicode umum berdasarkan
+   https://unicode.org/reports/tr31/[Unicode TR31^]:
+   Isu ini penting bagi pemrogram Go yang menggunakan alfabet selain latin dan
+   seharusnya memiliki impak yang sedikit atau tidak sama sekali pada orang
+   lain.
    Ada beberapa pertanyaan normalisasi yang perlu kita jawab yang mana umpan
    balik dari komunitas diperlukan, namun setelah itu implementasi akan mudah
    dilakukan.
    Perlu dicatat bahwa aturan pengidentifikasi ekspor tidak akan terpengaruh
    oleh hal ini.
 
-2. https://github.com/golang/go/issues/19308[#19308],
-   https://github.com/golang/go/issues/28493[#28493] Binary integer
-   dan dukungan untuk _ pada angka:
+2. https://github.com/golang/go/issues/19308[#19308^],
+   https://github.com/golang/go/issues/28493[#28493^]
+   Binary integer dan dukungan untuk _ pada angka:
    Isu ini perubahan yang relatif kecil yang tampaknya sangat populer di
    antara banyak pemrogram.
    Isu ini mungkin tidak mencapai ambang batas dari menyelesaikan "isu
@@ -201,8 +202,8 @@ proposal):
    peduli dengan integer atau format angka, dan implementasi cukup mudah
    dipahami.
 
-3. https://github.com/golang/go/issues/19113[#19113] Membolehkan signed
-   integer untuk operasi _shift_.
+3. https://github.com/golang/go/issues/19113[#19113^]
+   Membolehkan signed integer untuk operasi _shift_.
    Diperkirakan 38% dari semua operasi _shift_ membutuhkan konversi uint
    (lihat halaman isu untuk penjelasan lebih rinci).
    Proposal ini akan membersihkan banyak kode, membuat ekspresi _shift_ sama

@@ -45,7 +45,7 @@ Channel `timeout` nantinya akan dibersihkan oleh _garbage collector_.
 (Dalam contoh ini kita menggunakan `time.Sleep` untuk memperlihatkan mekanisme
 dari goroutine dan channel.
 Dalam program sebenarnya, anda seharusnya menggunakan
-https://golang.org/pkg/time/#After[time.After],
+https://pkg.go.dev/time/#After[time.After^],
 yaitu fungsi yang mengembalikan sebuah channel dan mengirim nilai ke channel
 tersebut setelah durasi tertentu.)
 
@@ -87,11 +87,11 @@ sampai ke perintah "return <-ch", maka pengiriman dapat gagal karena tidak ada
 yang siap menerima dari channel `ch`:
 
 Permasalahan ini adalah contoh yang dikenal sebagai
-https://en.wikipedia.org/wiki/Race_condition[kondisi berpacu]
+https://en.wikipedia.org/wiki/Race_condition[kondisi berpacu^]
 (_race condition_), namun cara memperbaiki cukup mudah.
 Kita cukup membuat channel `ch` memiliki _buffer_ (dengan menambahkan panjang
 _buffer_  sebagai argumen dari
-https://golang.org/pkg/builtin/#make[make]),
+https://pkg.go.dev/builtin/#make[make^]),
 sehingga menjamin bahwa pengiriman yang pertama memiliki ruang untuk menyimpan
 nilai kembaliannya.
 Hal ini supaya pengiriman selalu sukses, dan nilai pertama yang

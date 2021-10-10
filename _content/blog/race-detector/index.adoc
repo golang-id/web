@@ -4,7 +4,7 @@ Dmitry Vyukov; Andrew Gerrand
 
 == Pendahuluan
 
-http://en.wikipedia.org/wiki/Race_condition[Kondisi berpacu (_race conditions_)]
+https://en.wikipedia.org/wiki/Race_condition[Kondisi berpacu (_race conditions_)^]
 adalah salah satu dari kesalahan pemrograman yang berbahaya dan
 sukar ditangkap.
 Kesalahan ini biasanya menyebabkan kegagalan yang tidak menentu dan misterius,
@@ -15,21 +15,21 @@ Perhatian, ketekunan, dan pengujian diperlukan.
 Dan perkakas yang tepat juga dapat membantu.
 
 Kami dengan gembira memperkenalkan
-link:/doc/articles/race_detector.html[pendeteksi _data race_]
+link:/doc/articles/race_detector.html[pendeteksi _data race_^]
 pada Go 1.1, sebuah perkakas baru untuk menemukan kondisi berpacu dalam kode
 Go.
 Sekarang ini tersedia pada sistem Linux, OS X, dan Windows dengan prosesor x86
 64-bit.
 
 Pendeteksi _data race_ didasari oleh
-https://github.com/google/sanitizers[pustaka _ThreadSanitizer_]
+https://github.com/google/sanitizers[pustaka _ThreadSanitizer_^]
 dari C/C++,
 yang telah lama digunakan untuk mendeteksi banyak eror dalam basis kode
 internal Google dan
-http://www.chromium.org/[Chromium].
+https://www.chromium.org/[Chromium^].
 Teknologi ini diintegrasikan pada Go di bulan September 2012; sejak itu ia
 telah menangkap
-https://github.com/golang/go/issues?utf8=%E2%9C%93&q=ThreadSanitizer[42 kondisi]
+https://github.com/golang/go/issues?utf8=%E2%9C%93&q=ThreadSanitizer[42 kondisi6^]
 berpacu dalam pustaka standar.
 Sekarang ia telah menjadi bagian dari proses pembangunan berkelanjutan, yang
 mana terus menangkap kondisi berpacu bila ia muncul.
@@ -43,7 +43,7 @@ pustaka _runtime_ membaca adanya akses yang tidak disinkronisasi ke variabel
 yang berbagi.
 Saat perilaku "berpacu" terdeteksi, sebuah peringatan dicetak.
 (Bacalah
-https://github.com/google/sanitizers/wiki/ThreadSanitizerAlgorithm[artikel berikut]
+https://github.com/google/sanitizers/wiki/ThreadSanitizerAlgorithm[artikel berikut^]
 untuk memahami lebih rinci tentang bagaimana algoritma bekerja).
 
 Pendeteksi _data race_ dapat mendeteksi kondisi berpacu hanya saat dipicu oleh
@@ -184,7 +184,7 @@ Timer `t` dan kanal `reset` yang baru mengkomunikasikan kebutuhan untuk
 mereset _timer_ dengan cara yang aman.
 
 Pendekatan lain yang lebih sederhana dan kurang efisien yaitu dengan
-http://play.golang.org/p/kuWTrY0pS4[menghindari menggunakan timer yang sama].
+https://play.golang.org/p/kuWTrY0pS4[menghindari menggunakan timer yang sama^].
 
 
 === Contoh 2: `ioutil.Discard`
@@ -192,14 +192,14 @@ http://play.golang.org/p/kuWTrY0pS4[menghindari menggunakan timer yang sama].
 Contoh kedua lebih halus.
 
 Paket `ioutil` memiliki objek
-https://golang.org/pkg/io/ioutil/#Discard[Discard]
+https://pkg.go.dev/io/ioutil#Discard[Discard^]
 yang mengimplementasikan
-https://golang.org/pkg/io/#Writer[`io.Writer`],
+https://pkg.go.dev/io#Writer[`io.Writer`^],
 yang meniadakan semua data yang ditulis ke dalam objek tersebut.
 Seperti `/dev/null`: sebuah tempat mengirim data yang Anda bisa baca tapi
 tidak ingin disimpan.
 Objek `Discard` ini biasanya digunakan oleh
-https://golang.org/pkg/io/#Copy[`io.Copy`]
+https://pkg.go.dev/io#Copy[`io.Copy`^]
 untuk mengosongkan pembaca, seperti ini:
 
 ----
@@ -228,7 +228,7 @@ writer.ReadFrom(reader)
 ----
 
 Kita
-https://golang.org/cl/4817041[menambahkan method `ReadFrom`]
+https://golang.org/cl/4817041[menambahkan method `ReadFrom`^]
 ke tipe `Discard`, yang memiliki penyangga internal yang dibagi dengan semua
 penggunanya.
 Kita tahu bahwa secara teori ini adalah kondisi berpacu, namun secara semua
@@ -236,19 +236,19 @@ penulisan ke penyangga seharusnya langsung dibuang kami berpikir masalah
 kondisi berpacu di sini tidak begitu penting.
 
 Saat pendeteksi _data race_ diimplementasikan ia langsung
-https://golang.org/issue/3970[menandakan kode tersebut]
+https://golang.org/issue/3970[menandakan kode tersebut^]
 sebagai "berpacu".
 Sekali lagi, kita menyadari bahwa kode tersebut bermasalah, namun memutuskan
 bahwa kondisi berpacu tersebut tidak "nyata".
 Untuk menghindari kondisi "positif salah" ini pada saat pembangunan, kita
 mengimplementasikan
-https://golang.org/cl/6624059[versi yang tidak "berpacu"]
+https://golang.org/cl/6624059[versi yang tidak "berpacu"^]
 yang dinyalakan hanya saat pendeteksi _data race_ berjalan.
 
 Akan tetapi beberapa bulan kemudian
-https://bradfitz.com/[Brad]
+https://bradfitz.com/[Brad^]
 menemui sebuah _bug_ yang
-https://golang.org/issue/4589[janggal dan menyebalkan].
+https://golang.org/issue/4589[janggal dan menyebalkan^].
 Setelah beberapa hari melakukan _debug_, dia menemukan kondisi berpacu yang
 nyata yang disebabkan oleh `ioutil.Discard`.
 
@@ -327,7 +327,7 @@ func (t trackDigestReader) Read(p []byte) (n int, err error) {
 ----
 
 Bug ini akhirnya
-https://golang.org/cl/7011047[diperbaiki]
+https://golang.org/cl/7011047[diperbaiki^]
 dengan memberikan penyangga yang unik untuk setiap penggunaan
 `ioutil.Discard`, mengeliminasi kondisi berpacu pada penyangga yang berbagi.
 

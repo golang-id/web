@@ -2,7 +2,6 @@
 :toc:
 :sectanchors:
 :sectlinks:
-:golangid-isu: https://github.com/golang-id/web/issues
 
 Halaman ini mendokumentasikan daftar pekerjaan yang dapat dilakukan untuk
 situs golang-id.org.  Ada tiga komponen utama yang diharapkan oleh situs ini
@@ -18,9 +17,10 @@ sebagai komunitas Go Indonesia:
 
 3.  Mengumpulkan repositori Go yang ditulis oleh komunitas Go Indonesia.
     Kumpulan repositori ini seperti halaman wiki
-    https://github.com/golang/go/wiki/Projects[Projects] atau
-    https://github.com/avelino/awesome-go[awesome-go] namun khusus untuk
-    komunitas Go Indonesia.
+    https://github.com/golang/go/wiki/Projects[Projects^]
+    atau
+    https://github.com/avelino/awesome-go[awesome-go^]
+    namun khusus untuk komunitas Go Indonesia.
 
 
 ==  Daftar terjemahan
@@ -34,19 +34,6 @@ bagian:
 
 ** https://github.com/golang/go/wiki/IDEsAndTextEditorPlugins => /wiki/IDEsAndTextEditorPlugins/index.adoc
 
-*  Blog
-
-**  https://blog.golang.org/errors-are-values => /blog/errors-are-values
-
-**  https://blog.golang.org/profiling-go-programs =>
-/blog/profiling-go-programs/index.adoc
-
-*  Referensi
-
-** https://golang.org/doc/cmd => /doc/cmd/index.adoc
-
-** https://golang.org/doc/cmd/go => /doc/cmd/go/index.adoc
-
 
 ==  Cara berkontribusi
 
@@ -56,8 +43,9 @@ terbuka lainnya, yaitu dengan cara membuat salinan repositori lewat Github,
 _commit_, dan buat _pull request_.
 
 Untuk menghindari duplikat dan konflik, misalnya dua orang menerjemahkan
-artikel yang sama, lihat halaman {golangid-isu}[isu] terlebih
-dahulu, apabila tidak ada yang mengklaim untuk menerjemahkan artikel
+artikel yang sama, lihat halaman
+https://github.com/golang-id/web/issues[isu^]
+terlebih dahulu, apabila tidak ada yang mengklaim untuk menerjemahkan artikel
 tersebut, buat isu baru dan nyatakan dalam isu tersebut artikel yang akan anda
 terjemahkan.
 
@@ -68,7 +56,7 @@ terjemahkan.
 ==  Struktur direktori dan berkas
 
 Repositori ini menggunakan konvensi direktori dan berkas yang sama dengan
-https://sr.ht/~shulhan/ciigo[kerangkanya]:
+https://sr.ht/~shulhan/ciigo[kerangkanya^]:
 
 *  `cmd/www-golangid`: direktori ini adalah program utama yang berisi konten
    statis.
@@ -92,7 +80,7 @@ https://sr.ht/~shulhan/ciigo[kerangkanya]:
 Berikut langkah-langkah untuk memulai pengembangan di komputer anda,
 
 Salin repositori ini ke dalam
-https://golang-id.org/doc/code.html#Workspaces[ruang-kerja]
+link:/link/doc/code.html#Workspaces[ruang-kerja^]
 Go anda
 
 ----
@@ -128,8 +116,9 @@ ciigo: starting HTTP server at ":5080" for "./_content"
 ....
 ----
 
-Buka peramban pada alamat http://127.0.0.1:5080 (atau sesuai dengan port yang
-Anda berikan).
+Buka peramban pada alamat
+http://127.0.0.1:5080
+(atau sesuai dengan port yang Anda berikan).
 Situs lokal dari golang-id.org akan muncul di halaman tersebut.
 
 Untuk membuat halaman baru, lihat contoh yang sudah ada dalam direktori

@@ -1,7 +1,5 @@
 =  Cara menulis kode Go
 :toc:
-:en-go-tool: https://golang.org/cmd/go/
-:en-gopath: https://golang.org/cmd/go/#hdr-GOPATH_environment_variable
 
 
 [#Introduction]
@@ -37,13 +35,29 @@ modul: sebuah path impor prefiks untuk semua paket dalam modul.
 Modul berisi paket-paket di dalam direktori yang berisi berkas go.mod beserta
 sub-direktori di dalamnya.
 
-A repository contains one or more modules. A module is a collection of related Go packages that are released together. A Go repository typically contains only one module, located at the root of the repository. A file named go.mod there declares the module path: the import path prefix for all packages within the module. The module contains the packages in the directory containing its go.mod file as well as subdirectories of that directory, up to the next subdirectory containing another go.mod file (if any).
+Ingatlah bahwa Anda tidak perlu menerbitkan kode Anda ke repositori publik
+sebelum dapat digunakan.
+Sebuah modul bisa dibuat secara lokal tanpa ada repositori.
+Namun, akan lebih baik meng-organisir kode Anda supaya suatu saat dapat
+diterbitkan.
 
-Note that you don't need to publish your code to a remote repository before you can build it. A module can be defined locally without belonging to a repository. However, it's a good habit to organize your code as if you will publish it someday.
+Setiap path dari modul tidak hanya sebagai prefiks dari path impor bagi
+paket-paket mereka saja, tetapi juga mengindikasikan di mana perintah go harus
+mencari untuk diunduh.
+Misalnya, untuk mengunduh "golang.org/x/tools", perintah go akan
+berkomunikasi dengan repositori yang diindikasikan oleh
+https://golang.org/x/tools[golang.org/x/tools^]
+(dijelaskan lebih lanjut nanti).
 
-Each module's path not only serves as an import path prefix for its packages, but also indicates where the go command should look to download it. For example, in order to download the module golang.org/x/tools, the go command would consult the repository indicated by https://golang.org/x/tools (described more here).
-
-An import path is a string used to import a package. A package's import path is its module path joined with its subdirectory within the module. For example, the module github.com/google/go-cmp contains a package in the directory cmp/. That package's import path is github.com/google/go-cmp/cmp. Packages in the standard library do not have a module path prefix.
+Sebuah path impor adalah sebuah string yang digunakan untuk mengimpor sebuah
+paket.
+Sebuah path import dari paket yaitu path modul digabung dengan subdirektori di
+dalam modul tersebut.
+misalnya, modul github.com/google/go-cmp berisi sebuah paket dalam direktori
+"cmp/".
+Path import dari paket tersebut yaitu
+github.com/google/go-cmp/cmp.
+Paket-paket dari pustaka standar tidak memiliki prefiks path impor.
 
 
 [#Command]
@@ -308,10 +322,11 @@ ok  	github.com/user/stringutil 0.165s
 ----
 
 Jalankan
-https://golang.org/cmd/go/#hdr-Test_packages[`go help test`]
+link:/cmd/go#hdr-Test_packages[`go help test`^]
 dan lihat
-https://golang.org/pkg/testing/[dokumentasi dari paket testing]
+https://pkg.go.dev/testing[dokumentasi dari paket testing^]
 untuk belajar lebih lanjut.
+
 //}}}
 
 [#remote]
@@ -323,7 +338,7 @@ Perkakas `go` menggunakan properti ini untuk secara otomatis mengambil paket
 dari repositori luar.
 Misalnya, contoh-contoh yang diuraikan dalam dokumen ini juga tersimpan di
 dalam sebuah repositori Git pada
-https://github.com/golang/example[github.com/golang/example].
+https://github.com/golang/example[github.com/golang/example^].
 Jika mengikutkan URL dari repositori pada _import path_, `go get` akan
 mengambil, membuat, dan memasangnya secara otomatis:
 
@@ -372,17 +387,20 @@ import "github.com/golang/example/stringutil"
 Konvensi ini adalah cara mudah untuk membuat paket Go yang dapat digunakan
 oleh orang lain.
 Halaman
-https://golang.org/wiki/Projects[Go Wiki] dan situs
-https://godoc.org/[godoc.org] menyediakan daftar proyek dan paket eksternal
-dari Go.
+https://golang.org/wiki/Projects[Go Wiki^]
+dan situs
+https://godoc.org/[godoc.org^]
+menyediakan daftar proyek dan paket eksternal dari Go.
 
 Untuk informasi lebih lanjut tentang menggunakan repositori luar dengan
 perkakas `go`, lihatlah
-https://golang.org/cmd/go/#hdr-Remote_import_paths[`go help importpath`].
+link:/cmd/go#hdr-Remote_import_paths[`go help importpath`^].
+
 //}}}
 
 [#next]
 ==  Selanjutnya
 
-Ikuti https://tour.golang-id.org[Tur Bahasa Go] untuk belajar bahasa Go secara
-daring.
+Ikuti
+https://tour.golang-id.org[Tur Bahasa Go^]
+untuk belajar bahasa Go secara daring.

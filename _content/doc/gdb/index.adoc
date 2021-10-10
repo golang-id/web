@@ -8,15 +8,14 @@ _Instruksi dalam dokumen ini hanya berlaku untuk perkakas toolchain standar
 _Gccgo memiliki dukungan gdb langsung_.
 
 Perlu diketahui bahwa
-https://github.com/go-delve/delve[Delve]
+https://github.com/go-delve/delve[Delve^]
 adalah alternatif lain dari GDB untuk melakukan _debugging_ pada program Go
 yang dibangun dengan _toolchain_ standar.
 Delve mengenal _runtime_, struktur data, dan ekspresi Go lebih baik
 daripada GDB.
 Delve saat ini mendukung Linux, OSX, dan Windows pada `amd64`.
 Untuk daftar platform yang didukung, lihatlah
-https://github.com/go-delve/delve/tree/master/Documentation/installation[dokumentasi
-Delve].
+https://github.com/go-delve/delve/tree/master/Documentation/installation[dokumentasi Delve^].
 
 GDB tidak begitu baik mengenali program Go.
 Managemen stack, _threading_, dan _runtime_ memiliki aspek-aspek yang cukup
@@ -33,7 +32,7 @@ masalah ini.
 Instruksi-instruksi di bawah ini sebaiknya digunakan sebagai panduan tentang
 bagaimana menggunakan GDB, tidak menjamin selalu sukses.
 Selain artikel ini Anda mungkin bisa membaca lebih lanjut pada
-https://sourceware.org/gdb/current/onlinedocs/gdb/[manual GDB].
+https://sourceware.org/gdb/current/onlinedocs/gdb/[manual GDB^].
 
 
 [#Introduction]
@@ -155,11 +154,12 @@ Misalnya:
 --
 
 Jika Anda ingin melihat bagaimana ia bekerja, atau ingin mengubahnya, lihatlah
-https://golang.org/src/runtime/runtime-gdb.py[src/runtime/runtime-gdb.py]
+https://golang.org/src/runtime/runtime-gdb.py[src/runtime/runtime-gdb.py^]
 di dalam distribusi sumber Go.
 Skrip ekstensi tersebut bergantung pada tipe-tipe khusus (`hash<T,U>`) dan
 variabel (`runtime.m` dan `runtime.g`) yang _linker_
-(https://golang.org/src/cmd/link/internal/ld/dwarf.go[src/cmd/link/internal/ld/dwarf.go])
+(
+https://golang.org/src/cmd/link/internal/ld/dwarf.go[src/cmd/link/internal/ld/dwarf.go^])
 pastikan didescripsikan dalam format DWARF.
 
 Jika Anda tertarik pada bentuk informasi _debug_, jalankan `objdump -W a.out`
@@ -179,7 +179,7 @@ dan lihatlah pada bagian `+.debug_*+`.
   Anda dapat membangkitkan informasi _debug_ tanpa kompresi dengan menggunakan
   `go build -ldflags=-compressdwarf=false`.
   (Supaya lebih gampang Anda dapat menyimpan opsi `-ldflags` dalam
-  link:/cmd/go/#hdr-Environment_variables[variabel lingkungan GOFLAGS]
+  link:/cmd/go#hdr-Environment_variables[variabel lingkungan GOFLAGS^]
   supaya Anda tidak perlu mengulangi penulisannya lagi).
 
 
@@ -187,7 +187,7 @@ dan lihatlah pada bagian `+.debug_*+`.
 == Tutorial
 
 Dalam tutorial ini kita akan menginspeksi binari dari unit test pada paket
-https://golang.org/pkg/regexp/[regexp].
+https://pkg.go.dev/regexp/[regexp^].
 Untuk membuat binari tersebut, pindahlah ke `$GOROOT/src/regexp` dan jalankan
 `go test -c`.
 Perintah tersebut seharusnya menghasilkan sebuah berkas program bernama

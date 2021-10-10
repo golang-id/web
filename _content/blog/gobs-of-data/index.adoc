@@ -1,6 +1,6 @@
 =  Gob dari data
-:author: Rob Pike
-:date: 24 Maret 2011
+Rob Pike
+24 Maret 2011
 :toc:
 
 
@@ -9,19 +9,19 @@
 Untuk mengirim struktur data dalam jaringan atau menyimpannya ke dalam sebuah
 berkas, ia haruslah ditulis (_encode_) dan kemudian dibaca (_decode_) kembali.
 Ada banyak _encoding_ yang tersedia, seperti:
-http://www.json.org/[JSON],
-http://www.w3.org/XML/[XML],
-http://code.google.com/p/protobuf[_protocol buffer_] dari Google, dan banyak
-lagi.
+https://www.json.org/[JSON^],
+https://www.w3.org/XML/[XML^],
+https://code.google.com/p/protobuf[_protocol buffer_^]
+dari Google, dan banyak lagi.
 Dan sekarang ada satu lagi, disediakan oleh paket Go
-https://golang.org/pkg/encoding/gob/[gob].
+https://pkg.go.dev/encoding/gob[gob^].
 
 Kenapa mendefinisikan _encoding_ baru?
 Ia menambah kerja dan tampak mubazir.
 Kenapa tidak menggunakan format yang ada?
 Pertama, Go punya semuanya!
 Go memiliki
-https://golang.org/pkg/[paket-paket]
+https://pkg.go.dev/std[paket-paket^]
 yang mendukung semua _encoding_ yang disebutkan di atas
 (paket http://github.com/golang/protobuf[_protocol buffer_] ada pada
 repositori terpisah namun yang paling sering diunduh).
@@ -50,10 +50,10 @@ definisi bahasa yang terpisah atau "protocol compiler".
 Struktur data saja sudah cukup bagi paket gob untuk mengetahui bagaimana
 menulis dan membaca sebuah data.
 Di sisi lain, pendekatan ini berarti gob tidak akan pernah bisa bekerja
-dengan bahasa pemrograman lain, namun tidak apa-apa: gob adalah Go sentris.
+dengan bahasa pemrograman lain, namun tidak apa-apa: gob adalah Go.
 
 Efisiensi juga penting.
-Representasi tekstual, dicontohkan pada XML dan JSON, terlalu lambat bila
+Representasi teks, seperti pada XML dan JSON, terlalu lambat bila
 digunakan sebagai pusat komunikasi jaringan yang efisien.
 Sistem _encoding_ dengan _binary_ memang dibutuhkan.
 
@@ -63,7 +63,8 @@ Artinya, _stream_ gob yang dibaca dari awal, memiliki informasi yang cukup
 sehingga keseluruhan _stream_ dapat dibaca oleh sebuah agen yang sebelumnya
 tidak mengetahui isinya.
 Dengan properti ini berarti kita bisa selalu membaca _stream_ gob yang
-disimpan dalam berkas, bahkan setelah kita lupa representasi dari datanya.
+disimpan dalam berkas, bahkan setelah kita lupa representasi dari data di
+dalamnya.
 
 Ada juga beberapa hal yang kita pelajari dari pengalaman kita dengan
 _protocol buffer_ dari Google.
@@ -73,7 +74,7 @@ _protocol buffer_ dari Google.
 
 _Protocol buffer_ (PB) berpengaruh besar dalam merancang gob, namun ia
 memiliki tiga fitur yang secara sengaja dihindari dalam merancang gob.
-(Kesampingkan bahwa properti dari PB itu sendiri tidaklah _self-describing_:
+(lupakan dahulu bahwa properti dari PB itu sendiri tidaklah _self-describing_:
 jika kita tidak mengetahui definisi data yang digunakan untuk menulis sebuah
 PB, maka kita tidak akan bisa membacanya.)
 
@@ -85,7 +86,7 @@ Hal ini tampak seperti batasan yang tidak berarti, setidaknya dalam Go.
 Jika kita hanya ingin mengirim sebuah array dari integer, kenapa harus
 disimpan dalam sebuah _struct_ terlebih dahulu?
 
-Selanjutnya, definisi dari sebuah PB bisa menspesifikasi bahwa
+Selanjutnya, definisi dari sebuah PB bisa men spesifikasi bahwa
 field `T.x` dan `T.y` haruslah ada bila nilai bertipe `T` ditulis atau
 dibaca.
 Walaupun field-field yang dibutuhkan tersebut tampak seperti ide yang bagus,
@@ -95,8 +96,8 @@ dapat melaporkan kesalahan bila field-field yang dibutuhkan tersebut tidak
 ditemukan nilainya.
 Dan juga ada permasalahan pemeliharaan.
 Suatu waktu, kita bisa saja ingin mengubah definisi data, misalnya menghapus
-field yang dibutuhkan, namun hal ini menyebabkan klien-klien yang mengkonsumsi
-data yang belum memperbarui definisi datanya menjadi _crash_.
+field yang dibutuhkan, namun hal ini menyebabkan klien-klien yang mengonsumsi
+data yang belum memperbarui definisi data menjadi _crash_.
 Maka dari itu lebih baik bila kita tidak memiliki field-field yang dibutuhkan
 tersebut pada saat _encoding_ sama sekali.
 (PB juga memiliki field-field opsional.
@@ -111,11 +112,11 @@ Ide ini bekerja baik bila kita memiliki method-method _getter_ dan _setter_
 untuk mengontrol akses terhadap field, namun akan lebih sulit ditangani secara
 bersih saat penampung adalah _struct_ polos biasa.
 Field yang dibutuhkan juga cukup rumit diimplementasikan: kapan nilai bawaan
-didefinisikan, tipe apa yang dimilikinya (apakah teks berupa UTF-8? atau bytes
+didefinisikan, tipe apa yang dimiliki (apakah teks berupa UTF-8? atau bytes
 yang tidak perlu diinterpretasi? berapa banyak bits dalam sebuah float?)
-dan bahkan dari kesederhanaannya, ada sejumlah komplikasi dalam rancangan dan
+dan bahkan dari kesederhanaan-nya, ada sejumlah komplikasi dalam rancangan dan
 implementasi PB.
-Kami memutuskan untuk tidak mengikutkannya pada gob dan kembali ke aturan
+Kami memutuskan untuk tidak mengikutkan-nya pada gob dan kembali ke aturan
 biasa dari Go dengan aturan bawaan yang efektif: kecuali bila di set dengan
 nilai lain, ia akan berisi "nilai kosong" untuk tipe tersebut - dan ia tidak
 perlu dikirim.
@@ -138,7 +139,7 @@ dengan panjang tertentu dan tanpa ukuran.
 yang sama diterapkan pada nilai _unsigned_ juga.)
 Jika keduanya bernilai 7, bits yang dikirim akan identik.
 Saat si penerima membaca nilai tersebut, ia menyimpannya ke dalam
-variabel, yang bisa bertipe integer apapun.
+variabel, yang bisa bertipe integer apa pun.
 Maka _encoder_ bisa mengirim nilai 7 yang datang dari `int8`, namun si
 penerima bisa saja menyimpannya dalam sebuah `int64`.
 Hal ini wajar: nilainya adalah integer dan selama dapat disimpan, semua akan
@@ -152,7 +153,7 @@ Fleksibilitas ini juga berlaku pada pointer.
 Sebelum dikirim, semua pointer akan diratakan.
 Nilai dari tipe `int8`, `*int8`, `**int8`, `****int8`, dan seterusnya, dikirim
 sebagai nilai integer, yang kemudian dapat disimpan dalam `int` berukuran
-apapun, atau `*int`, atau `****int`, dan seterusnya.
+apa pun, atau `*int`, atau `****int`, dan seterusnya.
 Sekali lagi, hal ini untuk fleksibilitas.
 
 Fleksibilitas juga terjadi karena saat membaca sebuah _struct_, hanya
@@ -175,11 +176,11 @@ type U struct{ X, Y *int8 } // Catatan: pointer ke int8
 var u U
 ----
 
-dan mendapatkan nilai `u` dengan hanya `X` yang diset (yang menunjuk alamat
-variabel `int8` yang diset dengan 7);
+dan mendapatkan nilai `u` dengan hanya `X` yang di set (yang menunjuk alamat
+variabel `int8` yang di set dengan 7);
 field `Z` diindahkan - mau disimpan di mana?
-Saat membaca _struct_, field dicocokan berdasarkan nama dan tipe yang
-kompatibel, dan hanya field-field yang ada dikeduanya yang terpengaruh.
+Saat membaca _struct_, field dicocokkan berdasarkan nama dan tipe yang
+kompatibel, dan hanya field-field yang ada pada keduanya yang terpengaruh.
 Pendekatan sederhana ini mengatasi permasalahan "field opsional": saat tipe
 `T` berkembang dengan menambahkan field baru, penerima yang ketinggalan masih
 dapat berfungsi dengan bagian tipe yang dikenali.
@@ -190,32 +191,33 @@ Dari perilaku tipe dan nilai integer di atas kita dapat membangun semua tipe
 lainnya: byte, string, array, slice, map, bahkan float.
 Nilai _floating-point_ direpresentasikan dengan pola bit _floating-point_ IEEE
 754, disimpan sebagai integer, yang bekerja baik selama kita tahu tipenya.
-Nilai integer tersebut dikirim dalam urutan byte-dibalik karena nilai
+Nilai integer tersebut dikirim dalam urutan byte-terbalik karena nilai
 bersama dari bilangan _floating-point_, seperti integer yang kecil, memiliki
 banyak nilai nol pada akhirannya yang dapat diindahkan saat pengiriman.
 
-Salah satu fitur yang bagus dari gob ialah Go membolehkan kita mendifiniskan
+Salah satu fitur yang bagus dari gob ialah Go membolehkan kita mendefinisikan
 _encoding_ sendiri dengan memenuhi interface
-https://golang.org/pkg/encoding/gob/#GobEncoder[GobEncoder]
+https://pkg.go.dev/encoding/gob#GobEncoder[GobEncoder^]
 dan
-https://golang.org/pkg/encoding/gob/#GobDecoder[GobDecoder],
+https://pkg.go.dev/encoding/gob#GobDecoder[GobDecoder^],
 dengan cara yang sama seperti
-https://golang.org/pkg/encoding/json/#Marshaler[Marshaler]
+https://pkg.go.dev/encoding/json#Marshaler[Marshaler^]
 dan
-https://golang.org/pkg/encoding/json/#Unmarshaler[Unmarshaler]
-pada paket https://golang.org/pkg/encoding/json/[JSON]
+https://pkg.go.dev/encoding/json#Unmarshaler[Unmarshaler^]
+pada paket
+https://pkg.go.dev/encoding/json[JSON^]
 dan juga seperti pada interface
-https://golang.org/pkg/fmt/#Stringer[Stringer]
+https://pkg.go.dev/fmt#Stringer[Stringer^]
 dari
-https://golang.org/pkg/fmt/[paket fmt].
+https://pkg.go.dev/fmt[paket fmt^].
 Fasilitas ini memungkinkan merepresentasikan fitur khusus, membuat
-batasan-batasan, atau merahasiakan sesuatu saat data ditransmisikan.
+batasan-batasan, atau merahasiakan sesuatu saat data dikirim.
 Lihat
-https://golang.org/pkg/encoding/gob/[dokumentasi] dari paket gob untuk lebih
-rincinya.
+https://pkg.go.dev/encoding/gob[dokumentasi^]
+dari paket gob untuk lebih rinci.
 
 
-==  Bentuk tipe saat ditransmisi
+==  Bentuk tipe saat dikirim
 
 Pertama kali kita mengirim sebuah tipe tertentu, paket gob mengikutkan
 deskripsi dari tipe tersebut dalam _stream_ data.
@@ -223,10 +225,10 @@ Yang terjadi adalah _encoder_ menulis struktur internal, dalam format standar
 _encoding_ gob, yang menjelaskan tipe dan memberinya sebuah angka unik.
 (Tipe-tipe dasar, berikut dengan deskripsi tipe dari _struct_, didefinisikan
 terlebih dahulu oleh perangkat lunak untuk _bootstrapping_.)
-Setelah tipe dideskripsikan, ia bisa diacu dengan angka.
+Setelah tipe dideskripsikkan, ia bisa diacu dengan angka.
 
 Maka saat kita mengirim tipe pertama kita `T`, _encoder_ gob mengirim
-deskripsi dari `T` dan men-_tag_ nya dengan angka, katakanlah 127.
+deskripsi dari `T` dan men-_tag_-nya dengan angka, katakanlah 127.
 Semua nilai, termasuk yang pertama, diberi prefiks dengan angka tersebut,
 sehingga _stream_ dari nilai `T` berbentuk seperti berikut:
 
@@ -253,14 +255,14 @@ kecuali untuk sekumpulan tipe _bootstrap_, yang mana telah terdefinisi
 pada saat awal.
 
 
-==  Mengkompilasi mesin
+==  Mengompilasi mesin
 
 Pada saat pertama kali kita menulis sebuah nilai dari tipe tertentu,
 paket gob membuat sebuah interpretasi mesin khusus untuk tipe data tersebut.
-Ia menggunakan refleksi pada tipe untuk mengkonstruksi mesin tersebut, namun
+Ia menggunakan refleksi pada tipe untuk mengonstruksi mesin tersebut, namun
 setelah mesin tersebut telah dibuat ia tidak bergantung lagi pada refleksi.
 Mesin tersebut menggunakan package `unsafe` dan beberapa trik untuk
-mengkonversi data menjadi byte dengan cepat.
+mengonversi data menjadi byte dengan cepat.
 Ia bisa saja menggunakan refleksi dan mengindahkan `unsafe`, namun akan lebih
 lambat.
 (Pendekatan yang sama, yang juga cepat, digunakan oleh dukungan terhadap
@@ -270,7 +272,7 @@ Nilai selanjutnya dari tipe yang sama menggunakan mesin yang telah
 dikompilasi, sehingga bisa langsung ditulis.
 
 (Pembaruan: Pada Go 1.4, paket unsafe tidak lagi digunakan oleh paket gob,
-dengan penurunan performansi yang ringan.)
+dengan penurunan performa yang ringan.)
 
 Proses _decoding_ caranya sama namun lebih sukar.
 Saat membaca sebuah nilai, paket gob menyimpan _slice_ byte yang
@@ -285,14 +287,14 @@ Setelah mesin _decoding_ tersebut dibuat, ia tidak lagi menggunakan refleksi
 
 ==  Penggunaan
 
-Ada banyak hal yang terjadi dibelakang penulisan dan pembacaan data dengan
+Ada banyak hal yang terjadi di belakang penulisan dan pembacaan data dengan
 gob, namun hasilnya adalah sebuah sistem _encoding_ yang efisien dan mudah
 digunakan untuk mengirim data.
 Berikut contoh komplit yang memperlihatkan perbedaan penulisan dan pembacaan
 dari beberapa tipe.
-Lihatlah bagaimana mudahnya mengirim dan menerima nilai;
+Lihatlah bagaimana mudah-nya mengirim dan menerima nilai;
 apa yang harus kita lakukan hanyalah memberi nilai dan variabel ke
-https://golang.org/pkg/encoding/gob/[paket gob]
+https://pkg.go.dev/encoding/gob[paket gob^]
 dan ia akan melakukan semuanya.
 
 ----
@@ -339,17 +341,17 @@ func main() {
 ----
 
 Anda bisa meng-_compile_ dan menjalankan contoh kode ini dalam
-http://play.golang.org/p/_-OJV-rwMq[Playground Go].
+https://play.golang.org/p/_-OJV-rwMq[Playground Go^].
 
-https://golang.org/pkg/net/rpc/[Paket rpc] dibangun dari gob untuk mengubah
+https://pkg.go.dev/net/rpc[Paket rpc^] dibangun dari gob untuk mengubah
 otomatisasi tulis/baca seperti di atas ke dalam sebuah transpor pemanggilan
 _method_ dalam jaringan.
 
 
-==  Rincian
+==  Rinci
 
-https://golang.org/pkg/encoding/gob/[Dokumentasi paket gob], terutama berkas
-https://golang.org/src/pkg/encoding/gob/doc.go[doc.go],
+https://pkg.go.dev/encoding/gob[Dokumentasi paket gob^], terutama berkas
+https://golang.org/src/pkg/encoding/gob/doc.go[doc.go^],
 menjelaskan lebih rinci dari apa yang dibahas di sini dan mengikutkan contoh
 lengkap yang memperlihatkan bagaimana _encoding_ merepresentasikan data.
 Jika tertarik dengan dalaman dari implementasi gob, berkas tersebut

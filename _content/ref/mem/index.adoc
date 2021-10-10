@@ -18,9 +18,9 @@ goroutine harus membuat akses tersebut secara serial.
 
 Supaya akses tersebut serial, lindungi data dengan operasi kanal (_channel_)
 atau model sinkronisasi primitif lainnya seperti yang ada dalam paket
-https://golang.org/pkg/sync/[sync]
+https://pkg.go.dev/sync/[sync^]
 dan
-https://golang.org/pkg/sync/atomic/[sync/atomic].
+https://pkg.go.dev/sync/atomic/[sync/atomic^].
 
 == Terjadi-sebelum
 

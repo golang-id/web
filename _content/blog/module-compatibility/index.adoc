@@ -6,17 +6,17 @@ Jean de Klerk; Jonathan Amsterdam
 
 Tulisan ini adalah bagian ke 5 dari sebuah seri.
 
-*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul]
-*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul]
-*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul]
-*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya]
+*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul^]
+*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul^]
+*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul^]
+*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya^]
 *  Bagian 5 - Menjaga Modul Anda tetap Kompatibel (artikel ini)
 
 Modul Anda akan terus berkembang seiring waktu saat Anda menambahkan fitur
 yang baru, mengubah perilaku modul, dan/atau mengganti bagian modul menjadi
 publik.
 Seperti yang telah kita diskusikan pada
-link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya],
+link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya^],
 perubahan besar pada modul dengan versi v1+ harus terjadi dengan meningkatkan
 versi mayor (atau dengan mengadopsi path modul yang baru).
 
@@ -120,7 +120,7 @@ baru pada suatu saat nanti, Anda bisa merancangnya terlebih dahulu dengan
 membuat sebuah argumen opsional sebagai bagian dari fungsi.
 Cara paling sederhana untuk melakukan hal ini yaitu dengan menambahkan sebuah
 argumen bertipe struct, seperti yang dilakukan oleh fungsi
-https://pkg.go.dev/crypto/tls?tab=doc#Dial[crypto/tls.Dial]:
+https://pkg.go.dev/crypto/tls?tab=doc#Dial[crypto/tls.Dial^]:
 
 ----
 func Dial(network, addr string, config *Config) (*Conn, error)
@@ -155,7 +155,7 @@ terjadi (keadaan yang mana _network socket_ dapat menerima koneksi).
 Perubahan yang diinginkan bisa berupa sebuah fungsi baru yang menerima sebuah
 context, network, alamat, dan fungsi kontrol.
 Namun, penulis paket `net` menambahkan struct
-https://pkg.go.dev/net@go1.11?tab=doc#ListenConfig[ListenConfig]
+https://pkg.go.dev/net@go1.11?tab=doc#ListenConfig[ListenConfig^]
 untuk mengantisipasi adanya penambahan opsi selanjutnya suatu saat nanti.
 Daripada menambahkan fungsi baru dengan nama yang aneh, kita menambahkan
 method `Listen` ke `ListenConfig`:
@@ -172,12 +172,11 @@ Cara lain untuk menyediakan opsi baru dimasa depan yaitu dengan pola "tipe
 Option", yang mana opsi-opsi dikirim sebagai argumen variadik, dan setiap opsi
 adalah sebuah fungsi yang mengubah nilai yang akan dibangun.
 Cara ini dijelaskan lebih rinci oleh tulisan Rob Pike
-https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html[Self-referential
-functions and the design of options].
+https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html[Self-referential functions and the design of options^].
 Salah satu contoh umum adalah fungsi
-https://pkg.go.dev/google.golang.org/grpc?tab=doc#DialOption[DialOption]
+https://pkg.go.dev/google.golang.org/grpc?tab=doc#DialOption[DialOption^]
 pada paket
-https://pkg.go.dev/google.golang.org/grpc?tab=doc[google.golang.org/grpc].
+https://pkg.go.dev/google.golang.org/grpc?tab=doc[google.golang.org/grpc^].
 
 Tipe Option memiliki peran yang sama dengan struct Option pada argumen fungsi:
 cara mudah untuk mengirim konfigurasi yang mengubah perilaku.
@@ -229,18 +228,18 @@ dan bilamana interface yang lama digunakan, kita memeriksa apakah tipe yang
 diberikan adalah tipe yang lama atau yang baru.
 
 Mari kita ilustrasikan cara ini dengan contoh dari paket
-https://pkg.go.dev/archive/tar?tab=doc[archive/tar].
+https://pkg.go.dev/archive/tar[archive/tar^].
 Method
-https://pkg.go.dev/archive/tar?tab=doc#NewReader[tar.NewReader]
+https://pkg.go.dev/archive/tar#NewReader[tar.NewReader^]
 menerima sebuah `io.Reader`, suatu waktu tim Go menyadari bahwa akan lebih
 efisien untuk melewati header dari satu berkas ke berkas yang lain jika kita
 dapat memanggil
-https://pkg.go.dev/io?tab=doc#Seeker[Seek].
+https://pkg.go.dev/io#Seeker[Seek^].
 Namun, kita tidak dapat menambahkan method `Seek` ke `io.Reader`: hal ini akan
 menimbulkan perubahan pada semua pengguna `io.Reader`.
 
 Cara lainnya yaitu dengan mengganti `tar.NewReader` untuk menerima
-https://pkg.go.dev/io?tab=doc#ReadSeeker[io.ReadSeeker]
+https://pkg.go.dev/io#ReadSeeker[io.ReadSeeker^]
 bukan `io.Reader` lagi, secara `io.ReadSeeker` mendukung `io.Reader` and
 `Seek` (lewat interface `io.Seeker`).
 Tetapi, seperti yang telah kita bahas di atas, mengubah argumen dari fungsi
@@ -258,7 +257,7 @@ type Reader struct {
 
 func NewReader(r io.Reader) *Reader {
 	return &Reader{r: r}
-}
+n}
 
 func (r *Reader) Read(b []byte) (int, error) {
 	if rs, ok := r.r.(io.Seeker); ok {
@@ -269,7 +268,7 @@ func (r *Reader) Read(b []byte) (int, error) {
 ----
 
 (Lihat
-https://github.com/golang/go/blob/60f78765022a59725121d3b800268adffe78bde3/src/archive/tar/reader.go#L837[reader.go]
+https://github.com/golang/go/blob/60f78765022a59725121d3b800268adffe78bde3/src/archive/tar/reader.go#L837[reader.go^]
 untuk kode aslinya.)
 
 Saat Anda menemui kasus seperti `tar.NewReader` di atas, yang mana Anda harus
@@ -297,8 +296,7 @@ Hal ini mencegah tipe-tipe yang didefinisikan di luar paket Anda dari
 memenuhi interface Anda tanpa melakukan _embedding_, membebaskan Anda dari
 menambahkan method suatu saat nanti tanpa mengganggu implementasi pengguna.
 Contohnya, lihat
-https://github.com/golang/go/blob/83b181c68bf332ac7948f145f33d128377a09c42/src/testing/testing.go#L564-L567[fungsi
-private pada testing.TB].
+https://github.com/golang/go/blob/83b181c68bf332ac7948f145f33d128377a09c42/src/testing/testing.go#L564-L567[fungsi private pada testing.TB^].
 
 ----
 type TB interface {
@@ -314,8 +312,9 @@ type TB interface {
 ----
 
 Topik ini juga dieksplorasi lebih dalam dalam wicaranya Jonathan Amsterdam
-"Detecting Incompatible API Changes" (https://www.youtube.com/watch?v=JhdL5AkH-AQ[wicara],
-https://github.com/gophercon/2019-talks/blob/master/JonathanAmsterdam-DetectingIncompatibleAPIChanges/slides.pdf[salindia]).
+"Detecting Incompatible API Changes" (
+https://www.youtube.com/watch?v=JhdL5AkH-AQ[wicara^],
+https://github.com/gophercon/2019-talks/blob/master/JonathanAmsterdam-DetectingIncompatibleAPIChanges/slides.pdf[salindia^]).
 
 
 == Penambahan method konfigurasi
@@ -326,7 +325,7 @@ gagal ter-_compile_.
 Namun, perubahan perilaku juga dapat mengganggu pengguna, walaupun kode dari
 sisi pengguna sukses di-_compile_.
 Sebagai contohnya, banyak user menganggap
-https://pkg.go.dev/encoding/json?tab=doc#Decoder[json.Decoder]
+https://pkg.go.dev/encoding/json?tab=doc#Decoder[json.Decoder^]
 mengindahkan field dalam JSON yang tidak ada di dalam struct.
 Pada saat tim Go ingin mengembalikan eror untuk kasus ini, mereka harus
 berhati-hati.
@@ -336,7 +335,7 @@ sebelumnya tidak ada eror.
 
 Jadi, daripada mengubah perilaku untuk semua user, tim Go menambahkan sebuah
 method konfigurasi pada struct `Decoder`:
-https://pkg.go.dev/encoding/json?tab=doc#Decoder.DisallowUnknownFields[Decoder.DisallowUnknownFields].
+https://pkg.go.dev/encoding/json?tab=doc#Decoder.DisallowUnknownFields[Decoder.DisallowUnknownFields^].
 Melakukan pemanggilan pada method tersebut berarti pengguna _membolehkan_
 perilaku yang baru, dan tanpa adanya pemanggilan method tersebut maka perilaku
 dari `json.Decoder` akan tetap seperti yang lama.
@@ -359,7 +358,7 @@ Masih ingat para penulis paket `net` menambahkan `ListenConfig` pada Go 1.11
 karena mereka berpikir bahwa akan ada opsi-opsi selanjutnya?
 Ternyata mereka benar.
 Pada Go 1.13,
-https://pkg.go.dev/net@go1.13?tab=doc#ListenConfig[field KeepAlive]
+https://pkg.go.dev/net@go1.13?tab=doc#ListenConfig[field KeepAlive^]
 ditambahkan untuk membolehkan pengguna mematikan fungsi keep-alive dan
 mengatur periode-nya.
 Nilai baku kosong dari KeepAlive tetap menjaga perilaku asli dari keep-alive
@@ -378,7 +377,7 @@ semua kode yang membandingkan nilai dari struct menjadi gagal.
 Untuk menjaga supaya struct tetap dapat dikomparasi, jangan menambahkan field
 yang tidak dapat dikomparasi ke struct tersebut.
 Anda dapat membuat unit tes untuk itu, atau menggunakan perkakas
-https://pkg.go.dev/golang.org/x/exp/cmd/gorelease?tab=doc[gorelease]
+https://pkg.go.dev/golang.org/x/exp/cmd/gorelease?tab=doc[gorelease^]
 untuk menangkap kemungkinan masalah ini terjadi suatu saat nanti.
 
 Untuk mencegah komparasi, pastikan struct tersebut memiliki field yang tidak

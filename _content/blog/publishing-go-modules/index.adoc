@@ -17,9 +17,10 @@ Jika Anda ingin mengembangkan modul untuk v2, lihat
 link:/blog/v2-go-modules[Go Modul: v2 dan Seterusnya].
 
 Artikel ini menggunakan
-https://git-scm.com/[Git] sebagai contoh.
-https://www.mercurial-scm.org/[Mercurial],
-http://wiki.bazaar.canonical.com/[Bazaar],
+https://git-scm.com/[Git^]
+sebagai contoh.
+https://www.mercurial-scm.org/[Mercurial^],
+https://wiki.bazaar.canonical.com/[Bazaar^],
 dan perkakas sistem kontrol versi lainnya juga didukung.
 
 
@@ -99,14 +100,14 @@ $
 ==  Versi semantik dan modul
 
 Setiap modul di dalam "go.mod" memiliki
-https://semver.org/lang/id/spec/v2.0.0.html[versi semantik],
+https://semver.org/lang/id/spec/v2.0.0.html[versi semantik^],
 versi minimum dari dependensi yang digunakan untuk membangun modul.
 
 Sebuah versi semantik memiliki bentuk vMAJOR.MINOR.PATCH.
 
 *  Tingkatkan versi MAJOR bila Anda membuat perubahan yang
-   https://golang.org/doc/go1compat[tidak kompatibel] pada API dari modul
-   Anda.
+   https://golang.org/doc/go1compat[tidak kompatibel^]
+   pada API dari modul Anda.
    Hal ini sebaiknya dilakukan bila sangat diperlukan.
 *  Tingkatkan versi MINOR bila Anda membuat perubahan yang kompatibel pada
    API, seperti mengganti dependensi atau menambahkan sebuah fungsi,
@@ -129,7 +130,7 @@ versi mayor tersebut.
 
 Versi yang diacu dalam "go.mod" bisa jadi sebuah rilis eksplisit yang di tag
 dalam repositori (misalnya, v1.5.2), atau ia bisa berupa
-https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo]
+https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo^]
 berdasarkan pada sebuah _commit_ tertentu (misalnya,
 v0.0.0-20170915032832-14c0d48ead0c).
 Versi-pseudo adalah tipe khusus dari versi pra-rilis.
@@ -158,8 +159,8 @@ Jika orang bergantung pada sebuah versi yang Anda hapus, maka pembangunan
 program mereka mungkin akan gagal.
 Hal yang sama, sekali Anda merilis sebuah versi, jangan pernah mengubah atau
 menimpanya.
-https://blog.golang.org/module-mirror-launch[Salinan modul dan basisdata
-_checksum_] menyimpan modul, versi, dan hash _cryptographic_ untuk memastikan
+link:/blog/module-mirror-launch[Salinan modul dan basisdata _checksum_^]
+menyimpan modul, versi, dan hash _cryptographic_ untuk memastikan
 bahwa pembangunan dari versi tersebut dapat direproduksi ulang terus menerus.
 
 
@@ -176,7 +177,7 @@ Memberi tag pada versi baru memiliki langkah-langkah berikut:
 2. Jalankan "go test ./..." untuk terakhir kalinya untuk memastikan semuanya
    bekerja.
 3. Beri tag pada proyek dengan versi baru menggunakan
-   https://git-scm.com/docs/git-tag[git-tag].
+   https://git-scm.com/docs/git-tag[git-tag^].
 4. Simpan tag baru tersebut ke repositori "origin".
 
 ----
@@ -234,14 +235,17 @@ ada.
 Paket "strings" pada pustaka bawaan adalah sebuah contoh menjaga
 kompatibilitas dengan biaya konsistensi dari API.
 
-*  https://pkg.go.dev/strings#Split[Split] membagi sebuah string menjadi
-   sub-string yang dipisahkan oleh sebuah pemisah dan mengembalikan sebuah
-   slice dari sub-string di antara pemisah tersebut.
-*  https://pkg.go.dev/strings#SplitN[SplitN] dapat mengontrol jumlah
-   sub-string yang dikembalikan.
+*  https://pkg.go.dev/strings#Split[Split^]
+   membagi sebuah string menjadi sub-string yang dipisahkan oleh sebuah
+   pemisah dan mengembalikan sebuah slice dari sub-string di antara pemisah
+   tersebut.
+*  https://pkg.go.dev/strings#SplitN[SplitN^]
+   dapat mengontrol jumlah sub-string yang dikembalikan.
 
-Namun, https://pkg.go.dev/strings#Replace[Replace] menerima nilai berapa
-banyak jumlah string yang akan diganti dari awal (tidak seperti "Split").
+Namun,
+https://pkg.go.dev/strings#Replace[Replace^]
+menerima nilai berapa banyak jumlah string yang akan diganti dari awal (tidak
+seperti "Split").
 
 Dari "Split" dan "SplitN", Anda akan berharap bahwa ada fungsi seperti
 "Replace" dan "ReplaceN".
@@ -249,7 +253,7 @@ Namun, kita tidak dapat mengubah fungsi "Replace" yang sudah ada tanpa
 mengakibatkan kerusakan pada pemanggilan, yang mana hal tersebut telah kita
 janjikan tidak akan dilakukan.
 Sehingga, dalam Go 1.12, kami menambahkan fungsi baru,
-https://pkg.go.dev/strings#ReplaceAll[ReplaceAll].
+https://pkg.go.dev/strings#ReplaceAll[ReplaceAll^].
 Hasil dari API sedikit aneh, secara "Split" dan "Replace" memiliki perilaku
 yang berbeda, namun ketidak-konsistenan ini lebih baik daripada perubahan
 yang merusak.
@@ -286,9 +290,9 @@ untuk v2 dan seterusnya.
 
 Bila ada tanggapan dan bantuan untuk membantu manajemen dependensi di Go,
 silakan kirim
-https://golang.org/issue/new[laporan kesalahan]
+https://golang.org/issue/new[laporan kesalahan^]
 atau
-https://golang.org/wiki/ExperienceReports[laporan pengalaman].
+https://golang.org/wiki/ExperienceReports[laporan pengalaman^].
 
 Terima kasih untuk semua tanggapan dan bantuan yang telah menjadikan Go modul
 lebih baik.

@@ -8,7 +8,7 @@ gambar dalam domain komputer.
 
 ===  Pendahuluan
 
-https://golang.org/pkg/image/draw/[Paket image/draw]
+https://pkg.go.dev/image/draw/[Paket image/draw^]
 mendefinisikan hanya satu operasi: menulis gambar sumber ke gambar tujuan,
 lewat sebuah gambar _mask_ yang opsional.
 Operasi ini banyak gunanya dan dapat melakukan sejumlah pekerjaan manipulasi
@@ -25,8 +25,7 @@ Dalam Go, gambar _mask_ yang bernilai `nil` sama dengan gambar _mask_ yang
 ukurannya tak terbatas dan sepenuhnya transparan.
 
 Makalah Porter-Duff menjabarkan
-http://www.w3.org/TR/SVGCompositing/examples/compop-porterduff-examples.png[12
-operator komposisi],
+https://www.w3.org/TR/SVGCompositing/examples/compop-porterduff-examples.png[12 operator komposisi^],
 namun dengan _mask_ yang eksplisit, hanya 2 darinya yang dibutuhkan:
 sumber-terhadap-tujuan dan sumber.
 Dalam Go, operator-operator tersebut direpresentasikan oleh konstan `Over` dan
@@ -68,10 +67,10 @@ koordinat masing-masing.
 image:/assets/go-imagedraw-package_20.png[]
 
 Fungsi
-https://golang.org/pkg/image/draw/#DrawMask[DrawMask()]
+https://pkg.go.dev/image/draw#DrawMask[DrawMask()^]
 menerima tujuh argumen, namun argumen mask dan mask-point biasanya tidak
 diperlukan, sehingga fungsi
-https://golang.org/pkg/image/draw/#Draw[Draw()]
+https://pkg.go.dev/image/draw#Draw[Draw()^]
 menerima hanya lima:
 
 ----
@@ -83,7 +82,7 @@ func DrawMask(dst Image, r image.Rectangle, src image.Image, sp image.Point,
 
 Gambar tujuan haruslah _mutable_ (bisa diubah), sehingga paket image/draw
 mendefinisikan sebuah interface
-https://golang.org/pkg/image/draw/#Image[draw.Image]
+https://pkg.go.dev/image/draw#Image[draw.Image^]
 yang memiliki sebuah method `Set()`.
 
 ----
@@ -261,4 +260,4 @@ untuk mendukung aplikasi-aplikasi tertentu.
 
 ==  Artikel Terkait
 
-*  link:/blog/go-image-package[Paket image pada Go]
+*  link:/blog/go-image-package[Paket image pada Go^]

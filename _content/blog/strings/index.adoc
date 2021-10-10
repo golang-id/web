@@ -5,7 +5,7 @@
 ==  Pendahuluan
 
 Pada
-link:/blog/slices[blog sebelumnya]
+link:/blog/slices[blog sebelumnya^]
 dijelaskan bagaimana slice bekerja dalam Go, menggunakan sejumlah contoh untuk
 mengilustrasikan mekanisme di balik implementasinya.
 Dengan latar belakang tersebut, artikel ini mendiskusikan string dalam Go.
@@ -24,9 +24,7 @@ banyak hal tentang bagaimana teks bekerja dalam dunia nyata.
 
 Sebuah pendahuluan yang bagus terhadap masalah ini, independen terhadap Go,
 yaitu blog dari Joel Spolsky,
-http://www.joelonsoftware.com/articles/Unicode.html[The Absolute Minimum Every
-Software Developer Absolutely, Positively Must Know About Unicode and
-Character Sets (No Excuses!)].
+https://www.joelonsoftware.com/articles/Unicode.html[The Absolute Minimum Every Software Developer Absolutely, Positively Must Know About Unicode and Character Sets (No Excuses!)^].
 Banyak poin-poin yang diangkat dalam tulisan tersebut akan diulang di sini.
 
 
@@ -37,7 +35,7 @@ Mari kita mulai dengan beberapa dasar.
 Dalam Go, sebuah string yaitu slice dari byte yang _read-only_.
 Jika Anda tidak yakin tentang apa itu slice dari byte atau bagaimana ia
 bekerja, mohon baca
-link:/blog/slices[blog sebelumnya];
+link:/blog/slices[blog sebelumnya^];
 kita asumsikan Anda telah membacanya.
 
 Penting juga diperjelas di sini bahwa sebuah string menyimpan _beragam_ byte.
@@ -310,7 +308,7 @@ direpresentasikan oleh nilai tunggal.
 Poin kode U+2318 misalnya, dengan nilai heksadesimal 2318, merepresentasikan
 simbol ⌘.
 (Untuk informasi lebih lanjut tentang poin kode tersebut, lihat
-http://unicode.org/cldr/utility/character.jsp?a=2318[halaman Unicode].)
+https://unicode.org/cldr/utility/character.jsp?a=2318[halaman Unicode^].)
 
 Contoh lainnya, poin kode Unicode U+0061 adalah huruf kecil Latin 'A': a.
 
@@ -398,7 +396,7 @@ Jika pengulangan `for range` tidak cukup, bisa jadi fasilitas yang Anda
 butuhkan disediakan oleh sebuah paket dalam pustaka tersebut.
 
 Paket tersebut adalah
-https://golang.org/pkg/unicode/utf8/[`unicode/utf8`],
+https://pkg.go.dev/unicode/utf8/[`unicode/utf8`^],
 yang berisi fungsi-fungsi yang membantu untuk memvalidasi, membedah, dan
 menggabungkan string-string UTF-8.
 Berikut contoh program yang sama dengan `for range` di atas, namun dengan
@@ -421,7 +419,7 @@ Pengulang `for range` dan `DecodeRuneInString` didefinisikan menghasilkan
 urutan iterasi yang sama.
 
 Lihat
-https://golang.org/pkg/unicode/utf8/[dokumentasi]
+https://pkg.go.dev/unicode/utf8/[dokumentasi^]
 paket `unicode/utf8` untuk melihat fasilitas lain yang disediakan paket
 tersebut.
 

@@ -7,7 +7,7 @@
 Saat ini kita mendekati rilis Go 1.14, yang direncanakan bulan Februari
 bila semua berjalan dengan lancar, rilis kandidat yang pertama hampir siap.
 Berdasarkan proses yang dijelaskan dalam blog
-link:/blog/go2-here-we-come[Go 2, kami datang!],
+link:/blog/go2-here-we-come[Go 2, kami datang!^],
 inilah saat dalam siklus pengembangan dan rilis untuk menimbang
 perubahan-perubahan apa saja yang ingin ditambahkan pada pustaka atau
 bahasa untuk rilis selanjutnya, Go 1.15, yang dijadwalkan pada bulan Agustus
@@ -20,7 +20,7 @@ hari, dan kita juga punya progres dengan implementasi generik (lebih lanjut
 lagi nanti tahun ini).
 Usaha kita selama tujuh bulan lalu dalam menyediakan mekanisme penanganan
 error yang lebih baik,
-https://golang.org/issue/32437[proposal `try`],
+https://golang.org/issue/32437[proposal `try`^],
 menemui dukungan yang baik namun juga penolakan yang kuat dan kami memutuskan
 untuk meninggalkannya.
 Setelah kejadian itu ada banyak proposal yang memperbaikinya, namun tidak ada
@@ -47,7 +47,7 @@ Kami konsentrasi pada beberapa pemeriksaan `vet` yang baru dan sedikit
 perbaikan pada bahasa Go.
 Kami telah memilih tiga proposal berikut:
 
-https://golang.org/issue/32479[#32479].
+https://golang.org/issue/32479[#32479^].
 Diagnosis konversi `string(int)` dalam `go vet`.
 
 Kami berencana menyelesaikan hal ini untuk rilis Go 1.14 namun ternyata tidak
@@ -57,11 +57,11 @@ membingungkan bagi pendatang baru (`string(10)` adalah "\n" bukan "10") dan
 tidak dibolehkan lagi sekarang sejak konversi tersebut telah tersedia dalam
 paket `unicode/utf8`.
 Secara
-https://golang.org/issue/3939[dihapusnya konversi ini]
+https://golang.org/issue/3939[dihapusnya konversi ini^]
 bukanlah perubahan yang menjaga kompatibilitas, kami mengajukan untuk
 memulainya sebagai sebuah error dalam `vet`.
 
-https://golang.org/issue/4483[#4483].
+https://golang.org/issue/4483[#4483^].
 Diagnosis asersi tipe interface-ke-interface yang tidak memungkinkan dalam
 `go vet`.
 
@@ -77,7 +77,7 @@ sebagai error.
 Melaporkan error dari sisi _compiler_ pada kasus ini tidak menjaga
 kompatibilitas, maka dari itu kami memulai dengan sebuah error dalam `vet`.
 
-https://golang.org/issue/28591[#28951].
+https://golang.org/issue/28591[#28951^].
 Evaluasi konstanta indeks dan ekspresi slice dengan indeks dan string
 konstanta.
 
@@ -97,7 +97,7 @@ Oleh karena itu kami berencana mengimplementasikan semua proposal tersebut
 pada awal siklus rilis Go 1.15 (setelah rilis Go 1.14) supaya banyak waktu
 untuk mendapatkan pengalaman dan umpan balik dari yang lain.
 Menurut
-link:/blog/go2-here-we-come[proses evaluasi proposal],
+link:/blog/go2-here-we-come[proses evaluasi proposal^],
 keputusan terakhir akan diambil pada akhir siklus pengembangan, awal Mei,
 2020.
 
@@ -105,7 +105,8 @@ keputusan terakhir akan diambil pada akhir siklus pengembangan, awal Mei,
 ==  Satu hal lagi...
 
 Kami menerima banyak proposal perubahan bahasa
-(https://github.com/golang/go/labels/LanguageChange[isu-isu berlabel LanguageChange])
+(
+https://github.com/golang/go/labels/LanguageChange[isu-isu berlabel LanguageChange^])
 yang dapat kita tinjau secara mendalam.
 Misalnya, untuk penanganan error saja ada 57 isu, 5 darinya masih terbuka.
 Secara biaya membuat perubahan pada bahasa, walau sedikit, sangat tinggi dan
@@ -116,12 +117,12 @@ Hal ini tidak memuaskan bagi pihak yang terkait.
 Jika Anda telah menghabiskan banyak waktu dan usaha menjelaskan ide Anda
 dengan rinci, akan lebih baik bila ia tidak begitu saja ditolak.
 Di sisi lain, karena
-https://github.com/golang/proposal/blob/master/README.md[proses proposal]
+https://github.com/golang/proposal/blob/master/README.md[proses proposal^]
 secara umum sangat simpel, maka sangat mudah untuk membuat proposal perubahan
 bahasa yang setengah matang, yang menyebabkan banyak pekerjaan di sisi komite
 _review_.
 Untuk meningkatkan pengalaman ini bagi semua orang kami menambahkan sebuah
-https://github.com/golang/proposal/blob/master/go2-language-changes.md[kuesioner]
+https://github.com/golang/proposal/blob/master/go2-language-changes.md[kuesioner^]
 baru untuk perubahan bahasa: mengisi templat tersebut akan membantu para
 peninjau mengevaluasi proposal lebih efisien karena mereka tidak perlu mencoba
 menjawab pertanyaan-pertanyaan tersebut bagi diri mereka sendiri.

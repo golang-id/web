@@ -17,7 +17,7 @@ kita, jadi perhatikanlah penamaan paket dan pengidentifikasi yang diekspor.
 
 Nama dari paket menyediakan konteks bagi isinya.
 Misalnya,
-https://golang.org/pkg/bytes/[paket bytes]
+https://pkg.go.dev/bytes/[paket bytes^]
 pada pustaka standar mengekspor tipe `Buffer`.
 Tanpa ada nama paket, nama `Buffer` itu sendiri tidak begitu deskriptif, namun
 saat digabungkan dengan nama paket maknanya menjadi jelas: `bytes.Buffer`.
@@ -30,7 +30,9 @@ Saat kita menghabiskan waktu dengan membuat program, kita akan memahami
 bagaimana bagian-bagian tersebut saling terhubung dan, oleh karena itu,
 bagaimana nama mereka seharusnya.
 Tidak perlu membatasi diri kita sendiri pada saat awal-awal.
-(https://golang.org/cmd/gofmt/[Perintah `gofmt`] memiliki opsi `-r` yang
+(
+https://golang.org/cmd/gofmt/[Perintah `gofmt`^]
+memiliki opsi `-r` yang
 menyediakan pencarian dan penggantian secara sintaksis, membuat perubahan
 dalam skala besar menjadi mudah.)
 
@@ -113,10 +115,10 @@ menyelesaikan pekerjaan dengan cepat.
 Lihatlah pustaka standar Go sebagai panduan.
 Beberapa dari paketnya sangat besar dan beberapa sangat kecil.
 Misalnya,
-https://golang.org/pkg/net/http/[paket http]
+https://pkg.go.dev/net/http/[paket http^]
 terdiri dari 17 berkas Go (tidak termasuk tes) dan mengekspor 109
 pengidentifikasi, dan
-https://golang.org/pkg/hash/[paket hash]
+https://pkg.go.dev/hash/[paket hash^]
 terdiri dari satu berkas yang mengekspor hanya tiga deklarasi.
 Tidak ada aturan yang cepat dan baku, kedua pendekatan tersebut sesuai dengan
 konteksnya.
@@ -126,7 +128,7 @@ Perintah-perintah yang kompleks mengandung banyak kode yang sedikit gunanya
 di luar konteks dari _executable_, dan terkadang lebih simpel menyimpan
 semuanya di satu tempat.
 Misalnya, perkakas go lebih dari 12000 baris yang tersebar dalam
-https://golang.org/src/cmd/go/[34 berkas].
+https://golang.org/src/cmd/go/[34 berkas^].
 
 
 ====  Dokumentasikan kode kita
@@ -134,5 +136,5 @@ https://golang.org/src/cmd/go/[34 berkas].
 Dokumentasi yang bagus adalah kualitas yang penting untuk kode yang berguna
 dan mudah dipelihara.
 Bacalah artikel
-link:/blog/godoc_documenting_go_code[Godoc: mendokumentasikan kode Go]
+link:/blog/godoc_documenting_go_code[Godoc: mendokumentasikan kode Go^]
 untuk belajar bagaimana menulis dokumentasi kode yang bagus.

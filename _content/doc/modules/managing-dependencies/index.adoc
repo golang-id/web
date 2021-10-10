@@ -46,7 +46,7 @@ dependensi yang mungkin suatu saat nanti berguna.
 Anda bisa mengambil dan menggunakan paket-paket eksternal menggunakan perkakas
 Go.
 Pada situs
-https://pkg.go.dev[pkg.go.dev],
+https://pkg.go.dev[pkg.go.dev^],
 Anda bisa mencari paket yang akan digunakan, kemudian menggunakan perintah
 `go` untuk mengimpor paket tersebut ke dalam kode Anda untuk memanggil
 fungsinya.
@@ -57,7 +57,7 @@ Untuk informasi lebih lanjut tentang setiap langkah, lihat bagian-bagian dari
 topik ini.
 
 . link:#locating_packages[Carilah paket yang akan digunakan] di
-  https://pkg.go.dev[pkg.go.dev]
+  https://pkg.go.dev[pkg.go.dev^]
 . link:#locating_packages[Impor paket] tersebut ke dalam kode.
 . Tambahkan kode Anda ke dalam sebuah modul untuk melacak dependensi (jika
   belum berada dalam modul).
@@ -156,7 +156,7 @@ yang diunduh, terutama untuk pengembang lain yang bekerja dalam proyek Anda.
 Masukan berkas go.mod dan go.sum ke dalam repositori berikut dengan kode Anda.
 
 Lihat
-link:/doc/modules/gomod-ref[referensi go.mod]
+link:/doc/modules/gomod-ref[referensi go.mod^]
 untuk informasi lebih lanjut.
 
 [#naming_module]

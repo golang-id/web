@@ -5,20 +5,20 @@
 ==  Pendahuluan
 
 Di tahun 2019, kami meluncurkan
-https://go.dev/[go.dev],
+https://go.dev/[go.dev^],
 sebuah situs baru untuk para pengembang Go.
 
 Sebagai bagian dari situs tersebut, kami juga meluncurkan
-https://pkg.go.dev/[pkg.go.dev],
+https://pkg.go.dev/[pkg.go.dev^],
 pusat sumber informasi dari modul dan paket Go.
 Seperti halnya
-https://godoc.org/[godoc.org],
+https://godoc.org/[godoc.org^],
 pkg.go.dev melayani dokumentasi Go.
 Namun, pkg.go.dev dapat membaca modul dan memiliki informasi tentang
 versi-versi sebelumnya dari sebuah paket!
 
 Di tahun ini, kami akan menambahkan beberapa fitur ke
-https://pkg.go.dev/[pkg.go.dev]
+https://pkg.go.dev/[pkg.go.dev^]
 untuk membantu pengguna supaya lebih baik memahami dependensi mereka dan dalam
 membuat keputusan terhadap pustaka yang akan mereka impor.
 
@@ -27,33 +27,33 @@ membuat keputusan terhadap pustaka yang akan mereka impor.
 
 Untuk meminimalkan kebingungan tentang situs mana yang digunakan, kami
 berencana memindahkan lalu lintas dari
-https://godoc.org/[godoc.org]
+https://godoc.org/[godoc.org^]
 ke halaman yang berkaitan di
-https://pkg.go.dev/[pkg.go.dev].
+https://pkg.go.dev/[pkg.go.dev^].
 Kami butuh bantuan Anda untuk memastikan bahwa pkg.go.dev memenuhi semua
 kebutuhan pengguna.
 Kami mendorong semua orang supaya mulai menggunakan pkg.go.dev hari ini untuk
 semua kebutuhan mereka dan memberikan masukan.
 
 Masukan Anda akan membantu rencana transisi kami, dengan tujuan membuat
-https://pkg.go.dev/[pkg.go.dev]
+https://pkg.go.dev/[pkg.go.dev^]
 sebagai sumber informasi dan dokumentasi utama untuk paket dan modul.
 Kami yakin ada banyak fitur yang ingin Anda lihat di pkg.go.dev, dan kami
 ingin mengetahui apa saja fitur-fitur tersebut dari Anda!
 
 Anda dapat membagikan masukan dengan kami lewat kanal berikut:
 
-* https://golang.org/s/discovery-feedback[Tulisan di pelacak isu Go]
+* https://golang.org/s/discovery-feedback[Tulisan di pelacak isu Go^]
 * Surel ke
   mailto:go-discovery-feedback@google.com[go-discovery-feedback@google.com]
 * Klik "Share Feedback" atau "Report an Issue" pada bagian bawah go.dev
 
 Sebagai bagian dari transisi ini, kami juga sedang mendiskusikan rencana untuk
 mengakses
-https://pkg.go.dev/[pkg.go.dev]
+https://pkg.go.dev/[pkg.go.dev^]
 lewat API.
 Kami akan melaporkan pembaruan lewat
-https://golang.org/s/discovery-updates[Go isu 33654].
+https://golang.org/s/discovery-updates[Go isu 33654^].
 
 
 ==  Pertanyaan yang sering diajukan
@@ -67,14 +67,14 @@ sini.
 ===  Paket saya tidak muncul di pkg.go.dev! Bagaimana cara menambahkan?
 
 Kami memonitor
-https://index.golang.org/index[indeks dari Go Modul]
+https://index.golang.org/index[indeks dari Go Modul^]
 setiap saat untuk mencari paket yang baru untuk ditambahkan ke
-https://pkg.go.dev/[pkg.go.dev].
+https://pkg.go.dev/[pkg.go.dev^].
 Jika Anda tidak menemukan sebuah paket dalam pkg.go.dev, Anda dapat
 menambahkannya dengan mengambil versi modul lewat
-https://proxy.golang.org/[proxy.golang.org].
+https://proxy.golang.org/[proxy.golang.org^].
 Lihat halaman
-https://go.dev/about[go.dev/about]
+https://go.dev/about[go.dev/about^]
 untuk instruksi lebih lanjut.
 
 
@@ -89,17 +89,17 @@ Sejak peluncuran di bulan November, kami telah melakukan beberapa perbaikan
 berikut:
 
 *  Pembaruan terhadap
-   https://pkg.go.dev/license-policy[polis lisensi]
+   https://pkg.go.dev/license-policy[polis lisensi^]
    untuk mengikutkan daftar lisensi yang kami periksa dan kenali
 *  Bekerja sama dengan tim
-   https://github.com/google/licensecheck[licensecheck]
+   https://github.com/google/licensecheck[licensecheck^]
    untuk meningkatkan deteksi hak cipta
 *  Memantapkan proses peninjauan manual untuk kasus-kasus tertentu
 
 Polis lisensi kami ada di
-https://pkg.go.dev/license-policy[pkg.go.dev/license-policy].
+https://pkg.go.dev/license-policy[pkg.go.dev/license-policy^].
 Jika Anda menemukan masalah, silakan
-https://golang.org/x/discovery-feedback[buka isu di halaman pelacak isu Go],
+https://golang.org/x/discovery-feedback[buka isu di halaman pelacak isu Go^],
 atau kirim surel ke
 mailto:go-discovery-feedback@google.com[go-discovery-feedback@google.com]
 supaya kami dapat bekerja langsung dengan Anda!
@@ -113,7 +113,7 @@ Kami ingin membantu mencapai kebutuhan tersebut, namun saat ini kami belum
 memahami sepenuhnya kebutuhan yang Anda inginkan.
 
 Kami juga telah mendengar masukan dari para pengguna bahwa menjalankan server
-https://godoc.org/[godoc.org]
+https://godoc.org/[godoc.org^]
 ternyata lebih kompleks dari yang dibayangkan, karena ia dirancang untuk
 melayani publik dengan skala besar bukan hanya untuk internal perusahaan.
 Kami percaya bahwa server pkg.go.dev yang sekarang memiliki masalah yang sama.
@@ -123,12 +123,12 @@ untuk digunakan dengan sumber kode pribadi, bukan dengan kompleksitas
 menjalankan basis kode berskala internet seperti
 pkg.go.dev.
 Selain melayani dokumentasi, server yang baru juga dapat melayani informasi
-https://pkg.go.dev/golang.org/x/tools/cmd/goimports?tab=doc[goimports]
+https://pkg.go.dev/golang.org/x/tools/cmd/goimports?tab=doc[goimports^]
 dan
-https://pkg.go.dev/golang.org/x/tools/gopls[gopls].
+https://pkg.go.dev/golang.org/x/tools/gopls[gopls^].
 
 Jika Anda ingin menjalankan server seperti itu, silakan isi
-https://google.qualtrics.com/jfe/form/SV_6FHmaLveae6d8Bn[survei berikut]
+https://google.qualtrics.com/jfe/form/SV_6FHmaLveae6d8Bn[survei berikut^]
 untuk membantu kami memahami kebutuhan Anda.
 Survei ini akan dibuka sampai 1 Maret, 2020.
 

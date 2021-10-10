@@ -3,15 +3,15 @@ Andrew Gerrand
 27 April 2010
 
 Di artikel ini kita memperlihatkan contoh di mana
-link:/doc/effective_go.html#interfaces_and_types[interface]
+link:/doc/effective_go.html#interfaces_and_types[interface^]
 pada Go mempermudah melakukan perubahan (_refactor_) pada kode yang telah ada
 untuk membuatnya lebih fleksibel dan ekstensibel.
 Awalnya, pustaka standar
-https://golang.org/pkg/net/rpc/[paket RPC]
+https://pkg.go.dev/net/rpc/[paket RPC^]
 menggunakan format kostum bernama
-https://golang.org/pkg/encoding/gob/[gob].
+https://pkg.go.dev/encoding/gob/[gob^].
 Untuk beberapa aplikasi, kita ingin menggunakan
-https://golang.org/pkg/encoding/json/[JSON]
+https://pkg.go.dev/encoding/json/[JSON^]
 sebagai format alternatif.
 
 Pertama kita mendefinisikan pasangan interface untuk menjelaskan
@@ -51,8 +51,7 @@ Setelah melakukan perubahan yang sama di sisi klien, semua pekerjaan yang
 harus dilakukan telah selesai untuk paket RPC.
 Semua ini membutuhkan tidak lebih dari 20 menit!
 Setelah dirapikan sedikit dan melakukan pengujian pada kode yang baru,
-https://github.com/golang/go/commit/dcff89057bc0e0d7cb14cf414f2df6f5fb1a41ec[perubahan
-terakhir]
+https://github.com/golang/go/commit/dcff89057bc0e0d7cb14cf414f2df6f5fb1a41ec[perubahan terakhir^]
 dikirim.
 
 Pada bahasa beroritentasi objek-turunan seperti Java atau C++, langkah yang

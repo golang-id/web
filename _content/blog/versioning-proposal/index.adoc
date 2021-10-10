@@ -24,7 +24,7 @@ sampai musim gugur, kami semua percaya bahwa jawabannya adalah mengikuti
 pendekatan versi paket yang dicontohkan oleh Cargo dari bahasa Rust, dengan
 sebuah tag versi semantik, sebuah manifesto, dan sebuah berkas _pengunci_, dan
 sebuah
-https://research.swtch.com/version-sat[SAT solver]
+https://research.swtch.com/version-sat[SAT solver^]
 yang memutuskan versi mana yang digunakan.
 Sam Boyer memimpin sebuah tim menciptakan Dep, yang mengikuti langkah dasar
 tersebut, dan yang kita gunakan sebagai model untuk integrasi dengan perintah
@@ -37,7 +37,7 @@ yang berbeda, terutama yang memperhatikan kompatibilitas.
 ==  Impak dari Kompatibilitas
 
 Fitur baru paling penting dari
-https://blog.golang.org/preview-of-go-version-1[Go 1]
+https://blog.golang.org/preview-of-go-version-1[Go 1^]
 bukanlah sebuah fitur bahasa.
 Melainkan penekanan pada kompatibilitas.
 Sampai pada titik tersebut kami telah melakukan rilis stabil setiap bulan,
@@ -45,11 +45,12 @@ setiap rilis dengan perubahan yang tidak kompatibel.
 Kami melihat adanya akselerasi yang signifikan dalam ketertarikan dan adopsi
 secara langsung setelah rilis dari Go 1.
 Kami percaya bahwa dengan
-https://golang.org/doc/go1compat.html[menjamin kompatibilitas]
+https://golang.org/doc/go1compat.html[menjamin kompatibilitas^]
 membuat pengembang merasa lebih nyaman bergantung pada Go untuk penggunaan di
 tingkat produksi dan salah satu alasan kunci bahwa Go sekarang menjadi
 terkenal.
-Sejak 2013, link:/doc/faq#get_version[Go FAQ]
+Sejak 2013,
+link:/doc/faq#get_version[Go FAQ^]
 telah mendukung para pengembang paket untuk menyediakan bagi pengguna mereka
 ekspektasi yang sama dari kompatibilitas.
 Kami menyebutnya dengan _aturan kompatibilitas impor_: "Jika sebuah paket lama
@@ -82,7 +83,7 @@ Saat saya menyadari ini, kebutuhan logis tersebut mengejutkan saya.
 
 Saya juga terkejut menyadari bahwa ada rute logika independen kedua  terhadap
 _semantic import versioning_:
-https://talks.golang.org/2016/refactor.article[perbaikan kode secara gradual]
+https://talks.golang.org/2016/refactor.article[perbaikan kode secara gradual^]
 atau pembaruan kode secara parsial.
 Dalam sebuah program yang besar, adalah hal yang tidak realistis untuk
 berharap semua paket dalam program untuk memperbarui sebuah dependensi
@@ -124,7 +125,7 @@ Saya juga cukup terkejut menjumpai berapa banyak kompatibilitas impor
 menyederhanakan pemilihan versi, yang mana merupakan permasalahan menentukan
 versi paket mana yang digunakan untuk sebuah pembangunan.
 Batasan-batasan dari Cargo dan Dep membuat pemilihan versi sama dengan
-https://research.swtch.com/version-sat[pemecahan kepuasan Boolean],
+https://research.swtch.com/version-sat[pemecahan kepuasan Boolean^],
 artinya, bisa sangat mahal untuk menentukan apakah sebuah konfigurasi versi
 yang valid itu benar ada.
 Dan bisa saja banyak konfigurasi yang valid, tanpa ada kriteria untuk memilih
@@ -133,7 +134,7 @@ Bergantung pada kompatibilitas impor membuat Go menggunakan algoritme yang
 biasa, dengan waktu yang linear untuk menemukan sebuah konfigurasi yang
 terbaik, yang selalu ada.
 Algoritme ini, yang saya sebut dengan
-https://research.swtch.com/vgo-mvs[_minimal version selection_]
+https://research.swtch.com/vgo-mvs[_minimal version selection_^]
 (pemilihan versi minimum), ternyata mengeliminasi kebutuhan untuk berkas
 _lock_ dan _manifest_ yang terpisah.
 Ia menggantinya dengan sebuah berkas konfigurasi yang singkat, disunting
@@ -177,7 +178,7 @@ Dep dapat mendukung pembaruan kode parsial, saya menyadari bahwa saran lama
 kita tentang kompatibilitas impor mengimplikasikan versi impor semantik.
 Hal ini tampak seperti solusi yang nyata.
 Saya menulis draf pertama yang menjadi artikel
-https://research.swtch.com/vgo-import[versi impor semantik],
+https://research.swtch.com/vgo-import[versi impor semantik^],
 dengan kesimpulan menyarankan supaya Dep mengadopsi konvensi tersebut.
 Saya mengirim draf tersebut ke orang-orang yang telah berbicara dengan saya
 sebelumnya, dan mendapatkan respons yang sangat kuat: semua orang menyukainya
@@ -188,7 +189,7 @@ saya lakukan itu.
 
 Pada pertengahan Desember, saya menemukan bahwa kompatibilitas impor dan versi
 impor semantik keduanya membolehkan memotong pemilihan versi menjadi
-https://research.swtch.com/vgo-mvs[pemilihan versi minimum].
+https://research.swtch.com/vgo-mvs[pemilihan versi minimum^].
 Saya menulis implementasi dasar untuk memastikan apakah saya benar-benar
 paham, saya habiskan beberapa waktu untuk mempelajari teori di balik kenapa ia
 begitu sederhana, dan saya tulis sebuah draf artikel yang menjelaskan hal
@@ -209,7 +210,7 @@ konstanta--tetapi pendekatan tersebut sangat memungkinkan.
 Saya habiskan tiga minggu awal Februari membuat program tersebut menjadi
 sebuah program `go` terpisah, `vgo`;
 menulis draf dari
-https://research.swtch.com/vgo[seri blog memperkenalkan `vgo`];
+https://research.swtch.com/vgo[seri blog memperkenalkan `vgo`^];
 dan mendiskusikannya dengan Sam Boyer, kelompok kerja manajemen paket, dan
 tim Go.
 Dan kemudian saya habiskan seminggu terakhir Februari berbagi tentang `vgo`
@@ -219,24 +220,24 @@ Sebagai tambahan dari ide inti dari kompatibilitas impor, versi impor
 semantik, dan pemilihan versi minimum, prototipe `vgo` memperkenalkan sejumlah
 perubahan kecil yang signifikan yang dimotivasi oleh delapan tahun pengalaman
 dengan `goinstall` dan `go get`: konsep baru dari sebuah
-https://research.swtch.com/vgo-module[Go modul],
+https://research.swtch.com/vgo-module[Go modul^],
 yang merupakan kumpulan paket-paket dengan versi sebagai sebuah unit
 tersendiri;
-https://research.swtch.com/vgo-repro[pembangunan yang dapat diverifikasi dan
-pasti]; dan
-https://research.swtch.com/vgo-cmd[perintah `go` yang mengenal versi],
+https://research.swtch.com/vgo-repro[pembangunan yang dapat diverifikasi dan pasti^];
+dan
+https://research.swtch.com/vgo-cmd[perintah `go` yang mengenal versi^],
 membolehkan bekerja di luar $GOPATH dan menghilangkan (kebanyakan) direktori
 vendor.
 
 Hasil dari semua itu adalah sebuah
-https://golang.org/design/24301-versioned-go[proposal Go yang resmi],
+https://golang.org/design/24301-versioned-go[proposal Go yang resmi^],
 yang saya kirim akhir minggu lalu.
 Walaupun tampak seperti implementasi yang penuh, ia masih prototipe, sebuah
 karya yang harus kita selesaikan bersama.
 Anda bisa mengunduh dan mencoba prototipe vgo lewat
-https://golang.org/x/vgo[golang.org/x/vgo],
+https://golang.org/x/vgo[golang.org/x/vgo^],
 dan Anda bisa membaca
-https://research.swtch.com/vgo-tour[Tur dari Go berversi]
+https://research.swtch.com/vgo-tour[Tur dari Go berversi^]
 untuk merasakan seperti apa vgo.
 
 ==  Langkah ke depan
@@ -251,11 +252,11 @@ sekarang, untuk memastikan bahwa implementasi yang final yang diikutkan pada
 rilis Go selanjutnya bekerja dengan benar untuk semua pengembang sebisa
 mungkin.
 Silahkan ajukan permasalahan di
-https://golang.org/issue/24301[isu diskusi proposal].
+https://golang.org/issue/24301[isu diskusi proposal^].
 Saya akan mencatat
-https://golang.org/issue/24301#issuecomment-371228742[kesimpulan diskusi]
+https://golang.org/issue/24301#issuecomment-371228742[kesimpulan diskusi^]
 dan memperbarui
-https://golang.org/issue/24301#issuecomment-371228664[FAQ]
+https://golang.org/issue/24301#issuecomment-371228664[FAQ^]
 saat saran-saran bermunculan.
 
 Agar proposal ini sukses, ekosistem Go secara keseluruhan--dan khususnya

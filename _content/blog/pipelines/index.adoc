@@ -155,7 +155,7 @@ Pengiriman ke kanal yang telah ditutup akan menyebabkan _panic_, jadi sangat
 penting untuk memastikan semua pengiriman telah selesai sebelum menutup kanal
 _keluar_ tersebut.
 Tipe
-https://golang.org/pkg/sync/#WaitGroup[sync.WaitGroup]
+https://golang.org/pkg/sync#WaitGroup[sync.WaitGroup^]
 menyediakan cara sederhana untuk mengatur sinkronisasi seperti ini:
 
 ----
@@ -356,9 +356,8 @@ Mencatat semua perhitungan tersebut membutuhkan waktu dan bisa saja salah.
 Kita memerlukan sebuah cara untuk memberitahu sejumlah goroutine, yang tidak
 diketahui jumlahnya, untuk berhenti mengirim nilai ke tahap di hilir.
 Pada Go, kita dapat melakukan hal ini dengan menutup kanal, karena
-link:/ref/spec#Receive_operator[operasi menerima pada kanal yang telah ditutup
-akan diproses langsung, menghasilkan nilai kosong dari tipe elemen dari
-kanal].
+link:/ref/spec#Receive_operator[operasi menerima pada kanal yang telah ditutup^]
+akan diproses langsung, menghasilkan nilai kosong dari tipe elemen dari kanal.
 
 Hal ini berarti fungsi `main` dapat membersihkan semua pengirim yang pampat
 cukup dengan menutup kanal `done`.
@@ -502,7 +501,7 @@ func main() {
 
 Fungsi `MD5All` adalah fokus dari diskusi kita sekarang.
 Dalam berkas
-link:/blog/pipelines/serial.go[`serial.go`],
+link:/blog/pipelines/serial.go[`serial.go`^],
 implementasinya tidak menggunakan konkurensi dan hanya membaca dan melakukan
 _sum_ dari setiap berkas saat membaca isi direktori.
 
@@ -538,7 +537,7 @@ func MD5All(root string) (map[string][md5.Size]byte, error) {
 === Pembacaan secara paralel
 
 Dalam
-link:/blog/pipelines/parallel.go[`parallel.go`],
+link:/blog/pipelines/parallel.go[`parallel.go`^],
 kita memecah `MD5All` menjadi _pipeline_ dengan dua tahap.
 Tahap pertama, `sumFiles`, membaca isi direktori, membaca isi berkas dalam
 sebuah goroutine, dan mengirim hasilnya ke sebuah kanal dengan nilai dari tipe
@@ -637,7 +636,7 @@ func MD5All(root string) (map[string][md5.Size]byte, error) {
 === Membatasi paralelisme
 
 Implementasi `MD5All` dalam
-link:/blog/pipelines/parallel.go[parallel.go]
+link:/blog/pipelines/parallel.go[parallel.go^]
 menjalankan sebuah goroutine baru untuk setiap berkas.
 Dalam sebuah direktori dengan banyak berkas, hal ini bisa mengakibatkan
 alokasi memori yang lebih banyak daripada memori pada sistem.
@@ -645,7 +644,7 @@ alokasi memori yang lebih banyak daripada memori pada sistem.
 Kita dapat mengurangi alokasi ini dengan membatasi jumlah berkas yang dibaca
 secara paralel.
 Dalam
-link:/blog/pipelines/bounded.go[`bounded.go`],
+link:/blog/pipelines/bounded.go[`bounded.go`^],
 hal ini dilakukan dengan membuat sejumlah `n` goroutine untuk membaca berkas.
 Sekarang _pipeline_ kita memiliki tiga tahap: baca isi direktori, baca dan
 _digest_ berkas, dan kumpulkan hasil _digest_.
@@ -762,9 +761,9 @@ Bacaan lebih lanjut:
   (https://www.youtube.com/watch?v=f6kdp27TYZs[video^]) mempresentasikan dasar
   dari konkurensi Go dan cara pakainya.
 * https://blog.golang.org/advanced-go-concurrency-patterns[Pola konkurensi Go lanjut^]
-  (http://www.youtube.com/watch?v=QDDwwePbDtw[video^]) menelaah penggunaan
+  (https://www.youtube.com/watch?v=QDDwwePbDtw[video^]) menelaah penggunaan
   yang lebih kompleks dari konkurensi pada Go, terutama `select`.
 * Makalah Douglas McIlroy 
-  https://swtch.com/~rsc/thread/squint.pdf["Squinting at Power Series"]
+  https://swtch.com/~rsc/thread/squint.pdf["Squinting at Power Series"^]
   memperlihatkan bagaimana konkurensi seperti Go menyediakan dukungan yang
   elegan untuk perhitungan yang kompleks.

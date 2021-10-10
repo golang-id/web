@@ -47,7 +47,8 @@ Sebuah variabel interface dapat menyimpan nilai konkret apapun (yang bukan
 interface) selama nilai tersebut mengimplementasikan method-method dari
 interface tersebut.
 Salah satu contoh interface yang cukup dikenal yaitu `io.Reader` dan
-`io.Writer`, https://golang.org/pkg/io/[paket `io`]:
+`io.Writer`,
+https://pkg.go.dev/io[paket `io`^]:
 
 ----
 // Reader is the interface that wraps the basic Read method.
@@ -101,8 +102,7 @@ dekat.
 ==  Representasi dari sebuah interface
 
 Russ Cox telah menuliskan
-https://research.swtch.com/2009/12/go-data-structures-interfaces.html[secara
-rinci dalam blognya]
+https://research.swtch.com/2009/12/go-data-structures-interfaces.html[secara rinci dalam blognya^]
 tentang representasi dari nilai interface dalam Go.
 Kita tidak perlu mengulang rincian yang sama di sini, namun sebuah kesimpulan
 yang ringkas diperlukan.
@@ -176,9 +176,10 @@ Sekarang kita siap untuk refleksi.
 Pada dasarnya, refleksi hanyalah sebuah mekanisme untuk memeriksa pasangan
 tipe dan nilai yang disimpan dalam sebuah variabel interface.
 Untuk memulai, ada dua tipe yang perlu kita ketahui dalam
-https://golang.org/pkg/reflect/[paket `reflect`]:
-https://golang.org/pkg/reflect/#Type[`Type`] dan
-https://golang.org/pkg/reflect/#Value[`Value`].
+https://pkg.go.dev/reflect[paket `reflect`^]:
+https://pkg.go.dev/reflect#Type[`Type`^]
+dan
+https://pkg.go.dev/reflect#Value[`Value`^].
 Kedua tipe tersebut memberi akses ke isi dari sebuah variabel interface,
 dan dua fungsi sederhana, dikenal dengan `reflect.TypeOf()` dan
 `reflect.ValueOf()`, mengembalikan `reflect.Type` dan `reflect.Value` dari
@@ -211,7 +212,8 @@ tipe: float64
 Anda mungkin berpikir di sebelah mana interface-nya? Secara program tampak
 mengirim variabel `x` bertipe `float64`, bukan sebuah nilai interface, ke
 `reflect.TypeOf`.
-https://golang.org/pkg/reflect/#TypeOf[Dalam dokumentasinya], parameter dari
+https://pkg.go.dev/reflect#TypeOf[Dalam dokumentasinya^],
+parameter dari
 `reflect.TypeOf()` adalah sebuah interface kosong:
 
 ----
@@ -536,7 +538,8 @@ Kita buat objek refleksi dengan alamat dari struct karena kita ingin
 mengubahnya nanti.
 Kemudian kita set `typeOfT` berisi tipe dari `t` dan mengiterasi field-field
 menggunakan pemanggilan method langsung (lihat
-https://golang.org/pkg/reflect/[paket reflect] untuk lebih rinci).
+https://pkg.go.dev/reflect/[paket reflect^]
+untuk lebih rinci).
 Kita juga bisa mengekstrak nama dari field dari tipe struct, namun field itu
 sendiri adalah objek dari `reflect.Value`.
 

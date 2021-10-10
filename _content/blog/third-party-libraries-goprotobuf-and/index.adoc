@@ -4,10 +4,9 @@
 
 
 Pada tanggal 24 Maret, Rob Pike mengumumkan
-http://code.google.com/p/goprotobuf/[goprotobuf], pustaka Go untuk format
-pertukaran data menggunakan
-http://code.google.com/apis/protocolbuffers/docs/overview.html[Protocol
-Buffers]
+https://code.google.com/p/goprotobuf/[goprotobuf^],
+pustaka Go untuk format pertukaran data menggunakan
+https://code.google.com/apis/protocolbuffers/docs/overview.html[Protocol Buffers^]
 dari Google, disebut protobuf secara singkat.
 Dengan pengumuman ini, Go bergabung dengan C++, Java, dan Python sebagai
 bahasa yang menyediakan implementasi protobuf.
@@ -21,9 +20,9 @@ dan sebuah paket Go yang mengimplementasikan dukungan untuk _encoding_,
 _decoding_, dan mengakses _protocol buffer_.
 
 Untuk menggunakan goprotobuf, Anda perlu memasang Go dan
-http://code.google.com/p/protobuf/[protobuf].
+https://code.google.com/p/protobuf/[protobuf^].
 Kemudian Anda dapat memasang paket 'proto' lewat
-https://golang.org/cmd/goinstall/[goinstall]:
+https://golang.org/cmd/goinstall/[goinstall^]:
 
 ----
 goinstall goprotobuf.googlecode.com/hg/proto
@@ -37,34 +36,33 @@ make install
 ----
 
 Untuk lebih jelas lihat berkas
-http://code.google.com/p/goprotobuf/source/browse/README[README]
+https://code.google.com/p/goprotobuf/source/browse/README[README^]
 dari proyek tersebut.
 
 Ini adalah salah satu dari daftar pustaka pihak-ketiga dari
-http://godashboard.appspot.com/package[proyek-proyek Go]
+https://godashboard.appspot.com/package[proyek-proyek Go^]
 yang terus berkembang.
 Sejak diluncurkannya goprotobuf, Go _binding_ untuk X telah dipindahkan ke
 proyek
-http://code.google.com/p/x-go-binding/[x-go-binding],
+https://code.google.com/p/x-go-binding/[x-go-binding^],
 dan pekerjaan lain telah mulai mengimplementasikan
-http://www.freetype.org/[Freetype],
-http://code.google.com/p/freetype-go/[freetype-go].
+https://www.freetype.org/[Freetype^],
+https://code.google.com/p/freetype-go/[freetype-go^].
 Proyek pihak-ketiga lainnya yang terkenal termasuk kerangka kerja web ringan
-http://github.com/hoisie/web.go[web.go],
+https://github.com/hoisie/web.go[web.go^],
 dan Go _binding_ untuk GTK
-http://github.com/mattn/go-gtk[gtk-go].
+https://github.com/mattn/go-gtk[gtk-go^].
 
 Kami mendorong pengembangan paket-paket berguna lainnya oleh komunitas sumber
 terbuka.
 Jika Anda sedang membuat sesuatu dengan Go, jangan simpan saja -- beri tahu
 kami lewat _mailing list_
-http://groups.google.com/group/golang-nuts[golang-nuts].
+https://groups.google.com/group/golang-nuts[golang-nuts^].
 
 
 ==  Artikel terkait
 
-*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol
-   Buffers],
-*  link:/blog/go1.15-proposals[Proposal untuk Go 1.15],
-*  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019], 20 November
+*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol Buffers^],
+*  link:/blog/go1.15-proposals[Proposal untuk Go 1.15^],
+*  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019^], 20 November
 

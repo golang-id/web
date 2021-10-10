@@ -62,7 +62,7 @@ Dalam kode tersebut, kita:
   Nama fungsi untuk tes haruslah dengan format `Test__Nama__`, yang mana
   __Nama__ menyatakan apa yang akan diuji.
   Fungsi-fungsi tes menerima sebuah pointer ke
-  https://pkg.go.dev/testing/#T[tipe `testing.T`]
+  https://pkg.go.dev/testing#T[tipe `testing.T`^]
   sebagai parameter.
   Kita menggunakan method-method pada parameter ini untuk melaporkan dan
   mencatat hasil dari pengujian.
@@ -71,7 +71,7 @@ Dalam kode tersebut, kita:
 Fungsi tersebut seharusnya mengembalikan sebuah pesan yang valid.
 Jika pemanggilan mengembalikan eror atau sebuah pesan respon yang tidak
 diharapkan (misalnya pesan yang tidak berisi nama), kita akan gunakan
-https://pkg.go.dev/testing/#T.Fatalf[method `Fatalf`]
+https://pkg.go.dev/testing#T.Fatalf[method `Fatalf`^]
 pada parameter `t` untuk mencetak sebuah pesan ke layar dan mengakhiri
 pengujian.
 ** `TestHelloEmpty` memanggil fungsi `Hello` dengan string kosong.

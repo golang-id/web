@@ -143,10 +143,10 @@ selesai digunakan dengan memanggil `C.free`.
 Pemanggilan ke `C.CString` mengembalikan sebuah pointer ke awal dari array
 char, jadi sebelum fungsi Print selesai kita mengonversi pointer tersebut
 dengan
-https://golang.org/pkg/unsafe/#Pointer[`unsafe.Pointer`]
+https://pkg.go.dev/unsafe/#Pointer[`unsafe.Pointer`^]
 dan melepaskan alokasi memori dengan `C.free`.
 Idiom umum dalam program cgo yaitu melakukan
-link:/blog/defer-panic-and-recover/[`defer`]
+link:/blog/defer-panic-and-recover/[`defer`^]
 untuk pelepasan memori langsung setelah alokasi (terutama saat kode yang
 dibuat lebih kompleks daripada sebuah pemanggilan fungsi saja), seperti pada
 versi Print berikut:
@@ -163,9 +163,9 @@ func Print(s string) {
 == Membangun paket-paket cgo
 
 Untuk membangun paket-paket cgo, cukup gunakan
-link:/cmd/go/#hdr-Compile_packages_and_dependencies['go build'^]
+link:/cmd/go#hdr-Compile_packages_and_dependencies['go build'^]
 atau
-link:/cmd/go/#hdr-Compile_and_install_packages_and_dependencies['go install'^]
+link:/cmd/go#hdr-Compile_and_install_packages_and_dependencies['go install'^]
 seperti biasa.
 Perkakas Go mengenali perintah khusus `import "C"` dan secara otomatis
 menggunakan cgo untuk berkas-berkas tersebut.

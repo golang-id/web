@@ -1,10 +1,10 @@
 =  Error adalah nilai
+Rob Pike
+12 Januari 2015
 :original: https://blog.golang.org/errors-are-values
-:author: Rob Pike
-:date: 12 Januari 2015
 
-Poin diskusi paling sering di antara para pemrogram Go, khususnya yang baru
-dengan bahasa, yaitu bagaimana cara menangani error.
+Poin diskusi paling sering di antara para pemrogram Go, khususnya yang baru,
+yaitu bagaimana cara menangani error.
 Pembahasan sering kali menjadi keluhan saat beberapa urutan kode
 
 ----
@@ -49,10 +49,10 @@ kita lebih baik, mengeliminasi banyak kode yang bakal muncul bila setiap error
 di cek dengan perintah if.
 
 Berikut contoh sederhana dari tipe
-https://golang.org/pkg/bufio/#Scanner[Scanner]
+https://pkg.go.dev/bufio#Scanner[Scanner^]
 pada paket `bufio`.
 Method
-https://golang.org/pkg/bufio/#Scanner.Scan[Scan]
+https://pkg.go.dev/bufio#Scanner.Scan[Scan^]
 melakukan _input/output_ (I/O), yang tentu saja dapat menyebabkan error.
 Namun method `Scan` tidak mengekspose error sama sekali.
 Method tersebut mengembalikan sebuah boolean, dan method yang terpisah yang
@@ -102,7 +102,7 @@ Penanganan error tidak menutupi alur kontrol.
 Di belakangnya yang terjadi, tentu saja, yaitu saat `Scan` mengalami error
 I/O, ia akan mencatatnya dan mengembalikan `false`.
 Method terpisah,
-https://golang.org/pkg/bufio/#Scanner.Err[Err],
+https://pkg.go.dev/bufio#Scanner.Err[Err^],
 melaporkan nilai error saat klien membutuhkannya.
 Meskipun tampak sepele, hal ini tidak sama dengan menulis
 
@@ -122,7 +122,7 @@ tentang menggunakan bahasa untuk menangani error dengan apik.
 Topik tentang kode pengecekan-error yang berulang-ulang, muncul saat saya
 menghadiri GoCon 2014 di Tokyo.
 Seorang gopher antusias, menggunakan akun
-https://twitter.com/jxck_[@jxck_]
+https://twitter.com/jxck_[@jxck_^]
 di Twitter, mengeluhkan tentang pengecekan error.
 Dia memiliki kode yang secara semantik seperti ini:
 
@@ -234,16 +234,16 @@ Dan banyak lagi.
 
 Pada kenyataannya, pola ini sering muncul dalam pustaka standar.
 Paket
-https://golang.org/pkg/archive/zip/[archive/zip]
+https://pkg.go.dev/archive/zip[archive/zip^]
 dan
-https://golang.org/pkg/net/http/[net/http]
+https://pkg.go.dev/net/http[net/http^]
 menggunakannya.
 Yang lebih menonjol,
-https://golang.org/pkg/bufio/[method Writer]
+https://pkg.go.dev/bufio[method Writer^]
 pada paket `bufio` sebenarnya implementasi dari ide `errWriter`.
 Walaupun `bufio.Writer.Write` mengembalikan error, hal ini semata-mata demi
 mengikuti interface dari
-https://golang.org/pkg/io/#Writer[`io.Writer`].
+https://pkg.go.dev/io#Writer[`io.Writer`^].
 Method `Write` pada `bufio.Writer` mirip dengan method `errWriter.write` kita
 di atas, dengan `Flush` yang melaporkan error, sehingga contoh kita di atas
 dapat ditulis seperti:
@@ -279,4 +279,4 @@ Namun ingat: Apa pun yang Anda lakukan, selalu periksa error!
 
 Terakhir, untuk cerita lengkap tentang interaksi saya dengan `@jxck_`,
 termasuk video singkat yang dia rekam, kunjungi
-http://jxck.hatenablog.com/entry/golang-error-handling-lesson-by-rob-pike[blognya].
+https://jxck.hatenablog.com/entry/golang-error-handling-lesson-by-rob-pike[blognya^].

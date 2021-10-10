@@ -17,8 +17,9 @@ Setiap perubahan API ini terjadi pada _snapshot_ Go di minggu yang berbeda;
 bersamaan, mereka merepresentasikan sejumlah perubahan manual yang signifikan
 untuk memperbarui kode yang sudah ada.
 
-link:/cmd/fix/[Gofix^] adalah sebuah perkakas baru yang mengurangi jumlah
-pekerjaan untuk memperbarui kode.
+link:/cmd/fix/[Gofix^]
+adalah sebuah perkakas baru yang mengurangi jumlah pekerjaan untuk memperbarui
+kode.
 Ia membaca berkas sumber kode, mencari penggunaan API yang lama, menulis ulang
 sumber kode tersebut supaya menggunakan API yang baru.
 Tidak semua perubahan API menjaga fungsionalitas dari API yang lama, jadi
@@ -60,8 +61,7 @@ Kami bahkan menggunakan gofix untuk memperbarui sumber kode internal pada
 Google saat waktunya membangun dengan rilis Go yang baru.
 
 Sebagai contohnya, gofix dapat menulis ulang kode seperti
-http://codereview.appspot.com/4353043/diff/10001/src/pkg/fmt/print.go#newcode657[potongan
-kode dari "fmt/print.go"^]:
+https://codereview.appspot.com/4353043/diff/10001/src/pkg/fmt/print.go#newcode657[potongan kode dari "fmt/print.go"^]:
 
 ----
 switch f := value.(type) {
@@ -102,11 +102,10 @@ Perubahan yang baru sangat banyak namun hampir semuanya bersifat mekanis,
 bentuk perubahan yang sangat baik ditangani oleh komputer.
 
 Gofix memungkinkan karena Go memiliki pustaka standar untuk
-https://golang.org/pkg/go/parser[mengurai berkas sumber Go menjadi pohon
-sintaksis^]
-dan juga untuk
-https://golang.org/pkg/go/printer[menulis pohon sintaksis tersebut kembali
-menjadi sumber kode Go^].
+https://golang.org/pkg/go/parser[mengurai berkas sumber Go^]
+menjadi pohon sintaksis dan juga untuk
+https://golang.org/pkg/go/printer[menulis pohon sintaksis^]
+tersebut kembali menjadi sumber kode Go.
 Yang paling penting, pustaka penulisan Go menulis kode dalam format resmi
 (yang biasanya dilakukan perkakas gofmt), membolehkan gofix untuk membuat
 perubahan bersifat mekanis terhadap Go program tanpa menyebabkan perubahan

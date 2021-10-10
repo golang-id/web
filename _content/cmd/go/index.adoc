@@ -1857,7 +1857,8 @@ cmd/cgo).
 
 Yang kedua yaitu program SWIG, yaitu sebuah perkakas umum antarmuka antar
 bahasa.
-Informasi lebih lanjut tentang SWIG lihat http://swig.org/[swig.org^].
+Informasi lebih lanjut tentang SWIG lihat
+https://swig.org/[swig.org^].
 Saat menjalankan "go build", setiap berkas dengan ekstensi .swig akan dikirim
 ke SWIG.
 Setiap berkas dengan ekstensi .swigcxx akan dikirim ke SWIG dengan opsi
@@ -2291,7 +2292,9 @@ Go mencari setiap direktori yang terdaftar dalam `GOPATH` untuk mencari sumber
 kode, namun paket-paket yang baru selalu diunduh ke direktori pertama dalam
 daftar tersebut.
 
-Lihat https://golang.org/doc/code.html sebagai contohnya.
+Lihat
+link:/doc/code.html
+sebagai contohnya.
 
 [#hdr-GOPATH_and_Modules]
 == GOPATH dan modul

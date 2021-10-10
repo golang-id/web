@@ -46,13 +46,13 @@ type error interface {
 ----
 
 Tipe `error`, seperti halnya dengan tipe-tipe bawaan lainnya, telah
-link:/ref/spec/#Predeclared_identifiers[dideklarasikan]
+link:/ref/spec#Predeclared_identifiers[dideklarasikan^]
 dalam
-link:/ref/spec/#Blocks[blok universal].
+link:/ref/spec#Blocks[blok universal^].
 
 Implementasi `error` yang paling sering digunakan yaitu tipe `errorString`
 dari paket
-https://golang.org/pkg/errors/[errors]
+https://pkg.go.dev/errors/[errors^]
 yang tidak diekspor.
 
 ----
@@ -102,7 +102,7 @@ if err != nil {
 ----
 
 Paket
-https://golang.org/pkg/fmt/[fmt]
+https://pkg.go.dev/fmt/[fmt^]
 memformat nilai `error` dengan memanggil method string `Error()` dari nilai
 `err` tersebut.
 
@@ -143,7 +143,7 @@ func (f NegativeSqrtError) Error() string {
 ----
 
 Pemanggil kemudian dapat menggunakan
-link:/ref/spec/#Type_assertions[tipe _assertion_]
+link:/ref/spec#Type_assertions[tipe _assertion_^]
 untuk memeriksa apakah
 error adalah sebuah `NegativeSqrtError` dan melakukan penanganan secara
 khusus, sementara itu pengguna fungsi `Sqrt()` yang menangani nilai error
@@ -151,7 +151,7 @@ dengan mengirim ke `fmt.Println` atau `log.Fatal` tidak mengalami atau melihat
 perubahan perilaku apa pun.
 
 Contoh lainnya, paket
-https://golang.org/pkg/encoding/json/[`json`]
+https://pkg.go.dev/encoding/json/[`json`^]
 menspesifikasikan tipe `SyntaxError` yang
 dikembalikan oleh fungsi `json.Decode` saat menemukan kesalahan sintaksis
 dari penguraian sebuah _blob_ JSON.
@@ -180,10 +180,10 @@ if err := dec.Decode(&val); err != nil {
 ----
 
 (Contoh kode ini merupakan versi sederhana dari
-https://github.com/camlistore/go4/blob/03efcb870d84809319ea509714dd6d19a1498483/jsonconfig/eval.go#L123-L135[kode
-sebenarnya]
+https://github.com/camlistore/go4/blob/03efcb870d84809319ea509714dd6d19a1498483/jsonconfig/eval.go#L123-L135[kode sebenarnya^]
 dari proyek
-http://camlistore.org/[Camlistore].)
+https://camlistore.org/[Camlistore^]
+.)
 
 Interface `error` hanya membutuhkan sebuah method `Error`;
 implementasi kesalahan yang khusus bisa saja punya method-method tambahan.
@@ -230,7 +230,7 @@ ada beberapa teknik yang dapat kita gunakan untuk mengurangi penanganan
 kesalahan yang berulang.
 
 Anggaplah kita punya sebuah aplikasi
-https://cloud.google.com/appengine/docs/go/[App Engine]
+https://cloud.google.com/appengine/docs/go/[App Engine^]
 dengan _handler_ HTTP yang menerima sebuah _record_ dari _datastore_ dan
 memformatnya dengan sebuah _template_.
 
@@ -283,7 +283,7 @@ func viewRecord(w http.ResponseWriter, r *http.Request) error {
 ----
 
 Kode tersebut lebih sederhana dari yang awalnya, namun paket
-https://golang.org/pkg/net/http/[`http`]
+https://pkg.go.dev/net/http/[`http`^]
 tidak mengenal fungsi-fungsi yang mengembalikan `error`.
 Untuk memperbaiki hal tersebut kita dapat mengimplementasikan interface
 `http.Handler` yaitu dengan menambahkan method `ServeHTTP()` pada tipe
@@ -341,7 +341,7 @@ type appHandler func(http.ResponseWriter, *http.Request) *appError
 (Biasanya adalah sebuah kesalahan mengembalikan tipe konkret dari sebuah
 `error` bukan sebuah nilai interface dari `error`, dengan alasan yang telah
 didiskusikan dalam
-link:/doc/faq/#nil_error[Tanya Jawab Go],
+link:/doc/faq#nil_error[Tanya Jawab Go^],
 namun untuk saat ini adalah pengecualian dan tepat untuk dilakukan karena
 method `ServeHTTP` satu-satunya tempat yang tahu nilai dari `error` dan cara
 menggunakan isinya.)
@@ -401,7 +401,7 @@ Berikut beberapa ide:
    Hal-hal tersebut adalah cara yang bagus untuk menghindari menampilkan
    kesalahan yang disebabkan oleh pemrograman kepada _user_.
    Lihat artikel
-   link:/blog/defer_panic_recover/[Defer Panic dan Recover]
+   link:/blog/defer_panic_recover[Defer Panic dan Recover^]
    untuk lebih jelas.
 
 

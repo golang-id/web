@@ -2,7 +2,7 @@
 :toc:
 
 Distribusi Go mengikutkan sebuah perintah, bernama
-link:/cmd/go/["go"],
+link:/cmd/go["go"^],
 yang mengotomasi pengunduhan, pembangunan, pemasangan, dan pengujian dari
 paket-paket dan perintah-perintah Go.
 Dokumen ini membahas tentang kenapa kita menulis sebuah perintah baru, bentuk
@@ -59,7 +59,7 @@ Hal ini dapat dipahami: karena begitulah cara kerja pada umumnya pada bahasa
 pemrograman lainnya.
 Selama beberapa tahun terakhir kami secara konsisten mengingatkan orang
 tentang perintah `goinstall` (sekarang diganti dengan
-link:/cmd/go/#hdr-Download_and_install_packages_and_dependencies[go get])
+link:/cmd/go#hdr-Download_and_install_packages_and_dependencies[go get^])
 dan konvensi-konvensinya:
 pertama, path impor diturunkan dengan cara yang diketahui dari URL sumber
 kodenya;
@@ -105,7 +105,7 @@ git clone https://github.com/golang/example
 maka path impor dari direktori utama dari repositori itu adalah
 "github.com/golang/example".
 Paket
-https://godoc.org/github.com/golang/example/stringutil[stringutil]
+https://pkg.go.dev/github.com/golang/example/stringutil[stringutil^]
 di simpan dalam sebuah sub direktori, sehingga path impornya adalah
 "github.com/golang/example/stringutil".
 
@@ -165,7 +165,7 @@ Seperti yang telah dijelaskan di atas, nilai standar dari `$GOPATH` pada Unix
 adalah `$HOME/go`.
 Kita akan menyimpan program kita di sana.
 Untuk menggunakan lokasi yang berbeda anda dapat menset `$GOPATH`;
-link:/doc/code.html[Cara Menulis Kode Go]
+link:/doc/code.html[Cara Menulis Kode Go^]
 untuk lebih jelasnya.
 
 Pertama kita tambahkan beberapa sumber kode.
@@ -262,7 +262,7 @@ Seperti yang telah disebutkan juga di atas, perintah `go` bukanlah perkakas
 pembangun yang umum.
 Ia tidak memiliki fasilitas untuk menghasilkan berkas sumber Go _selama_
 pembangunan, walaupun ia menyediakan
-link:/cmd/go/#hdr-Generate_Go_files_by_processing_source[go generate],
+link:/cmd/go#hdr-Generate_Go_files_by_processing_source[go generate^],
 yang dapat mengotomasi pembuatan berkas Go _sebelum_ dibangun.
 Untuk pembangunan lebih lanjut, Anda mungkin perlu menulis sebuah _makefile_
 (atau berkas konfigurasi untuk perkakas pembangun yang Anda pilih) untuk
@@ -276,6 +276,6 @@ get" tanpa perlu mendapatkan dan membangun perkakas tambahan.
 ==  Informasi lebih lanjut
 
 Untuk informasi lebih lanjut, baca
-link:/doc/code.html[Cara Menulis Kode Go]
+link:/doc/code.html[Cara Menulis Kode Go^]
 dan lihat
-link:/cmd/go/[perintah go].
+link:/cmd/go/[perintah go^].

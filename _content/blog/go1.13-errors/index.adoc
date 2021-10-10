@@ -8,7 +8,7 @@
 ==  Pendahuluan
 
 Perlakuan Go terhadap
-link:/blog/errors-are-values[error sebagai nilai]
+link:/blog/errors-are-values[error sebagai nilai^]
 telah melayani kita dengan baik selama dekade terakhir ini.
 Walaupun dukungan pustaka standar untuk error masih minimal--hanya fungsi
 `errors.New` dan `fmt.Errorf`, yang menghasilkan error yang berisi hanya sebuah
@@ -33,7 +33,7 @@ menyediakan konteks tambahan.
 
 Pola-pola dari sebuah error yang berisi informasi tambahan begitu banyak
 digunakan dalam kode Go, setelah
-https://golang.org/issue/29934[diskusi yang mendalam],
+https://golang.org/issue/29934[diskusi yang mendalam^],
 Go 1.13 menambahkan dukungan eksplisit untuk hal tersebut.
 Artikel ini menjelaskan penambahan-penambahan ke pustaka bawaan tersebut: tiga
 fungsi baru dalam paket `errors`, dan sebuah format baru pada `fmt.Errorf`.
@@ -72,10 +72,10 @@ if err == ErrNotFound {
 Sebuah nilai error bisa saja bertipe apa pun selama memenuhi interface
 `error`.
 Sebuah program dapat menggunakan
-link:/doc/effective_go.html#interface_conversions[konversi tipe]
+link:/doc/effective_go.html#interface_conversions[konversi tipe^]
 atau
-link:/doc/effective_go.html#type_switch[switch bertipe] untuk
-mengubah atau mendapatkan nilai error menjadi tipe yang diinginkan.
+link:/doc/effective_go.html#type_switch[switch bertipe^]
+untuk mengubah atau mendapatkan nilai error menjadi tipe yang diinginkan.
 
 ----
 type NotFoundError struct {
@@ -130,7 +130,7 @@ if e, ok := err.(*QueryError); ok && e.Err == ErrPermission {
 ----
 
 Tipe
-https://pkg.go.dev/os?tab=doc#PathError[`os.PathError`]
+https://pkg.go.dev/os?tab=doc#PathError[`os.PathError`^]
 dalam pustaka standar adalah contoh lain dari sebuah error yang berisi error
 lainnya.
 
@@ -317,8 +317,7 @@ Sebagai tambahan, sebuah error dalam rangkaian error bisa mendeklarasikan
 bahwa ia cocok dengan sebuah target dengan mengimplementasikan method `Is`.
 
 Sebagai contoh, pertimbangkan error berikut yang terinspirasi oleh
-https://commandcenter.blogspot.com/2017/12/error-handling-in-upspin.html[paket
-error pada Upspin]
+https://commandcenter.blogspot.com/2017/12/error-handling-in-upspin.html[paket error pada Upspin^]
 yang membandingkan sebuah error dengan sebuah templat, dengan mempertimbangkan
 hanya field-field yang tidak nol di dalam templat:
 
@@ -438,7 +437,7 @@ hal yang umum, membantu program membuat keputusan yang lebih baik dan
 membantu pemrogram menemukan _bug_ lebih cepat.
 
 Seperti yang Russ Cox katakan dalam
-https://blog.golang.org/experiment[GopherCon 2019],
+https://blog.golang.org/experiment[GopherCon 2019^],
 untuk mencapai Go 2 kita bereksperimen, menyederhanakan dan merilis (yang
 baru).
 Sekarang karena kita telah merilis perubahan ini, kita menantikan

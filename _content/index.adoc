@@ -12,59 +12,58 @@ Untuk menggunakan situs ini sangat mudah.
 Jika Anda menemukan artikel resmi dalam Bahasa Inggris, Anda bisa membacanya
 dengan mengubah tautan dari "golang.org/" ke "golang-id.org/".
 Misalnya, dokumentasi resmi untuk memasang Go ada di
-https://golang.org/doc/install[https://golang.org/doc/install],
+https://golang.org/doc/install[https://golang.org/doc/install^],
 yang juga dapat di akses dalam Bahasa Indonesia di
-https://golang-id.org/doc/install[https://golang-id.org/doc/install].
+https://golang-id.org/doc/install[https://golang-id.org/doc/install^].
 
 Untuk artikel blog, Anda tinggal mengganti tautan dari "blog.golang.org/"
 menjadi "golang-id.org/blog/".
 Misalnya, tautan blog tentang cara menggunakan Go modul di situs resmi yaitu
-https://blog.golang.org/using-go-modules[https://blog.golang.org/using-go-modules],
+https://blog.golang.org/using-go-modules[https://blog.golang.org/using-go-modules^],
 dan terjemahannya dapat diakses lewat tautan
-https://golang-id.org/blog/using-go-modules[https://golang-id.org/blog/using-go-modules].
+https://golang-id.org/blog/using-go-modules[https://golang-id.org/blog/using-go-modules^].
 
 
-==  link:/doc/[Dokumentasi]
+==  link:/doc/[Dokumentasi^]
 
 Untuk mengetahui cara memasang bahasa Go di sistem operasi anda dan belajar
-lebih lanjut, silakan buka halaman link:/doc[dokumentasi].
+lebih lanjut, silakan buka halaman
+link:/doc[dokumentasi^].
 
 
-==  link:/blog[Blog]
+==  link:/blog[Blog^]
 
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
 
-*  link:/blog/go1.15[Rilis Go 1.15],
+*  link:/blog/go1.15[Rilis Go 1.15^],
    11 Agustus 2020.  Alex Rakoczy
 
-*  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap
-   Kompatibel],
+*  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap Kompatibel^],
    2 Juli 2020.  _Jean de Klerk_ dan _Jonathan Amsterdam_
 
-*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol
-   Buffers],
+*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol Buffers^],
    2 Maret 2020.  Joe Tsai, Damien Neil, dan Herbie Ong
 
-*  link:/blog/go1.14[Go 1.14 telah dirilis],
+*  link:/blog/go1.14[Go 1.14 telah dirilis^],
    25 Februari 2020.  _Alex Rakoczy_
 
-*  link:/blog/pkg.go.dev-2020[Langkah selanjutnya untuk pkg.go.dev],
+*  link:/blog/pkg.go.dev-2020[Langkah selanjutnya untuk pkg.go.dev^],
    31 Januari 2020.  _Julie Qiu_
 
-*  link:/blog/go1.15-proposals[Proposal untuk Go 1.15],
+*  link:/blog/go1.15-proposals[Proposal untuk Go 1.15^],
    28 Januari 2020.  _Robert Griesemer_, untuk tim Go
 
 
-baca artikel blog link:/blog[lainnya].
+baca artikel blog link:/blog[lainnya^].
 
 
-==  link:/modul[Modul]
+==  link:/modul[Modul^]
 
 Temukan Go modul yang dibuat oleh komunitas.
 
 
-==  link:/wicara[Wicara]
+==  link:/wicara[Wicara^]
 
 Halaman ini berisi _podcast_ dan video tentang Go yang dibawakan oleh
 komunitas Go Indonesia.
@@ -72,13 +71,13 @@ komunitas Go Indonesia.
 
 ==  Acara
 
-===  https://www.meetup.com/GoJakarta/[Jakarta,window=_blank]
+===  https://www.meetup.com/GoJakarta/[Jakarta^]
 
 Bagi komunitas Go yang berdomisili di kota Jakarta dan sekitarnya, bisa ikuti
 dan pantau acara pertemuan komunitas Go Jakarta selanjutnya yang cukup rutin
 diadakan.
 
-===  https://www.meetup.com/GO-BDG/[Bandung]
+===  https://www.meetup.com/GO-BDG/[Bandung^]
 
 Bagi komunitas Go yang berdomisili di kota Bandung dan sekitarnya, bisa
 ikuti dan pantau acara pertemuan komunitas Go Bandung selanjutnya.
@@ -86,28 +85,28 @@ ikuti dan pantau acara pertemuan komunitas Go Bandung selanjutnya.
 
 ==  Bantuan
 
-===  https://groups.google.com/forum/#!forum/golang-id[Milis]
+===  https://groups.google.com/forum/#!forum/golang-id[Milis^]
 
 Jika anda memiliki pertanyaan, atau ingin berbagi karya Go anda, atau ingin
 berdiskusi lebih lanjut tentang Go.
 
-===  https://www.reddit.com/r/golang_id/[Reddit]
+===  https://www.reddit.com/r/golang_id/[Reddit^]
 
 Sub reddit untuk mendapatkan artikel terbaru dan juga bisa sebagai alternatif
 tempat berdiskusi tentang Go.
 
-===  https://twitter.com/IdGolang[Twitter]
+===  https://twitter.com/IdGolang[Twitter^]
 
 Ikuti kami di Twitter untuk mendapatkan artikel-artikel terbaru dalam Bahasa
 Indonesia.
 
-===  https://t.me/golangID[Telegram]
+===  https://t.me/golangID[Telegram^]
 
 Grup untuk berdiskusi dan tanya jawab dengan cepat mengenai apa pun.
 
 
-==  link:/berkontribusi.html[Berkontribusi]
+==  link:/berkontribusi.html[Berkontribusi^]
 
 Siapa pun dapat berkontribusi dalam situs ini.
 Untuk melihat daftar kontribusi yang dapat dilakukan, silakan kunjungi
-link:/berkontribusi.html[halaman ini].
+link:/berkontribusi.html[halaman ini^].
