@@ -7,8 +7,7 @@
 
 === 2021
 
-*  link:/blog/tls-cipher-suites/[Pemilihan pasangan _cipher_ otomatis pada
-   crypto/tls], 15 September 2021.
+*  link:/blog/tls-cipher-suites/[Pemilihan pasangan _cipher_ otomatis pada crypto/tls^], 15 September 2021.
    Filippo Valsorda
 
 *  link:/blog/context-and-structs/[Context dan struct^],
@@ -17,12 +16,10 @@
 
 === 2020
 
-*  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap
-   Kompatibel^],
+*  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap Kompatibel^],
    7 Juli 2020.  Jean de Klerk; Jonathan Amsterdam.
 
-*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol
-   Buffers^],
+*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol Buffers^],
    2 Maret 2020.  Joe Tsai, Damien Neil, dan Herbie Ong.
 
 *  link:/blog/go1.14[Go 1.14 telah dirilis^],
@@ -51,8 +48,7 @@
 *  link:/blog/publishing-go-modules[Bagian 3 - Menerbitkan Go Modul^],
    26 September 2019.  Tyler Bui-Palsulich.
 
-*  link:/blog/module-mirror-launch[Peluncuran Modul _Mirror_ dan Basisdata
-   _Checksum_^],
+*  link:/blog/module-mirror-launch[Peluncuran Modul _Mirror_ dan Basisdata _Checksum_^],
    29 Agustus 2019.  Katie Hockman.
 
 *  link:/blog/migrating-to-go-modules[Bagian 2 - Migrasi ke Go modul^],
@@ -105,7 +101,7 @@
 *  link:/blog/maps/[Go map^],
    6 Februari 2013.  Andrew Gerrand.
 
-*  link:/blog/gofmt/[Go fmt kode Anda],
+*  link:/blog/gofmt/[Go fmt kode Anda^],
    23 Januari 2013.  Andrew Gerrand.
 
 === 2012
@@ -133,8 +129,7 @@
 *  link:/blog/error-handling-and-go/[Penanganan error dan Go^],
    12 Juli 2011.  Andrew Gerrand.
 
-*  link:/blog/gif-decoder-exercise-in-go-interfaces[Dekoder GIF: latihan
-   interface pada Go^],
+*  link:/blog/gif-decoder-exercise-in-go-interfaces[Dekoder GIF: latihan interface pada Go^],
    25 Mei 2011.  Rob Pike.
 
 *  link:/blog/introducing-gofix/[Memperkenalkan gofix^],
@@ -152,8 +147,7 @@
 *  link:/blog/json-and-go[JSON dan Go^],
    25 Januari 2011.  Andrew Gerrand.
 
-*  link:/blog/go-slices-usage-and-internals[Slice pada Go: penggunaan dan
-   internal^],
+*  link:/blog/go-slices-usage-and-internals[Slice pada Go: penggunaan dan internal^],
    5 Januari 2011.  Andrew Gerrand.
 
 === 2010
@@ -164,12 +158,10 @@
 *  link:/blog/json-rpc/[JSON-RPC: kisah penggunaan interface^],
    27 April 2010.  Andrew Gerrand.
 
-*  link:/blog/third-party-libraries-goprotobuf-and[Pustaka pihak-ketiga:
-   goprotobuf dan lainnya^],
+*  link:/blog/third-party-libraries-goprotobuf-and[Pustaka pihak-ketiga: goprotobuf dan lainnya^],
    20 April 2010.  Andrew Gerrand.
 
-*  link:/blog/go-concurrency-patterns-timing-out-and/[Pola konkurensi Go:
-   pewaktuan dan terus berjalan^],
+*  link:/blog/go-concurrency-patterns-timing-out-and/[Pola konkurensi Go: pewaktuan dan terus berjalan^],
    23 September 2010.  Andrew Gerrand.
 
 *  link:/blog/defer-panic-and-recover/["Defer, Panic, dan Recover"^],
@@ -183,12 +175,9 @@
 
 *  link:/blog/gos-declaration-syntax/[Sintaksis deklarasi pada Go^]
 *  link:/blog/defer-panic-and-recover/["Defer, Panic, dan Recover"^]
-*  link:/blog/go-concurrency-patterns-timing-out-and/[Pola konkurensi Go:
-   pewaktuan dan terus berjalan^]
-*  link:/blog/go-slices-usage-and-internals[Slice pada Go: penggunaan dan
-   internal^]
-*  link:/blog/gif-decoder-exercise-in-go-interfaces[Dekoder GIF: latihan
-   interface pada Go^]
+*  link:/blog/go-concurrency-patterns-timing-out-and/[Pola konkurensi Go: pewaktuan dan terus berjalan^]
+*  link:/blog/go-slices-usage-and-internals[Slice pada Go: penggunaan dan internal^]
+*  link:/blog/gif-decoder-exercise-in-go-interfaces[Dekoder GIF: latihan interface pada Go^]
 *  link:/blog/error-handling-and-go/[Penanganan error dan Go^]
 *  link:/blog/organizing-go-code/[Mengorganisasi kode Go^]
 
@@ -196,20 +185,20 @@
 ==  Paket
 
 *  link:/blog/json-and-go[JSON dan Go^] - menggunakan paket
-   https://golang.org/pkg/encoding/json/[json].
+   https://golang.org/pkg/encoding/json/[json^].
 
 *  link:/blog/gobs-of-data[Gob dari data^] - rancangan dan penggunaan paket
-   https://golang.org/pkg/encoding/gob/[gob].
+   https://golang.org/pkg/encoding/gob/[gob^].
 
 *  link:/blog/laws-of-reflection[Hukum-hukum refleksi^] - fundamental dari
-   paket https://golang.org/pkg/reflect/[reflect].
+   paket https://golang.org/pkg/reflect/[reflect^].
 
 *  link:/blog/go-image-package[Paket image pada Go^] - fundamental dari paket
-   https://golang.org/pkg/image/[image].
+   https://golang.org/pkg/image/[image^].
 
 *  link:/blog/go-imagedraw-package/[Paket image/draw pada Go^] - fundamental
    dari paket
-   https://golang.org/pkg/image/draw/[image/draw].
+   https://golang.org/pkg/image/draw/[image/draw^].
 
 
 ==  Modul
@@ -220,8 +209,7 @@
 *  link:/blog/modules2019[Go Modul di 2019^],
    19 Desember 2018.  Russ Cox.
 
-*  link:/blog/module-mirror-launch[Peluncuran Modul _Mirror_ dan Basisdata
-   _Checksum_^],
+*  link:/blog/module-mirror-launch[Peluncuran Modul _Mirror_ dan Basisdata _Checksum_^],
    29 Agustus 2019.  Katie Hockman.
 
 *  link:/blog/using-go-modules[Bagian 1 - Menggunakan Go modul^],
@@ -236,8 +224,7 @@
 *  link:/blog/v2-go-modules[Bagian 4 - Go Modul: v2 dan Seterusnya^],
    7 November 2019.  Jean de Klerk and Tyler Bui-Palsulich.
 
-*  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap
-   Kompatibel^],
+*  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap Kompatibel^],
    7 Juli 2020.  Jean de Klerk; Jonathan Amsterdam.
 
 

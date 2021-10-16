@@ -21,24 +21,24 @@ dinamis.
 Instruksi untuk mengunduh dan memasang Go.
 
 [#get-started-tutorial]
-===  link:/doc/tutorial/getting-started/[Tutorial: Memulai dari awal]
+===  link:/doc/tutorial/getting-started/[Tutorial: Memulai dari awal^]
 
 Tutorial singkat "Hello, world" untuk mulai dari awal.
 Mempelajari secara singkat tentang kode, perkakas, paket, dan modul pada Go.
 
 [#create-module-tutorial]
-===  link:/doc/tutorial/create-module/[Tutorial: Membuat sebuah modul]
+===  link:/doc/tutorial/create-module/[Tutorial: Membuat sebuah modul^]
 
 Sebuah tutorial tentang topik-topik singkat yang memperkenalkan fungsi,
 penanganan eror, array, map, unit tes, dan mengompilasi.
 
 [#writing-web-applications]
-===  link:/doc/articles/wiki[Menulis aplikasi web]
+===  link:/doc/articles/wiki[Menulis aplikasi web^]
 
 Membuat sebuah aplikasi web yang sederhana.
 
 [#code]
-===  link:/doc/code.html[Cara menulis kode Go]
+===  link:/doc/code/[Cara menulis kode Go^]
 
 Dokumen ini menjelaskan cara mengembangkan sejumlah kecil paket Go dalam
 sebuah modul, dan juga menjelaskan cara menggunakan
@@ -46,7 +46,7 @@ link:/cmd/go/[go program^]
 untuk membangun dan menjalankan tes pada paket.
 
 [#go_tour]
-===  https://tour.golang-id.org[Tur Bahasa Pemrograman Go]
+===  https://tour.golang-id.org[Tur Bahasa Pemrograman Go^]
 
 Pengenalan Go secara interaktif dalam tiga bagian.
 Bagian pertama membahas sintaksis dasar dan struktur data;
@@ -66,7 +66,7 @@ Perintah di atas akan membuat sebuah program bernama `tour` di dalam direktori
 ==  Menggunakan dan memahami Go
 
 [#effective_go]
-===  link:/doc/effective_go.html[Efektif Go]
+===  link:/doc/effective_go.html[Efektif Go^]
 
 Dokumen yang memberikan petunjuk untuk menulis kode Go yang bersih
 dan idiomatis.
@@ -75,49 +75,49 @@ Dokumen ini menggabungkan spesifikasi bahasa dan tur, yang mana keduanya
 sebaiknya dibaca terlebih dahulu.
 
 [#editors]
-===  link:/doc/editors.html[Plugin untuk editor dan IDE]
+===  link:/doc/editors.html[Plugin untuk editor dan IDE^]
 
 Dokumen yang berisi _plugin_ untuk _editor_ dan _IDE_ yang umum digunakan,
 yang mendukung Go.
 
 [#diagnostics]
-===  link:/doc/diagnostics.html[Diagnostik]
+===  link:/doc/diagnostics.html[Diagnostik^]
 
 Dokumen yang berisi ringkasan perkakas dan metodologi untuk mendiagnosis
 permasalahan dalam program.
 
 [#dependencies]
-===  link:/doc/modules/managing-dependencies/[Mengatur dependensi]
+===  link:/doc/modules/managing-dependencies/[Mengatur dependensi^]
 
 Bila kode Anda menggunakan paket-paket eksternal, paket tersebut (yang
 didistribusikan sebagai module) menjadi dependensi.
 
 [#faq]
-===  link:/doc/faq/index.html[Tanya jawab]
+===  link:/doc/faq/index.html[Tanya jawab^]
 
 Dokumen ini berisi jawaban dari pertanyaan yang sering diajukan tentang Go.
 
 [#references]
 ==  Referensi
 
-===  https://golang.org/pkg[Dokumentasi paket]
+===  https://golang.org/pkg[Dokumentasi paket^]
 
 Dokumentasi untuk pustaka bawaan Go.
 
-===  link:/doc/cmd/[Dokumentasi perintah]
+===  link:/doc/cmd/[Dokumentasi perintah^]
 
 Dokumentasi untuk perkakas Go.
 
-===  link:/ref/spec[Spesifikasi Bahasa]
+===  link:/ref/spec[Spesifikasi Bahasa^]
 
 Spesifikasi bahasa Go yang resmi.
 
-===  link:/ref/mem[Model memori pada Go]
+===  link:/ref/mem[Model memori pada Go^]
 
 Sebuah dokumen yang menspesifikasikan kondisi-kondisi di mana pembacaan sebuah
 variabel pada sebuah goroutine dapat dijamin mengobservasi nilai yang
 dihasilkan oleh penulisan ke variabel yang sama dalam goroutine yang berbeda.
 
-===  link:/proposal[Proposal]
+===  link:/proposal[Proposal^]
 
 Dokumentasi proposal perubahan pada bahasa Go dalam Bahasa Inggris.
