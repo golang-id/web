@@ -7,6 +7,10 @@
 
 === 2021
 
+*  link:/blog/tls-cipher-suites/[Pemilihan pasangan _cipher_ otomatis pada
+   crypto/tls], 15 September 2021.
+   Filippo Valsorda
+
 *  link:/blog/context-and-structs/[Context dan struct^],
    24 Februari 2021.
    Jean de Klerk; Matt T. Proud

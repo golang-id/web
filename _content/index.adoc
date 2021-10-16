@@ -36,8 +36,11 @@ link:/doc[dokumentasi^].
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
 
+*  link:/blog/tls-cipher-suites/[Pemilihan pasangan _cipher_ otomatis pada crypto/tls^],
+   15 September 2021.  _Filippo Valsorda_.
+
 *  link:/blog/go1.15[Rilis Go 1.15^],
-   11 Agustus 2020.  Alex Rakoczy
+   11 Agustus 2020.  _Alex Rakoczy_.
 
 *  link:/blog/module-compatibility[Bagian 5 - Menjaga Modul Anda tetap Kompatibel^],
    2 Juli 2020.  _Jean de Klerk_ dan _Jonathan Amsterdam_

@@ -1,0 +1,327 @@
+# Pemilihan pasangan _cipher_ otomatis pada crypto/tls
+Filippo Valsorda
+15 September 2021
+2021-09-15
+
+Pustaka standar Go menyediakan pustaka `crypto/tls`, implementasi dari
+_Transport Layer Security_ (TLS), protokol keamanan paling penting pada
+Internet, yang menjadi komponen dasar dari HTTPS.
+Pada Go 1.17 kita membuat konfigurasi TLS lebih mudah, aman, dan efisien
+dengan memilih pasangan _cipher_ yang sesuai secara otomatis.
+
+
+== Bagaimana pasangan _cipher_ bekerja
+
+Pasangan _cipher_ berawal dari _Secure Socket Layer_ (SSL), yang dikenal juga
+dengan istilah
+https://datatracker.ietf.org/doc/html/draft-hickman-netscape-ssl-00#appendix-C.4["jenis cipher"^].
+Contoh identifikasi dari pasangan _cipher_ ini yaitu
+`TLS_RSA_WITH_AES_256_CBC_SHA` atau
+`TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256`
+yang menampilkan algoritma yang digunakan untuk pertukaran kunci, sertifikat
+autentikasi, dan enkripsi dalam sebuah koneksi TLS.
+
+Pasangan _cipher_ dinegosiasikan saat _handshake_ TLS: pada pesan yang
+pertama, Client Hello, klien mengirim daftar pasangan _cipher_ yang didukung,
+kemudian peladen memilih salah satu dari daftar tersebut,
+memberitahu klien pilihannya.
+Klien mengirim daftar pasangan _cipher_ yang didukung sesuai dengan urutan
+yang mereka inginkan, dan peladen bebas memilih sesuai yang mereka inginkan.
+Biasanya, peladen akan memilih pasangan _cipher_ pertama yang sama-sama
+didukung sesuai dengan urutan klien atau sesuai urutan pilihan peladen,
+bergantung pada konfigurasi peladen.
+
+Pasangan _cipher_ adalah salah satu dari banyak parameter yang dinegosiasikan
+--algoritma _curve_ dan _signature_ biasanya dinegosiasikan lewat ekstensi
+tambahan--namun ia yang paling kompleks dan dikenal banyak orang,
+dan satu-satunya yang mana pengembang dan administrator terlatih selama
+bertahun-tahun.
+
+Pada TLS 1.0-1.2, semua parameter tersebut berinteraksi dalam jaringan
+kompleks yang bergantung satu sama lain: contohnya dukungan terhadap sebuah
+sertifikat bergantung pada algoritma _signature_, _curves_, dan
+pasangan _cipher_ yang tersedia.
+Pada TLS 1.3 semuanya telah disederhanakan: pasangan _cipher_ hanya perlu
+menentukan algoritma enkripsi simetris, sementara dukungan _curves_ mengatur
+pertukaran kunci dan dukungan algoritma _signature_ yang dipakai pada
+sertifikat.
+
+
+== Pengembang bebas dari pemilihan pasangan _cipher_
+
+Kebanyakan peladen HTTPS dan TLS mendelegasikan pilihan pasangan _cipher_ dan
+urutannya ke operator peladen atau pengembang aplikasi.
+Hal ini adalah pilihan kompleks yang membutuhkan pengetahuan yang khusus
+dan terbarukan.
+
+Beberapa pasangan _cipher_ tua memiliki komponen yang tidak aman,
+beberapa membutuhkan implementasi yang sangat hati-hati dan kompleks supaya
+dapat aman,
+dan beberapa hanya aman jika klien menerapkan semacam mitigasi atau bahkan
+perangkat keras tertentu.
+Terlepas dari keamanan dari setiap komponen,
+pasangan _cipher_ yang berbeda dapat menyediakan properti keamanan yang sangat
+drastis berbeda pula untuk semua koneksi,
+seperti pasangan _cipher_ tanpa ECDHE atau DHE tidak menyediakan kerahasiaan
+--properti yang mana koneksi tidak bisa secara pasif di-dekripsi dengan kunci
+sertifikat.
+Terakhir, pemilihan pasangan _cipher_ yang didukung memengaruhi kompatibilitas
+dan performa,
+dan membuat perubahan --tanpa pengetahuan yang terbarukan dari ekosistem ini--
+dapat menyebabkan masalah koneksi pada klien-klien yang tua,
+meningkatkan penggunaan sumber daya pada peladen,
+atau cepat menghabiskan baterai pada klien mobil.
+
+Cara pemilihan ini sangat "mistis" dan "rapuh" sehingga ada beberapa perkakas
+untuk membantu operator,
+seperti situs
+https://ssl-config.mozilla.org/[Pembangkit Konfigurasi SSL dari Mozilla^]
+ini.
+
+Kenapa dan bagaimana bisa seperti ini?
+
+Awalnya, komponen-komponen individu kriptografi sering kali rusak.
+Di tahun 2011, saat serangan BEAST merusak pasangan _cipher_ CBC dengan cara
+yang hanya klien yang dapat memperbaikinya,
+peladen bergerak untuk memilih RC4, yang pada saat itu belum terinfeksi.
+Di tahun 2013, saat diketahui bahwa RC4 juga rusak,
+peladen kembali menggunakan CBC.
+Saat Lucky Thirteen memberitahu bahwa pasangan _cipher_ CBC sangat sulit
+diimplementasikan disebabkan rancangannya,
+maka tidak ada pilihan lain sehingga implementasi CBC harus
+https://www.imperialviolet.org/2013/02/04/luckythirteen.html[loncat-loncat^]
+dan pekerjaan tersebut tetap
+https://blog.cloudflare.com/yet-another-padding-oracle-in-openssl-cbc-ciphersuites/[gagal selama bertahun-tahun^].
+Pasangan _cipher_ yang bisa dikonfigurasi dan
+https://www.imperialviolet.org/2016/05/16/agility.html[kelincahan kriptografi^]
+biasanya menyediakan jaminan bahwa bila sebuah komponen rusak maka ia bisa
+diganti langsung.
+
+Kriptografi moderen secara signifikan sangat berbeda.
+Protokol-protokol masih tetap dapat rusak dari waktu ke waktu,
+namun biasanya jarang bagi komponen individu dapat rusak.
+_Tidak ada pasangan cipher berbasis AEAD yang dirilis pada TLS 1.2 di
+tahun 2018 telah rusak._
+Saat ini kelincahan kriptografi adalah sebuah liabilitas:
+kompleksitas-nya bisa menyebabkan kelemahan atau _downgrade_,
+dan hanya diperlukan untuk performa dan pemenuhan syarat (misalnya, aturan
+keamanan perusahaan).
+
+Cara penambalan aplikasi juga berbeda antara dulu dengan sekarang.
+Model penambalan sekarang yaitu langsung pada perangkat lunak untuk
+celah-celah yang telah diketahui, yang merupakan fondasi dari pengembangan
+perangkat lunak yang aman,
+namun sepuluh tahun yang lalu hal seperti itu bukanlah praktik standar.
+Mengubah konfigurasi adalah opsi paling cepat untuk merespon bila ada pasangan
+_cipher_ yang rusak,
+sehingga operator, lewat konfigurasi, bertanggung jawab sepenuhnya.
+Sekarang kita memiliki isu yang sebaliknya: semua peladen telah ditambal dan
+diperbarui namun tetap berjalan aneh, sub-optimal, atau tidak aman, karena
+konfigurasi mereka tidak pernah diubah.
+
+Terakhir, peladen condong jarang diperbarui dibandingkan klien, oleh
+karena itu kurang dipercaya untuk memilih pasangan _cipher_.
+Namun, peladen-lah yang memutuskan pasangan _cipher_ yang dipilih,
+sehingga pengaturan bawaan peladen yaitu membuat mereka memilih pasangan
+_cipher_ berdasarkan urutan yang diberikan klien, bukan berdasarkan
+konfigurasi peladen.
+Hal ini ada bagusnya: peramban bisa melakukan pembaruan secara otomatis dan
+lebih sering diperbarui daripada peladen.
+Di sisi lain, sejumlah perangkat yang telah tua sekarang telah kadaluarsa dan
+mentok dengan konfigurasi TLS klien yang juga sudah lama, sehingga membuat
+peladen yang terbarukan lebih baik menentukan pilihan daripada beberapa klien
+mereka.
+
+Bagaimanapun caranya kita bisa seperti ini, ini adalah kegagalan dari
+rekayasa kriptografi yang mengharuskan pengembang aplikasi dan operator
+peladen untuk menjadi ahli dalam pemilihan pasangan _cipher_,
+dan supaya pengetahuan mereka tetap terbarukan sehingga konfigurasi mereka
+tetap diperbaiki terus menerus.
+Jika mereka menerbitkan tambalan keamanan yang kita sediakan, itu saja sudah
+cukup.
+
+Pembangkit konfigurasi SSL dari Mozilla sangat bagus, namun _seharusnya_ ia
+tidak diperlukan.
+
+Apakah kondisi sekarang akan lebih baik di masa depan?
+
+Ada kabar baik dan kabar buruk tentang bagaimana semua ini menjadi tren
+beberapa tahun terakhir.
+Kabar buruknya adalah pemilihan urutan pasangan _cipher_ semakin "bernuansa",
+karena ada sekumpulan pasangan _cipher_ yang memiliki properti keamanan yang
+mirip.
+Pilihan terbaik dari sekumpulan pilihan tersebut bergantung pada perangkat
+keras yang tersedia dan sangat sulit dijabarkan dalam sebuah berkas
+konfigurasi.
+Pada sistem lain, yang awalnya berupa daftar pasangan _cipher_ sekarang
+bergantung pada
+https://boringssl.googlesource.com/boringssl/+/c3b373bf4f4b2e2fba2578d1d5b5fe04e410f7cb/include/openssl/ssl.h#1457[sintaksis kompleks^]
+atau flag tambahan seperti
+https://www.openssl.org/docs/man1.1.1/man3/SSL_CTX_clear_options.html#:~:text=session-,ssl_op_prioritize_chacha,-When[SSL_OP_PRIORITIZE_CHACHA^].
+
+Kabar baiknya yaitu TLS 1.3 secara drastis menyederhanakan pasangan _cipher_,
+dan ia terpisah dari TLS 1.0-1.2.
+Semua pasangan _cipher_ pada TLS 1.3 aman, sehingga pengembang aplikasi dan
+operator peladen tidak perlu khawatir.
+Bahkan, beberapa pustaka TLS seperti BoringSSL dan `crypto/tls` pada Go tidak
+membolehkan mengonfigurasi mereka sama sekali.
+
+== Pasangan _cipher_ dan paket crypto/tls
+
+Go membolehkan pengembang mengatur pasangan _cipher_ dalam TLS 1.0-1.2.
+Aplikasi bisa mengatur pasangan _cipher_ dan preferensi urutan dengan
+https://pkg.go.dev/crypto/tls#Config.CipherSuites[`Config.CipherSuites`^].
+Peladen memprioritaskan urutan preferensi dari klien secara bawaan,
+kecuali bila
+https://pkg.go.dev/crypto/tls#Config.PreferServerCipherSuites[`Config.PreferServerCipherSuites`^]
+di set.
+
+Saat kita mengimplementasikan TLS 1.3 pada Go 1.12, kita
+https://golang.org/issue/29349[tidak membuat pasangan _cipher_ TLS 1.3 bisa diatur^],
+karena mereka kumpulan terpisah dari TLS 1.0-1.2 dan yang paling penting
+mereka semua aman, jadi tidak perlu mendelegasikan pilihan kepada aplikasi.
+`Config.PreferServerCipherSuites` tetap mengontrol urutan preferensi mana yang
+digunakan, dan preferensi pada sisi lokal bergantung pada ketersediaan
+perangkat keras.
+
+Pada Go 1.14,
+https://pkg.go.dev/crypto/tls#CipherSuites[kita mengeluarkan^]
+pasangan _cipher_ yang didukung namun secara eksplisit mengembalikan mereka
+dengan urutan netral (diurut berdasarkan ID).
+
+Pada Go 1.16, kita secara aktif mulai memilih pasangan _cipher_
+https://golang.org/cl/262857[ChaCha20Poly1305 dibanding AES-GSM^]
+pada peladen saat kita mendeteksi bahwa peladen dan klien tidak memiliki
+dukungan perangkat keras untuk AES-GCM.
+Hal ini karena AES-GCM sangat sukar diimplementasikan secara efisien dan aman
+tanpa dukungan dedikasi perangkat keras (seperti kumpulan instruksi AES-NI dan
+CLMUL).
+
+**Go 1.17, baru saja dirilis, mengambil alih urutan preferensi pasangan
+_cipher_ untuk semua pengguna Go.**
+Walau `Config.CipherSuites` masih mengontrol pasangan _cipher_ yang digunakan
+pada TLS 1.0-1.2, ia tidak digunakan untuk pengurutan,
+dan `Config.PreferServerCipherSuites` diindahkan.
+Paket `crypto/tls`
+https://golang.org/cl/314609[membuat keputusan pengurutan]
+berdasarkan ketersediaan pasangan _cipher_, perangkat keras, dan dugaan
+kapabilitas perangkat keras pada sisi remote.
+https://cs.opensource.google/go/go/+/9d0819b27ca248f9949e7cf6bf7cb9fe7cf574e8:src/crypto/tls/cipher_suites.go;l=206-270[Logika
+pengurutan TLS 1.0-1.2^]
+yang digunakan sekarang mengikuti aturan-aturan berikut:
+
+. ECDHE diprioritaskan dibandingkan pertukaran kunci RSA statis.
++
+Properti paling penting dari pasangan _cipher_ adalah kerahasiaan.
+Kita tidak mengimplementasikan Diffie-Hellman "klasik", karena ia kompleks,
+lambat, lemah, dan
+https://datatracker.ietf.org/doc/draft-bartle-tls-deprecate-ffdh[rusak]
+pada TLS 1.0-1.2,
+artinya kita memprioritaskan pertukaran kunci Elliptic Curve Diffie-Hellman
+dibandingkan pertukaran kunci RSA statis lama.
+(pertukaran kunci RSA mengenkripsi rahasia koneksi menggunakan kunci publik
+dari sertifikat, membuatnya bisa didekripsi bila sertifikat bocor di masa
+depan.)
+
+. Mode AEAD lebih prioritas dibandingkan CBC untuk enkripsi.
++
+Walaupun kita mengimplementasikan penanggulangan untuk Lucky13,
+https://golang.org/cl/18130[kontribusi pertama Vilipo^]
+pada pustaka standar di tahun 2015,
+pasangan CBC
+https://blog.cloudflare.com/yet-another-padding-oracle-in-openssl-cbc-ciphersuites/[sangat sukar^]
+diimplementasikan secara benar,
+sehingga kita memilih AES-GCM dan ChaCha20Poly1305.
+
+. 3DES, CBC-SHA256, dan RC4 hanya digunakan bila tidak ada lagi yang tersedia,
+  sesuai dengan urutan tersebut.
++
+3DES memiliki blok 64-bit, yang membuatnya rentan terhadap
+https://sweet32.info[serangan _birthday_^]
+bila trafik-nya cukup tinggi.
+3DES termasuk ke dalam
+https://pkg.go.dev/crypto/tls#InsecureCipherSuites[pasangan _cipher_ tidak aman^],
+namun tetap diaktifkan untuk kompatibilitas.
+(Salah satu kelebihan dari mengontrol aturan preferensi yaitu kita dapat tetap
+mengaktifkan pasangan _cipher_ yang tidak aman tanpa perlu khawatir tentang
+aplikasi atau klien memilihnya kecuali sebagai pilihan terakhir.
+Hal ini aman karena tidak ada serangan _downgrade_ yang bergantung pada
+ketersediaan dari pasangan _cipher_ yang lemah untuk menyerang
+komunikasi yang mendukung alternatif yang lebih baik.)
++
+Pasangan _cipher_ CBC rentan terhadap serangan _Lucky13 side channel_
+dan kita hanya mengimplementasi sebagian dari penanggulangan
+https://www.imperialviolet.org/2013/02/04/luckythirteen.html[kompleks^]
+seperti yang didiskusikan di atas untuk _hash_ SHA-1, tidak untuk SHA-256.
+Pasangan CBC-SHA1 memiliki kelebihan kompatibilitas, namun kompleks,
+dibandingkan CBC-SHA256, sehingga mereka tidak diaktifkan secara bawaan.
++
+RC4 secara praktik memiliki
+https://www.rc4nomore.com[bias eksploit^]
+yang bisa mengakibatkan pembacaan _plaintext_ tanpa _side channel_.
+Sehingga RC4 tidak diaktifkan secara bawaan.
+
+. ChaCha20Poly1305 diprioritaskan dibandingkan AES-GCM untuk enkripsi, kecuali
+  bila kedua sisi memiliki dukungan perangkat keras.
++
+Seperti yang kita diskusikan sebelumnya, AES-GCM sangat sukar
+diimplementasikan secara efisien dan aman tanpa dukungan perangkat keras.
+Jika kita mendeteksi tidak ada perangkat keras yang mendukung (pada
+peladen) atau klien tidak memprioritaskan AES-GCM, kita akan memilih
+ChaCha20Poly1305.
+
+. AES-128 is preferred over AES-256 for encryption.
++
+AES-256 memiliki kunci yang lebih besar dari AES-128, namun melakukan
+pemanggilan ke lebih banyak fungsi enkripsi, membuatnya lambat.
+(Tambahan pemanggilan fungsi pada AES-256 bergantung pada ukuran kunci;
+hal ini untuk menyediakan margin yang lebih luas terhadap _cryptanalysis_.)
+Kunci yang besar hanya berguna bila digunakan pada pengaturan dengan banyak
+user dan _post-quantum_, yang tidak berhubungan dengan TLS, yang membangkitkan
+cukup IV acak dan tidak memiliki dukungan pertukaran kunci _post-quantum_.
+Secara besar kunci tidak memiliki keuntungan tambahan, kita lebih memilih
+AES-128 untuk performa lebih cepat.
+
+
+https://cs.opensource.google/go/go/+/9d0819b27ca248f9949e7cf6bf7cb9fe7cf574e8:src/crypto/tls/cipher_suites.go;l=342-355[Logika pengurutan TLS 1.3^]
+hanya membutuhkan dua aturan terakhir, karena TLS 1.3 mengeliminasi
+algoritma-algoritma bermasalah yang dijaga oleh ketiga aturan pertama di atas.
+
+==  Pertanyaan yang sering diajukan
+
+_Bagaimana bila pasangan cipher ternyata bermasalah?_
+Seperti kerentanan lainnya, ia akan diperbaiki pada rilis keamanan untuk semua
+versi Go yang didukung.
+Semua aplikasi harus siap menerapkan perbaikan keamanan supaya beroperasi
+dengan aman.
+Secara historis, pasangan _cipher_ yang bermasalah sangat jarang.
+
+_Kenapa tetap membuat TLS 1.0-1.2 dapat dikonfigurasi?_
+Ada kelebihan dan kekurangan antara _tetap_ aman dan menjaga kompatibilitas
+untuk tetap memilih pasangan _cipher_ yang digunakan, dan hal ini merupakan
+pilihan yang tidak dapat kita lakukan sendiri tanpa meninggalkan sebagian
+ekosistem atau mengurangi jaminan keamanan bagi pengguna baru.
+
+_Kenapa tidak membuat pasangan cipher TLS 1.3 dapat dikonfigurasi?_
+Sebaliknya, tidak ada kelebihan atau kekurangan pada TLS 1.3,
+karena semua pasangan _cipher_-nya menyediakan keamanan yang kuat.
+Hal ini membuat kita dapat mengaktifkan semuanya dan memilih yang tercepat
+berdasarkan koneksi tertentu tanpa membutuhkan bantuan pengembang.
+
+
+== Poin-poin utama
+
+Mulai dari Go 1.17, `crypto/tls` mengambil alih urutan pasangan _cipher_ yang
+dipilih.
+Dengan secara berkala memperbarui versi Go, hal ini lebih aman daripada
+membuat klien yang tidak diperbarui memilihnya,
+membuat kita dapat optimisasi performa, dan mengurangi kompleksitas bagi
+pengembang Go.
+
+Hal ini konsisten dengan filosofi umum kita yaitu membuat pemilihan
+kriptografi kapan pun kita mau, bukan mendelegasikannya pada pengembang,
+dan dengan
+https://golang.org/design/cryptography-principles[Prinsip-prinsip kriptografi^]
+kita.
+Semoga pustaka-pustaka TLS lain akan mengadopsi perubahan yang sama, membuat
+konfigurasi pasangan _cipher_ yang rumit menjadi sejarah di masa lalu.
