@@ -8,6 +8,7 @@ package main
 
 import (
 	"git.sr.ht/~shulhan/ciigo"
+	"github.com/shuLhan/share/lib/memfs"
 )
 
 func main() {
@@ -16,9 +17,11 @@ func main() {
 			Root:         "_content",
 			HtmlTemplate: "_content/html.tmpl",
 		},
-		PackageName: "main",
-		VarName:     "memFS",
-		GoFileName:  "cmd/www-golangid/static.go",
+		EmbedOptions: memfs.EmbedOptions{
+			PackageName: "main",
+			VarName:     "memFS",
+			GoFileName:  "cmd/www-golangid/static.go",
+		},
 	}
 	ciigo.GoEmbed(opts)
 }

@@ -1990,7 +1990,7 @@ dalam
 jika variabel tersebut tidak pernah digunakan.
 
 
-[##Short_variable_declarations]
+[#Short_variable_declarations]
 ===  Deklarasi variabel singkat
 
 _Deklarasi variabel singkat_ menggunakan sintaks:
