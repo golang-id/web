@@ -66,12 +66,6 @@ baca artikel blog link:/blog[lainnya^].
 Temukan Go modul yang dibuat oleh komunitas.
 
 
-==  link:/wicara[Wicara^]
-
-Halaman ini berisi _podcast_ dan video tentang Go yang dibawakan oleh
-komunitas Go Indonesia.
-
-
 ==  Acara
 
 ===  https://www.meetup.com/GoJakarta/[Jakarta^]
