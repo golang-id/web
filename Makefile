@@ -1,4 +1,6 @@
-.PHONY: clean all embed build build-deploy deploy
+.PHONY: all clean embed build install dev deploy
+.PHONY: install-local install-local-macos
+.PHONY: deploy-local deploy-vm
 
 MACOS_SERVICE=local.golangid
 PROGRAM_NAME=www-golangid
@@ -19,8 +21,8 @@ build: embed
 install: embed
 	go install ./cmd/$(PROGRAM_NAME)
 
-serve:
-	DEBUG=1 go run ./cmd/$(PROGRAM_NAME)
+dev:
+	go run ./cmd/$(PROGRAM_NAME) -dev
 
 deploy: build-deploy
 	rsync --progress ./$(PROGRAM_NAME) www-golangid:/data/app/bin/

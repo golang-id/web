@@ -46,7 +46,8 @@ func main() {
 		err        error
 	)
 
-	flag.StringVar(&listenAddr, `http`, defListenAddr, `Alamat peladen HTTP`)
+	flag.BoolVar(&serveOpts.IsDevelopment, `dev`, false, `Jalankan mode pengembangan.`)
+	flag.StringVar(&listenAddr, `http`, defListenAddr, `Alamat peladen HTTP.`)
 	flag.Parse()
 
 	cmd = flag.Arg(0)
