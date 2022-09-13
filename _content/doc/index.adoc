@@ -1,4 +1,6 @@
 =  Dokumentasi
+:toc:
+:sectanchors:
 
 Bahasa pemrograman Go adalah proyek _open source_ untuk menjadikan pemrograman
 lebih produktif.
@@ -31,6 +33,13 @@ Mempelajari secara singkat tentang kode, perkakas, paket, dan modul pada Go.
 
 Sebuah tutorial tentang topik-topik singkat yang memperkenalkan fungsi,
 penanganan eror, array, map, unit tes, dan mengompilasi.
+
+[#workspaces]
+===  link:/doc/tutorial/workspaces/[Tutorial: Bekerja dengan banyak modul^]
+
+Pengenalan tentang konsep dasar membuat dan menggunakan ruang kerja
+(_workspace_) dengan banyak modul.
+_Workspace_ berguna untuk melakukan perubahan di antara beberapa modul.
 
 [#writing-web-applications]
 ===  link:/doc/articles/wiki[Menulis aplikasi web^]

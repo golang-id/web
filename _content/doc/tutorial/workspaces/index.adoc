@@ -1,0 +1,333 @@
+= Tutorial: Bekerja dengan banyak modul
+:toc:
+:sectanchors:
+
+Tutorial ini memperkenalkan konsep dasar _workspace_.
+Dengan _workspace_, kita dapat memberitahu perintah Go bahwa kita sedang
+menulis kode untuk beberapa modul secara bersamaan dan dengan mudah membangun
+dan menjalankan kode dalam modul-modul tersebut.
+
+Dalam tutorial ini kita akan membuat dua buah modul dalam sebuah _workspace_,
+melakukan perubahan pada satu modul, dan menggunakan perubahan tersebut dalam
+modul lainnya.
+
+NOTE: Untuk tutorial lainnya, lihat
+link:/doc/tutorial/index.html[Daftar tutorial^].
+
+
+== Kebutuhan awal
+
+*  Go 1.18 (atau terbaru) yang telah terpasang.
+   Untuk mendapatkan versi Go yang terbaru silakan unduh di
+   https://go.dev/dl[go.dev/dl^].
+*  Sebuah alat untuk menyunting kode.
+*  Sebuah terminal.
+   Go bekerja dengan baik di terminal mana pun di Linux dan Mac, bahkan
+   PowerShell atau cmd pada Windows.
+
+
+[#create_folder]
+==  Buat sebuah modul untuk kode Anda
+
+Untuk memulai, buatlah sebuah modul untuk kode yang akan kita tulis nanti.
+
+. Bukalah terminal dan pindah ke direktori pengguna Anda,
++
+--
+Pada Linux or Mac:
+
+----
+$ cd
+----
+
+Pada Windows:
+
+----
+C:\> cd %HOMEPATH%
+----
+
+Perintah selanjutnya pada tutorial ini akan menggunakan `$` sebagai tanda
+eksekusi pada terminal.
+Perintah yang anda eksekusi juga akan berjalan di Windows.
+--
+
+. Dari terminal, buatlah sebuah direktori untuk kode Anda bernama workspace,
++
+--
+----
+$ mkdir workspace
+$ cd workspace
+----
+--
+
+. Inisiasi modul
++
+--
+Dalam contoh ini kita buat sebuah modul baru `hello` yang bergantung pada
+modul golang.org/x/example.
+
+Buatlah modul hello:
+
+----
+$ mkdir hello
+$ cd hello
+$ go mod init example.com/hello
+go: creating new go.mod: module example.com/hello
+----
+
+Tambahkan dependensi golang.org/x/example dengan menggunakan `go get`,
+
+----
+$ go get golang.org/x/example
+----
+
+Buat hello.go dalam direktori hello dengan isi sebagai berikut:
+
+----
+package main
+
+import (
+	"fmt"
+
+	"golang.org/x/example/stringutil"
+)
+
+func main() {
+	fmt.Println(stringutil.Reverse("Hello"))
+}
+----
+
+Kemudian jalankan program `hello`:
+
+----
+$ go run example.com/hello
+olleH
+----
+--
+
+[#create-the-workspace]
+== Buat _workspace_
+
+Pada langkan ini, kita akan membuat berkas `go.work` untuk menentukan ruang
+kerja untuk modul.
+
+[#initialize-the-workspace]
+===  Inisiasi _workspace_
+
+Dalam direktori `workspace`, jalankan:
+
+----
+$ go work init ./hello
+----
+
+Perintah `go work init` memberitahu `go` untuk membuat berkas `go.work` untuk
+ruang kerja yang berisi modul `hello`.
+
+Bentuk isi dari berkas `go.work` sebagai berikut:
+
+----
+go 1.18
+
+use ./hello
+----
+
+Berkas `go.work` memiliki sintaks yang mirip dengan `go.mod`.
+
+Baris direktif `go` memberitahu perkakas go versi yang akan digunakan oleh
+_workspace_.
+Mirip dengan direktif `go` pada berkas `go.mod`.
+
+Direktif `use` memberitahu perkakas Go bahwa modul pada direktori `hello`
+adalah modul utama saat melakukan pembangunan.
+
+Jadi, setiap sub-direktori dalam `workspace`, akan dianggap sebagai modul yang
+aktif.
+
+===  Jalankan program dari direktori _workspace_
+
+Dalam direktori `workspace`, jalankan:
+
+----
+$ go run example.com/hello
+olleH
+----
+
+Perintah `go run` mengikutkan semua modul dalam _workspace_ sebagai modul
+utama.
+Hal ini membolehkan kita mengacu paket dalam modul, bahkan di luar modul.
+Menjalankan perintah `go run`, di luar modul atau _workspace_ akan
+mengakibatkan eror karena perintah `go` tidak tahu modul mana yang akan
+digunakan.
+
+Selanjutnya, kita akan menambahkan salinan dari modul `golang.org/x/example`
+ke dalam _workspace_.
+Kemudian kita akan tambahkan fungsi baru ke dalam paket `stringutil` yang
+dapat kita gunakan selain `Reverse`.
+
+
+[#download-and-modify-the-golangorgxexample-module]
+==  Unduh dan ubah modul `golang.org/x/example`
+
+Pada langkah ini, kita akan mengunduh salinan dari modul
+`golang.org/x/example`, menambahkan-nya ke dalam _workspace_, dan kemudian
+menambahkan fungsi baru yang digunakan oleh program hello nantinya.
+
+
+. Salin repositori
++
+--
+Dari dalam direktori _workspace_, jalankan perintah `git` untuk menyalin
+repositori:
+
+----
+$ git clone https://go.googlesource.com/example
+Cloning into 'example'...
+remote: Total 165 (delta 27), reused 165 (delta 27)
+Receiving objects: 100% (165/165), 434.18 KiB | 1022.00 KiB/s, done.
+Resolving deltas: 100% (27/27), done.
+----
+--
+
+. Tambahkan modul tersebut ke _workspace_
++
+--
+----
+$ go work use ./example
+----
+
+Perintah `go work use` menambahkan modul baru ke dalam berkas go.work.
+Berkas tersebut akan berisi,
+
+----
+go 1.18
+
+use (
+	./hello
+	./example
+)
+----
+
+Ruang kerja (_workspace_) sekarang berisi modul `example.com/hello` dan modul
+`golang.org/x/example`.
+
+Hal ini membolehkan kita menambahkan atau mengubah kode dalam modul
+`golang.org/x/example` bukan lagi menggunakan versi yang di simpan dalam
+tembolok yang kita unduh lewat perintah `go get`.
+--
+
+. Tambahkan fungsi baru.
++
+--
+Dalam langkah ini kita akan menambahkan fungsi baru ke dalam paket
+`golang.org/x/example/stringutil`.
+
+Buat sebuah berkas baru `toupper.go` dalam direktori
+`workspace/example/stringutil` yang berisi sebagai berikut:
+
+----
+package stringutil
+
+import "unicode"
+
+// ToUpper uppercases all the runes in its argument string.
+func ToUpper(s string) string {
+	r := []rune(s)
+	for i := range r {
+		r[i] = unicode.ToUpper(r[i])
+	}
+	return string(r)
+}
+----
+--
+
+. Ubah program hello supaya menggunakan fungsi tersebut.
++
+--
+Ubah isi dari `workspace/hello/hello.go` supaya berisi sebagai berikut:
+
+----
+package main
+
+import (
+	"fmt"
+
+	"golang.org/x/example/stringutil"
+)
+
+func main() {
+	fmt.Println(stringutil.ToUpper("Hello"))
+}
+----
+--
+
+===  Jalankan kembali kode dalam _workspace_
+
+Dari dalam direktori _workspace_, jalankan,
+
+----
+$ go run example.com/hello
+HELLO
+----
+
+Perintah Go menemukan modul `example.com/hello` di dalam direktori `hello`
+yang ditentukan oleh berkas `go.work`, dan dengan cara yang sama menemukan
+impor `golang.org/x/example` lewat berkas `go.work`.
+
+Berkas `go.work` dapat digunakan sebagai pengganti direktif
+link:/ref/mod#go-mod-file-replace[`replace`^]
+untuk bekerja dengan banyak modul.
+
+Secara dua modul tersebut berada dalam ruang kerja yang sama, akan mudah untuk
+membuat perubahan pada satu modul dan menggunakan-nya di modul yang lain.
+
+=== Langkah selanjutnya
+
+Sekarang, untuk merilis modul `hello` kita harus merilis module
+`golang.org/x/example` terlebih dahulu, misalnya `v0.1.0`.
+Hal ini biasanya dilakukan dengan membuat tag pada komit tertentu pada
+modul repositori.
+Lihat
+link:/doc/modules/release-workflow/[dokumentasi alur kerja rilis modul^].
+Saat modul telah dirilis, kita dapat meningkatkan versi yang dibutuhkan pada
+dalam `hello/go.mod`:
+
+----
+cd hello
+go get golang.org/x/example@v0.1.0
+----
+
+Dengan cara ini, perintah `go` dapat menggunakan versi terbaru, yang telah
+diubah, dari `golang.org/x/example` di luar _workspace_.
+
+
+[#learn-more-about-workspaces]
+==  Pelajari lebih lanjut tentang _workspace_
+
+Perintah `go` memiliki beberapa sub-perintah untuk _workspace_ selain `go work
+init`:
+
+* `go work use [-r] [dir]`.
++
+--
+Tambahkan direktif `use` ke dalam berkas `go.work` untuk direktori `dir` jika
+ia ada, atau hapus direktif `use` jika direktori tersebut tidak ada.
+Opsi `-r` memeriksa sub-direktori dari `dir` secara rekursif.
+--
+
+* `go work edit`
++
+--
+Sunting berkas `go.work`, mirip dengan `go mod edit`.
+--
+
+* `go work sync`
++
+--
+Sinkronisasi dependensi dari daftar modul dalam _workspace_ ke dalam setiap
+modul dalam _workspace_.
+--
+
+Lihat
+link:/ref/mod#workspaces[Workspace^]
+dalam Referensi Go Modul untuk lebih rinci tentang ruang kerja dan berkas
+`go.work`.
