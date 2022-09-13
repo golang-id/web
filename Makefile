@@ -1,4 +1,4 @@
-.PHONY: clean all generate build build-deploy deploy
+.PHONY: clean all embed build build-deploy deploy
 
 MACOS_SERVICE=local.golangid
 PROGRAM_NAME=www-golangid
@@ -10,13 +10,13 @@ clean:
 	rm -f ./$(PROGRAM_NAME)
 	find ./content -name "*.html" -delete
 
-generate:
-	go generate
+embed:
+	go run ./cmd/www-golangid embed
 
-build: generate
+build: embed
 	go build ./cmd/$(PROGRAM_NAME)
 
-install: generate
+install: embed
 	go install ./cmd/$(PROGRAM_NAME)
 
 serve:
@@ -25,7 +25,7 @@ serve:
 deploy: build-deploy
 	rsync --progress ./$(PROGRAM_NAME) www-golangid:/data/app/bin/
 
-build-deploy: generate
+build-deploy: embed
 	unset CGO_ENABLED; \
 	GOOS=linux GOARCH=amd64 go build ./cmd/$(PROGRAM_NAME)
 

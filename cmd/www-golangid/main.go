@@ -14,21 +14,50 @@ import (
 
 var memFS *memfs.MemFS
 
+const (
+	cmdEmbed = `embed`
+
+	dirRoot      = `_content`
+	htmlTemplate = `_content/html.tmpl`
+	listenAddr   = `127.0.0.1:`
+)
+
 func main() {
-	var port string
+	var (
+		convertOpts = ciigo.ConvertOptions{
+			Root:         dirRoot,
+			HtmlTemplate: htmlTemplate,
+		}
+		embedOpts = &ciigo.EmbedOptions{
+			ConvertOptions: convertOpts,
+			EmbedOptions: memfs.EmbedOptions{
+				PackageName: `main`,
+				VarName:     `memFS`,
+				GoFileName:  `cmd/www-golangid/static.go`,
+			},
+		}
+		serveOpts = &ciigo.ServeOptions{
+			ConvertOptions: convertOpts,
+			Mfs:            memFS,
+		}
+
+		cmd  string
+		port string
+		err  error
+	)
 
 	flag.StringVar(&port, "port", "5000", "HTTP port server")
 	flag.Parse()
 
-	serveOpts := &ciigo.ServeOptions{
-		ConvertOptions: ciigo.ConvertOptions{
-			Root:         "_content",
-			HtmlTemplate: "_content/html.tmpl",
-		},
-		Address: "127.0.0.1:" + port,
-		Mfs:     memFS,
+	cmd = flag.Arg(0)
+
+	switch cmd {
+	case cmdEmbed:
+		err = ciigo.GoEmbed(embedOpts)
+	default:
+		serveOpts.Address = listenAddr + port
+		err = ciigo.Serve(serveOpts)
 	}
-	err := ciigo.Serve(serveOpts)
 	if err != nil {
 		log.Fatal(err)
 	}
