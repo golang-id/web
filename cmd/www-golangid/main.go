@@ -17,9 +17,9 @@ var memFS *memfs.MemFS
 const (
 	cmdEmbed = `embed`
 
-	dirRoot      = `_content`
-	htmlTemplate = `_content/html.tmpl`
-	listenAddr   = `127.0.0.1:`
+	dirRoot       = `_content`
+	htmlTemplate  = `_content/html.tmpl`
+	defListenAddr = `127.0.0.1:5000`
 )
 
 func main() {
@@ -41,12 +41,12 @@ func main() {
 			Mfs:            memFS,
 		}
 
-		cmd  string
-		port string
-		err  error
+		cmd        string
+		listenAddr string
+		err        error
 	)
 
-	flag.StringVar(&port, "port", "5000", "HTTP port server")
+	flag.StringVar(&listenAddr, `http`, defListenAddr, `Alamat peladen HTTP`)
 	flag.Parse()
 
 	cmd = flag.Arg(0)
@@ -55,7 +55,7 @@ func main() {
 	case cmdEmbed:
 		err = ciigo.GoEmbed(embedOpts)
 	default:
-		serveOpts.Address = listenAddr + port
+		serveOpts.Address = listenAddr
 		err = ciigo.Serve(serveOpts)
 	}
 	if err != nil {

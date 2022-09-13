@@ -20,7 +20,7 @@ install: embed
 	go install ./cmd/$(PROGRAM_NAME)
 
 serve:
-	DEBUG=1 go run ./cmd/$(PROGRAM_NAME) -port=5080
+	DEBUG=1 go run ./cmd/$(PROGRAM_NAME)
 
 deploy: build-deploy
 	rsync --progress ./$(PROGRAM_NAME) www-golangid:/data/app/bin/
