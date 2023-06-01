@@ -25,7 +25,7 @@ dev:
 	go run ./cmd/$(PROGRAM_NAME) -dev
 
 deploy: build-deploy
-	rsync --progress ./$(PROGRAM_NAME) www-golangid:/data/app/bin/
+	rsync --progress ./$(PROGRAM_NAME) golang-id.org:/data/app/bin/
 
 build-deploy: embed
 	unset CGO_ENABLED; \
