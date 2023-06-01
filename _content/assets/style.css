@@ -1,6 +1,6 @@
 body {
 	margin: 0;
-	font-family: Arial, sans-serif;
+	font-family: 'Go', Arial, sans-serif;
 	background-color: #fff;
 	line-height: 1.3;
 	text-align: center;
@@ -8,7 +8,7 @@ body {
 }
 pre,
 code {
-	font-family: Menlo, monospace;
+	font-family: 'Go Mono', Menlo, monospace;
 	font-size: 0.875rem;
 }
 pre {
