@@ -127,9 +127,9 @@ MSI yang mengkonfigurasi instalasi Anda secara otomatis.
 ====  Pemasangan MSI
 
 Buka {go-dl}[berkas MSI] dan ikuti perintah untuk memasang perkakas Go.
-Secara standar, paket tersebut memasang distribusi Go di `c:\Go`.
+Secara standar, paket tersebut memasang distribusi Go di `c:\\Go`.
 
-Paket seharusnya menyimpan direktori `c:\Go\bin` dalam variabel lingkungan
+Paket seharusnya menyimpan direktori `c:\\Go\\bin` dalam variabel lingkungan
 `PATH` Anda secara otomatis.
 Anda perlu membuka ulang _command prompt_ supaya perubahan langsung
 diterapkan.
@@ -137,9 +137,9 @@ diterapkan.
 ====  Arsip zip
 
 {go-dl}[Unduh berkas zip] dan ekstrak ke direktori yang Anda pilih (kami
-menyarankan `c:\Go`).
+menyarankan `c:\\Go`).
 
-Tambahkan sub-direktori `bin` dari Go (misalnya, `c:\Go\bin`) ke dalam
+Tambahkan sub-direktori `bin` dari Go (misalnya, `c:\\Go\\bin`) ke dalam
 variabel lingkungan `PATH` Anda.
 
 
@@ -224,7 +224,7 @@ biner `goX.Y.Z`.
 
 Untuk menghapus Go dari sistem Anda, hapus direktori `go`.
 Pada Linux, macOS, dan FreeBSD, direktori tersebut ada di `/usr/local/go`,
-pada Windows ada di `c:\Go`.
+pada Windows ada di `c:\\Go`.
 
 Anda sebaiknya juga menghapus direktori Go `bin` dari variabel lingkungan
 `PATH` Anda.
