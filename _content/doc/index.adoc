@@ -18,7 +18,7 @@ dinamis.
 ==  Memulai dari awal
 
 [#installing]
-===  link:/doc/install[Memasang Go^]
+===  link:/doc/install/[Memasang Go^]
 
 Instruksi untuk mengunduh dan memasang Go.
 
@@ -42,7 +42,7 @@ Pengenalan tentang konsep dasar membuat dan menggunakan ruang kerja
 _Workspace_ berguna untuk melakukan perubahan di antara beberapa modul.
 
 [#writing-web-applications]
-===  link:/doc/articles/wiki[Menulis aplikasi web^]
+===  link:/doc/articles/wiki/[Menulis aplikasi web^]
 
 Membuat sebuah aplikasi web yang sederhana.
 
@@ -117,16 +117,16 @@ Dokumentasi untuk pustaka bawaan Go.
 
 Dokumentasi untuk perkakas Go.
 
-===  link:/ref/spec[Spesifikasi Bahasa^]
+===  link:/ref/spec/[Spesifikasi Bahasa^]
 
 Spesifikasi bahasa Go yang resmi.
 
-===  link:/ref/mem[Model memori pada Go^]
+===  link:/ref/mem/[Model memori pada Go^]
 
 Sebuah dokumen yang menspesifikasikan kondisi-kondisi di mana pembacaan sebuah
 variabel pada sebuah goroutine dapat dijamin mengobservasi nilai yang
 dihasilkan oleh penulisan ke variabel yang sama dalam goroutine yang berbeda.
 
-===  link:/proposal[Proposal^]
+===  link:/proposal/[Proposal^]
 
 Dokumentasi proposal perubahan pada bahasa Go dalam Bahasa Inggris.

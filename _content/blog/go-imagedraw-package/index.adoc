@@ -260,4 +260,4 @@ untuk mendukung aplikasi-aplikasi tertentu.
 
 ==  Artikel Terkait
 
-*  link:/blog/go-image-package[Paket image pada Go^]
+*  link:/blog/go-image-package/[Paket image pada Go^]

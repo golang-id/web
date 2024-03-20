@@ -7,7 +7,7 @@
 
 Dokumen ini mendemonstrasikan cara membuat sebuah paket Go yang sederhana dan
 memperkenalkan perkakas
-link:/cmd/go[go^],
+link:/cmd/go/[go^],
 cara standar untuk mengambil,
 membuat, dan memasang paket-paket dan program Go.
 
@@ -129,7 +129,7 @@ $ export GOPATH=$(go env GOPATH)
 ----
 
 Untuk belajar lebih lanjut tentang variabel lingkungan `GOPATH`, lihat
-link:/cmd/go#hdr-GOPATH_environment_variable[go help gopath^].
+link:/cmd/go/#hdr-GOPATH_environment_variable[go help gopath^].
 
 //}}}
 
@@ -429,7 +429,7 @@ ok  	github.com/user/stringutil 0.165s
 ----
 
 Jalankan
-link:/cmd/go#hdr-Test_packages[`go help test`^]
+link:/cmd/go/#hdr-Test_packages[`go help test`^]
 dan lihat
 https://pkg.go.dev/testing/[dokumentasi dari paket testing^]
 untuk belajar lebih lanjut.
@@ -500,7 +500,7 @@ menyediakan daftar proyek dan paket eksternal dari Go.
 
 Untuk informasi lebih lanjut tentang menggunakan repositori luar dengan
 perkakas `go`, lihatlah
-link:/cmd/go#hdr-Remote_import_paths[`go help importpath`^].
+link:/cmd/go/#hdr-Remote_import_paths[`go help importpath`^].
 
 //}}}
 

@@ -46,9 +46,9 @@ type error interface {
 ----
 
 Tipe `error`, seperti halnya dengan tipe-tipe bawaan lainnya, telah
-link:/ref/spec#Predeclared_identifiers[dideklarasikan^]
+link:/ref/spec/#Predeclared_identifiers[dideklarasikan^]
 dalam
-link:/ref/spec#Blocks[blok universal^].
+link:/ref/spec/#Blocks[blok universal^].
 
 Implementasi `error` yang paling sering digunakan yaitu tipe `errorString`
 dari paket
@@ -143,7 +143,7 @@ func (f NegativeSqrtError) Error() string {
 ----
 
 Pemanggil kemudian dapat menggunakan
-link:/ref/spec#Type_assertions[tipe _assertion_^]
+link:/ref/spec/#Type_assertions[tipe _assertion_^]
 untuk memeriksa apakah
 error adalah sebuah `NegativeSqrtError` dan melakukan penanganan secara
 khusus, sementara itu pengguna fungsi `Sqrt()` yang menangani nilai error
@@ -341,7 +341,7 @@ type appHandler func(http.ResponseWriter, *http.Request) *appError
 (Biasanya adalah sebuah kesalahan mengembalikan tipe konkret dari sebuah
 `error` bukan sebuah nilai interface dari `error`, dengan alasan yang telah
 didiskusikan dalam
-link:/doc/faq#nil_error[Tanya Jawab Go^],
+link:/doc/faq/#nil_error[Tanya Jawab Go^],
 namun untuk saat ini adalah pengecualian dan tepat untuk dilakukan karena
 method `ServeHTTP` satu-satunya tempat yang tahu nilai dari `error` dan cara
 menggunakan isinya.)
@@ -401,7 +401,7 @@ Berikut beberapa ide:
    Hal-hal tersebut adalah cara yang bagus untuk menghindari menampilkan
    kesalahan yang disebabkan oleh pemrograman kepada _user_.
    Lihat artikel
-   link:/blog/defer_panic_recover[Defer Panic dan Recover^]
+   link:/blog/defer_panic_recover/[Defer Panic dan Recover^]
    untuk lebih jelas.
 
 

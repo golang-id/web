@@ -159,7 +159,7 @@ make install
 _Compiler_ gccgo bekerja seperti antar-muka gcc lainnya.
 Pada GCC 5, pemasangan gccgo mengikutkan versi dari perintah go, yang bisa
 digunakan untuk membangun program Go seperti yang dijelaskan di
-link:/cmd/go[Perintah Go^].
+link:/cmd/go/[Perintah Go^].
 
 Untuk mengompilasi sebuah berkas tanpa menggunakan perkakas `go`,
 ----
@@ -423,7 +423,7 @@ extern int go_function(int) __asm__ ("myprefix.mypackage.Function");
 Versi Go pada GCC mendukung pembangkit otomatis deklarasi Go dari kode C.
 Fasilitas ini sedikit aneh, dan pengguna pada umumnya sebaiknya menggunakan
 program
-link:/cmd/cgo[cgo^]
+link:/cmd/cgo/[cgo^]
 dengan opsi `-gccgo`.
 
 Kompilasi kode C Anda seperti biasa, dan tambahkan opsi

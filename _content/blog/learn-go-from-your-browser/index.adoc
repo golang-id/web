@@ -26,5 +26,5 @@ https://tour.golang-id.org/[Mulailah sekarang!^]
 
 ==  Artikel terkait
 
-*  link:/blog/playground[Membedah Go Playgound]
+*  link:/blog/playground/[Membedah Go Playgound]
 *  link:/blog/introducing-go-playground/[Memperkenalkan Go Playground]

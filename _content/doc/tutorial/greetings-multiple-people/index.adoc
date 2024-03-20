@@ -102,7 +102,7 @@ Dalam kode ini, kita:
   `make(map[tipe-key]tipe-nilai)`.
   Kita membuat fungsi `Hellos` untuk mengembalikan map tersebut ke pemanggil.
   Untuk informasi lebih lanjut tentang map lihat
-  link:/blog/maps[Cara kerja map pada Go].
+  link:/blog/maps/[Cara kerja map pada Go].
 * Melakukan pengulangan terhadap daftar nama yang diterima fungsi `Hellos`,
   memeriksa apakah nilainya tidak kosong, kemudian mengasosiasikan setiap
   pesan dengan nama yang dikirim.
@@ -170,11 +170,11 @@ Topik ini juga memperkenalkan ide tentang menjaga kompatibilitas dengan
 mengimplementasikan sebuah fungsi baru untuk fungsionalitas yang baru atau
 yang berubah dalam sebuah modul.
 Untuk informasi lebih lanjut tentang menjaga kompatibilitas, lihatlah
-link:/blog/module-compatibility[Menjaga modul tetap kompatibel].
+link:/blog/module-compatibility/[Menjaga modul tetap kompatibel].
 
 Selanjutnya, kita akan menggunakan fungsi bawaan Go untuk membuat sebuah unit
 tes dalam kode kita.
 
 Lanjut: link:/doc/tutorial/add-a-test/[Membuat sebuah tes]
 
-Sebelumnya: link:/doc/tutorial/randomg-greeting/[Mengambalikan salam acak]
+Sebelumnya: link:/doc/tutorial/random-greeting/[Mengembalikan salam acak]

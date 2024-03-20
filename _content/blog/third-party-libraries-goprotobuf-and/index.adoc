@@ -62,7 +62,7 @@ https://groups.google.com/group/golang-nuts[golang-nuts^].
 
 ==  Artikel terkait
 
-*  link:/blog/a-new-go-api-for-protocol-buffers[Go API baru untuk Protocol Buffers^],
-*  link:/blog/go1.15-proposals[Proposal untuk Go 1.15^],
-*  link:/blog/survey2019[Mengumumkan Survei Pengembang Go 2019^], 20 November
+*  link:/blog/a-new-go-api-for-protocol-buffers/[Go API baru untuk Protocol Buffers^],
+*  link:/blog/go1.15-proposals/[Proposal untuk Go 1.15^],
+*  link:/blog/survey2019/[Mengumumkan Survei Pengembang Go 2019^], 20 November
 

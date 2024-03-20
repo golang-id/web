@@ -148,7 +148,7 @@ require example.com/greetings v0.0.0-00010101000000-000000000000
 
 Perintah tersebut menemukan modul lokal dalam direktori "greetings", kemudian
 menambahkan
-link:/doc/modules/gomod-ref#require[direktif "require"]
+link:/doc/modules/gomod-ref/#require[direktif "require"]
 untuk menspesifikasikan bahwa "example.com/hello" membutuhkan
 "example.com/greetings".
 Kita memakai dependensi ini saat kita mengimpor paket "greetings" dalam
@@ -167,7 +167,7 @@ require example.com/greetings v1.1.0
 ----
 
 Untuk informasi lebih lanjut tentang angka versi, lihat
-link:/doc/modules/version-numbers[Angka versi pada modul].
+link:/doc/modules/version-numbers/[Angka versi pada modul].
 --
 --
 

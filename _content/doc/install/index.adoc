@@ -9,7 +9,7 @@
 
 Untuk cara pemasangan lainnya, Anda mungkin tertarik:
 
-* link:/doc/install/source[Memasang Go dari sumber] - Bagaimana cara mengambil
+* link:/doc/install/source/[Memasang Go dari sumber] - Bagaimana cara mengambil
   sumber kode, membangunnya pada mesin Anda, dan menjalankannya.
 
 

@@ -50,7 +50,7 @@ membuat pengembang merasa lebih nyaman bergantung pada Go untuk penggunaan di
 tingkat produksi dan salah satu alasan kunci bahwa Go sekarang menjadi
 terkenal.
 Sejak 2013,
-link:/doc/faq#get_version[Go FAQ^]
+link:/doc/faq/#get_version[Go FAQ^]
 telah mendukung para pengembang paket untuk menyediakan bagi pengguna mereka
 ekspektasi yang sama dari kompatibilitas.
 Kami menyebutnya dengan _aturan kompatibilitas impor_: "Jika sebuah paket lama

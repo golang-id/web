@@ -382,7 +382,7 @@ close(c)
 ----
 
 Menurut
-link:/ref/mem[Memori model pada Go^],
+link:/ref/mem/[Memori model pada Go^],
 pengiriman ke kanal terjadi sebelum penerimaan dari kanal selesai.
 Untuk sinkronisasi operasi kirim-dan-tutup, gunakan operasi penerimaan untuk
 menjamin bahwa pengiriman selesai sebelum operasi tutup dilakukan:

@@ -67,7 +67,7 @@ tertutup, fungsi-fungsi tersebut sebaiknya berhenti bekerja.
 Method `Err` mengembalikan sebuah `error` yang mengindikasikan kenapa
 `Context` tersebut dibatalkan.
 Artikel
-link:/blog/pipelines[_pipeline_ dan pembatalan]
+link:/blog/pipelines/[_pipeline_ dan pembatalan]
 mendiskusikan idiom dari kanal `Done` lebih detail.
 
 Sebuah `Context` _tidak_ memiliki method `Cancel` dengan alasan yang sama

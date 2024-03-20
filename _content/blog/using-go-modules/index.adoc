@@ -7,9 +7,9 @@
 Tulisan ini adalah bagian pertama dari sebuah seri.
 
 *  Bagian 1 - Menggunakan Go Modul (tulisan ini)
-*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul^]
-*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul^]
-*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya^]
+*  Bagian 2 - link:/blog/migrating-to-go-modules/[Migrasi ke Go Modul^]
+*  Bagian 3 - link:/blog/publishing-go-modules/[Menerbitkan Go Modul^]
+*  Bagian 4 - link:/blog/v2-go-modules/[Go Modul: v2 dan seterusnya^]
 
 Go 1.11 dan 1.12 mengikutkan
 https://golang.org/doc/go1.11#modules[dukungan awal untuk modul^],
@@ -19,7 +19,7 @@ Artikel ini adalah pengenalan dari operasi dasar yang dibutuhkan untuk memulai
 menggunakan modul.
 
 Sebuah modul adalah kumpulan dari
-link:/ref/spec#Packages[paket-paket Go^]
+link:/ref/spec/#Packages[paket-paket Go^]
 yang disimpan dalam sebuah pohon berkas dengan berkas `go.mod` di atasnya.
 Berkas `go.mod` mendefinisikan _module path_ dari modul, yang juga merupakan
 path impor yang digunakan pada direktori teratas, dan _kebutuhan dependensi_

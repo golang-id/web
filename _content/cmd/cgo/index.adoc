@@ -47,7 +47,7 @@ digabungkan.
 Direktif tersebut bisa mengikutkan daftar batasan pembangunan yang membatasi
 efek penggunaan cgo terhadap sistem yang memenuhi salah satu dari batasan
 tersebut (lihat
-link:/cmd/go#hdr-Build_constraints[Batasan-batasan pembangunan^]
+link:/cmd/go/#hdr-Build_constraints[Batasan-batasan pembangunan^]
 untuk detail tentang sintaksis batasan).
 Contohnya:
 

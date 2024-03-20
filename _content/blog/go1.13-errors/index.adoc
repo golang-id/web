@@ -8,7 +8,7 @@
 ==  Pendahuluan
 
 Perlakuan Go terhadap
-link:/blog/errors-are-values[error sebagai nilai^]
+link:/blog/errors-are-values/[error sebagai nilai^]
 telah melayani kita dengan baik selama dekade terakhir ini.
 Walaupun dukungan pustaka standar untuk error masih minimal--hanya fungsi
 `errors.New` dan `fmt.Errorf`, yang menghasilkan error yang berisi hanya sebuah

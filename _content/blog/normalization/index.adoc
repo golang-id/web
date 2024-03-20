@@ -6,7 +6,7 @@ Marcel van Lohuizen
 ==  Pendahuluan
 
 Pada
-link:/blog/strings[artikel^]
+link:/blog/strings/[artikel^]
 sebelumnya kita telah membahas tentang string, byte, dan karakter dalam Go.
 Saya telah bekerja dengan banyak paket-paket untuk pemrosesan teks
 multibahasa untuk repositori teks Go.
@@ -14,7 +14,7 @@ Beberapa paket tersebut layak memiliki artikel sendiri yang terpisah, tetapi
 sekarang saya ingin fokus pada
 https://pkg.go.dev/code.google.com/p/go.text/unicode/norm[go text/unicode/norm^]
 yang menangani normalisasi, topik yang disinggung dalam
-link:/blog/strings[artikel tentang string^]
+link:/blog/strings/[artikel tentang string^]
 dan subjek dari artikel ini.
 Normalisasi bekerja pada tingkat paling atas dari abstraksi bukan pada byte
 mentah.
@@ -370,4 +370,4 @@ waktu.
 
 == Artikel terkait
 
-* link:/blogs/strings[String, byte, rune, dan karakter dalam Go^]
+* link:/blogs/strings/[String, byte, rune, dan karakter dalam Go^]

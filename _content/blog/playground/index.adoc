@@ -5,7 +5,7 @@
 ==  Pendahuluan
 
 Pada bulan September 2010 kami
-link:/blog/introducing-go-playground[memperkenalkan Go Playground^],
+link:/blog/introducing-go-playground/[memperkenalkan Go Playground^],
 sebuah layanan web yang mengompilasi dan mengeksekusi kode Go dan
 menampilkan keluarannya.
 
@@ -22,7 +22,7 @@ Anda mungkin juga pernah pakai lewat tombol "Run" dalam salah satu presentasi
 di
 https://talks.golang.org/[talks.golang.org^]
 atau artikel dalam situs ini (seperti artikel tentang
-link:/blog/strings[String^]).
+link:/blog/strings/[String^]).
 
 Dalam artikel ini kita akan melihat bagaimana playground diimplementasikan dan
 diintegrasikan dengan layanan-layanan tersebut.
@@ -504,5 +504,5 @@ _sebuah kumpulan artikel blog harian sampai Desember._
 
 ==  Artikel terkait
 
-* link:/blog/learn-go-from-your-browser[Belajar Go lewat peramban Anda^]
-* link:/blog/introducing-go-playground[Memperkenalkan Go Playground^]
+* link:/blog/learn-go-from-your-browser/[Belajar Go lewat peramban Anda^]
+* link:/blog/introducing-go-playground/[Memperkenalkan Go Playground^]

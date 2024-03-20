@@ -6,9 +6,9 @@
 
 Tulisan ini adalah bagian ke 4 dari sebuah seri.
 
-*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul^]
-*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul^]
-*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul^]
+*  Bagian 1 - link:/blog/using-go-modules/[Menggunakan Go Modul^]
+*  Bagian 2 - link:/blog/migrating-to-go-modules/[Migrasi ke Go Modul^]
+*  Bagian 3 - link:/blog/publishing-go-modules/[Menerbitkan Go Modul^]
 *  Bagian 4 - Go Modul: v2 dan seterusnya (tulisan ini)
 
 Saat sebuah proyek semakin matang dan kebutuhan-kebutuhan yang baru terus

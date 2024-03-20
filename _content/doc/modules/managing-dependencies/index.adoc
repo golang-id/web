@@ -14,13 +14,13 @@ dependensi yang mungkin suatu saat nanti berguna.
 **Lihat juga**
 
 *  Jika Anda baru belajar tentang dependensi dengan modul, lihatlah
-   link:/doc/tutorial/getting-started[Tutorial: memulai dari awal^]
+   link:/doc/tutorial/getting-started/[Tutorial: memulai dari awal^]
    untuk pengenalan singkat.
 
 *  Menggunakan perintah `go` untuk mengatur dependensi modul memastikan
    kebutuhan Anda konsisten dan isi dari berkas go.mod selalu valid.
    Untuk referensi dari perintah tersebut, lihat
-   link:/cmd/go[Perintah go^].
+   link:/cmd/go/[Perintah go^].
    Anda juga bisa membaca bantuan lewat baris perintah dengan mengetikan `go
    help` _nama-perintah_, misalnya `go help mod tidy`.
 
@@ -156,7 +156,7 @@ yang diunduh, terutama untuk pengembang lain yang bekerja dalam proyek Anda.
 Masukan berkas go.mod dan go.sum ke dalam repositori berikut dengan kode Anda.
 
 Lihat
-link:/doc/modules/gomod-ref[referensi go.mod^]
+link:/doc/modules/gomod-ref/[referensi go.mod^]
 untuk informasi lebih lanjut.
 
 [#naming_module]

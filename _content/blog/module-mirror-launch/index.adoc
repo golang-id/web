@@ -28,7 +28,7 @@ Lihat wicara tersebut jika Anda tertarik melihat keseluruhan diskusi.
 
 ==  Modul _mirror_
 
-link:/blog/versioning-proposal[Modul^]
+link:/blog/versioning-proposal/[Modul^]
 adalah sekumpulan paket-paket Go yang diberi versi, dan isi dari setiap versi
 tersebut adalah _immutable_ (kekal).
 Sifat kekekalan tersebut membuatnya bisa di-_cache_ dan diautentikasi.
@@ -62,7 +62,7 @@ aslinya.
 Hal ini bisa mempercepat pengunduhan dan melindungi Anda dari dependensi yang
 hilang.
 Lihat
-link:/blog/modules2019[Go Modul di 2019^]
+link:/blog/modules2019/[Go Modul di 2019^]
 untuk informasi lebih lanjut.
 
 Tim Go menjaga sebuah modul _mirror_, di

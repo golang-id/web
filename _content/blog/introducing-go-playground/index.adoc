@@ -19,7 +19,7 @@ kami kompilasi dan jalankan di server kami.
 Ada beberapa contoh program untuk memulai (lihat pada bagian "Examples").
 Kami berharap bahwa fitur ini membuat pemrogram yang penasaran untuk dapat
 mencoba bahasa Go sebelum
-link:/doc/install[memasangnya],
+link:/doc/install/[memasangnya],
 dan memberikan tempat bereksperimen bagi pengguna Go yang berpengalaman.
 Selain halaman depan, fungsionalitas ini memiliki potensial untuk membuat
 materi referensi dan tutorial lebih menarik.
@@ -35,7 +35,7 @@ satu-satunya komunikasi antara program Anda dengan dunia luar hanyalah standar
 keluaran, dan juga ada batasan pemakaian CPU dan _memory_.
 Dengan ini, anggaplah Playground sebagai tempat merasakan indahnya dunia Go;
 untuk dapat merasakannya secara penuh Anda harus
-link:/doc/install[memasangnya sendiri di lokal].
+link:/doc/install/[memasangnya sendiri di lokal].
 Jika Anda pernah ingin mencoba Go namun belum sempat, kenapa tidak coba
 kunjungi
 https://golang.org[golang.org^]

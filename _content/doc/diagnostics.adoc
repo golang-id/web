@@ -126,7 +126,7 @@ https://valgrind.org/docs/manual/cl-manual.html[callgrind^]
 dari data profil menggunakan
 {link-google-pprof}[go tool pprof^].
 Bacalah
-link:/blog/profiling-go-programs[Profiling Go programs]
+link:/blog/profiling-go-programs/[Profiling Go programs]
 untuk melihat bagaimana cara melakukannya.
 
 .Daftar fungsi yang paling sering dipanggil dalam format teks
@@ -290,7 +290,7 @@ Pengguna Go umumnya menggunakan _debugger_ berikut:
    mendukung konsep _runtime_ dan tipe bawaan.
    Delve adalah _debugger_ yang kaya dengan fitur dan tepercaya.
 
-*  link:/doc/gdb[GDB]: GDB menyediakan dukungan Go lewat _compiler_ Go bawaan
+*  link:/doc/gdb/[GDB]: GDB menyediakan dukungan Go lewat _compiler_ Go bawaan
    dan `gccgo`.
    Manajemen _stack_, _thread_, dan _runtime_ memiliki aspek yang berbeda jauh
    dari model eksekusi yang diharapkan oleh GDB yang terkadang membingungkan

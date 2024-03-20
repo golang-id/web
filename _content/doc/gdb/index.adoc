@@ -179,7 +179,7 @@ dan lihatlah pada bagian `+.debug_*+`.
   Anda dapat membangkitkan informasi _debug_ tanpa kompresi dengan menggunakan
   `go build -ldflags=-compressdwarf=false`.
   (Supaya lebih gampang Anda dapat menyimpan opsi `-ldflags` dalam
-  link:/cmd/go#hdr-Environment_variables[variabel lingkungan GOFLAGS^]
+  link:/cmd/go/#hdr-Environment_variables[variabel lingkungan GOFLAGS^]
   supaya Anda tidak perlu mengulangi penulisannya lagi).
 
 

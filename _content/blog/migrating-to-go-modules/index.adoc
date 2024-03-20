@@ -6,10 +6,10 @@
 
 Tulisan ini adalah bagian ke 2 dari sebuah seri.
 
-*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul]
+*  Bagian 1 - link:/blog/using-go-modules/[Menggunakan Go Modul]
 *  Bagian 2 - Migrasi ke Go Modul (tulisan ini)
-*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul]
-*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya]
+*  Bagian 3 - link:/blog/publishing-go-modules/[Menerbitkan Go Modul]
+*  Bagian 4 - link:/blog/v2-go-modules/[Go Modul: v2 dan seterusnya]
 
 Proyek-proyek Go menggunakan beragam strategi manajemen dependensi.
 Perkakas
@@ -47,7 +47,7 @@ transisi ke Go modul:
 *  Proyek Go yang telah ada tanpa ada manajemen dependensi
 
 Kasus yang pertama telah diulas dalam
-link:/blog/using-go-modules[Menggunakan Go Modul];
+link:/blog/using-go-modules/[Menggunakan Go Modul];
 kita akan menelaah kedua kasus terakhir dalam artikel ini.
 
 
@@ -192,7 +192,7 @@ Tanpa adanya berkas konfigurasi dari manajemen dependensi lainnya,
 "go mod init" hanya akan membuat berkas "go.mod" yang berisi _directive_
 "module" dan "go".
 Dalam contoh ini, kita men-set path modul ke "golang.org/x/blog" karena itulah
-link:/cmd/go#hdr-Remote_import_paths[path impornya^].
+link:/cmd/go/#hdr-Remote_import_paths[path impornya^].
 Pengguna bisa mengimpor paket-paket dengan path tersebut, dan pemilik modul
 harus berhati-hati supaya tidak mengubahnya sewaktu-waktu.
 
@@ -319,7 +319,7 @@ yang signifikan, dan bisa saja menimbulkan permasalahan nantinya.
 Jika Anda sudah memiliki tag dengan versi, Anda harus meningkatkan
 https://semver.org/lang/id/spec/v2.0.0.html#spec-item-7[versi minor^].
 Lihat
-link:/blog/publishing-go-modules[Menerbitkan Go Modul]
+link:/blog/publishing-go-modules/[Menerbitkan Go Modul]
 untuk belajar bagaimana meningkatkan dan menerbitkan versi.
 
 
@@ -368,7 +368,7 @@ Proses mengonversi Go modul seharusnya mudah bagi kebanyakan pengguna.
 Masalah-masalah khusus bisa muncul disebabkan path impor yang tidak kanonis
 atau _breaking changes_ disebabkan karena dependensi.
 Artikel selanjutnya akan mengeksplorasi bagaimana
-link:/blog/publishing-go-modules[menerbitkan versi baru], v2 dan seterusnya,
+link:/blog/publishing-go-modules/[menerbitkan versi baru], v2 dan seterusnya,
 dan cara-cara untuk men-_debug_ situasi-situasi yang aneh.
 
 Bila ada tanggapan dan bantuan untuk membantu manajemen dependensi di Go,

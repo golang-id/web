@@ -4,17 +4,17 @@
 
 Tulisan ini adalah bagian ke 3 dari sebuah seri.
 
-*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul]
-*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul]
+*  Bagian 1 - link:/blog/using-go-modules/[Menggunakan Go Modul]
+*  Bagian 2 - link:/blog/migrating-to-go-modules/[Migrasi ke Go Modul]
 *  Bagian 3 - Menerbitkan Go Modul (tulisan ini)
-*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya]
+*  Bagian 4 - link:/blog/v2-go-modules/[Go Modul: v2 dan seterusnya]
 
 Artikel ini mendiskusikan bagaimana cara menulis dan menerbitkan modul supaya
 modul lain dapat menggunakannya.
 
 Catatan: artikel membahas pengembangan sampai ke v1 saja.
 Jika Anda ingin mengembangkan modul untuk v2, lihat
-link:/blog/v2-go-modules[Go Modul: v2 dan Seterusnya].
+link:/blog/v2-go-modules/[Go Modul: v2 dan Seterusnya].
 
 Artikel ini menggunakan
 https://git-scm.com/[Git^]
@@ -29,7 +29,7 @@ dan perkakas sistem kontrol versi lainnya juga didukung.
 Dalam artikel ini, Anda membutuhkan sebuah proyek yang sudah ada sebagai
 latihan.
 Jadi, mari kita mulai dengan berkas-berkas dari artikel
-link:/blog/using-go-modules[Menggunakan Go Modul]:
+link:/blog/using-go-modules/[Menggunakan Go Modul]:
 
 ----
 $ cat go.mod
@@ -159,7 +159,7 @@ Jika orang bergantung pada sebuah versi yang Anda hapus, maka pembangunan
 program mereka mungkin akan gagal.
 Hal yang sama, sekali Anda merilis sebuah versi, jangan pernah mengubah atau
 menimpanya.
-link:/blog/module-mirror-launch[Salinan modul dan basisdata _checksum_^]
+link:/blog/module-mirror-launch/[Salinan modul dan basisdata _checksum_^]
 menyimpan modul, versi, dan hash _cryptographic_ untuk memastikan
 bahwa pembangunan dari versi tersebut dapat direproduksi ulang terus menerus.
 

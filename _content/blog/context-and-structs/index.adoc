@@ -141,7 +141,7 @@ yang menerima `context.Context` dan memiliki sufiks `Context` pada nama
 fungsi.
 Pendekatan penggandaan lebih disukai daripada menambahkan context dalam
 struct, dan telah didiskusikan dalam
-link:/blog/module-compatibility[Menjaga modul Anda tetap kompatibel^].
+link:/blog/module-compatibility/[Menjaga modul Anda tetap kompatibel^].
 Namun, pendekatan penggandaan ini pada beberapa kasus tidak praktis: misalnya,
 jika API Anda mengekspor sejumlah fungsi, maka membuat duplikat untuk setiap
 fungsi bisa jadi memungkinkan.

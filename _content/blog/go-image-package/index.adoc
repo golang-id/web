@@ -15,7 +15,7 @@ warna, `image.Point` dan `image.Rectangle` yang mendeskripsikan geometri 2-D,
 dan `image.Image` yang menggabungkan kedua konsep tersebut untuk
 representasi sebuah kotak persegi panjang berisi warna-warna.
 Sebuah
-link:/blog/go-imagedraw-package[artikel terpisah^]
+link:/blog/go-imagedraw-package/[artikel terpisah^]
 membahas cara melakukan komposisi gambar dengan dengan paket
 https://pkg.go.dev/image/draw/[image/draw^].
 

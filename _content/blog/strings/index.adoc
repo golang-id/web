@@ -5,7 +5,7 @@
 ==  Pendahuluan
 
 Pada
-link:/blog/slices[blog sebelumnya^]
+link:/blog/slices/[blog sebelumnya^]
 dijelaskan bagaimana slice bekerja dalam Go, menggunakan sejumlah contoh untuk
 mengilustrasikan mekanisme di balik implementasinya.
 Dengan latar belakang tersebut, artikel ini mendiskusikan string dalam Go.
@@ -35,7 +35,7 @@ Mari kita mulai dengan beberapa dasar.
 Dalam Go, sebuah string yaitu slice dari byte yang _read-only_.
 Jika Anda tidak yakin tentang apa itu slice dari byte atau bagaimana ia
 bekerja, mohon baca
-link:/blog/slices[blog sebelumnya^];
+link:/blog/slices/[blog sebelumnya^];
 kita asumsikan Anda telah membacanya.
 
 Penting juga diperjelas di sini bahwa sebuah string menyimpan _beragam_ byte.

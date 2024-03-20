@@ -7,7 +7,7 @@
 Saat ini kita mendekati rilis Go 1.14, yang direncanakan bulan Februari
 bila semua berjalan dengan lancar, rilis kandidat yang pertama hampir siap.
 Berdasarkan proses yang dijelaskan dalam blog
-link:/blog/go2-here-we-come[Go 2, kami datang!^],
+link:/blog/go2-here-we-come/[Go 2, kami datang!^],
 inilah saat dalam siklus pengembangan dan rilis untuk menimbang
 perubahan-perubahan apa saja yang ingin ditambahkan pada pustaka atau
 bahasa untuk rilis selanjutnya, Go 1.15, yang dijadwalkan pada bulan Agustus
@@ -97,7 +97,7 @@ Oleh karena itu kami berencana mengimplementasikan semua proposal tersebut
 pada awal siklus rilis Go 1.15 (setelah rilis Go 1.14) supaya banyak waktu
 untuk mendapatkan pengalaman dan umpan balik dari yang lain.
 Menurut
-link:/blog/go2-here-we-come[proses evaluasi proposal^],
+link:/blog/go2-here-we-come/[proses evaluasi proposal^],
 keputusan terakhir akan diambil pada akhir siklus pengembangan, awal Mei,
 2020.
 

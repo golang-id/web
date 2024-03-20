@@ -149,7 +149,7 @@ Siapa pun yang memanggil fungsi ini dapat memeriksa nilai kembalian kedua;
 jika `nil` berarti sebuah `Page` telah sukses dibaca.
 Jika tidak, maka akan ada `error` yang harus ditangani oleh si pemanggil
 fungsi (lihat
-link:/ref/spec#Errors[spesifikasi bahasa^]
+link:/ref/spec/#Errors[spesifikasi bahasa^]
 untuk lebih detail).
 
 Sekarang kita telah memiliki sebuah struktur data sederhana dan kemampuan

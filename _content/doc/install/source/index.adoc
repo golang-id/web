@@ -6,7 +6,7 @@
 Topik ini menjelaskan cara membangun dan menjalankan Go dari kode sumbernya
 langsung.
 Untuk memasang Go lewat aplikasi, lihat
-link:/doc/install[Unduh dan pasang^].
+link:/doc/install/[Unduh dan pasang^].
 
 ==  Pendahuluan
 
@@ -17,7 +17,7 @@ Anda, dan menjalankannya.
 
 Umumnya pengguna tidak perlu melakukan hal ini, namun cukup memasang dari
 paket biner yang sudah dikompilasi seperti yang dijelaskan pada artikel
-link:/doc/install[Unduh dan pasang^].
+link:/doc/install/[Unduh dan pasang^].
 Jika Anda ingin membantu membangun kode sumber yang ada pada paket-paket
 pra-kompilasi, silakan lanjutkan membaca artikel.
 
@@ -62,7 +62,7 @@ Seluruh kombinasi yang didukung ada dalam daftar
 <<environment,variabel lingkungan>> di bawah.
 
 Lihat halaman pemasangan untuk
-link:/doc/install#requirements[kebutuhan sistem keseluruhan^].
+link:/doc/install/#requirements[kebutuhan sistem keseluruhan^].
 Batasan berikut berlaku untuk sistem yang dapat dibangun hanya dari sumber:
 
 * Untuk Linux pada PowerPC 64-bit, versi kernel minimum yaitu 2.6.37, artinya
@@ -151,7 +151,7 @@ https://git-scm.com/downloads[mengunduh Git^].
 ==  Pasang _compiler_ C (opsional)
 
 Untuk membuat Go dengan dukungan
-link:/cmd/cgo[cgo^],
+link:/cmd/cgo/[cgo^],
 yang membolehkan Go program mengimpor pustaka C, _compiler_ C seperti `gcc`
 atau `clang` haruslah terpasang terlebih dahulu.
 Pasanglah _compiler_ C sesuai dengan metode pemasangan di sistem Anda.
@@ -270,7 +270,7 @@ Anda hampir selesai.
 Anda hanya perlu sedikit pengaturan.
 
 Dokumen
-link:/doc/code[Bagaimana menulis kode Go^]
+link:/doc/code/[Bagaimana menulis kode Go^]
 menyediakan *instruksi pengaturan yang penting* untuk menggunakan perkakas Go.
 
 
@@ -291,7 +291,7 @@ Untuk memasang perkakas tambahan tersebut, perintah `go get` membutuhkan
 <<git,Git>> terpasang di lokal.
 
 Anda juga harus memiliki sebuah ruang kerja (GOPATH); lihatlah
-link:/doc/code[Bagaimana menulis kode Go^]
+link:/doc/code/[Bagaimana menulis kode Go^]
 untuk lebih detail.
 
 

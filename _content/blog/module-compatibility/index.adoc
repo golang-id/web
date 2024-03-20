@@ -6,17 +6,17 @@ Jean de Klerk; Jonathan Amsterdam
 
 Tulisan ini adalah bagian ke 5 dari sebuah seri.
 
-*  Bagian 1 - link:/blog/using-go-modules[Menggunakan Go Modul^]
-*  Bagian 2 - link:/blog/migrating-to-go-modules[Migrasi ke Go Modul^]
-*  Bagian 3 - link:/blog/publishing-go-modules[Menerbitkan Go Modul^]
-*  Bagian 4 - link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya^]
+*  Bagian 1 - link:/blog/using-go-modules/[Menggunakan Go Modul^]
+*  Bagian 2 - link:/blog/migrating-to-go-modules/[Migrasi ke Go Modul^]
+*  Bagian 3 - link:/blog/publishing-go-modules/[Menerbitkan Go Modul^]
+*  Bagian 4 - link:/blog/v2-go-modules/[Go Modul: v2 dan seterusnya^]
 *  Bagian 5 - Menjaga Modul Anda tetap Kompatibel (artikel ini)
 
 Modul Anda akan terus berkembang seiring waktu saat Anda menambahkan fitur
 yang baru, mengubah perilaku modul, dan/atau mengganti bagian modul menjadi
 publik.
 Seperti yang telah kita diskusikan pada
-link:/blog/v2-go-modules[Go Modul: v2 dan seterusnya^],
+link:/blog/v2-go-modules/[Go Modul: v2 dan seterusnya^],
 perubahan besar pada modul dengan versi v1+ harus terjadi dengan meningkatkan
 versi mayor (atau dengan mengadopsi path modul yang baru).
 

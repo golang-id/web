@@ -894,7 +894,7 @@ model untuk penanganan string yang efisien.
 Beberapa _benchmark_ memperlihatkan peningkatan kecepatan yang besar.
 
 Ada lebih banyak lagi bahasan tentang string, dan sebuah
-link:/blog/strings[blog terpisah^]
+link:/blog/strings/[blog terpisah^]
 mengover hal tersebut lebih mendalam.
 
 
@@ -920,7 +920,7 @@ Seperti yang disebutkan sebelumnya,
 https://golang.org/wiki/SliceTricks[halaman Wiki "Slice Tricks"^]
 memiliki banyak contoh dari penggunaan slice.
 Blog tentang
-link:/blog/go-slices-usage-and-internals[Slice pada Go^]
+link:/blog/go-slices-usage-and-internals/[Slice pada Go^]
 menjelaskan lebih rinci layout memori dengan diagram yang jelas.
 Artikel Russ Cox tentang
 https://research.swtch.com/godata[Struktur Data Go^]

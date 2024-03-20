@@ -28,9 +28,9 @@ berbeda dari bahasa Go.
   data dalam slice (array dengan ukuran dinamis pada Go).
 . link:/doc/tutorial/greetings-multiple-people/[Mengembalikan salam untuk
   beberapa orang^] -- Menyimpan pasangan kunci-nilai dalam sebuah `map`.
-. link:/doc/tutorial/add-a-test[Membuat sebuah tes^] -- Penggunaan fitur
+. link:/doc/tutorial/add-a-test/[Membuat sebuah tes^] -- Penggunaan fitur
   unit tes Go untuk menguji kode kita.
-. link:/doc/tutorail/compile-install/[Mengompilasi dan memasang aplikasi^] --
+. link:/doc/tutorial/compile-install/[Mengompilasi dan memasang aplikasi^] --
   Mengompilasi dan memasang kode kita secara lokal.
 
 NOTE: Untuk tutorial lainnya, lihat
@@ -103,7 +103,7 @@ cd greetings
 --
 
 . Buatlah Go modul menggunakan perintah
-  link:/ref/mod#go-mod-init[`go mod init`^]
+  link:/ref/mod/#go-mod-init[`go mod init`^]
 +
 --
 Jalankan perintah "`go mod init`", dengan memberikan parameter path modul --
