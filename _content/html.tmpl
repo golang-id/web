@@ -1,68 +1,72 @@
 <!DOCTYPE html lang="id">
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="theme-color" content="#375EAB" />
-		<meta name="description" content="Situs komunitas Go Indonesia"/>
-		<meta keywords="komunitas Go indonesia"/>
-		<meta name="robots" content="index,follow"/>
 
-		<title>{{.Title}}</title>
-		<link rel="stylesheet" href="/assets/style.css" />
-		<link rel="stylesheet" href="/assets/fonts/go/stylesheet.css" />
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#375EAB" />
+    <meta name="description" content="Situs komunitas Go Indonesia" />
+    <meta keywords="komunitas Go indonesia" />
+    <meta name="robots" content="index,follow" />
 
-		{{- range .Styles}}
-		<link rel="stylesheet" href="{{.}}" />
-		{{- end}}
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/assets/style.css" />
+    <link rel="stylesheet" href="//storage.googleapis.com/umum.kilabit.info/assets/fonts/go/stylesheet.css" />
 
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-0RXEYS3MQ0"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-0RXEYS3MQ0');
-        </script>
-	</head>
-	<body>
-		<div class="topbar">
-			<div class="container">
-				<div class="top-heading">
-					<a href="/">
-						<img class="header-logo" src="/assets/go-logo-blue.svg" />
-					</a>
-				</div>
-				<div class="menu">
-					<a href="https://tour.golang-id.org" target="_blank">Tur</a>
-					<a href="/doc">Dokumentasi</a>
-					<a href="/blog">Blog</a>
-					<a href="https://play.golang.org" target="_blank">Coba</a>
-					<form class="item" action="/_internal/search">
-						<input type="text" name="q" placeholder="Cari" />
-					</form>
-				</div>
-			</div>
-		</div>
+    {{- range .Styles}}
+    <link rel="stylesheet" href="{{.}}" />
+    {{- end}}
 
-		<div class="page">
-			<div class="container">
-				{{.Body}}
-			</div>
-			<!-- .container -->
-		</div>
-		<!-- #page -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0RXEYS3MQ0"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
 
-		<div class="footer">
-			<div class="container">
-				Halaman situs ini berlisensikan
-				<a href="https://creativecommons.org/licenses/by/3.0/"
-					>Creative Commons Attribution 3.0</a
-				>, dan sumber kode berlisensikan <a href="/LICENSE">BSD</a>.
-				<br />
-				Dibangun menggunakan
-				<a href="https://sr.ht/~shulhan/ciigo">ciigo</a>.
-			</div>
-		</div>
-	</body>
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-0RXEYS3MQ0');
+    </script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="container">
+            <div class="top-heading">
+                <a href="/">
+                    <img class="header-logo" src="/assets/go-logo-blue.svg" />
+                </a>
+            </div>
+            <div class="menu">
+                <a href="https://tour.golang-id.org" target="_blank">Tur</a>
+                <a href="/doc">Dokumentasi</a>
+                <a href="/blog">Blog</a>
+                <a href="https://play.golang.org" target="_blank">Coba</a>
+                <form class="item" action="/_internal/search">
+                    <input type="text" name="q" placeholder="Cari" />
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="container">
+            {{.Body}}
+        </div>
+        <!-- .container -->
+    </div>
+    <!-- #page -->
+
+    <div class="footer">
+        <div class="container">
+            Halaman situs ini berlisensikan
+            <a href="https://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0</a>, dan sumber kode berlisensikan <a href="/LICENSE">BSD</a>.
+            <br />
+            Dibangun menggunakan
+            <a href="https://sr.ht/~shulhan/ciigo">ciigo</a>.
+        </div>
+    </div>
+</body>
+
 </html>
