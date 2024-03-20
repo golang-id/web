@@ -1063,9 +1063,9 @@ Opsi ini mengubah format keluaran baku dengan menampilkan path modul diikuti
 daftar versi yang dipisahkan oleh spasi.
 Misalnya,
 ----
-$ go list -m -versions github.com/shuLhan/share
-go: finding versions for github.com/shuLhan/share
-github.com/shuLhan/share v0.1.0 v0.2.0 v0.3.0 v0.4.0 v0.5.0 v0.6.0 v0.6.1
+$ go list -m -versions git.sr.ht/shulhan/pakakeh.go
+go: finding versions for git.sr.ht/shulhan/pakakeh.go
+git.sr.ht/shulhan/pakakeh.go v0.1.0 v0.2.0 v0.3.0 v0.4.0 v0.5.0 v0.6.0 v0.6.1
 $
 ----
 

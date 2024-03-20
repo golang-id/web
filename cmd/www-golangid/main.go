@@ -9,7 +9,7 @@ import (
 	"log"
 
 	"git.sr.ht/~shulhan/ciigo"
-	"github.com/shuLhan/share/lib/memfs"
+	"git.sr.ht/~shulhan/pakakeh.go/lib/memfs"
 )
 
 var memFS *memfs.MemFS
@@ -26,7 +26,7 @@ func main() {
 	var (
 		convertOpts = ciigo.ConvertOptions{
 			Root:         dirRoot,
-			HtmlTemplate: htmlTemplate,
+			HTMLTemplate: htmlTemplate,
 		}
 		embedOpts = &ciigo.EmbedOptions{
 			ConvertOptions: convertOpts,

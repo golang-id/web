@@ -26,16 +26,16 @@ https://pkg.go.dev/git.sr.ht/~shulhan/ciigo[git.sr.ht/~shulhan/ciigo^]::
 https://pkg.go.dev/github.com/shuLhan/rescached-go[rescached-go^]::
     DNS forwarder dengan cache.
 
-https://pkg.go.dev/github.com/shuLhan/share[github.com/shuLhan/share^]::
+https://pkg.go.dev/git.sr.ht/~shulhan/pakakeh.go[git.sr.ht/~shulhan/pakakeh.go^]::
     Kumpulan paket dan perkakas yang membantu membuat aplikasi dengan Go.
     Beberapa paket yang direkomendasikan,
-    * https://pkg.go.dev/github.com/shuLhan/share/lib/dns[lib/dns^] - pustaka
+    * https://pkg.go.dev/git.sr.ht/~shulhan/pakakeh.go/lib/dns[lib/dns^] - pustaka
       untuk protokol DNS.
-    * https://pkg.go.dev/github.com/shuLhan/share/lib/http[lib/http^] - pustaka
+    * https://pkg.go.dev/git.sr.ht/~shulhan/pakakeh.go/lib/http[lib/http^] - pustaka
       yang membungkus standar pustaka `net/http` dan menyediakan API yang
       simpel untuk membuat REST API dengan _routing_.
-    * https://pkg.go.dev/github.com/shuLhan/share/lib/memfs[lib/memfs^] -
+    * https://pkg.go.dev/git.sr.ht/~shulhan/pakakeh.go/lib/memfs[lib/memfs^] -
       pustaka untuk menanam berkas ke dalam sumber kode Go.
-    * https://pkg.go.dev/github.com/shuLhan/share/lib/websocket[lib/websocket^]
+    * https://pkg.go.dev/git.sr.ht/~shulhan/pakakeh.go/lib/websocket[lib/websocket^]
       - pustaka protokol WebSocket menggunakan _epoll_ untuk membuat peladen
         dan klien WebSocket.
