@@ -497,23 +497,29 @@ bakunya).
 Set ke "`softfloat`" untuk menggunakan soft _floating-point_.
 
 $GOPPC64 (hanya untuk `ppc64` atau `ppc64le`)::
++
+--
 Variabel ini menset level prosesor (yaitu versi _Instruction Set
 Architecture_) dari target _compiler_.
 Nilai bakunya yaitu `power8`.
-+
+
 * GOPPC64=power8: gunakan instruksi ISA v2.07
 * GOPPC64=power9: gunakan instruksi ISA v3.00
+--
 
-$GOWASM (hanya untuk `wasm`)::  Variabel ini berisi daftar fitur-fitur
+$GOWASM (hanya untuk `wasm`)::
++
+--
+Variabel ini berisi daftar fitur-fitur
 https://github.com/WebAssembly/proposals[eksperimental WebAssembly^]
 yang hasil pembangunan program WebAssembly dapat gunakan.
 Nilai bakunya yaitu kosong (tidak ada fitur eksperimental yang digunakan).
-+
+
 * GOWASM=satconv: gunakan fitur
   https://github.com/WebAssembly/nontrapping-float-to-int-conversions/blob/master/proposals/nontrapping-float-to-int-conversion/Overview.md[konversi float-to-int^]
 * GOWASM=signext: gunakan fitur
 https://github.com/WebAssembly/sign-extension-ops/blob/master/proposals/sign-extension-ops/Overview.md[operator sign-extension^]
-
+--
 
 Ingatlah bahwa $GOOS dan $GOARCH mengidentifikasi _target_ lingkungan,
 bukan lingkungan yang sekarang sedang berjalan.
