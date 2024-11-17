@@ -1,0 +1,496 @@
+= Pengenalan terhadap generik
+Robert Griesemer; Ian Lance Taylor
+22 Maret 2022
+:toc:
+:sectlinks:
+
+== Pendahuluan
+
+Blog ini berdasarkan wicara pada GopherCon 2021.
+
+video::Pa_e9EeCdy8[youtube,width=640]
+
+Rilis Go 1.18 menambah dukungan terhadap generik.
+Generik adalah perubahan terbesar yang kami lakukan terhadap Go sejak
+rilis pertama.
+Dalam artikel ini kami akan memperkenalkan fitur bahasa yang baru.
+Kami tidak akan membahas semuanya secara rinci, namun kami akan
+jelaskan beberapa poin penting.
+Untuk deskripsi yang lebih detil dan lengkap, termasuk
+contoh-contohnya, lihatlah
+https://go.googlesource.com/proposal/+/HEAD/design/43651-type-parameters.md[dokumen proposal^].
+Untuk deskripsi tentang perubahan bahasa, lihat
+https://go.home.local/go.dev/ref/spec[pembaruan dari spesifikasi bahasa^].
+(Ingatlah bahwa implementasi generik pada versi 1.18 belum
+menerapkan semua gagasan yang ada dalam proposal; tapi spesifikasi
+bahasa seharusnya sudah akurat.
+Rilis selanjutnya bisa melengkapi implementasi tersebut.)
+
+Generik adalah cara menulis kode yang tidak bergantung pada tipe
+tertentu.
+Tipe dan fungsi dapat ditulis menggunakan sekumpulan tipe.
+
+Generik menambahkan tiga hal besar pada bahasa Go:
+
+. Parameter tipe untuk fungsi dan tipe.
+. Mendefinisikan tipe interface sebagai sekumpulan tipe, termasuk
+  tipe-tipe yang tidak memiliki _method_.
+. Inferensi tipe, yang membolehkan mengabaikan argumen tipe saat
+  memanggil sebuah fungsi.
+
+
+== Parameter tipe
+
+Sekarang, fungsi dan tipe bisa memiliki parameter tipe.
+Sebuah daftar parameter tipe bentuknya seperti daftar parameter
+seperti biasa, kecuali mereka dibungkus dengan kurung siku "[]" bukan
+dengan tanda kurung lengkung "()".
+
+Untuk memperlihatkan cara kerjanya, mari kita mulai dengan fungsi
+`Min` tanpa generik untuk nilai desimal:
+----
+func Min(x, y float64) float64 {
+	if x < y {
+		return x
+	}
+	return y
+}
+----
+
+Kita dapat membuat fungsi `Min` tersebut menerima tipe-tipe yang
+berbeda dengan menambahkan sebuah parameter tipe.
+Pada contoh ini kita tambahkan parameter tipe `T`, dan mengganti
+penggunaan `float64` dengan `T`.
+----
+import "golang.org/x/exp/constraints"
+
+func GMin[T constraints.Ordered](x, y T) T {
+	if x < y {
+		return x
+	}
+	return y
+}
+----
+
+Sekarang kita bisa memanggil fungsi tersebut dengan argumen tipe
+dengan menulis pemanggilan seperti berikut
+----
+x := GMin[int](2, 3)
+----
+
+Dengan menyediakan argumen tipe ke fungsi `GMin`, pada contoh ini
+yaitu `int`, disebut juga dengan _instansiasi_.
+Instansiasi terjadi dalam dua tahap.
+Pertama, _compiler_ mengganti semua argumen tipe untuk semua parameter
+tipe yang diberikan lewat fungsi atau tipe generik.
+Kedua, _compiler_ memverifikasi setiap argumen tipe memenuhi batasan
+yang diberikan.
+Kita akan jelaskan maksud dari tahap kedua nanti, namun bila tahap
+tersebut gagal, maka instansiasi akan gagal dan program menjadi
+invalid.
+
+Setelah instansiasi sukses, kita memiliki sebuah fungsi non-generik
+yang dapat dipanggil seperti fungsi lainnya.
+Misalnya, pada kode berikut
+----
+fmin := GMin[float64]
+m := fmin(2.71, 3.14)
+----
+instansiasi `GMin[float64]` menghasilkan sebuah fungsi yang secara
+efektif seperti fungsi `Min` sebelumnya, yang dapat kita gunakan
+sebagai pemanggilan fungsi.
+
+Parameter tipe dapat digunakan juga pada tipe bentukan.
+----
+type Tree[T interface{}] struct {
+	left, right *Tree[T]
+	value       T
+}
+
+func (t *Tree[T]) Lookup(x T) *Tree[T] { ... }
+
+var stringTree Tree[string]
+----
+
+Pada contoh di atas, tipe generik `Tree` menyimpan nilai parameter
+bertipe `T`.
+Tipe-tipe generik dapat memiliki method, seperti `Lookup` pada contoh
+tersebut.
+Untuk dapat menggunakan tipe generik, ia harus di-instansiasi;
+`Tree[string]` adalah contoh cara meng-instansiasi tipe `Tree` dengan
+argumen tipe `string`.
+
+
+== Kumpulan tipe
+
+Mari kita lihat lebih dalam tentang argumen tipe yang dapat digunakan
+untuk meng-instansiasi sebuah parameter tipe.
+
+Sebuah fungsi biasa memiliki sebuah tipe untuk setiap nilai pada
+parameter;
+tipe tersebut mendefinisikan sekumpulan nilai.
+Misalnya, bila kita memiliki tipe `float64` seperti pada fungsi
+non-generik `Min` di atas, maka kumpulan nilai argumen yang dibolehkan
+yaitu kumpulan dari nilai _float_ yang dapat direpresentasikan oleh
+tipe `float64`.
+
+Hal yang sama, daftar parameter tipe memiliki sebuah tipe untuk setiap
+parameter tipe.
+Secara sebuah parameter tipe itu sendiri adalah sebuah tipe, maka
+tipe-tipe dari parameter tipe berisi kumpulan tipe.
+Meta-tipe ini disebut juga dengan _batasan tipe_ atau _type
+constraint_.
+
+Pada fungsi generik `GMin`, batasan tipe diimpor dari
+https://go.home.local/golang.org/x/exp/constraints[paket `constraints`^].
+Batasan `Ordered` berisi kumpulan dari semua tipe dengan nilai yang
+dapat diurut, atau, dengan kata lain, dapat dibandingkan dengan
+operator pembanding `<`, `\<=`, `>`, atau `\>=`.
+Batasan ini memastikan bahwa hanya tipe-tipe dengan nilai yang dapat
+diurut saja yang dapat dikirim ke `GMin`.
+Ia juga berarti bahwa di dalam badan fungsi `GMin` nilai dari
+parameter tipe dapat digunakan dalam pembandingan dengan operator
+`<`. 
+
+Dalam Go, batasan tipe haruslah berupa interface.
+Sebuah tipe interface dapat digunakan sebagai sebuah tipe pada nilai,
+dan juga dapat digunakan sebagai meta-tipe.
+Interface mendefinisikan method-method, sehingga kita dapat
+mengekspresikan batasan tipe yang membutuhkan beberapa method
+tertentu.
+Tapi `constrains.Ordered` adalah tipe interface juga, dan operator
+`<` bukanlah sebuah method.
+
+Supaya dapat bekerja, kita harus melihat interface dengan cara baru.
+
+Spesifikasi Go menyatakan bahwa sebuah interface mendefinisikan
+kumpulan dari method.
+Tipe apa pun yang mengimplementasikan semua method tersebut berarti
+mengimplementasikan interface tersebut.
+
+image::https://go.dev/blog/intro-generics/method-sets.png["Kumpulan method",width=540]
+
+(Catatan penulis: dari gambar di atas, cara pandang umum dari
+interface yaitu tipe P, Q, dan R mengimplementasikan interface).
+
+Namun cara lain memandang hal ini yaitu menyatakan bahwa interface
+mendefinisikan kumpulan tipe, yaitu tipe-tipe yang
+mengimplementasikan method-method tersebut.
+Dari perspektif ini, tipe apa pun yang merupakan elemen dari kumpulan
+tipe interface mengimplementasikan interface tersebut.
+
+image::https://go.dev/blog/intro-generics/type-sets.png["Kumpulan tipe", width=540]
+
+(Catatan penulis: dari gambar di atas, cara pandang lain dari
+interface yaitu tipe P, Q dan R adalah kumpulan tipe dari interface).
+
+Dua cara pandang ini mengarah ke hasil yang sama: Untuk setiap
+kumpulan method kita dapat bayangkan korespondensi kumpulan tipe yang
+mengimplementasikan kumpulan method tersebut, yaitu kumpulan dari
+tipe yang didefinisikan oleh interface.
+
+Untuk tujuan ini, cara pandang terhadap kumpulan tipe memiliki
+kelebihan dibandingkan cara pandang terhadap kumpulan method: kita
+dapat secara eksplisit menambah tipe ke dalam sebuah kumpulan, dan hal
+ini mengontrol kumpulan tipe dengan cara yang baru.
+
+Kami telah mengembangkan sintaksis untuk tipe interface supaya hal ini
+bekerja.
+Misalnya, `interface{ int|string|bool }` mendefinisikan kumpulan tipe
+yang berisi tipe `int`, `string`, dan `bool`.
+
+image::https://go.dev/blog/intro-generics/type-sets-2.png["Type sets 2",width=540]
+
+Cara lain dari menyebut hal di atas yaitu interface tersebut dipenuhi
+hanya oleh `int`, `string`, atau `bool`.
+
+Sekarang mari kita lihat definisi dari `constrains.Ordered`:
+----
+type Ordered interface {
+	Integer|Float|~string
+}
+----
+
+Deklarasi tersebut menyatakan bahwa interface `Ordered` adalah
+kumpulan dari semua tipe integer, float, dan string.
+Simbol baris vertikal (pipa) mengekspresikan union dari tipe (atau
+sekumpulan dari tipe pada kasus ini).
+`Integer` dan `Float` adalah tipe interface yang juga didefinisikan di
+dalam paket `constrains`.
+Ingatlah bahwa tidak ada method yang didefinisikan oleh interface
+`Ordered`.
+
+Untuk batasan tipe kita tidak memperdulikan tipe tertentu, seperti
+`string`; kita lebih tertarik dengan semua tipe string.
+Itulah guna dari token `~`.
+Ekspresi dari `~string` artinya kumpulan dari semua tipe yang tipe
+dasarnya adalah `string`.
+Termasuk tipe `string` itu sendiri sebagaimana juga semua tipe yang
+dideklarasikan dengan definisi seperti `type MyString string`.
+
+Tentu saja kita masih ingin menspesifikasikan method di dalam
+interface, dan kita masih ingin tetap menjaga kompatibilitas
+terbelakang.
+Dalam Go 1.18 sebuah interface bisa berisi sekumpulan method dan
+menanam interface seperti sebelumnya, namun ia juga bisa menanam
+tipe-tipe non-interface, union, dan sekumpulan tipe-tipe dasar.
+
+Saat digunakan sebagai batasan tipe, kumpulan tipe yang didefinisikan
+oleh sebuah interface menspesifikasikan tipe-tipe apa saja yang
+dibolehkan sebagai argumen tipe terhadap parameter tipe.
+Di dalam badan fungsi generik, jika tipe dari sebuah operan adalah
+parameter tipe `P` dengan batasan `C`, operasi akan dibolehkan jika
+semua tipe dalam kumpulan tipe dari `C` membolehkan operasi tersebut
+(saat ini ada beberapa batasan implementasi, namun kode pada umumnya
+akan jarang menemukan batasan tersebut).
+
+Interface yang digunakan sebagai batasan bisa diberi nama (seperti
+`Ordered`), atau bisa berupa interface literal sebaris di dalam daftar
+parameter tipe.
+Misalnya:
+----
+[S interface{~[]E}, E interface{}]
+----
+
+Di sini, `S` haruslah tipe slice yang elemen-nya bisa tipe apa saja
+(`interface{}`).
+
+Karena kasus ini umum, maka `interface{}` dapat diabaikan pada saat
+penulisan batasan, sehingga menjadi lebih sederhana seperti:
+----
+[S ~[]E, E interface{}]
+----
+
+Karena interface kosong sangat umum dalam daftar parameter tipe, dan
+juga di dalam kode Go, Go 1.18 memperkenalkan identifikasi baru `any`
+sebagai alias dari tipe interface kosong.
+Dengan ini, kita dapat menulis kode lebih sederhana dan idiomatis:
+----
+[S ~[]E, E any]
+----
+
+Interface sebagai kumpulan tipe adalah sebuah mekanisme baru yang
+sangat berguna dan merupakan kunci untuk membuat batasan tipe bekerja
+dalam Go.
+Untuk saat sekarang, interface yang menggunakan bentuk sintaksis yang
+baru hanya bisa digunakan sebagai batasan saja.
+
+
+== Inferensi tipe
+
+Fitur baru dari bahasa Go yang terakhir yaitu inferensi tipe.
+Ini adalah perubahan paling kompleks pada bahasa Go, namun sangat
+penting karena ia memudahkan pengguna saat menulis kode menggunakan
+fungsi generik.
+
+=== Inferensi tipe pada argumen fungsi
+
+Dengan adanya parameter tipe maka dibutuhkan pengiriman argumen
+tipe, yang membuat kode lebih panjang.
+Kembali ke fungsi generik sebelumnya `GMin`:
+----
+func GMin[T constraints.Ordered](x, y T) T { ... }
+----
+parameter tipe `T` digunakan untuk menentukan tipe dari argumen `x`
+dan `y`.
+Seperti yang kita lihat sebelumnya, fungsi ini bisa dipanggil dengan
+secara eksplisit menulis argumen tipe:
+----
+var a, b, m float64
+
+m = GMin[float64](a, b) // argumen tipe eksplisit: [float64].
+----
+
+Pada banyak kasus, _compiler_ dapat menurunkan argumen tipe untuk `T`
+dari argumen-argumen fungsi.
+Hal ini membuat kode lebih singkat dan jelas.
+----
+var a, b, m float64
+
+m = GMin(a, b) // tidak ada argumen tipe.
+----
+
+Hal ini bekerja dengan menyamakan tipe-tipe dari argumen `a` dan `b`
+dengan tipe-tipe dari parameter `x` dan `y`.
+
+Jenis inferensi ini, yang menurunkan argumen tipe dari tipe-tipe
+argumen pada fungsi, disebut dengan _inferensi tipe pada argumen
+fungsi_.
+
+Inferensi tipe pada argumen fungsi hanya bekerja untuk parameter tipe
+yang digunakan dalam parameter fungsi, tidak untuk parameter tipe yang
+digunakan pada kembalian fungsi atau hanya di dalam badan fungsi.
+Contohnya, ia tidak berlaku untuk fungsi seperti `MakeT[T any]() T`,
+yang hanya menggunakan `T` sebagai tipe kembalian.
+
+
+=== Inferensi tipe batasan
+
+Bahasa Go mendukung jenis inferensi lain, _inferensi tipe batasan_.
+Untuk menjelaskan hal ini, mari kita mulai dengan contoh berikut yang
+mengembangkan sebuah slice dari integer:
+
+----
+// Scale mengembalikan salinan dari s dengan setiap elemen dikalikan
+// dengan c.
+// Implementasi ini memiliki masalah, yang akan kita lihat nanti.
+func Scale[E constraints.Integer](s []E, c E) []E {
+	r := make([]E, len(s))
+	for i, v := range s {
+		r[i] = v * c
+	}
+	return r
+}
+----
+Fungsi generik di atas bekerja untuk sebuah slice dari tipe integer
+apa pun.
+
+Anggap kita memiliki tipe `Point`, yang setiap `Point` adalah daftar
+nilai integer yang merupakan koordinat dari suatu titik.
+Biasanya tipe seperti ini akan memiliki beberapa _method_.
+----
+type Point []int32
+
+func (p Point) String() string {
+	// Badan fungsi ...
+}
+----
+
+Anggaplah kita ingin men-`Scale` sebuah `Point`.
+Secara `Point` adalah slice dari integer, kita dapat menggunakan
+fungsi `Scale` yang kita punya sebelumnya:
+----
+// ScaleAndPrint kali dua setiap nilai pada Point dan cetak.
+func ScaleAndPrint(p Point) {
+	r := Scale(p, 2)
+	fmt.Println(r.String()) // GAGAL KOMPILASI!
+}
+----
+
+Sayangnya kode tersebut gagal kompilasi, dengan galat seperti
+"`r.String undefined (type []int32 has no field or method String)`".
+
+Masalahnya adalah fungsi `Scale` mengembalikan sebuah nilai bertipe
+`[]E` yang mana `E` adalah tipe elemen dari argumen slice.
+Saat kita memanggil `Scale` dengan nilai dari tipe `Point`, yang tipe
+dasarnya adalah `[]int32`, kita mendapatkan nilai kembalian bertipe
+`[]int32` bukan `Point`.
+Hal ini memang sesuai dengan cara menulis kode generik, namun bukan
+yang kita inginkan.
+
+Untuk memperbaiki masalah ini, kita harus mengubah fungsi `Scale`
+menggunakan sebuah parameter tipe untuk tipe slice.
+
+----
+// Scale mengembalikan salinan s dengan setiap elemen dikalikan dengan
+// c.
+func Scale[S ~[]E, E constraints.Integer](s S, c E) S {
+	r := make(S, len(s))
+	for i, v := range s {
+		r[i] = v * c
+	}
+	return r
+}
+----
+
+Kita menambahkan sebuah parameter tipe baru `S` yaitu tipe dengan
+argumen slice.
+Kita telah membatasi parameter tipe tersebut sehingga tipe dasar
+adalah `S` bukan lagi `[]E`, dan tipe kembalian sekarang menjadi `S`.
+Secara `E` dibatasi sebagai integer, efeknya sama dengan sebelumnya:
+argumen pertama haruslah slice dengan tipe integer.
+Perubahan pada badan fungsi hanya pada saat pemanggilan `make`, yang
+sebelumnya `[]E` menjadi `S`.
+
+Fungsi `Scale` yang baru bekerja seperti sebelumnya bila kita
+memanggilnya dengan slice biasa, namun bila kita panggil dengan tipe
+`Point` kita mendapatkan kembalian bertipe `Point` juga.
+Inilah yang kita inginkan.
+Dengan versi `Scale` yang baru, fungsi `ScaleAndPrint` sebelumnya
+dapat dikompilasi dan berjalan seperti yang kita inginkan.
+
+Anda mungkin bertanya: kenapa boleh menulis pemanggilan `Scale` tanpa
+mengirim argumen tipe secara eksplisit?
+Dengan kata lain, kenapa kita dapat menulis `Scale(p, 2)`, tanpa
+argumen tipe, bukan dengan menulis `Scale[Point, int32](p, 2)`?
+Fungsi `Scale` kita yang baru memiliki dua parameter tipe, `S` dan
+`E`.
+Saat memanggil `Scale` tanpa mengirim argumen tipe, inferensi tipe
+pada argumen fungsi terjadi, seperti yang telah dijelaskan sebelumnya,
+_compiler_ menurunkan bahwa argumen tipe untuk `S` adalah `Point`.
+Namun fungsi tersebut juga memiliki parameter tipe `E` yang mana
+merupakan tipe dari parameter kedua `c`.
+Nilai parameter dari `c` adalah 2, dan karena 2 adalah konstanta tak
+bertipe, inferensi tipe pada argumen fungsi tidak dapat menurunkan
+tipe yang tepat untuk `E` (paling tidak _compiler_ bisa menurunkan
+tipe baku dari 2 yang mana `int` dan pada hal ini tidak benar).
+Proses di mana _compiler_ menurunkan argumen tipe untuk `E` adalah
+tipe elemen dari slice disebut dengan _inferensi tipe batasan_.
+
+_Inferensi tipe batasan_ men-deduksi argumen tipe dari batasan
+parameter tipe.
+_Inferensi tipe batasan_ digunakan saat parameter tipe memiliki sebuah
+batasan yang didefinisikan oleh parameter tipe lainnya.
+Saat argumen tipe dari salah satu tipe parameter tipe diketahui, maka
+batasan akan digunakan untuk menurunkan argumen tipe lainnya.
+
+Kasus umum yang mana hal ini dapat dipakai yaitu saat salah satu
+batasan tipe menggunakan bentuk `~type`, yang mana `type` tersebut
+ditulis menggunakan parameter tipe lainnya.
+Kita melihat hal ini dipakai pada contoh `Scale`.
+`S` adalah `~[]E`, yaitu `~` diikuti oleh tipe `[]E` ditulis dengan
+menggunakan parameter tipe lainnya.
+Jika kita mengetahui argumen tipe untuk `S` kita dapat menurunkan
+argumen tipe untuk `E`.
+`S` adalah tipe slice, dan `E` adalah tipe elemen dari slice tersebut.
+
+Hal ini adalah pengenalan dari inferensi tipe batasan.
+Untuk lebih lengkapnya lihat
+https://go.googlesource.com/proposal/+/HEAD/design/43651-type-parameters.md[dokumen proposal^]
+atau
+https://go.home.local/go.dev/ref/spec[spesifikasi bahasa].
+
+
+=== Inferensi tipe di dunia nyata
+
+Penjelasan rinci tentang bagaimana inferensi tipe bekerja sangatlah
+kompleks, namun penggunaan-nya tidak: inferensi tipe bisa sukses, bisa
+gagal.
+Jika sukses, argumen tipe dapat diabaikan, dan memanggil fungsi
+generik tidak ada bedanya dengan memanggil fungsi seperti biasa.
+Jika inferensi tipe gagal, _compiler_ akan menampilkan pesan
+kesalahan, dan pada kasus tersebut kita dapat menyediakan argumen tipe
+yang diperlukan.
+
+Pada saat menambahkan inferensi tipe ke dalam bahasa, kami telah
+mencoba menyeimbangkan antara kompleksitas dan keuntungan dari
+inferensi tipe.
+Kami ingin memastikan bahwa saat _compiler_ menurunkan tipe, tipe-tipe
+tersebut akan terdeteksi.
+Kami mencoba berhati-hati, lebih memilih supaya gagal menurunkan tipe
+daripada memilih menurunkan tipe yang salah.
+Kami mungkin belum benar sepenuhnya, dan kami terus memperbaiki di
+setiap rilis selanjutnya.
+Efeknya adalah makin banyak program yang dapat ditulis tanpa argumen
+tipe yang eksplisit.
+Program yang tidak membutuhkan argumen tipe pada saat ini, tidak akan
+membutuhkan-nya di kemudian hari juga.
+
+
+== Kesimpulan
+
+Generik adalah fitur baru dalam bahasa Go 1.18.
+Perubahan yang baru tersebut membutuhkan begitu banyak kode baru
+yang belum sepenuhnya diuji dalam lingkungan _production_.
+Hal itu akan terjadi saat makin banyak orang menulis dan menggunakan
+kode generik.
+Kami percaya bahwa fitur ini diimplementasikan dengan benar dan dengan
+kualitas tinggi.
+Namun, tidak seperti kebanyakan aspek pada Go, kita tidak dapat
+membuktikan kepercayaan kita dengan pengalaman di dunia nyata.
+Oleh karena itu, kita mendorong penggunaan generik bila dibutuhkan,
+namun perhatikan lebih seksama saat merilis kode generik ke
+_production_.
+
+Terlepas dari peringatan tersebut, kami sangat gembira dengan adanya
+generik, dan kami harap ia membuat pemrograman Go lebih produktif.

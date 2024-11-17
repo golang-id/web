@@ -36,6 +36,9 @@ link:/doc/[dokumentasi^].
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
 
+* link:/blog/intro-generics/[Pengenalan terhadap generik^],
+  22 Maret 2022. Robert Griesemer dan Ian Lance Taylor.
+
 *  link:/blog/tls-cipher-suites/[Pemilihan pasangan _cipher_ otomatis pada crypto/tls^],
    15 September 2021.  _Filippo Valsorda_.
 
@@ -54,11 +57,8 @@ komunitas Go Indonesia.
 *  link:/blog/pkg.go.dev-2020/[Langkah selanjutnya untuk pkg.go.dev^],
    31 Januari 2020.  _Julie Qiu_
 
-*  link:/blog/go1.15-proposals/[Proposal untuk Go 1.15^],
-   28 Januari 2020.  _Robert Griesemer_, untuk tim Go
 
-
-baca artikel blog link:/blog/[lainnya^].
+Daftar artikel blog link:/blog/[lainnya^].
 
 
 ==  link:/modul/[Modul^]

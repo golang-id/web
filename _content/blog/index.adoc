@@ -5,6 +5,11 @@
 
 ==  Indeks
 
+=== 2022
+
+* link:/blog/intro-generics/[Pengenalan terhadap generik^],
+  22 Maret 2022. Robert Griesemer dan Ian Lance Taylor.
+
 === 2021
 
 *  link:/blog/tls-cipher-suites/[Pemilihan pasangan _cipher_ otomatis pada crypto/tls^], 15 September 2021.
