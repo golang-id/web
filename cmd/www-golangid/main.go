@@ -28,7 +28,7 @@ func main() {
 			Root:         dirRoot,
 			HTMLTemplate: htmlTemplate,
 		}
-		embedOpts = &ciigo.EmbedOptions{
+		embedOpts = ciigo.EmbedOptions{
 			ConvertOptions: convertOpts,
 			EmbedOptions: memfs.EmbedOptions{
 				PackageName: `main`,
@@ -36,7 +36,7 @@ func main() {
 				GoFileName:  `cmd/www-golangid/static.go`,
 			},
 		}
-		serveOpts = &ciigo.ServeOptions{
+		serveOpts = ciigo.ServeOptions{
 			ConvertOptions: convertOpts,
 			Mfs:            memFS,
 		}
