@@ -1,0 +1,226 @@
+= Mitigasi serangan rantai pasok
+Fillipo Valsorda
+31 Maret 2022
+:toc:
+:sectlinks:
+
+
+Rekayasa perangkat lunak moderen bersifat kolaboratif, dan berbasis
+pada penggunaan ulang dari perangkat lunak _Open Source_.
+Hal ini mengekspos target (perangkat lunak) terhadap serangan rantai
+pasok, yang mana proyek perangkat lunak tersebut diserang lewat
+dependensi pihak ketiga.
+
+Terlepas dari proses atau tindakan teknis yang dilakukan, setiap
+dependensi secara tidak langsung adalah sebuah hubungan kepercayaan
+yang tidak dapat dihindarkan.
+Namun, perkakas dan rancangan Go membantu mitigasi resiko ini
+di berbagai tingkat.
+
+
+== Semua pembangunan (perangkat lunak) "dikunci"
+
+Tidak mungkin perubahan dari dunia luar --seperti penerbitan versi
+baru dari sebuah dependensi-- otomatis mempengaruhi
+pembangunan program Go.
+
+Tidak seperti manajemen paket pada umumnya, modul Go tidak memisahkan
+berkas untuk daftar dependensi dan berkas untuk versi yang dikunci.
+Versi dari setiap dependensi yang berpengaruh pada pembangunan sebuah
+program Go sepenuhnya ditentukan oleh sebuah
+https://go.dev/ref/mod#go-mod-file[berkas "go.mod"^] dari modul utama.
+
+Sejak Go 1.16, determinisme seperti ini telah berlaku secara baku, dan
+perintah-perintah pembangunan (`go build`, `go test`, `go install`,
+`go run`, ...)
+https://go.dev/ref/mod#go-mod-file-updates[akan gagal bila berkas go.mod tidak komplit^].
+Satu-satunya perintah yang akan mengubah `go.mod` (dan juga
+pembangunan program) adalah `go get` dan `go mod tidy`.
+Perintah-perintah ini seharusnya tidak berjalan secara otomatis atau
+dalam sebuah sistem _Continuous Integration_ (CI), supaya perubahan
+terhadap dependensi harus dibuat dengan penuh kesadaran dan lewat
+peninjauan kode yang ketat.
+
+Hal ini sangat penting untuk keamanan (perangkat lunak), karena saat
+sebuah sistem CI atau mesin yang baru menjalankan `go build`, sumber
+kode yang diunduh adalah sumber kebenaran untuk apa yang akan
+dibangun.
+Tidak mungkin untuk pihak ketiga dapat mengubahnya.
+
+Lebih lanjut, saat sebuah dependensi ditambahkan lewat `go get`,
+relasi dependensi-dependensi bawaannya ditambahkan pada versi yang
+dispesifikasikan dalam berkas dependensi "go.mod", bukan dari versi
+terakhir mereka, ini berkat
+https://go.dev/ref/mod#minimal-version-selection[Pemilihan versi
+minimal^].
+Hal yang sama juga terjadi saat mengeksekusi
+`go install example.com/cmd/devtoolx@latest`,
+https://research.swtch.com/npm-colors[yang pada beberapa ekosistem
+meloncati versi yang telah disematkan^].
+Pada Go, versi terakhir dari `example.com/cmd/devtoolx`-lah yang akan
+diunduh, dan semua relasi dependensi-nya akan di unduh sesuai dengan
+berkas `go.mod` pada versi tersebut.
+
+Jika sebuah modul telah terkontaminasi dan versi terbaru yang
+diduga berbahaya telah diterbitkan, tidak akan ada orang yang akan
+terserang sampai mereka secara eksplisit memperbarui dependensi
+mereka, menyediakan kesempatan untuk meninjau perubahan dan waktu
+bagi ekosistem mendeteksi kejadian tersebut.
+
+
+== Isi dari versi tidak pernah berubah
+
+Bagian penting lainnya untuk memastikan pihak ketiga tidak dapat
+mencemarkan pembangunan program yaitu isi dari versi modul bersifat
+_immutable_, atau tidak berubah.
+Jika si peretas yang mencemarkan sebuah dependensi bisa mengunggah
+ulang versi-versi sebelumnya, maka mereka secara otomatis dapat
+mencemarkan semua proyek yang bergantung pada dependensi tersebut.
+
+Itulah tujuan dari
+https://go.dev/ref/mod#go-sum-files[berkas `go.sum`^].
+Ia berisi daftar _hash_ kriptografi dari setiap dependensi yang
+berkontribusi pada pembangunan program.
+Sekali lagi, sebuah `go.sum` yang tidak komplit akan menyebabkan eror,
+dan hanya perintah `go get` dan `go mod tidy` saja yang dapat
+mengubahnya, sehingga setiap perubahan terhadap berkas tersebut
+diikuti oleh perubahan dependensi yang disengaja.
+Pembangunan dengan `go.sum` yang komplit dijamin memiliki sekumpulan
+_checksum_ yang lengkap.
+
+Hal seperti ini adalah fitur yang umum pada berkas-berkas _lock_
+(berkas yang mengunci berkas lainnya, memastikan berkas lain tersebut
+tidak pernah diubah).
+Go mengembangkan fitur tersebut lebih jauh dengan adanya
+https://go.dev/ref/mod#checksum-database[Basisdata _Checksum_^]
+(singkatnya "sumdb"), sebuah daftar `go.sum` global yang berisi daftar
+`go.sum`, yang isinya hanya di-tambah saja dan diverifikasi dengan
+kriptografi.
+Saat `go get` butuh menambahkan sebuah entri ke dalam berkas `go.sum`,
+ia akan mengambilnya dari sumdb bersama dengan bukti kriptografi dari
+integritas sumdb.
+Hal ini, selain memastikan setiap pembangunan program dari modul
+tertentu menggunakan isi dependensi yang sama, juga memastikan setiap
+modul di luar sana menggunakan isi dependensi yang sama juga!
+
+Berkas sumdb membuat sebuah dependensi yang telah tercemari tidak
+akan mungkin terjadi, bahkan pada infrastruktur Go itu sendiri yang
+dioperasi-kan oleh Google, yang bisa saja menargetkan dependensi
+tertentu dengan memodifikasi sumber kode (misalnya, dengan menambahkan
+_backdoor_).
+Anda dijamin menggunakan kode yang sama dengan yang lain, misalnya
+versi `v1.9.2` dari `example.com/modulex` digunakan oleh semua orang
+dengan isi yang sama dan telah diperiksa.
+
+Terakhir, fitur favorit saya pada sumdb: ia tidak membutuhkan
+manajemen kunci (kriptografi) dari sisi penulis modul, dan ia bekerja
+dengan mulus secara alami pada model desentralisasi dari modul Go.
+
+
+== VCS adalah sumber kebenaran
+
+Kebanyakan proyek perangkat lunak dikembangkan dengan _version control
+system_ (VCS) dan kemudian, pada ekosistem yang berbeda, diunggah ke
+repositori paket.
+Ini berarti ada dua akun yang dapat tercemar, peladen VCS dan
+repositori paket.
+Repository paket jarang digunakan dan sering diabaikan oleh pengembang
+aplikasi.
+Dengan kata lain, lebih gampang menyembunyikan kode berbahaya di dalam
+versi paket yang diunggah ke repositori, khususnya bila sumber kode
+perlu diubah terlebih dahulu sebagai bagian dari (proses) sebelum
+mengunggah, sebagai contohnya untuk meminimalkan ukuran berkas.
+
+Pada Go, tidak ada namanya akun untuk repositori paket.
+Path pada bagian meng-"import" paket, menanam informasi
+https://pkg.go.dev/cmd/go#hdr-Remote_import_paths[yang dibutuhkan^]
+untuk mengunduh modul oleh perintah `go mod download` secara langsung
+lewat VCS, yang mana _tag_ mendefinisikan versi.
+
+Kita memang memiliki
+https://go.dev/blog/module-mirror-launch[Salinan Go Modul^],
+namun itu hanya proksi.
+Proksi tersebut menggunakan logika yang sama dengan perkakas Go (pada
+kenyataannya, proksi tersebut menjalankan "go mod download") untuk
+mengunduh dan menyimpan sebuah versi.
+Secara Basisdata _Checksum_ menjamin bahwa hanya ada satu sumber asli
+dari sebuah versi modul, maka semua orang yang menggunakan proksi akan
+mendapatkan hasil yang sama dengan orang lain yang tidak menggunakan
+proksi, atau yang secara langsung mengambil ke VCS.
+(Jika sebuah versi tidak tersedia lagi di VCS atau isinya berubah,
+maka pengambilan secara langsung akan menyebabkan eror, namun
+pengambilan lewat proksi bisa saja masih bekerja, hal ini meningkatkan
+availabilitas dan melindungi ekosistem dari
+https://blog.npmjs.org/post/141577284765/kik-left-pad-and-npm[masalah
+"left-pad"^]).
+
+Menjalankan perkakas VCS dari sisi klien juga memungkinkan adanya
+serangan keamanan.
+Hal ini juga di-mitigasi dengan adanya Salinan Go Modul: perkakas Go
+di sisi proksi berjalan dalam _sandbox_ yang diatur untuk mendukung
+semua perkakas VCS, sementara perkakas Go pada sisi klien
+https://go.dev/ref/mod#vcs-govcs[hanya mendukung dua
+sistem VCS utama saja^] (git dan Mercurial).
+Orang yang menggunakan proksi masih bisa mengunduh kode yang
+diterbitkan menggunakan sistem VCS selain git dan Mercurial, namun
+si peretas tidak akan dapat menjangkau dan mencemari kode tersebut.
+
+
+== Membangun kode tidak mengeksekusi kode
+
+Salah satu gol dari rancangan keamanan dari perkakas Go yaitu pada
+saat pengunduhan atau pembangunan kode tidak akan membiarkan kode
+tersebut dieksekusi, bahkan pada yang kode yang berbahaya dan tidak
+dipercaya sekalipun.
+Hal ini berbeda dengan ekosistem lainnya, banyak ekosistem yang
+mendukung menjalankan kode pada saat paket diunduh.
+Mekanisme "post-install" ini telah digunakan pada waktu dulu sebagai
+cara yang mudah untuk menjadikan sebuah dependensi yang tercemar
+menjadi mesin pengembang yang tercemar, dan berkembang jadi
+https://en.wikipedia.org/wiki/Computer_worm["worm"^]
+lewat si penulis modul.
+
+Jika kita mengunduh kode, sering kali kita mengeksekusi-nya nanti,
+baik untuk dicoba pada mesin pengembang itu sendiri atau sebagai
+bagian dari program di lingkungan _production_, jadi dengan
+tidak adanya "post-install" hanya melambatkan si peretas.
+(Tidak ada batasan keamanan dalam sebuah pembangunan: setiap paket
+yang berkontribusi pada sebuah pembangunan dapat mendefinisikan fungsi
+`init`.)
+Namun, ia bisa untuk mitigasi resiko yang berguna, secara kita mungkin
+mengeksekusi program atau menguji sebuah paket yang hanya menggunakan
+bagian dari dependensi modul.
+Misalnya, jika kita membangun dan menjalankan program dari
+"example.com/cmd/devtoolx" di macOS, maka tidak akan mungkin
+dependensi yang hanya berjalan di-Windows atau sebuah dependensi
+"example.com/cmd/othertool" lainnya mencemarkan mesin kita.
+
+Pada Go, modul yang tidak berkontribusi pada pembangunan kode tertentu
+tidak memiliki impak keamanan.
+
+
+== "Sedikit menyalin lebih baik dari sedikit dependensi"
+
+Mitigasi resiko rantai pasok terakhir dan mungkin yang paling penting
+dari perangkat lunak dalam ekosistem Go adalah yang paling tidak
+teknis: Go memiliki budaya yang menolak dependensi yang besar, dan
+lebih memilih menyalin kode daripada menambahkan dependensi baru.
+Hal ini merupakan salah satu pepatah Go:
+https://youtube.com/clip/UgkxWCEmMJFW0-TvSMzcMEAHZcpt2FsVXP65["sedikit
+menyalin lebih baik daripada sedikit dependensi"^].
+Label "nol dependensi" secara bangga dipakai oleh Go modul yang
+berkualitas tinggi.
+Jika Anda membutuhkan sebuah pustaka, Anda kemungkinan akan menemukan
+pustaka tersebut tidak akan mengikutkan lusinan dependensi lain dari
+modul dan penulis yang berbeda.
+
+Hal ini juga dikarenakan kayanya pustaka baku dari Go itu sendiri dan
+modul-modul tambahan (seperti "golang.org/x/..."), yang berisi
+blok-blok pembangunan yang sering digunakan, seperti pustaka HTTP,
+pustaka TLS, pustaka JSON, dan lainnya.
+
+Dengan kata lain, memungkinkan membangun aplikasi yang kompleks dan
+kaya fitur dengan hanya beberapa dependensi.
+Sebagus apa pun perkakasnya, kita tidak dapat menghindari resiko dari
+penggunaan ulang kode, sehingga mitigasi paling kuat selalu dengan
+menggunakan dependensi yang sesedikit mungkin.

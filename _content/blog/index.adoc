@@ -7,6 +7,9 @@
 
 === 2022
 
+* link:/blog/supply-chain/[Mitigasi serangan rantai pasok^],
+  31 Maret 2022. Fillipo Valsorda.
+
 * link:/blog/intro-generics/[Pengenalan terhadap generik^],
   22 Maret 2022. Robert Griesemer dan Ian Lance Taylor.
 
