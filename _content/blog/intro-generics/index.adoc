@@ -20,7 +20,7 @@ Untuk deskripsi yang lebih detil dan lengkap, termasuk
 contoh-contohnya, lihatlah
 https://go.googlesource.com/proposal/+/HEAD/design/43651-type-parameters.md[dokumen proposal^].
 Untuk deskripsi tentang perubahan bahasa, lihat
-https://go.home.local/go.dev/ref/spec[pembaruan dari spesifikasi bahasa^].
+https://go.dev/ref/spec[pembaruan dari spesifikasi bahasa^].
 (Ingatlah bahwa implementasi generik pada versi 1.18 belum
 menerapkan semua gagasan yang ada dalam proposal; tapi spesifikasi
 bahasa seharusnya sudah akurat.
@@ -142,7 +142,7 @@ Meta-tipe ini disebut juga dengan _batasan tipe_ atau _type
 constraint_.
 
 Pada fungsi generik `GMin`, batasan tipe diimpor dari
-https://go.home.local/golang.org/x/exp/constraints[paket `constraints`^].
+https://pkg.go.dev/golang.org/x/exp/constraints[paket `constraints`^].
 Batasan `Ordered` berisi kumpulan dari semua tipe dengan nilai yang
 dapat diurut, atau, dengan kata lain, dapat dibandingkan dengan
 operator pembanding `<`, `\<=`, `>`, atau `\>=`.
@@ -448,7 +448,7 @@ Hal ini adalah pengenalan dari inferensi tipe batasan.
 Untuk lebih lengkapnya lihat
 https://go.googlesource.com/proposal/+/HEAD/design/43651-type-parameters.md[dokumen proposal^]
 atau
-https://go.home.local/go.dev/ref/spec[spesifikasi bahasa].
+https://go.dev/ref/spec[spesifikasi bahasa].
 
 
 === Inferensi tipe di dunia nyata
