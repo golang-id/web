@@ -10,18 +10,18 @@ Indonesia dan sebagai portal bagi komunitas Go Indonesia.
 
 Untuk menggunakan situs ini sangat mudah.
 Jika Anda menemukan artikel resmi dalam Bahasa Inggris, Anda bisa membacanya
-dengan mengubah tautan dari "golang.org/" ke "golang-id.org/".
+dengan mengubah tautan dari "go.dev/" ke "golang-id.org/".
 Misalnya, dokumentasi resmi untuk memasang Go ada di
-https://golang.org/doc/install[https://golang.org/doc/install^],
+https://go.dev/doc/install ,
 yang juga dapat di akses dalam Bahasa Indonesia di
-https://golang-id.org/doc/install/[https://golang-id.org/doc/install/^].
+https://golang-id.org/doc/install.
 
-Untuk artikel blog, Anda tinggal mengganti tautan dari "blog.golang.org/"
+Untuk artikel blog, Anda tinggal mengganti tautan dari "go.dev/blog/"
 menjadi "golang-id.org/blog/".
 Misalnya, tautan blog tentang cara menggunakan Go modul di situs resmi yaitu
-https://blog.golang.org/using-go-modules[https://blog.golang.org/using-go-modules^],
+https://go.dev/blog/using-go-modules ,
 dan terjemahannya dapat diakses lewat tautan
-https://golang-id.org/blog/using-go-modules/[https://golang-id.org/blog/using-go-modules/^].
+https://golang-id.org/blog/using-go-modules.
 
 
 ==  link:/doc/[Dokumentasi^]
