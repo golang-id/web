@@ -7,6 +7,9 @@
 
 === 2022
 
+* link:/blog/get-familiar-with-workspaces/[Mengenal workspace^],
+  5 April 2022. Beth Brown, untuk tim Go.
+
 * link:/blog/supply-chain/[Mitigasi serangan rantai pasok^],
   31 Maret 2022. Fillipo Valsorda.
 

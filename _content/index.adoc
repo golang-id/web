@@ -36,29 +36,20 @@ link:/doc/[dokumentasi^].
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
 
+* link:/blog/get-familiar-with-workspaces/[Mengenal ruang kerja Go^],
+  5 April 2022. Beth Brown, atas nama tim Go.
+
 * link:/blog/supply-chain/[Mitigasi serangan rantai pasok^],
   31 Maret 2022. Fillipo Valsorda.
 
 * link:/blog/intro-generics/[Pengenalan terhadap generik^],
   22 Maret 2022. Robert Griesemer dan Ian Lance Taylor.
 
-*  link:/blog/tls-cipher-suites/[Pemilihan pasangan _cipher_ otomatis pada crypto/tls^],
-   15 September 2021.  _Filippo Valsorda_.
+* link:/blog/tls-cipher-suites/[Pemilihan pasangan _cipher_ otomatis pada crypto/tls^],
+  15 September 2021.  _Filippo Valsorda_.
 
-*  link:/blog/go1.15/[Rilis Go 1.15^],
-   11 Agustus 2020.  _Alex Rakoczy_.
-
-*  link:/blog/module-compatibility/[Bagian 5 - Menjaga Modul Anda tetap Kompatibel^],
-   2 Juli 2020.  _Jean de Klerk_ dan _Jonathan Amsterdam_
-
-*  link:/blog/a-new-go-api-for-protocol-buffers/[Go API baru untuk Protocol Buffers^],
-   2 Maret 2020.  Joe Tsai, Damien Neil, dan Herbie Ong
-
-*  link:/blog/go1.14/[Go 1.14 telah dirilis^],
-   25 Februari 2020.  _Alex Rakoczy_
-
-*  link:/blog/pkg.go.dev-2020/[Langkah selanjutnya untuk pkg.go.dev^],
-   31 Januari 2020.  _Julie Qiu_
+* link:/blog/context-and-structs/[Context dan struct^],
+  24 Februari 2021.  Jean de Klerk; Matt T. Proud
 
 
 Daftar artikel blog link:/blog/[lainnya^].

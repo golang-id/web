@@ -1,0 +1,305 @@
+= Mengenal ruang kerja Go
+Beth Brown, atas nama tim Go
+5 April 2022
+:toc:
+:sectanchors:
+:sectlinks:
+:description: Mengenal penggunaan go.work atau ruang kerja Go
+
+
+Go 1.18 menambahkan fitur ruang kerja (_workspace_) ke Go, yang
+membuat kita dapat bekerja dengan beberapa modul secara simultan.
+
+Anda dapat mengunduh Go 1.18 (atau yang terbaru) dengan mengunjungi
+halaman
+https://go.dev/dl/[unduh^].
+
+Halaman
+https://go.dev/doc/go1.18[catatan rilis^]
+menjelaskan lebih rinci tentang semua perubahan pada rilis Go 1.18.
+
+
+== Ruang kerja Go
+
+Ruang kerja pada Go 1.18 membuat kita dapat bekerja dengan banyak
+modul secara bersamaan tanpa harus menyunting berkas "go.mod" pada
+setiap modul.
+Setiap modul dalam sebuah ruang kerja diperlakukan sebagai modul utama
+saat mencari dependensi.
+
+Sebelumnya, untuk menambahkan sebuah fitur ke dalam modul dan
+memakainya di modul yang lain, kita harus menerbitkan perubahan
+tersebut terlebih dahulu pada modul yang pertama, atau
+https://go.dev/doc/tutorial/call-module-code[menyunting berkas
+"go.mod"^]
+dan mengganti modul yang ingin kita uji tersebut dengan direktif
+`replace` menunjuk ke direktori di lokal, yang belum diterbitkan.
+Supaya tidak salah saat menerbitkan, kita harus menghapus direktif
+`replace` dari berkas "go.mod" setelah kita menerbitkan perubahan yang
+dilakukan pada modul yang pertama.
+
+Dengan ruang kerja Go, kita mengontrol semua dependensi menggunakan
+berkas "go.work" di dalam direktori paling atas dari ruang kerja kita.
+Berkas "go.work" memiliki direktif `use` dan `replace` yang menimpa
+setiap berkas "go.mod", sehingga tidak perlu menyunting setiap berkas
+"go.mod" satu per satu.
+
+Sebuah ruang kerja Go dibuat dengan menjalankan "go work init" dengan
+argumen berupa daftar direktori dari modul di lokal kita yang
+dipisahkan oleh spasi.
+Perintah `init` membuat berkas "go.work" yang berisi daftar modul
+dalam ruang kerja tersebut.
+Jika kita menjalankan "go work init" tanpa argumen, perintah tersebut
+akan membuat sebuah ruang kerja kosong.
+
+Untuk menambahkan modul ke dalam ruang kerja, jalankan "go work use
+[moddir]" atau secara manual menyunting berkas "go.work".
+Jalankan "go work use -r $DIR" untuk menambahkan modul yang ada di
+dalam direktori `$DIR` secara rekursif.
+Jika sebuah direktori tidak memiliki berkas "go.mod", atau direktori
+tersebut sudah tidak ada lagi, maka direktif `use` untuk direktori
+tersebut akan secara otomatis dihapus dari dalam berkas "go.work".
+
+Sintak dari berkas "go.work" mirip dengan berkas "go.mod" dan berisi
+direktif-direktif berikut:
+
+* `go`: menandakan versi perkakas go, misalnya "go 1.18"
+* `use`: menambahkan sebuah modul di lokal ke dalam kumpulan
+  modul-modul utama untuk sebuah ruang kerja.
+  Argumen dari direktif ini yaitu path relatif ke direktori yang
+  berisi berkas "go.mod".
+  Direktif ini tidak menambahkan sub-modul yang ada di dalam sebuah
+  modul secara otomatis.
+* `replace`: mirip dengan direktif `replace` pada berkas `go.mod`,
+  sebuah direktif `replace` menimpa _versi tertentu_ dari sebuah modul
+  dengan versi yang ditemukan di tempat lain.
+
+
+== Alur kerja
+
+Ruang kerja Go sangat fleksibel dan mendukung beragam alur kerja.
+Bagian-bagian selanjutnya menjelaskan secara singkat beberapa alur
+kerja yang menurut kami sangat umum digunakan.
+
+
+=== Menambahkan fitur ke modul lain dan menggunakan di modul kita
+
+. Buat sebuah direktori untuk ruang kerja.
+. Salin modul lain yang akan kita ubah di lokal.
+. Tambahkan fitur pada modul lain tersebut.
+. Jalankan "go work init [path-ke-modul-lain]" di dalam direktori
+  ruang kerja.
+. Buat perubahan pada modul kita yang menggunakan fitur yang baru kita
+  tambahkan pada modul lain tersebut.
+. Jalankan "go work use [path-ke-modul-kita]" di dalam direktori
+  ruang kerja.
++
+--
+Perintah "go work use" menambahkan path dari modul kita ke dalam
+berkas "go.work":
+----
+go 1.18
+
+use (
+	./path-ke-modul-lain
+	./path-ke-modul-kita
+)
+----
+--
+. Jalankan pengujian pada modul kita berdasarkan fitur yang baru
+  ditambahkan.
+. Terbit kan modul lain dengan fitur baru tersebut
+. Terbit kan modul kita yang telah berisi penggunaan fitur dari modul
+  lain tersebut.
+
+
+=== Bekerja dengan banyak modul dalam satu repositori
+
+Saat bekerja dengan banyak modul dalam satu repositori, berkas
+"go.work" mendefinisikan ruang kerja itu sendiri, bukan menggunakan
+direktif `replace` di setiap berkas "go.mod".
+
+. Buat sebuah direktori untuk ruang kerja.
+. Salin repositori yang berisi modul-modul yang akan kita ubah.
+  Modul-modul tersebut tidak harus berada di dalam direktori yang sama
+  dengan ruang kerja, karena kita dapat menentukan path relatif dengan
+  menggunakan direktif `use` nantinya.
+. Jalankan "go work init [path-ke-modul-satu] [path-ke-modul-dua]" di
+  dalam direktori ruang kerja.
++
+--
+Contoh: Kita sedang mengerjakan modul "example.com/x/tools/groundhog"
+yang bergantung pada paket-paket lain yang ada di modul
+"example.com/x/tools".
+
+Kita salin repositori "example.com/x/tools" ke dalam direktori bernama
+"tools" dan menjalankan "go work init tools tools/groundhog" di dalam
+direktori ruang kerja.
+
+Isi dari berkas "go.work" akan seperti berikut:
+----
+go 1.18
+
+use (
+	./tools
+	./tools/groundhog
+)
+----
+
+Setiap perubahan yang dibuat dalam modul "tools" akan dapat digunakan
+oleh "tools/groundhog" di dalam ruang kerja tersebut.
+--
+
+
+== Mengganti dependensi
+
+Untuk menguji modul-modul kita dengan konfigurasi dependensi yang
+berbeda, kita bisa membuat banyak ruang kerja dengan berkas "go.work"
+yang terpisah, atau tetap dengan satu ruang kerja tapi menutup
+penggunaan direktif `use` yang tidak kita gunakan dalam berkas
+"go.work".
+
+Untuk membuat banyak ruang kerja:
+
+. Buat direktori-direktori terpisah dengan kebutuhan dependensi yang
+  berbeda-beda.
+. Jalankan "go work init" di setiap direktori ruang kerja tersebut.
+. Tambahkan dependensi yang kita inginkan di setiap direktori ruang
+  kerja lewat perintah "go work use [path-ke-dependensi]".
+. Jalankan "go run [path-ke-modul-utama]" di setiap ruang kerja untuk
+  menggunakan dependensi yang ditentukan oleh berkas "go.work".
+
+Untuk mencoba dependensi yang berbeda dalam ruang kerja yang sama,
+bukalah berkas "go.work" dan tambah atau tutup dependensi yang
+kita inginkan atau tidak gunakan.
+
+
+=== Masih menggunakan GOPATH?
+
+Mungkin dengan menggunakan ruang kerja akan mengubah pikiran Anda.
+Pengguna `GOPATH` dapat menggunakan dependensi menggunakan berkas
+"go.work" yang berada di direktori utama dari `GOPATH`.
+Ruang kerja Go tidak bertujuan untuk membuat ulang alur kerja pada
+`GOPATH`, namun ia membuat sebuah pengaturan yang memiliki kesamaan
+dengan `GOPATH` dengan kelebihan penggunaan modul-modul.
+
+Untuk membuat sebuah ruang kerja untuk `GOPATH`:
+
+. Jalankan "go work init" di dalam direktori `GOPATH`.
+. Untuk menggunakan modul lokal atau versi tertentu sebagai dependensi
+  dari ruang kerja kita, jalankan "go work use [path-ke-modul]".
+. Untuk menimpa dependensi yang sudah ada dalam berkas "go.mod"
+  kita, gunakan "go work replace [path-ke-modul]".
+. Untuk menambahkan semua modul di dalam `GOPATH` atau direktori apa
+  pun, jalankan "go work -r" yang secara rekursif menambahkan
+  direktori-direktori yang berisi berkas "go.mod" ke ruang kerja.
+  Jika sebuah direktori tidak lagi berisi berkas "go.mod", atau sudah
+  tidak ada lagi, maka direktif `use` dari direktori tersebut akan
+  dihapus dari berkas "go.work".
++
+--
+NOTE: Jika kita memiliki proyek yang tidak menggunakan berkas "go.mod"
+dan ingin ditambahkan ke dalam ruang kerja Go, masuk lah ke dalam
+direktori proyek tersebut dan jalankan "go mod init", kemudian
+tambahkan proyek tersebut ke dalam ruang kerja dengan cara "go work
+use [path-ke-proyek]".
+--
+
+
+=== Perintah-perintah pada ruang kerja
+
+Selain "go work init" dan "go work use", Go 1.18 juga memperkenalkan
+perintah-perintah berikut untuk ruang kerja:
+
+* `go work sync`: simpan dependensi yang ada di dalam berkas "go.work"
+  kembali ke dalam berkas "go.mod" di setiap modul-modul di ruang
+  kerja.
+
+* `go work edit`: menyediakan antar muka untuk menyunting "go.work",
+  biasanya digunakan oleh perkakas atau skrip.
+
+Perintah pembangunan yang mengerti Go modul dan beberapa sub perintah
+dari "go mod" memeriksa variabel lingkungan `GOWORK` untuk menentukan
+apakah konteks mereka sedang bekerja dalam ruang kerja atau bukan.
+
+Mode ruang kerja akan otomatis aktif bila variabel `GOWORK` berisi
+path ke sebuah berkas yang berakhiran ".work".
+Untuk mengetahui berkas "go.work" yang sedang digunakan, jalankan
+"go env GOWORK".
+Keluaran akan kosong bila perintah go tidak sedang dalam mode ruang
+kerja.
+
+Bila mode ruang kerja aktif, berkas "go.work" akan dibaca untuk
+menentukan tiga parameter bagi mode ruang kerja: versi Go, daftar
+direktori, dan daftar pengganti modul.
+
+Beberapa perintah berikut dapat Anda coba dalam mode ruang kerja
+(dengan syarat Anda sudah tahu penggunaannya!):
+
+----
+go work init
+go work sync
+go work use
+go list
+go build
+go test
+go run
+go vet
+----
+
+
+===  Peningkatan penyuntingan
+
+Kami sangat gembira dengan pembaruan terhadap peladen bahasa Go
+https://pkg.go.dev/golang.org/x/tools/gopls[gopls^]
+dan
+https://marketplace.visualstudio.com/items?itemName=golang.go[ekstensi
+Go pada VSCode^]
+yang membuat bekerja pada banyak modul pada editor yang kompatibel
+dengan
+https://microsoft.github.io/language-server-protocol/[LSP^]
+sangat mudah dan menyenangkan.
+
+Mencari referensi, penyelesaian kode, dan mencari definisi; bekerja
+dengan baik antar modul dalam sebuah ruang kerja.
+Versi
+https://github.com/golang/tools/releases/tag/gopls%2Fv0.8.1[0.8.1^]
+dari `gopls` memperkenalkan diagnostik, penyelesaian, pemformatan dari
+berkas "go.work".
+Anda bisa menggunakan figure `gopls` tersebut pada penyunting yang
+mendukung LSP.
+
+==== Catatan untuk penyunting tertentu
+
+https://github.com/golang/vscode-go/releases/tag/v0.32.0[Rilis
+vscode-go^]
+yang terbaru membolehkan akses cepat ke berkas ruang kerja lewat menu
+"Quick Pick".
+
+image::https://user-images.githubusercontent.com/4999471/157268414-fba63843-5a14-44ba-be82-d42765568856.gif[]
+
+Penyunting
+https://www.jetbrains.com/go/[GoLand^]
+mendukung ruang kerja dan berencana menambahkan warna sintaksis dan
+penyelesaian kode untuk berkas "go.work".
+
+Untuk informasi lebih lanjut tentang penggunaan `gopls` dengan
+penyunting yang berbeda lihat
+https://pkg.go.dev/golang.org/x/tools/gopls#readme-editors[dokumentasi
+gopls^]
+
+
+== Selanjutnya?
+
+* Unduh dan pasang
+https://go.dev/dl/[Go yang terbaru^]
+* Coba menggunakan
+link:/ref/mod#workspaces[ruang kerja^]
+lewat
+link:/doc/tutorial/workspaces[Tutorial ruang kerja Go^]
+* Baca
+https://pkg.go.dev/cmd/go#hdr-Workspace_maintenance[dokumentasi
+memelihara ruang kerja^]
+* Eksplorasi perintah-perintah dari Go modul untuk
+https://go.dev/ref/mod#commands-outside[bekerja di luar modul]
+termasuk "go work init", "go work sync" dan lainnya.
