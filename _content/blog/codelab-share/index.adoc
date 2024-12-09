@@ -1,0 +1,124 @@
+= Berbagi memori dengan berkomunikasi
+Andrew Gerrand
+13 Juli 2010
+
+Model _thread_ tradisional (contohnya, yang biasanya digunakan saat
+menulis program Java, C++, Python) kadang mengharuskan pemprogram
+untuk berkomunikasi antar _thread_ menggunakan memori yang saling
+dibagi.
+Biasanya, dalam bentuk struktur data yang dilindungi oleh semacam
+penguncian (_lock_), dan setiap _thread_ tersebut akan bersaing
+menggunakan kunci tersebut untuk mengakses data.
+Pada kasus tertentu, hal ini dimudahkan dengan penggunaan struktur
+data yang paham tentang _thread_, seperti `Queue` pada Python.
+
+Konkurensi primitif pada Go --_goroutine_ dan _channel_-- menyediakan
+sebuah solusi yang elegan dan berbeda untuk menulis perangkat lunak
+konkuren.
+(Konsep ini memiliki
+https://swtch.com/~rsc/thread/[sejarah yang menarik^]
+yang dimulai dari tulisan C. A. R. Hoare tentang
+http://www.usingcsp.com/[_Communicating Sequential Processes_^].)
+Alih-alih secara eksplisit menggunakan kunci untuk menengahi akses
+terhadap data yang berbagi, Go mendorong penggunaan _channel_ untuk
+mengirim referensi ke data antara _goroutine_.
+Pendekatan ini memastikan hanya satu _goroutine_ yang memiliki akses
+terhadap data dalam satu waktu.
+Konsep ini disimpulkan dalam dokumen
+https://go.dev/doc/effective_go.html[Efektif Go^]
+(yang harus dibaca oleh pemrogram Go).
+
+_Jangan berkomunikasi dengan berbagi memori; tapi, bagilah memori
+untuk berkomunikasi_.
+
+Perhatikan contoh program berikut yang memproses daftar URL.
+Dalam lingkungan model pemrograman _thread_ tradisional, seseorang
+biasanya menulis struktur data seperti berikut:
+
+----
+type Resource struct {
+	url        string
+	polling    bool
+	lastPolled int64
+}
+
+type Resources struct {
+	data []*Resource
+	lock *sync.Mutex
+}
+----
+
+Dan kemudian sebuah fungsi `Poller` (yang berjalan di _thread_ yang
+terpisah) bentuknya kurang lebih seperti berikut,
+
+----
+func Poller(res *Resources) {
+	for {
+		// ambil Resource yang terakhir dan tandai telah
+		// diproses.
+		res.lock.Lock()
+		var r *Resource
+		for _, v := range res.data {
+			if v.polling {
+				continue
+			}
+			if r == nil || v.lastPolled < r.lastPolled {
+				r = v
+			}
+		}
+		if r != nil {
+			r.polling = true
+		}
+		res.lock.Unlock()
+		if r == nil {
+			continue
+		}
+
+		// proses URL...
+
+		// perbarui Resource polling dan lastPolled.
+		res.lock.Lock()
+		r.polling = false
+		r.lastPolled = time.Nanoseconds()
+		res.lock.Unlock()
+	}
+}
+----
+
+Fungsi ini hampir sehalaman panjangnya, dan membutuhkan lebih banyak
+detil lagi supaya selesai.
+Ia bahkan tidak mengikutkan logika untuk memproses URL (yang
+seharusnya cukup beberapa baris saja), dan bahkan tidak juga menangani
+kapan pengulangan berhenti.
+
+Mari kita lihat fungsionalitas yang sama diimplementasikan dengan
+idiom Go.
+Pada contoh ini, `Poller` adalah sebuah fungsi yang menerima
+`Resource` yang akan diproses dari sebuah _channel_ masukan, dan
+mengirimnya ke sebuah _channel_ keluaran setelah selesai.
+
+----
+type Resource string
+
+func Poller(in, out chan *Resource) {
+	for r := range in {
+		// proses URL ...
+
+		// kirim Resource yang telah diproses ke out.
+		out <- r
+	}
+}
+----
+
+Logika yang kompleks dari contoh sebelumnya sudah hilang, dan struktur
+data `Resource` kita sekarang tidak ada lagi mengurus penguncian data.
+Malah, yang masih kurang adalah bagian yang paling penting,
+pemrosesan.
+Hal ini seharusnya memberikan Anda sebuah intuisi terhadap kekuatan
+dari fitur bahasa yang sederhana.
+
+Ada banyak yang kurang dari potongan kode di atas.
+Untuk langkah-langkah yang komplit, program Go yang idiomatis yang
+menggunakan gagasan tersebut, lihat lah
+https://go.dev/doc/codewalk/sharemem/[Berbagi memori dengan
+berkomunikasi^].

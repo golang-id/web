@@ -181,6 +181,9 @@
 *  link:/blog/defer-panic-and-recover/["Defer, Panic, dan Recover"^],
    4 Agustus 2010.  Andrew Gerrand.
 
+*  link:/blog/codelab-share/[Berbagi memori dengan berkomunikasi^],
+   13 Juli 2010.  Andrew Gerrand.
+
 *  link:/blog/gos-declaration-syntax/[Sintaksis deklarasi pada Go^],
    7 Juli 2010.  Rob Pike.
 
