@@ -36,6 +36,9 @@ link:/doc/[dokumentasi^].
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
 
+* link:/blog/when-generics/[Kapan menggunakan generik^],
+  12 April 2022.  Ian Lance Taylor.
+
 * link:/blog/get-familiar-with-workspaces/[Mengenal ruang kerja Go^],
   5 April 2022. Beth Brown, atas nama tim Go.
 

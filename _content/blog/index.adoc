@@ -7,6 +7,9 @@
 
 === 2022
 
+* link:/blog/when-generics/[Kapan menggunakan generik^],
+  12 April 2022.  Ian Lance Taylor.
+
 * link:/blog/get-familiar-with-workspaces/[Mengenal workspace^],
   5 April 2022. Beth Brown, untuk tim Go.
 

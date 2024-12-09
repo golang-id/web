@@ -1,0 +1,379 @@
+= Kapan menggunakan generik
+Ian Lance Taylor
+12 April 2022
+
+== Pendahuluan
+
+Tulisan ini adalah versi blog dari wicara Ian di _Google Open Source
+Live_:
+
+++++
+<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/nr8EpUO9jhw"
+  title="Go Day 2021 on Google Open Source Live | Using Generics in Go" 
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  referrerpolicy="strict-origin-when-cross-origin"
+  allowfullscreen
+></iframe>
+++++
+
+dan _GopherCon_ 2021:
+
+++++
+<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/Pa_e9EeCdy8"
+  title="Generics! - Robert Griesemer &amp; Ian Lance Taylor"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media;
+gyroscope; picture-in-picture; web-share"
+  referrerpolicy="strict-origin-when-cross-origin"
+  allowfullscreen
+></iframe>
+++++
+
+Go versi 1.18 memiliki fitur bahasa baru: mendukung pemrograman
+generik.
+Dalam artikel ini, saya tidak akan menjelaskan apa itu generik atau
+bagaimana cara pakainya.
+Artikel ini tentang kapan menggunakan generik pada kode Go, dan kapan
+tidak menggunakan generik.
+
+Supaya lebih jelas, saya akan memberikan beberapa panduan umum, yang
+tidak terlalu baku dan ringkas.
+Gunakan penilaian Anda sendiri.
+Namun bila Anda tidak yakin, Saya rekomendasi kan menggunakan panduan
+yang didiskusikan di sini.
+
+
+== Tulis kode
+
+Mari kita mulai dengan sebuah panduan umum untuk pemrograman dengan
+Go: tulis program Go dengan menulis kode, bukan dengan mendefinisikan
+tipe.
+Bila berbicara tentang generik, jika Anda menulis program dengan
+mendefinisikan batasan parameter tipe terlebih dahulu, Anda bisa jadi
+sudah salah arah.
+Mulai lah dengan menulis fungsi.
+Akan mudah untuk menambahkan parameter tipe nantinya saat jelas
+bahwa ia memang akan berguna.
+
+
+== Kapan parameter tipe berguna?
+
+Mari kita lihat kasus-kasus apa saja yang dapat menggunakan parameter
+tipe.
+
+===  Saat menggunakan tipe penampung bawaan dari bahasa
+
+Kasus yang pertama yaitu saat menulis fungsi yang mengoperasikan
+tipe-tipe penampung bawaan dari bahasa: _slice_, _map_, dan _channel_.
+Jika sebuah fungsi memiliki parameter dengan tipe-tipe tersebut, dan
+badan fungsi tidak bergantung pada elemen tipe, maka mungkin saja bisa
+menggunakan parameter tipe.
+
+Contohnya, berikut fungsi yang mengembalikan semua kunci dari sebuah
+_map_ dari tipe apa saja, dalam bentuk _slice_:
+
+----
+// MapKeys mengembalikan sebuah slice yang berisi semua kunci dari
+// sebuah map m.
+// Kunci-kunci tersebut tidak dikembalikan secara berurutan.
+func MapKeys[Key comparable, Val any](m map[Key]Val) []Key {
+	s := make([]Key, 0, len(m))
+	for k := range m {
+		s = append(s, k)
+	}
+	return s
+}
+----
+
+Kode tersebut tidak mengasumsikan tipe kunci dari _map_, dan ia juga
+tidak menggunakan tipe nilai dari map.
+Sehingga fungsi tersebut dapat bekerja dengan tipe map apa saja.
+Hal ini membuatnya menjadi kandidat yang bagus untuk penggunaan
+parameter tipe.
+
+Alternatif dari parameter tipe pada jenis fungsi seperti ini yaitu
+biasanya menggunakan refleksi, namun cara tersebut menjadi aneh,
+karena tidak ada pemeriksaan tipe secara statis pada kode, dan
+terkadang saat dijalankan menjadi lambat.
+
+
+===  Struktur data umum
+
+Kasus lain yang mana parameter tipe dapat berguna yaitu untuk struktur
+data untuk keperluan umum.
+Sebuah struktur data keperluan umum yaitu seperti _slice_ atau _map_,
+tapi yang bukan bawaan dari bahasa itu sendiri, seperti _linked list_,
+atau pohon biner.
+
+Saat ini, program yang membutuhkan struktur data tersebut biasanya
+melakukan satu dari dua hal berikut: menulisnya dengan tipe elemen
+tertentu, atau menggunakan tipe interface.
+Mengganti tipe elemen tertentu dengan sebuah parameter tipe dapat
+menghasilkan sebuah struktur data yang lebih umum yang dapat digunakan
+pada bagian lain program, atau oleh program lain.
+Mengganti tipe interface dengan dengan parameter tipe membolehkan data
+disimpan lebih efisien, menghemat memori;
+ia juga menghindari asersi tipe, dan tipe-nya diperiksa secara penuh
+saat pembangunan.
+
+Contohnya, berikut struktur data dari pohon biner menggunakan
+parameter tipe:
+
+----
+// Tree merepresentasikan pohon biner.
+type Tree[T any] struct {
+	cmp  func(T, T) int
+	root *node[T]
+}
+
+// Sebuah node dalam pohon biner.
+type node[T any] struct {
+	left, right *node[T]
+	val         T
+}
+
+// find mengembalikan sebuah pointer terhadap node yang berisi val,
+// atau, bila val tidak ada, sebuah pointer tempat ia akan disimpan.
+func (bt *Tree[T]) find(val T) **node[T] {
+	pl := &bt.root
+	for *pl != nil {
+		switch cmp := bt.cmp(val, (*pl).val); {
+		case cmp < 0:
+			pl = &(*pl).left
+		case cmp > 0:
+			pl = &(*pl).right
+		default:
+			return pl
+		}
+	}
+	return pl
+}
+
+// Insert menambahkan val ke dalam bt jika belum ada, dan
+// mengembalikan true bila berhasil ditambah.
+func (bt *Tree[T]) Insert(val T) bool {
+	pl := bt.find(val)
+	if *pl != nil {
+		return false
+	}
+	*pl = &node[T]{val: val}
+	return true
+}
+----
+
+Setiap node di dalam pohon berisi sebuah nilai dari parameter tipe
+`T`.
+Saat pohon dibuat dengan argumen tipe tertentu, nilai dari tipe
+tersebut akan disimpan langsung di dalam node-node.
+Ia tidak disimpan sebagai tipe interface.
+
+Contoh di atas adalah penggunaan yang masuk akal dari parameter tipe
+karena struktur data `Tree`, termasuk kode pada _method_-nya,
+independen terhadap tipe elemen `T`.
+
+Struktur data `Tree` tidak perlu tahu bagaimana cara membandingkan
+nilai dari tipe elemen `T`;
+ia menggunakan fungsi pembanding yang di-kirim.
+Anda dapat melihat ini di baris ke empat pada method `find`, pada saat
+pemanggilan `bt.cmp`.
+Selain itu, parameter tipe tidak berpengaruh sama sekali.
+
+
+=== Untuk parameter tipe, pilih fungsi daripada _method_
+
+Contoh pada `Tree` sebelumnya memiliki panduan umum lainnya: saat Anda
+membutuhkan fungsi tertentu seperti pembanding, pilih lah dengan
+mengimplementasikan dalam sebuah fungsi daripada _method_.
+
+Kita bisa saja mendefinisikan tipe `Tree` sehingga tipe elemen harus
+memiliki method _Compare_ atau _Less_.
+Hal ini dapat dilakukan dengan menulis sebuah tipe batasan yang
+membutuhkan _method-method_ tersebut, dengan kata lain setiap argumen
+tipe yang digunakan untuk membangun sebuah tipe `Tree` harus memiliki
+_method-method_ tersebut.
+
+Akibatnya adalah setiap orang yang ingin menggunakan `Tree` untuk tipe
+data sederhana seperti `int` harus mendefinisikan tipe integer-nya
+sendiri dan menulis _method-method_ pembanding.
+Jika kita mendefinisikan `Tree` untuk menerima fungsi pembanding,
+seperti pada kode di atas, maka akan mudah untuk mengirim fungsi yang
+diinginkan.
+
+Jika seandainya tipe elemen dari `Tree` sudah memiliki _method_
+`Compare`, maka kita dapat dengan mudah menggunakan ekspresi seperti
+`ElementType.Compare` sebagai fungsi pembanding.
+
+Dengan kata lain, lebih mudah mengubah _method_ menjadi fungsi
+daripada menambahkan _method_ ke sebuah tipe.
+Jadi untuk tipe data umum, pilih lah sebuah fungsi daripada menulis
+sebuah batasan yang membutuhkan sebuah _method_.
+
+
+=== Mengimplementasikan method umum
+
+Kasus lain yang mana parameter tipe dapat berguna yaitu saat tipe-tipe
+yang berbeda harus mengimplementasikan proses yang sama, dan
+implementasi dari tipe-tipe yang berbeda tersebut semuanya tampak
+sama.
+
+Contohnya, lihat `sort.Interface` pada pustaka bawaan
+Interface tersebut membutuhkan sebuah tipe mengimplementasikan tiga
+_method_: `Len`, `Swap`, dan `Less`.
+
+Berikut contoh sebuah tipe generik `SliceFn` yang mengimplementasikan
+`sort.Interface` untuk tipe slice apa pun:
+
+----
+// SliceFn mengimplementasikan sort.Interface untuk slice bertipe T.
+type SliceFn[T any] struct {
+	s    []T
+	less func(T, T) bool
+}
+
+func (s SliceFn[T]) Len() int {
+	return len(s.s)
+}
+func (s SliceFn[T]) Swap(i, j int) {
+	s.s[i], s.s[j] = s.s[j], s.s[i]
+}
+func (s SliceFn[T]) Less(i, j int) bool {
+	return s.less(s.s[i], s.s[j])
+}
+----
+
+Untuk tipe slice apa saja, method `Len` dan `Swap` hampir sama.
+Method untuk `Less` membutuhkan pembandingan, karena itulah ditulis
+`Fn` sebagai nama dari `SliceFn`.
+Seperti contoh `Tree` sebelumnya, kita akan mengirim sebuah fungsi
+pada saat membuat sebuah `SliceFn`.
+
+Berikut cara menggunakan `SliceFn` untuk mengurutkan slice tipe apa
+saja menggunakan sebuah fungsi pembanding:
+
+----
+// SortFn mengurutkan s menggunakan fungsi pembanding.
+func SortFn[T any](s []T, less func(T, T) bool) {
+	sort.Sort(SliceFn[T]{s, less})
+}
+----
+
+Contoh ini mirip dengan fungsi `sort.Slice` pada pustaka bawaan, namun
+fungsi pembandingan ditulis menggunakan nilai bukan dengan indeks dari
+slice.
+
+Menggunakan parameter tipe untuk bentuk kode di atas sangat lah sesuai
+karena isi _method_-nya akan sama untuk semua tipe slice.
+
+(Saya harus mengingatkan bahwa Go 1.19 --bukan 1.18-- bisa jadi akan
+mengikutkan sebuah fungsi generik untuk mengurutkan sebuah slice
+menggunakan fungsi pembandingan, dan fungsi generik tersebut
+kemungkinan besar tidak menggunakan `sort.Interface`.
+Lihat
+https://go.home.local/go.dev/issue/47619[proposal #47619].
+Sangat masuk akal menggunakan parameter tipe saat Anda butuh
+mengimplementasikan method yang hampir sama untuk tipe-tipe yang
+dibutuhkan.)
+
+
+== Kapan parameter tipe tidak berguna?
+
+Sekarang mari kita bicarakan sisi lain dari pertanyaan tadi: kapan
+tidak menggunakan parameter tipe.
+
+
+=== Jangan ganti tipe interface dengan parameter tipe
+
+Seperti yang kita semua ketahui, Go memiliki tipe interface.
+Tipe interface membolehkan semacam pemrograman generik.
+
+Contohnya, interface `io.Reader` yang umum digunakan menyediakan
+sebuah mekanisme generik untuk membaca data dari nilai apa saja yang
+berisi informasi (misalnya, berkas) atau menghasilkan informasi
+(misalnya, generator bilangan acak).
+Jika yang Anda butuhkan dari sebuah nilai dari tipe tertentu adalah
+pemanggilan method dari nilai tersebut, gunakan tipe interface, bukan
+parameter tipe.
+Menggunakan `io.Reader` lebih mudah dibaca, efisien, dan efektif.
+Tidak perlu menggunakan parameter tipe untuk membaca data dari sebuah
+nilai dengan memanggil method `Read`.
+
+Contohnya, memang menggoda untuk mengubah fungsi berikut, yang
+menggunakan tipe interface, menjadi versi kedua, yang menggunakan
+parameter tipe.
+
+----
+func ReadSome(r io.Reader) ([]byte, error)
+
+func ReadSome[T io.Reader](r T) ([]byte, error)
+----
+
+Jangan buat perubahan seperti itu.
+Mengabaikan parameter tipe membuat fungsi tersebut lebih mudah
+ditulis, mudah dibaca, dan waktu eksekusi-nya bisa jadi sama.
+
+Poin yang terakhir ini perlu ditekankan.
+Walaupun bisa saja mengimplementasikan generik dengan berbagai cara,
+dan implementasi tersebut mungkin berkembang dan berubah seiring
+waktu, implementasi yang sekarang digunakan pada Go 1.18 akan, pada
+banyak kasus, memperlakukan nilai dari parameter tipe seperti nilai
+dari tipe interface.
+Maksudnya adalah menggunakan parameter tipe umumnya tidak akan
+lebih cepat daripada tipe interface.
+Jadi jangan ubah dari tipe interface ke parameter tipe hanya supaya
+lebih cepat, karena belum tentu begitu.
+
+
+=== Jangan gunakan parameter tipe bila cara implementasinya berbeda
+
+Saat memilih apakah menggunakan parameter tipe atau sebuah tipe
+interface, pertimbangkan cara implementasinya.
+Sebelumnya kita mengatakan bahwa jika cara implementasinya sama untuk
+semua tipe, gunakan lah parameter tipe.
+Sebaliknya, jika implementasinya berbeda untuk setiap tipe, maka
+gunakan tipe interface, jangan gunakan parameter tipe.
+
+Contohnya, implementasi `Read` dari sebuah berkas tidak sama dengan
+implementasi `Read` pada pembangkit bilangan acak.
+Artinya kita harus menulis _method_ `Read` yang berbeda untuk
+keduanya, dan menggunakan tipe interface seperti `io.Reader`.
+
+
+=== Gunakan refleksi sesuai tempatnya
+
+Go memiliki
+https://pkg.go.dev/reflect[refleksi _run time_^].
+Refleksi yaitu semacam pemrograman generik, yang mana ia membolehkan
+kita menulis kode dengan tipe apa pun.
+
+Jika beberapa operasi harus mendukung tipe-tipe yang tidak memiliki
+_method_ (sehingga tipe interface tidak membantu disini), dan jika
+operasi berbeda untuk setiap tipe (sehingga parameter tipe tidak
+sesuai), gunakan refleksi.
+
+Salah satu contoh dari kasus ini yaitu paket
+https://pkg.go.dev/encoding/json["encoding/json"^].
+Kita tidak ingin setiap tipe yang kita enkode memiliki _method_
+`MarshalJSON`, sehingga kita tidak dapat menggunakan tipe interface.
+Namun mengodekan sebuah tipe interface tidak sama dengan mengodekan
+tipe _struct_, sehingga kita tidak dapat menggunakan parameter tipe.
+Melainkan, paket tersebut menggunakan refleksi.
+Kode-nya tidak lah sederhana, namun bekerja dengan baik.
+Untuk lebih rinci, lihat
+https://go.dev/src/encoding/json/encode.go[sumber kode-nya^].
+
+
+== Satu panduan sederhana
+
+Sebagai penutup, diskusi tentang kapan menggunakan generik ini dapat
+disimpulkan menjadi satu panduan sederhana saja.
+
+Jika Anda suatu saat nanti menulis kode yang sama beberapa kali, yang
+perbedaan-nya hanya pada penggunaan tipe, mungkin Anda bisa
+menggunakan parameter tipe.
+
+Dengan kata lain, hindari menggunakan parameter tipe sampai Anda
+menyadari bahwa Anda akan menulis kode yang sama beberapa kali untuk
+tipe-tipe yang berbeda.
