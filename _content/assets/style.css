@@ -1,3 +1,14 @@
+:root {
+  --dark-anchor: #c48000;
+  --dark-bg-editor-line: #173740;
+  --dark-bg-mono: #12414d;
+  --dark-bg-topbar: #207e95;
+  --dark-bg: #002b36;
+  --dark-border: #035064;
+  --dark-fg-gray: #76888a;
+  --dark-fg: #b4c5c7;
+}
+
 body {
   margin: 0;
   font-family: "Go", Arial, sans-serif;
@@ -241,5 +252,54 @@ td p {
 @media screen and (max-width: 992px) {
   #toc {
     all: unset;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background-color: var(--dark-bg);
+  }
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--dark-fg);
+  }
+  a,
+  a:link,
+  a:visited {
+    color: var(--dark-anchor);
+  }
+  blockquote,
+  input,
+  pre,
+  textarea {
+    background-color: var(--dark-bg-mono);
+    color: var(--dark-fg);
+  }
+  .page > .container,
+  .page > .playground,
+  .topbar {
+    border-color: var(--dark-border);
+  }
+  h2,
+  .playground > .actions,
+  .topbar {
+    background-color: var(--dark-bg-topbar);
+    color: var(--dark-fg);
+  }
+  .topbar .top-heading a {
+    color: var(--dark-fg);
+  }
+  .topbar .menu a {
+    background-color: var(--dark-bg);
+    color: var(--dark-anchor);
+  }
+  .footer {
+    color: var(--dark-fg-gray);
   }
 }
