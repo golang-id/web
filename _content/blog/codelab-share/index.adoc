@@ -3,7 +3,7 @@ Andrew Gerrand
 13 Juli 2010
 
 Model _thread_ tradisional (contohnya, yang biasanya digunakan saat
-menulis program Java, C++, Python) kadang mengharuskan pemprogram
+menulis program Java, C++, Python) kadang mengharuskan pemrogram
 untuk berkomunikasi antar _thread_ menggunakan memori yang saling
 dibagi.
 Biasanya, dalam bentuk struktur data yang dilindungi oleh semacam
@@ -13,15 +13,15 @@ Pada kasus tertentu, hal ini dimudahkan dengan penggunaan struktur
 data yang paham tentang _thread_, seperti `Queue` pada Python.
 
 Konkurensi primitif pada Go --_goroutine_ dan _channel_-- menyediakan
-sebuah solusi yang elegan dan berbeda untuk menulis perangkat lunak
+sebuah solusi yang berbeda dan elegan untuk menulis perangkat lunak
 konkuren.
 (Konsep ini memiliki
 https://swtch.com/~rsc/thread/[sejarah yang menarik^]
 yang dimulai dari tulisan C. A. R. Hoare tentang
 http://www.usingcsp.com/[_Communicating Sequential Processes_^].)
 Alih-alih secara eksplisit menggunakan kunci untuk menengahi akses
-terhadap data yang berbagi, Go mendorong penggunaan _channel_ untuk
-mengirim referensi ke data antara _goroutine_.
+terhadap data yang dibagi, Go mendorong penggunaan _channel_ untuk
+mengirim referensi data antara _goroutine_.
 Pendekatan ini memastikan hanya satu _goroutine_ yang memiliki akses
 terhadap data dalam satu waktu.
 Konsep ini disimpulkan dalam dokumen
