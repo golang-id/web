@@ -58,9 +58,10 @@ komunitas Go Indonesia.
 Daftar artikel blog link:/blog/[lainnya^].
 
 
-==  link:/modul/[Modul^]
+==  Modul
 
-Temukan Go modul yang dibuat oleh komunitas.
+Temukan Go modul yang dibuat oleh komunitas
+link:/modul/[di sini].
 
 
 ==  Acara
