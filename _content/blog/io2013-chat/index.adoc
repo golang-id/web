@@ -1,0 +1,208 @@
+= Perbincangan dengan Tim Go
+6 Juni 2013
+
+Pada Google I/0 2013, beberapa anggota dari tim Go menyelenggarakan
+sebuah acara perbincangan.
+Robert Griesemer, Rob Pike, David Symonds, Andrew Gerrand, Ian Lance
+Taylor, Sameer Ajmani, Brad Fitzpatrick, dan Nigel Tao menjawab
+sejumlah pertanyaan dari penonton di seluruh dunia tentang beragam
+aspek dari proyek Go.
+
+video::p9VUCp98ay4[youtube,width=560,height=315]
+
+Kita juga menyelenggarakan sesi yang sama pada I/O tahun lalu:
+http://www.youtube.com/watch?v=sln-gJaURzk[Jumpa temu dengan tim Go].
+
+Ada banyak pertanyaan dari moderator Google yang dapat kita jawab
+dalam waktu 40 menit.
+Berikut beberapa jawaban yang terlewat di sesi tersebut.
+
+
+_Kecepatan kompilasi (dan penggunaan memori) dari perkakas gc
+diketahui bermasalah.
+Apakah ada rencana untuk mengatasi isu tersebut pada Go versi 1.2?_
+
+*Rob*: Ya.
+Kita selalu memikirkan cara meningkatkan performansi dari perkakas
+sebagaimana juga performansi dari bahasa dan pustaka-pustaka standar
+Go.
+
+
+_Saya sangat senang dengan begitu cepatnya Go mendapatkan perhatian.
+Bisakah Anda berbagi tentang reaksi yang Anda alami bekerja dengan
+pengembang lain di dalam dan di luar Google?
+Apakah ada poin yang melekat?_
+
+*Robert*: Banyak pengembang yang secara serius mencoba Go senang
+dengan pengalaman mereka.
+Banyak dari mereka melaporkan basis kode mereka menjadi lebih ringkas,
+lebih mudah dibaca, dan gampang dirawat:
+ukuran kode berkurang 50% atau lebih bila dibandingkan dengan kode
+C++.
+Pengembang yang pindah dari Python ke Go selalu merasa senang dengan
+performansi yang didapat.
+Komplain yang umum didapat yaitu tentang inkonsistensi kecil pada
+bahasa (beberapa-nya akan kita perbaiki suatu saat nanti).
+Yang mengejutkan saya adalah hampir tidak ada orang yang komplain
+tentang tidak adanya generik.
+
+
+_Kapan Go akan menjadi bahasa untuk pengembangan Android?_
+
+*Andrew:* Itu akan sangat bagus, namun kami belum ada kabar yang
+pasti.
+
+
+_Apakah ada rencana untuk versi Go selanjutnya?_
+
+*Andrew:* Kami belum punya rencana pasti untuk fitur.
+Para kontributor condong bekerja sesuai dengan apa yang menurut mereka
+menarik.
+Area yang sekarang aktif termasuk kompilator `gc` dan `gccgo`,
+_garbage collector_ dan _runtime_, dan banyak hal lainnya.
+Kami mengharapkan penambahan baru yang besar dalam bentuk peningkatan
+dari perkakas kita.
+Anda dapat menemukan diskusi dan ulasan kode di
+http://groups.google.com/group/golang-dev[milis golang-dev^].
+
+Untuk waktunya, kami memiliki
+https://docs.google.com/document/d/106hMEZj58L9nq9N9p7Zll_WKfo-oyZHFyI6MttuZmBU/edit?usp=sharing[rencana
+yang konkrit^]: kami berharap merilis Go 1.2 pada 1 Desember 2013.
+
+
+_Di mana Anda ingin melihat orang menggunakan Go?
+Apa yang Anda anggap kemenangan besar untuk adopsi di luar Google?
+Di mana Anda melihat Go dapat membuat impak yang signifikan?_
+
+*Rob:* Di mana Go dipakai itu terserah pada pengguna, bukan kita.
+Kami senang melihat Go mendapatkan perhatian di mana pun ia dapat
+berguna.
+Go dirancang untuk membuat perangkat lunak peladen, dan ia tampak
+menunjukkan harapan di sana, namun juga telah banyak dipakai di area
+lain.
+Mungkin akan ada banyak kejutan di masa datang.
+
+*Ian:* Akan sangat mudah bagi _startup_ menggunakan Go, karena mereka
+belum memiliki basis kode yang baku.
+Jadi saya melihat dua kemenangan besar dari Go di masa depan.
+Pertama, makin banyaknya penggunaan Go oleh perusahaan perangkat lunak
+besar selain Google.
+Kedua, bisa jadi akuisisi atau _IPO_ dari _startup_ yang menggunakan
+Go.
+Keduanya tidak berhubungan: pilihan bahasa pemrograman adalah faktor
+yang paling kecil dari sukses-nya sebuah perusahaan.
+Namun ia merupakan cara lain memperlihatkan bahwa Go dapat menjadi
+bagian dari sukses-nya sebuah sistem perangkat lunak.
+
+
+_Apakah Anda pernah berpikir tentang potensi memuat paket atau objek
+secara dinamis pada Go?
+Saya pikir hal tersebut membolehkan beberapa pembangunan (aplikasi)
+yang sangat menarik dan ekspresif, terutama yang berkaitan dengan
+antar muka._
+
+*Rob:* Hal ini merupakan topik diskusi yang aktif.
+Kami mengakui kekuatan dari konsep tersebut dan berharap kita dapat
+menemukan cara untuk mengimplementasikan-nya dalam waktu singkat ini.
+Ada beberapa tantangan dari rancangan yang kami temukan dan kami masih
+mencari cara supaya ia dapat bekerja secara portabel.
+
+
+_Ada sebuah diskusi beberapa waktu lalu tentang mengumpulkan beberapa
+pustaka-pustaka terbaik dari "database/sql" dalam satu tempat.
+Beberapa orang menolak keras hal tersebut.
+Apa rencana untuk "database/sql" dan pustaka tersebut di tahun depan?_
+
+*Brad:* Walaupun kita bisa saja membuat sebuah repositori resmi
+("go.db") untuk pustaka basis-data, kami takut hal tersebut akan
+menganakemaskan pustaka tertentu.
+Pada titik ini kami lebih berharap kompetensi yang sehat antara
+pustaka-pustaka tersebut.
+https://go.dev/wiki/SQLDrivers[Halaman wiki SQLDrivers]
+berisi daftar pustaka yang cukup bagus.
+
+Sebelumnya, paket "database/sql" tidak begitu banyak diperhatikan,
+karena tidak adanya pustaka.
+Sekarang setelah adanya pustaka-pustaka tersebut, penggunaan dari
+paket tersebut meningkat dan banyak yang telah melaporkan _bug_ dan
+kesalahan dari paket tersebut (dan diperbaiki, tentu saja).
+Perbaikan akan terus berlanjut, namun tidak ada perubahan besar dari
+antar muka "database/sql" yang kami rencanakan.
+Mungkin nanti ada semacam ekstensi yang diperlukan untuk performansi
+atau membantu pustaka-pustaka lain.
+
+
+_Bagaimana status dari "versioning"?
+Apakah mengimpor kode dari GitHub adalah praktik yang di rekomendasi
+kan oleh tim Go?
+Apa yang terjadi bila kita menerbitkan kode yang bergantung pada
+repositori GitHub dan kemudian API-nya berubah?_
+
+*Ian:* Isu ini sering didiskusikan di milis.
+Apa yang kami lakukan secara internal yaitu mengambil _snapshot_ dari
+kode yang diimpor, dan memperbarui _snapshot_ tersebut seiring waktu.
+Dengan cara ini, basis kode kita tidak rusak secara tiba-tiba bila
+ternyata ada perubahan API.
+Namun kami paham pendekatan tersebut tidak bekerja untuk semua orang
+yang menyediakan sebuah pustaka.
+Kami terbuka dengan saran di area ini.
+Ingatlah bahwa ini adalah aspek dari perkakas, bukan bahasa itu
+sendiri, jadi tempat yang harus diperbaiki yaitu di perkakas, bukan di
+bahasa.
+
+
+_Bagaimana dengan Graphical User Interface pada Go?_
+
+*Rob:* Topik ini sangat dekat dengan perhatian saya.
+_Newsqueak_, bahasa pendahulu Go, dirancang secara khusus untuk menulis
+program grafis (yang dulu kita sebut dengan _apps_).
+Sekarang lanskap-nya sudah berubah namun saya pikir model konkurensi
+Go memberikan banyak manfaat di bidang grafik interaktif.
+
+*Andrew:* Ada banyak
+https://go.dev/wiki/Projects#Graphics_and_Audio[pustaka untuk grafik^]
+di luar sana, dan beberapa proyek yang spesifik terhadap Go.
+Salah satu yang tampak menjanjikan yaitu
+https://github.com/skelterjohn/go.uik[go.uik^], namun bisa dibilang
+masih baru.
+Saya pikir ada banyak potensi bagi perkakas Go yang khusus untuk
+menulis aplikasi UI (bayangkan menerima even dari pengguna dari sebuah
+_channel_), namun mengembangkan paket yang berkualitas membutuhkan
+waktu yang panjang.
+Saya yakin, suatu saat nanti akan ada.
+
+Untuk saat ini, web adalah platform yang paling banyak tersedia untuk
+antar muka pengguna.
+Go menyediakan dukungan untuk membangun aplikasi web, walau hanya di
+_back-end_.
+
+
+_Dalam milis, Adam Langley mengatakan bahwa kode TLS belum pernah
+ditinjau oleh grup di luar Google, dan seharusnya tidak digunakan di
+lingkungan produksi.
+Apakah ada rencana untuk melakukan peninjauan kode?
+Implementasi TLS yang konkuren dan aman akan sangat bagus._
+
+*Adam:* Kriptografi sangat terkenal mudah dirusak dengan cara yang
+cerdik dan mengejutkan, dan saya hanyalah seorang manusia.
+Saya rasa, saya tidak bisa mengatakan bahwa kode TLS pada Go tidak
+bermasalah.
+
+Ada beberapa tempat di mana kode memiliki masalah _side-channel_: kode
+RSA tidak bekerja dalam waktu konstan, _elliptic curves_ selain P-224
+juga tidak dalam waktu konstan sehingga serangan Lucky13 mungkin saja
+dapat dilakukan.
+Saya berharap dapat mengatasi dua isu terakhir di rentang waktu Go 1.2
+dengan implementasi waktu konstan P-256 dan AES-GCM.
+
+Belum ada yang maju ke depan dan mau meninjau kode TLS dan saya juga
+belum bertanya apakah Google mau mendanai Matasano atau perusahaan
+yang lain untuk melakukan hal tersebut.
+
+
+_Bagaimana menurut Anda
+http://www.gophercon.com/[GopherCon 2014]?
+Apakah ada dari tim yang akan datang?_
+
+*Andrew:* Kami sangat bergairah.
+Saya yakin beberapa dari kita akan pergi ke sana.

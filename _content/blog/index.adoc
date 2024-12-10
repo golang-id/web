@@ -112,6 +112,9 @@
 *  link:/blog/race-detector/[Memperkenalkan pendeteksi _data race_^],
    26 Juni 2013. Dmitry Vyukov dan Andrew Gerrand.
 
+*  link:/blog/io2013-chat/[Perbincangan dengan tim Go]
+   6 Juni 2013.
+
 *  link:/blog/maps/[Go map^],
    6 Februari 2013.  Andrew Gerrand.
 
