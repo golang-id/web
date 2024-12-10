@@ -1,0 +1,35 @@
+= Konkurensi bukanlah paralelisme
+Andrew Gerrand
+16 Januari 2013
+
+Jika ada satu hal yang kebanyakan orang kenal dari Go, yaitu ia
+dirancang untuk konkurensi.
+Tidak ada pengenalan tentang Go yang komplit tanpa mendemonstrasikan
+_goroutine_ dan _channel_.
+
+Namun saat orang mendengar tentang _konkurensi_ mereka sering kali
+berpikir tentang _paralelisme_, berkaitan tetapi konsep-nya sedikit
+berbeda.
+Dalam pemrograman, konkurensi yaitu _komposisi_ dari beberapa proses
+yang dieksekusi secara independen, sementara paralelisme yaitu
+_eksekusi_ komputasi secara simultan (yang mungkin saling berkaitan).
+Konkurensi tentang _penanganan_ banyak hal dalam satu waktu.
+Paralelisme tentang _melakukan_ banyak hal dalam satu waktu.
+
+Untuk menjernihkan pencampuran istilah tersebut, Rob Pike memberikan
+wicara pada konferensi Waza di
+http://heroku.com/[Heroku]
+yang berjudul
+https://blog.heroku.com/concurrency_is_not_parallelism[_Konkurensi
+bukalah paralelisme_^],
+dan video wicara tersebut telah dirilis beberapa bulan yang lalu.
+
+video::oV9rvDllKEg[youtube,width=560,height=315]
+
+Salindia tersedia di
+https://go.dev/talks/2012/waza.slide[go.dev/talks^]
+(gunakan panah kiri dan kanan untuk navigasi).
+
+Untuk belajar tentang primitif konkurensi pada Go, lihatlah
+http://www.youtube.com/watch?v=f6kdp27TYZs[Pola konkurensi pada Go^]
+(https://go.home.local/go.dev/talks/2012/concurrency.slide[salindia^]).
