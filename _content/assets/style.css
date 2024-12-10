@@ -199,6 +199,10 @@ td p {
   max-width: 59.38rem;
 }
 
+.videoblock {
+  text-align: center;
+}
+
 .page > .container {
   text-align: left;
 }
