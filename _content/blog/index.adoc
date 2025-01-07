@@ -100,6 +100,9 @@
 *  link:/blog/playground/[Membedah Go Playground^],
    12 Desember 2013.  Andrew Gerrand.
 
+*  link:/blog/cover/[Kisah tentang perkakas `cover`^],
+   2 Desember 2013.  Rob Pike.
+
 *  link:/blog/normalization/[Normalisasi teks dalam Go^],
    26 November 2013.  Marcel van Lohuizen.
 

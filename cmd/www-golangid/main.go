@@ -7,6 +7,7 @@ package main
 import (
 	"flag"
 	"log"
+	"strings"
 
 	"git.sr.ht/~shulhan/ciigo"
 	"git.sr.ht/~shulhan/pakakeh.go/lib/memfs"
@@ -40,23 +41,21 @@ func main() {
 			ConvertOptions: convertOpts,
 			Mfs:            memFS,
 		}
-
-		cmd        string
-		listenAddr string
-		err        error
 	)
 
-	flag.BoolVar(&serveOpts.IsDevelopment, `dev`, false, `Jalankan mode pengembangan.`)
-	flag.StringVar(&listenAddr, `http`, defListenAddr, `Alamat peladen HTTP.`)
+	flag.BoolVar(&serveOpts.IsDevelopment, `dev`, false,
+		`Jalankan mode pengembangan.`)
+	flag.StringVar(&serveOpts.Address, `http`, defListenAddr,
+		`Alamat peladen HTTP.`)
 	flag.Parse()
 
-	cmd = flag.Arg(0)
+	var cmd = strings.ToLower(flag.Arg(0))
 
+	var err error
 	switch cmd {
 	case cmdEmbed:
 		err = ciigo.GoEmbed(embedOpts)
 	default:
-		serveOpts.Address = listenAddr
 		err = ciigo.Serve(serveOpts)
 	}
 	if err != nil {
