@@ -32,4 +32,4 @@ https://go.dev/talks/2012/waza.slide[go.dev/talks^]
 
 Untuk belajar tentang primitif konkurensi pada Go, lihatlah
 http://www.youtube.com/watch?v=f6kdp27TYZs[Pola konkurensi pada Go^]
-(https://go.home.local/go.dev/talks/2012/concurrency.slide[salindia^]).
+(https://go.dev/talks/2012/concurrency.slide[salindia^]).

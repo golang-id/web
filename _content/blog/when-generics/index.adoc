@@ -272,7 +272,7 @@ mengikutkan sebuah fungsi generik untuk mengurutkan sebuah slice
 menggunakan fungsi pembandingan, dan fungsi generik tersebut
 kemungkinan besar tidak menggunakan `sort.Interface`.
 Lihat
-https://go.home.local/go.dev/issue/47619[proposal #47619].
+https://go.dev/issue/47619[proposal #47619].
 Sangat masuk akal menggunakan parameter tipe saat Anda butuh
 mengimplementasikan method yang hampir sama untuk tipe-tipe yang
 dibutuhkan.)
