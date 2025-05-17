@@ -280,5 +280,5 @@ daripada C, terutama saat hal-hal menjadi semakin kompleks.
 Deklarasi pada Go dibaca dari kiri ke kanan.
 Deklarasi pada C dikatakan dibaca secara spiral!
 Lihat
-http://c-faq.com/decl/spiral.anderson.html[The "Clockwise/Spiral Rule"] oleh
+https://c-faq.com/decl/spiral.anderson.html[The "Clockwise/Spiral Rule"] oleh
 David Anderson.

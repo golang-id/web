@@ -106,7 +106,7 @@ versi minimum dari dependensi yang digunakan untuk membangun modul.
 Sebuah versi semantik memiliki bentuk vMAJOR.MINOR.PATCH.
 
 *  Tingkatkan versi MAJOR bila Anda membuat perubahan yang
-   https://golang.org/doc/go1compat[tidak kompatibel^]
+   https://go.dev/doc/go1compat[tidak kompatibel^]
    pada API dari modul Anda.
    Hal ini sebaiknya dilakukan bila sangat diperlukan.
 *  Tingkatkan versi MINOR bila Anda membuat perubahan yang kompatibel pada
@@ -130,7 +130,7 @@ versi mayor tersebut.
 
 Versi yang diacu dalam "go.mod" bisa jadi sebuah rilis eksplisit yang di tag
 dalam repositori (misalnya, v1.5.2), atau ia bisa berupa
-https://golang.org/cmd/go/#hdr-Pseudo_versions[versi-pseudo^]
+https://go.dev/cmd/go/#hdr-Pseudo_versions[versi-pseudo^]
 berdasarkan pada sebuah _commit_ tertentu (misalnya,
 v0.0.0-20170915032832-14c0d48ead0c).
 Versi-pseudo adalah tipe khusus dari versi pra-rilis.
@@ -290,9 +290,9 @@ untuk v2 dan seterusnya.
 
 Bila ada tanggapan dan bantuan untuk membantu manajemen dependensi di Go,
 silakan kirim
-https://golang.org/issue/new[laporan kesalahan^]
+https://go.dev/issue/new[laporan kesalahan^]
 atau
-https://golang.org/wiki/ExperienceReports[laporan pengalaman^].
+https://go.dev/wiki/ExperienceReports[laporan pengalaman^].
 
 Terima kasih untuk semua tanggapan dan bantuan yang telah menjadikan Go modul
 lebih baik.

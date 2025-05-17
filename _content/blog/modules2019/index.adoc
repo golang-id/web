@@ -23,7 +23,7 @@ tahun 2019.
 ==  Rilis
 
 Go 1.11, dirilis pada Agustus 2018, memperkenalkan
-https://golang.org/doc/go1.11#modules[dukungan awal untuk modul^].
+https://go.dev/doc/go1.11#modules[dukungan awal untuk modul^].
 Pada saat sekarang, dukungan modul dapat digunakan bersamaan dengan mekanisme
 tradisional berbasis GOPATH.
 Perintah `go` akan menggunakan mode modul secara baku saat dijalankan di
@@ -222,7 +222,7 @@ atau tidak.
 Diagram berikut memperlihatkan bagaimana modul bergerak lewat rancangan yang
 dipaparkan dalam tulisan ini.
 
-image:https://blog.golang.org/modules2019/code.png[,500]
+image:https://go.dev/blog/modules2019/code.png[,500]
 
 Sebelumnya, semua pengguna sumber kode Go--perintah "go" dan semua situs
 seperti godoc.org--mengambil kode langsung dari setiap _host_.

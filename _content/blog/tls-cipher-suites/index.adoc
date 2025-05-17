@@ -177,7 +177,7 @@ https://pkg.go.dev/crypto/tls#Config.PreferServerCipherSuites[`Config.PreferServ
 di set.
 
 Saat kita mengimplementasikan TLS 1.3 pada Go 1.12, kita
-https://golang.org/issue/29349[tidak membuat pasangan _cipher_ TLS 1.3 bisa diatur^],
+https://go.dev/issue/29349[tidak membuat pasangan _cipher_ TLS 1.3 bisa diatur^],
 karena mereka kumpulan terpisah dari TLS 1.0-1.2 dan yang paling penting
 mereka semua aman, jadi tidak perlu mendelegasikan pilihan kepada aplikasi.
 `Config.PreferServerCipherSuites` tetap mengontrol urutan preferensi mana yang
@@ -190,7 +190,7 @@ pasangan _cipher_ yang didukung namun secara eksplisit mengembalikan mereka
 dengan urutan netral (diurut berdasarkan ID).
 
 Pada Go 1.16, kita secara aktif mulai memilih pasangan _cipher_
-https://golang.org/cl/262857[ChaCha20Poly1305 dibanding AES-GSM^]
+https://go.dev/cl/262857[ChaCha20Poly1305 dibanding AES-GSM^]
 pada peladen saat kita mendeteksi bahwa peladen dan klien tidak memiliki
 dukungan perangkat keras untuk AES-GCM.
 Hal ini karena AES-GCM sangat sukar diimplementasikan secara efisien dan aman
@@ -203,7 +203,7 @@ Walau `Config.CipherSuites` masih mengontrol pasangan _cipher_ yang digunakan
 pada TLS 1.0-1.2, ia tidak digunakan untuk pengurutan,
 dan `Config.PreferServerCipherSuites` diindahkan.
 Paket `crypto/tls`
-https://golang.org/cl/314609[membuat keputusan pengurutan]
+https://go.dev/cl/314609[membuat keputusan pengurutan]
 berdasarkan ketersediaan pasangan _cipher_, perangkat keras, dan dugaan
 kapabilitas perangkat keras pada sisi remote.
 https://cs.opensource.google/go/go/+/9d0819b27ca248f9949e7cf6bf7cb9fe7cf574e8:src/crypto/tls/cipher_suites.go;l=206-270[Logika
@@ -226,7 +226,7 @@ depan.)
 . Mode AEAD lebih prioritas dibandingkan CBC untuk enkripsi.
 +
 Walaupun kita mengimplementasikan penanggulangan untuk Lucky13,
-https://golang.org/cl/18130[kontribusi pertama Vilipo^]
+https://go.dev/cl/18130[kontribusi pertama Vilipo^]
 pada pustaka standar di tahun 2015,
 pasangan CBC
 https://blog.cloudflare.com/yet-another-padding-oracle-in-openssl-cbc-ciphersuites/[sangat sukar^]
@@ -321,7 +321,7 @@ pengembang Go.
 Hal ini konsisten dengan filosofi umum kita yaitu membuat pemilihan
 kriptografi kapan pun kita mau, bukan mendelegasikannya pada pengembang,
 dan dengan
-https://golang.org/design/cryptography-principles[Prinsip-prinsip kriptografi^]
+https://go.dev/design/cryptography-principles[Prinsip-prinsip kriptografi^]
 kita.
 Semoga pustaka-pustaka TLS lain akan mengadopsi perubahan yang sama, membuat
 konfigurasi pasangan _cipher_ yang rumit menjadi sejarah di masa lalu.

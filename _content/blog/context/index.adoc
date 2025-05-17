@@ -26,7 +26,7 @@ Di Google, kami mengembangkan sebuah paket `context` yang mempermudah
 mengirim nilai sesuai skop-permintaan, sinyal pembatalan, dan tenggat ke semua
 _goroutine_ yang ikut serta dalam menangani sebuah permintaan.
 Paket tersebut tersedia secara publik sebagai
-https://golang.org/pkg/context[context^].
+https://pkg.go.dev/context[context^].
 Artikel ini menjelaskan bagaimana menggunakan paket tersebut dan menyediakan
 sebuah contoh kerjanya.
 
@@ -58,7 +58,7 @@ type Context interface {
 ----
 
 (Deskripsi dari tipe Context di atas telah diringkas; lihat
-https://golang.org/pkg/context[godoc^]
+https://pkg.go.dev/context[godoc^]
 untuk lebih lengkapnya.)
 
 Method `Done` mengembalikan sebuah kanal yang berlaku sebagai sinyal pembatalan
@@ -418,12 +418,12 @@ menjembatani antara kode yang menggunakan kerangka yang telah ada dan kode
 yang mengharapkan sebuah parameter `Context`.
 
 Misalnya, paket
-http://www.gorillatoolkit.org/pkg/context[github.com/gorilla/context^]
+https://www.gorillatoolkit.org/pkg/context[github.com/gorilla/context^]
 pada kerangka peladen HTTP Gorilla membolehkan fungsi-fungsi mengasosiasikan
 data dengan permintaan yang masuk dengan menyediakan sebuah pemetaan dari
 permintaan HTTP ke pasangan kunci-nilai.
 Dalam
-https://blog.golang.org/context/gorilla/gorilla.go[gorilla.go^],
+https://go.dev/blog/context/gorilla/gorilla.go[gorilla.go^],
 kami menyediakan sebuah implementasi `Context` dengan method `Value`
 mengembalikan nilai-nilai yang diasosiasikan dengan permintaan HTTP tertentu
 dalam paket Gorilla.
@@ -437,7 +437,7 @@ menutup kanal `Dying`.
 `Tomb` juga menyediakan method-method untuk menunggu _goroutine_ selesai,
 mirip dengan `sync.WaitGroup`.
 Dalam
-https://blog.golang.org/context/tomb/tomb.go[tomb.go^],
+https://go.dev/blog/context/tomb/tomb.go[tomb.go^],
 kami menyediakan sebuah implementasi `Context` yang dibatalkan saat `Context`
 induk-nya dibatalkan atau saat `Tomb` dihentikan.
 

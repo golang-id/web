@@ -9,14 +9,14 @@ dengan membagikan pemikiran mereka lewat Survei Pengembang Go.
 Umpan balik Anda telah berperan penting dalam mengarahkan bahasa,
 ekosistem, dan komunitas kita ini; termasuk
 https://about.sourcegraph.com/go/gophercon-2019-go-pls-stop-breaking-my-editor[server bahasa `gopls`^],
-https://blog.golang.org/go1.13-errors[mekanisme penanganan eror^] yang baru,
-https://blog.golang.org/module-mirror-launch[modul _mirror_^],
+https://go.dev/blog/go1.13-errors[mekanisme penanganan eror^] yang baru,
+https://go.dev/blog/module-mirror-launch[modul _mirror_^],
 dan banyak hal lainnya sejak
-https://blog.golang.org/go1.13[rilis Go 1.13^].
+https://go.dev/blog/go1.13[rilis Go 1.13^].
 Dan tentu saja, kami membagikan hasil
-https://blog.golang.org/survey2016-results[survei ini^]
-https://blog.golang.org/survey2017-results[setiap^]
-https://blog.golang.org/survey2018-results[tahun^],
+https://go.dev/blog/survey2016-results[survei ini^]
+https://go.dev/blog/survey2017-results[setiap^]
+https://go.dev/blog/survey2018-results[tahun^],
 supaya kita semua mendapatkan keuntungan dari wawasan komunitas ini.
 
 Hari ini kami meluncurkan Survei Pengembang Go 2019.

@@ -214,20 +214,20 @@
 ==  Paket
 
 *  link:/blog/json-and-go/[JSON dan Go^] - menggunakan paket
-   https://golang.org/pkg/encoding/json/[json^].
+   https://pkg.go.dev/encoding/json/[json^].
 
 *  link:/blog/gobs-of-data/[Gob dari data^] - rancangan dan penggunaan paket
-   https://golang.org/pkg/encoding/gob/[gob^].
+   https://pkg.go.dev/encoding/gob/[gob^].
 
 *  link:/blog/laws-of-reflection/[Hukum-hukum refleksi^] - fundamental dari
-   paket https://golang.org/pkg/reflect/[reflect^].
+   paket https://pkg.go.dev/reflect/[reflect^].
 
 *  link:/blog/go-image-package/[Paket image pada Go^] - fundamental dari paket
-   https://golang.org/pkg/image/[image^].
+   https://pkg.go.dev/image/[image^].
 
 *  link:/blog/go-imagedraw-package/[Paket image/draw pada Go^] - fundamental
    dari paket
-   https://golang.org/pkg/image/draw/[image/draw^].
+   https://pkg.go.dev/image/draw/[image/draw^].
 
 
 ==  Modul

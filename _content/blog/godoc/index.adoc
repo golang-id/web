@@ -13,7 +13,7 @@ Semakin mudah bagi pemogram untuk menghasilkan dokumentasi yang bagus, maka
 semakin baik hal itu bagi semua orang.
 
 Oleh karena itu, kita telah mengembangkan perkakas dokumentasi
-https://golang.org/cmd/godoc/[`godoc`^].
+https://go.dev/cmd/godoc/[`godoc`^].
 Artikel ini menjelaskan pendekatan `godoc` terhadap dokumentasi, dan
 menjelaskan bagaimana Anda dapat menggunakan konvensi dan perkakas tersebut
 untuk menulis dokumentasi yang bagus untuk proyek Anda.
@@ -24,9 +24,9 @@ Hasil akhirnya yaitu dokumentasi yang berkaitan erat dengan kode yang
 didokumentasikan.
 Sebagai contohnya, lewat antar muka web dari godoc anda dapat melakukan
 navigasi dari dokumentasi
-https://golang.org/pkg/strings/#HasPrefix[sebuah fungsi^]
+https://pkg.go.dev/strings/#HasPrefix[sebuah fungsi^]
 ke
-https://golang.org/src/strings/strings.go?s=11163:11200#L434[implementasinya^]
+https://go.dev/src/strings/strings.go?s=11163:11200#L434[implementasinya^]
 lewat satu klik.
 
 Secara konseptual, godoc mirip dengan
@@ -46,7 +46,7 @@ langsung di atas deklarasinya, tanpa ada baris kosong.
 Godoc kemudian akan mempresentasikan komentar tersebut sebagai teks bersama
 dengan item yang didokumentasikan.
 Sebagai contohnya, berikut dokumentasi untuk fungsi
-https://golang.org/pkg/fmt/#Fprint[`Fprint`^] pada paket `fmt`:
+https://pkg.go.dev/fmt/#Fprint[`Fprint`^] pada paket `fmt`:
 
 	// Fprint formats using the default formats for its operands and writes to w.
 	// Spaces are added between operands when neither is a string.
@@ -63,22 +63,22 @@ seperti saat mengekstrak baris atau kalimat yang pertama.
 Komentar pada deklarasi paket sebaiknya menyediakan dokumentasi paket secara
 keseluruhan.
 Komentar tersebut bisa saja pendek, seperti deskripsi pada paket
-https://golang.org/pkg/sort/[`sort`^].
+https://pkg.go.dev/sort/[`sort`^].
 
 	// Package sort provides primitives for sorting slices and user-defined
 	// collections.
 	package sort
 
 Komentar pada paket juga dapat sangat detil seperti pada paket
-https://golang.org/pkg/encoding/gob/[gob^].
+https://pkg.go.dev/encoding/gob/[gob^].
 Paket tersebut menggunakan konvensi: jika dokumentasi paket terlalu panjang
 maka komentar ditaruh diberkasnya sendiri,
-https://golang.org/src/pkg/encoding/gob/doc.go[doc.go^],
+https://go.dev/src/encoding/gob/doc.go[doc.go^],
 yang berisi hanya komentar dan sebuah klausa paket.
 
 Saat menulis komentar untuk sebuah paket, ingatlah selalu bahwa kalimat
 pertama akan muncul dalam
-https://golang.org/pkg/[daftar paket^]
+https://pkg.go.dev/[daftar paket^]
 di godoc.
 
 Komentar yang tidak selaras dengan deklarasinya akan diindahkan dari keluaran
@@ -88,7 +88,7 @@ yang tercatat, dan diikutkan dalam bagian "Bugs" dari dokumentasi paket.
 Bagian "who" diisi dengan nama orang yang bisa menyediakan informasi lebih
 lanjut tentang _bug_ tersebut.
 Sebagai contohnya, berikut adalah isu yang tercatat pada
-https://golang.org/pkg/bytes/#pkg-note-BUG[paket bytes^]:
+https://pkg.go.dev/bytes/#pkg-note-BUG[paket bytes^]:
 
 	// BUG(r): The rule Title uses for word boundaries does not handle Unicode punctuation properly.
 
@@ -109,7 +109,7 @@ HTML:
 
 * Pra-format teks dibentuk dengan memberi spasi dengan tab relatif terhadap
   teks komentar disekitarnya (lihat dokumentasi
-  https://golang.org/src/pkg/encoding/gob/doc.go[doc.go^] sebagai
+  https://go.dev/src/encoding/gob/doc.go[doc.go^] sebagai
   contohnya).
 
 * URL akan dikonversi ke tautan HTML; tidak ada marka khusus yang perlu
@@ -132,5 +132,5 @@ pengindeksan lewat opsi `-path` atau hanya dengan menjalankan `"godoc ."` di
 dalam direktori sumber.
 
 Lihatlah
-https://golang.org/cmd/godoc/[dokumentasi godoc^]
+https://go.dev/cmd/godoc/[dokumentasi godoc^]
 untuk lebih jelasnya.

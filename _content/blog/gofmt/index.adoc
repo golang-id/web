@@ -97,11 +97,11 @@ sub-ekspresi apa pun, dan ekspresi tersebut akan diganti dengan
 pengidentifikasi yang sama pada bagian "pengganti".
 
 Misalnya,
-https://golang.org/cl/7038051[perubahan terbaru^]
+https://go.dev/cl/7038051[perubahan terbaru^]
 pada sumber kode Go menulis ulang penggunaan
-https://golang.org/pkg/bytes/#Compare[`bytes.Compare`^]
+https://pkg.go.dev/bytes/#Compare[`bytes.Compare`^]
 dengan menggunakan fungsi
-https://golang.org/pkg/bytes/#Equal[`bytes.Equal`^]
+https://pkg.go.dev/bytes/#Equal[`bytes.Equal`^]
 yang lebih efisien.
 Kontributor membuat perubahan tersebut menggunakan pemanggilan `gofmt` dua
 kali:
@@ -119,10 +119,10 @@ sering membuat perubahan yang besar terhadap bahasa dan pustaka.
 Misalnya, sebelum Go 1 interface error bawaan belum ada dan konvensinya adalah
 menggunakan tipe `os.Error`.
 Saat kami
-https://golang.org/doc/go1.html#errors[memperkenalkan "error"^],
+https://go.dev/doc/go1.html#errors[memperkenalkan "error"^],
 kita menyediakan modul gofix yang menulis ulang semua penggunaan `os.Error`
 berikut dengan fungsi-fungsi pembantu lainnya supaya menggunakan `error` dan
-https://golang.org/pkg/errors/[paket "errors"^]
+https://pkg.go.dev/errors/[paket "errors"^]
 yang baru.
 Akan sangat lama dan sukar apabila hal ini dilakukan secara manual,
 namun dengan kode yang sudah di-format akibatnya perubahan yang hampir

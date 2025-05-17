@@ -12,8 +12,8 @@ Tulisan ini adalah bagian pertama dari sebuah seri.
 *  Bagian 4 - link:/blog/v2-go-modules/[Go Modul: v2 dan seterusnya^]
 
 Go 1.11 dan 1.12 mengikutkan
-https://golang.org/doc/go1.11#modules[dukungan awal untuk modul^],
-https://blog.golang.org/versioning-proposal[sistem manajemen dependensi baru^]
+https://go.dev/doc/go1.11#modules[dukungan awal untuk modul^],
+https://go.dev/blog/versioning-proposal[sistem manajemen dependensi baru^]
 dari Go yang membuat versi informasi dependensi eksplisit dan mudah diatur.
 Artikel ini adalah pengenalan dari operasi dasar yang dibutuhkan untuk memulai
 menggunakan modul.
@@ -229,12 +229,12 @@ yang diurut berdasar path modul.
 
 Baris "golang.org/x/text version v0.0.0-20170915032832-14c0d48ead0c" adalah
 sebuah contoh dari
-https://golang.org/cmd/go#hdr-Pseudo_versions[versi-pseudo^],
+https://go.dev/cmd/go#hdr-Pseudo_versions[versi-pseudo^],
 yang merupakan sintaksis untuk commit yang tidak ada tag-nya.
 
 Selain "go.mod", perintah go juga membuat sebuah berkas bernama "go.sum" yang
 berisi
-https://golang.org/cmd/go#hdr-Module_downloading_and_verification[hash kriptografi^]
+https://go.dev/cmd/go#hdr-Module_downloading_and_verification[hash kriptografi^]
 dari isi modul pada versi tertentu:
 
 ----
@@ -475,7 +475,7 @@ $
 ----
 
 (Keluaran di atas telah diketahui memiliki sebuah
-https://golang.org/issue/30778[_bug_^];
+https://go.dev/issue/30778[_bug_^];
 path impor ditampilkan tanpa ada "/v3")
 
 Kita dapat memperbarui penggunaan "quote.Hello()" dalam "hello.go" dengan
@@ -605,8 +605,8 @@ Kami menyarankan anda untuk mulai menggunakan modul dalam pengembangan dan
 menambahkan berkas "go.mod" dan "go.sum" ke dalam proyek anda.
 Bila Anda memiliki umpan balik dan bantuan dalam pengembangan manajemen
 dependensi di Go di masa depan, mohon kirim
-https://golang.org/issue/new[laporan _bug_^]
+https://go.dev/issue/new[laporan _bug_^]
 atau
-https://golang.org/wiki/ExperienceReports[laporan pengalaman^].
+https://go.dev/wiki/ExperienceReports[laporan pengalaman^].
 
 Terima kasih untuk semua saran dan bantuan Anda dalam meningkatkan modul.

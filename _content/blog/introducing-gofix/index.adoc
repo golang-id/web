@@ -11,7 +11,7 @@ atau
 https://codereview.appspot.com/4281055[penggunaan paket "reflect"^]
 tidak akan bisa dibangun kecuali diperbarui menggunakan API yang baru.
 Semenjak rilis kita
-https://blog.golang.org/2011/03/go-becomes-more-stable.html[lebih stabil dan jarang^],
+https://go.dev/blog/2011/03/go-becomes-more-stable.html[lebih stabil dan jarang^],
 situasi seperti ini akan lebih sering terjadi.
 Setiap perubahan API ini terjadi pada _snapshot_ Go di minggu yang berbeda;
 bersamaan, mereka merepresentasikan sejumlah perubahan manual yang signifikan
@@ -102,9 +102,9 @@ Perubahan yang baru sangat banyak namun hampir semuanya bersifat mekanis,
 bentuk perubahan yang sangat baik ditangani oleh komputer.
 
 Gofix memungkinkan karena Go memiliki pustaka standar untuk
-https://golang.org/pkg/go/parser[mengurai berkas sumber Go^]
+https://pkg.go.dev/go/parser[mengurai berkas sumber Go^]
 menjadi pohon sintaksis dan juga untuk
-https://golang.org/pkg/go/printer[menulis pohon sintaksis^]
+https://pkg.go.dev/go/printer[menulis pohon sintaksis^]
 tersebut kembali menjadi sumber kode Go.
 Yang paling penting, pustaka penulisan Go menulis kode dalam format resmi
 (yang biasanya dilakukan perkakas gofmt), membolehkan gofix untuk membuat

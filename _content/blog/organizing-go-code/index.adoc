@@ -31,7 +31,7 @@ bagaimana bagian-bagian tersebut saling terhubung dan, oleh karena itu,
 bagaimana nama mereka seharusnya.
 Tidak perlu membatasi diri kita sendiri pada saat awal-awal.
 (
-https://golang.org/cmd/gofmt/[Perintah `gofmt`^]
+https://go.dev/cmd/gofmt/[Perintah `gofmt`^]
 memiliki opsi `-r` yang
 menyediakan pencarian dan penggantian secara sintaksis, membuat perubahan
 dalam skala besar menjadi mudah.)
@@ -128,7 +128,7 @@ Perintah-perintah yang kompleks mengandung banyak kode yang sedikit gunanya
 di luar konteks dari _executable_, dan terkadang lebih simpel menyimpan
 semuanya di satu tempat.
 Misalnya, perkakas go lebih dari 12000 baris yang tersebar dalam
-https://golang.org/src/cmd/go/[34 berkas^].
+https://go.dev/src/cmd/go/[34 berkas^].
 
 
 ====  Dokumentasikan kode kita

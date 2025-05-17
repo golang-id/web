@@ -22,7 +22,7 @@ _decoding_, dan mengakses _protocol buffer_.
 Untuk menggunakan goprotobuf, Anda perlu memasang Go dan
 https://code.google.com/p/protobuf/[protobuf^].
 Kemudian Anda dapat memasang paket 'proto' lewat
-https://golang.org/cmd/goinstall/[goinstall^]:
+https://go.dev/cmd/goinstall/[goinstall^]:
 
 ----
 goinstall goprotobuf.googlecode.com/hg/proto

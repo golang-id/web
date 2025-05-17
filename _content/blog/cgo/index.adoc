@@ -175,10 +175,10 @@ menggunakan cgo untuk berkas-berkas tersebut.
 
 link:/cmd/cgo/[Dokumentasi perintah cgo^]
 berisi detail tentang paket-pseudo C dan proses pembangunannya.
-https://golang.org/misc/cgo/[Contoh-contoh cgo^] dalam sumber kode Go
+https://go.dev/misc/cgo/[Contoh-contoh cgo^] dalam sumber kode Go
 mendemonstrasikan konsep tersebut lebih lanjut.
 
 Terakhir, jika Anda penasaran bagaimana cgo bekerja secara internal,
 lihatlah komentar pendahuluan pada berkas
-https://golang.org/src/runtime/cgocall.go[cgocall.go^]
+https://go.dev/src/runtime/cgocall.go[cgocall.go^]
 pada paket `runtime`.

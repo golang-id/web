@@ -10,7 +10,7 @@
 
 Dokumen ini adalah referensi manual untuk bahasa pemrograman Go.
 Untuk informasi dan dokumentasi lainnya lihat
-https://golang.org[golang.org (Inggris)^]
+https://go.dev[go.dev (Inggris)^]
 atau
 link:/[golang-id.org (Indonesia)^].
 
@@ -987,7 +987,7 @@ Deklarasi field bisa ditambah dengan literal string _tag_, yang menjadi
 atribut dari field.
 Tag kosong berarti tidak ada tag.
 Tag bisa diakses lewat
-https://golang.org/pkg/reflect/#StructTag[interface refleksi^]
+https://pkg.go.dev/reflect/#StructTag[interface refleksi^]
 dan ambil bagian dalam
 <<Type_identity,identitas tipe>>
 dari struct.

@@ -94,7 +94,7 @@ penting yang telah terbentuk.
 
 Pertama, path impor diturunkan dari URL sumber kode.
 Untuk Bitbucket, Github, Google Code, dan Launchpad, direktori utama dari
-repositori diidentifikasi oleh URL repositori, tanpa prefiks "http://".
+repositori diidentifikasi oleh URL repositori, tanpa prefiks "https://".
 Sub-sub direktori diberi nama sesuai dengan path.
 Sebagai contohnya, contoh program Go dapat diambil dengan menjalankan
 

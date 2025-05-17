@@ -12,7 +12,7 @@ format pertukaran data yang mendukung banyak bahasa pemrograman dari Google.
 ==  Motivasi bagi API yang baru
 
 _Protocol buffers_ yang pertama untuk Go
-https://blog.golang.org/third-party-libraries-goprotobuf-and[diumumkan oleh Rob Pike^]
+https://go.dev/blog/third-party-libraries-goprotobuf-and[diumumkan oleh Rob Pike^]
 pada bulan Maret 2010.
 Go 1 belum dirilis sampai dua tahun kemudian.
 

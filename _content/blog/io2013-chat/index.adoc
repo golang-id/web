@@ -11,7 +11,7 @@ aspek dari proyek Go.
 video::p9VUCp98ay4[youtube,width=560,height=315]
 
 Kita juga menyelenggarakan sesi yang sama pada I/O tahun lalu:
-http://www.youtube.com/watch?v=sln-gJaURzk[Jumpa temu dengan tim Go].
+https://www.youtube.com/watch?v=sln-gJaURzk[Jumpa temu dengan tim Go].
 
 Ada banyak pertanyaan dari moderator Google yang dapat kita jawab
 dalam waktu 40 menit.
@@ -63,7 +63,7 @@ _garbage collector_ dan _runtime_, dan banyak hal lainnya.
 Kami mengharapkan penambahan baru yang besar dalam bentuk peningkatan
 dari perkakas kita.
 Anda dapat menemukan diskusi dan ulasan kode di
-http://groups.google.com/group/golang-dev[milis golang-dev^].
+https://groups.google.com/group/golang-dev[milis golang-dev^].
 
 Untuk waktunya, kami memiliki
 https://docs.google.com/document/d/106hMEZj58L9nq9N9p7Zll_WKfo-oyZHFyI6MttuZmBU/edit?usp=sharing[rencana
@@ -201,7 +201,7 @@ yang lain untuk melakukan hal tersebut.
 
 
 _Bagaimana menurut Anda
-http://www.gophercon.com/[GopherCon 2014]?
+https://www.gophercon.com/[GopherCon 2014]?
 Apakah ada dari tim yang akan datang?_
 
 *Andrew:* Kami sangat bergairah.

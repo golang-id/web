@@ -155,7 +155,7 @@ Pengiriman ke kanal yang telah ditutup akan menyebabkan _panic_, jadi sangat
 penting untuk memastikan semua pengiriman telah selesai sebelum menutup kanal
 _keluar_ tersebut.
 Tipe
-https://golang.org/pkg/sync#WaitGroup[sync.WaitGroup^]
+https://pkg.go.dev/sync#WaitGroup[sync.WaitGroup^]
 menyediakan cara sederhana untuk mengatur sinkronisasi seperti ini:
 
 ----
@@ -760,7 +760,7 @@ Bacaan lebih lanjut:
 * https://talks.golang.org/2012/concurrency.slide#1[Pola konkurensi Go^]
   (https://www.youtube.com/watch?v=f6kdp27TYZs[video^]) mempresentasikan dasar
   dari konkurensi Go dan cara pakainya.
-* https://blog.golang.org/advanced-go-concurrency-patterns[Pola konkurensi Go lanjut^]
+* https://go.dev/blog/advanced-go-concurrency-patterns[Pola konkurensi Go lanjut^]
   (https://www.youtube.com/watch?v=QDDwwePbDtw[video^]) menelaah penggunaan
   yang lebih kompleks dari konkurensi pada Go, terutama `select`.
 * Makalah Douglas McIlroy 

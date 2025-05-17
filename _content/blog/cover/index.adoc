@@ -89,7 +89,7 @@ baru menggunakan dukungan perkakas dalam ekosistem Go.
 Biasanya untuk menghitung cakupan pengujian yaitu dengan mengubah
 berkas dari program.
 Misalnya, program
-http://gcc.gnu.org/onlinedocs/gcc/Gcov.html[gcov^]
+https://gcc.gnu.org/onlinedocs/gcc/Gcov.html[gcov^]
 dari GNU men-set _breakpoint_ pada cabang-cabang yang dieksekusi oleh
 program tersebut.
 Saat setiap cabang dieksekusi, _breakpoint_ tersebut kemudian dihapus dan

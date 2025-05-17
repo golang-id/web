@@ -11,7 +11,7 @@ mesin, yang membuatnya menjadi pilihan yang bagus untuk pekerjaan-pekerjaan
 yang membutuhkan CPU seperti manipulasi gambar.
 
 Dengan semangat, kami mendemokan sebuah program bernama
-http://moustach-io.appspot.com/[Moustachio]
+https://moustach-io.appspot.com/[Moustachio]
 yang mempermudah mengubah sebuah gambar seperti berikut:
 
 image:/blog/gif-decoder-exercise-in-go-interfaces/gif-decoder-exercise-in-go-interfaces_image00.jpg[]
@@ -23,7 +23,7 @@ image:/blog/gif-decoder-exercise-in-go-interfaces/gif-decoder-exercise-in-go-int
 Semua pemrosesan grafis, termasuk penambahan kumis seperti contoh di atas,
 dilakukan oleh sebuah program Go yang berjalan di App Engine.
 (Sumber kode tersedia di
-http://code.google.com/p/appengine-go/source/browse/example/moustachio/[proyek
+https://code.google.com/p/appengine-go/source/browse/example/moustachio/[proyek
 appengine-go].)
 
 Walaupun semua gambar di web umumnya adalah JPEG, ada banyak format lain yang
@@ -236,4 +236,4 @@ Implementasi ini layak mendapatkan gambar lain, kali ini sebuah GIF:
 image:/blog/gif-decoder-exercise-in-go-interfaces/gif-decoder-exercise-in-go-interfaces_image01.gif[]
 
 Format GIF didefinisikan pada
-http://www.w3.org/Graphics/GIF/spec-gif89a.txt[].
+https://www.w3.org/Graphics/GIF/spec-gif89a.txt[].

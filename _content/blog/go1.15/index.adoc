@@ -3,26 +3,26 @@
 :date: 11 Agustus 2020
 
 Tim Go dengan suka cita mengumumkan rilis Go 1.15.
-Anda bisa mengunduhnya lewat https://golang.org/dl[halaman ini^].
+Anda bisa mengunduhnya lewat https://go.dev/dl[halaman ini^].
 
 Beberapa hal penting dalam rilis ini termasuk:
 
-* https://golang.org/doc/go1.15#linker[Peningkatan substansial dari Go linker^]
-* https://golang.org/doc/go1.15#runtime[Peningkatan alokasi objek-objek kecil^]
-* https://golang.org/doc/go1.15#commonname[Deprekasi X509 CommonName^]
-* https://golang.org/doc/go1.15#go-command[GOPROXY sekarang mengindahkan proxy yang eror^]
-* https://golang.org/doc/go1.15#time/tzdata[Paket tzdata yang baru^]
-* https://golang.org/doc/go1.15#library[Sejumlah peningkatan pada pustaka inti^]
+* https://go.dev/doc/go1.15#linker[Peningkatan substansial dari Go linker^]
+* https://go.dev/doc/go1.15#runtime[Peningkatan alokasi objek-objek kecil^]
+* https://go.dev/doc/go1.15#commonname[Deprekasi X509 CommonName^]
+* https://go.dev/doc/go1.15#go-command[GOPROXY sekarang mengindahkan proxy yang eror^]
+* https://go.dev/doc/go1.15#time/tzdata[Paket tzdata yang baru^]
+* https://go.dev/doc/go1.15#library[Sejumlah peningkatan pada pustaka inti^]
 
 Untuk daftar perubahan selengkapnya dan informasi lebih lanjut tentang
 peningkatan di atas, lihat di
-https://golang.org/doc/go1.15[catatan rilis Go 1.15^].
+https://go.dev/doc/go1.15[catatan rilis Go 1.15^].
 
 Kita ingin berterima kasih banyak kepada orang-orang yang telah berkontribusi
 pada rilis ini baik dengan menulis kode, melaporkan kesalahan, menyediakan
 umpan balik, dan/atau menguji rilis kandidat.
 Kontribusi dan usaha Anda memastikan Go 1.15 menjadi stabil.
 Akhir kata, jika Anda menemukan ada masalah, mohon
-https://golang.org/issue/new[laporkan^].
+https://go.dev/issue/new[laporkan^].
 
 Kami berharap Anda menikmati rilis ini!

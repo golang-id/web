@@ -10,15 +10,15 @@ https://sum.golang.org/[basisdata _checksum_^]
 telah diluncurkan!
 Perintah go akan menggunakan modul _mirror_ dan basisdata _checksum_ secara
 baku untuk
-https://golang.org/doc/go1.13#introduction[pengguna Go 1.13 modul^].
+https://go.dev/doc/go1.13#introduction[pengguna Go 1.13 modul^].
 Lihat
 https://proxy.golang.org/privacy[halaman privasi^]
 untuk informasi privasi penggunaan layanan tersebut dan
-https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[dokumentasi perintah go^]
+https://go.dev/cmd/go/#hdr-Module_downloading_and_verification[dokumentasi perintah go^]
 untuk detail konfigurasi, termasuk cara mematikan fitur modul tanpa
 menggunakan server tersebut atau menggunakan server yang berbeda.
 Jika Anda bergantung pada modul yang tidak publik, lihat
-https://golang.org/cmd/go/#hdr-Module_configuration_for_non_public_modules[dokumentasi konfigurasi untuk lingkungan Anda^].
+https://go.dev/cmd/go/#hdr-Module_configuration_for_non_public_modules[dokumentasi konfigurasi untuk lingkungan Anda^].
 
 Artikel ini akan menjelaskan tentang layanan-layanan ini and keuntungan dari
 menggunakan mereka, dan menyimpulkan beberapa poin dari wicara
@@ -34,9 +34,9 @@ tersebut adalah _immutable_ (kekal).
 Sifat kekekalan tersebut membuatnya bisa di-_cache_ dan diautentikasi.
 Bila "go get" berjalan dengan mode modul, ia harus mengambil modul yang berisi
 paket yang diminta, berikut dengan dependensinya, mengubah berkas
-https://golang.org/cmd/go/#hdr-The_go_mod_file[go.mod^]
+https://go.dev/cmd/go/#hdr-The_go_mod_file[go.mod^]
 dan
-https://golang.org/cmd/go/#hdr-Module_downloading_and_verification[go.sum^]
+https://go.dev/cmd/go/#hdr-Module_downloading_and_verification[go.sum^]
 bila diperlukan.
 Mengambil modul langsung lewat _version control_ sangat membutuhkan biaya,
 baik secara latensi atau penyimpanan, dalam sistem Anda:
@@ -53,7 +53,7 @@ Berikut ini sebuah contoh bagaimana perintah `go` menggunakan _proxy_ lewat
 "go get" yang meminta daftar versi, kemudian informasi, berkas mod, dan zip
 untuk versi yang di tag terakhir kali.
 
-image:https://blog.golang.org/module-mirror-launch/proxy-protocol.png[,700]
+image:https://go.dev/blog/module-mirror-launch/proxy-protocol.png[,700]
 
 Sebuah modul _mirror_ adalah sebuah modul _proxy_ khusus yang men-_cache_
 metadata dan sumber kode di dalam sistem penyimpanannya sendiri, yang
@@ -117,7 +117,7 @@ _tree_ belum pernah dirusak) sebelum menambahkan baris go.sum yang baru ke
 dalam berkas `go.sum` modul Anda.
 Berikut ini adalah sebuah contoh dari sebuah _tree_ tersebut.
 
-image:https://blog.golang.org/module-mirror-launch/tree.png[,700]
+image:https://go.dev/blog/module-mirror-launch/tree.png[,700]
 
 Basisdata _chekcsum_ mendukung
 https://go.googlesource.com/proposal/+/master/design/25530-sumdb.md#checksum-database[sekumpulan _endpoint_^]
@@ -131,7 +131,7 @@ Berikut ini adalah sebuah contoh bagaimana perintah `go` berinteraksi dengan
 basisdata _checksum_ dengan melakukan `/lookup` dari sebuah versi modul,
 kemudian meminta _tiles_ yang dibutuhkan untuk pembuktian.
 
-image:https://blog.golang.org/module-mirror-launch/sumdb-protocol.png[,700]
+image:https://go.dev/blog/module-mirror-launch/sumdb-protocol.png[,700]
 
 Basisdata _checksum_ ini membolehkan perintah `go` secara aman menggunakan
 _proxy_ yang tidak dipercaya.

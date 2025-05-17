@@ -413,7 +413,7 @@ umumnya penggunaan memori bisa meningkat 5-10x dan waktu eksekusi bertambah
 Pendeteksi _data race_ saat ini mengalokasikan 8 byte tambahan per perintah
 `defer` dan `recover`.
 Alokasi tambahan ini
-https://golang.org/issue/26813[tidak berkurang sampai goroutine selesai^].
+https://go.dev/issue/26813[tidak berkurang sampai goroutine selesai^].
 Hal ini berarti jika Anda memiliki goroutine yang berjalan lama yang secara
 periodik memanggil `defer` dan `recover`, penggunaan memori program Anda bisa
 bertambah tanpa batas.

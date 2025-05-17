@@ -74,7 +74,7 @@ Maka `-printf=true` menjalankan pemeriksaan `printf`, dan `-printf=false`
 menjalankan semua pemeriksaan kecuali yang `printf`.
 
 Untuk informasi mengenai pembuatan pemeriksaan yang baru, lihat
-https://golang.org/x/tools/go/analysis[x/tools: go analysis^].
+https://pkg.go.dev/golang.org/x/tools/go/analysis[x/tools: go analysis^].
 
 Opsi-opsi inti:
 

@@ -46,7 +46,7 @@ paket-paket mereka saja, tetapi juga mengindikasikan di mana perintah go harus
 mencari untuk diunduh.
 Misalnya, untuk mengunduh "golang.org/x/tools", perintah go akan
 berkomunikasi dengan repositori yang diindikasikan oleh
-https://golang.org/x/tools[golang.org/x/tools^]
+https://pkg.go.dev/golang.org/x/tools[golang.org/x/tools^]
 (dijelaskan lebih lanjut nanti).
 
 Sebuah path impor adalah sebuah string yang digunakan untuk mengimpor sebuah
@@ -387,7 +387,7 @@ import "github.com/golang/example/stringutil"
 Konvensi ini adalah cara mudah untuk membuat paket Go yang dapat digunakan
 oleh orang lain.
 Halaman
-https://golang.org/wiki/Projects[Go Wiki^]
+https://go.dev/wiki/Projects[Go Wiki^]
 dan situs
 https://godoc.org/[godoc.org^]
 menyediakan daftar proyek dan paket eksternal dari Go.

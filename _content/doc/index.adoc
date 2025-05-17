@@ -109,7 +109,7 @@ Dokumen ini berisi jawaban dari pertanyaan yang sering diajukan tentang Go.
 [#references]
 ==  Referensi
 
-===  https://golang.org/pkg[Dokumentasi paket^]
+===  https://pkg.go.dev[Dokumentasi paket^]
 
 Dokumentasi untuk pustaka bawaan Go.
 

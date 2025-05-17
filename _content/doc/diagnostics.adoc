@@ -340,7 +340,7 @@ bagus untuk program yang _crash_ dan untuk menganalisis servis di
 _production_.
 Untuk mendapatkan berkas ini dari sebuah program dan menggunakan `delve` atau
 `gdb` untuk _debugging_, lihat halaman wiki
-https://golang.org/wiki/CoreDumpDebugging[debugging core dump^]
+https://go.dev/wiki/CoreDumpDebugging[debugging core dump^]
 untuk panduan langkah demi langkah.
 
 //}}}
@@ -418,7 +418,7 @@ Ia memberitahu bahwa kemungkinan ada penguncian pada sumber daya yang dibagi
 yang menyebabkan pemampatan.
 
 Lihat
-https://golang.org/cmd/trace/[go tool trace^]
+https://go.dev/cmd/trace/[go tool trace^]
 untuk mengumpulkan dan menganalisis pelacakan _runtime_.
 //}}}
 

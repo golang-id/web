@@ -1,5 +1,5 @@
 =  Plugin untuk editor dan IDE
-:en-wiki-ides: https://golang.org/wiki/IDEsAndTextEditorPlugins
+:en-wiki-ides: https://go.dev/wiki/IDEsAndTextEditorPlugins
 
 [#introduction]
 ==  Pendahuluan

@@ -3,16 +3,16 @@
 :date: 15 September 2010
 
 Jika Anda mengunjungi
-https://golang.org[golang.org^]
+https://go.dev[golang.org^]
 hari ini Anda akan melihat tampilan yang baru.
 Kami telah merombak rancangan dan konten situs supaya lebih mudah dicari.
 Perubahan ini juga direfleksikan pada antarmuka dari
-https://golang.org/cmd/godoc/[godoc^],
+https://go.dev/cmd/godoc/[godoc^],
 perkakas dokumentasi Go.
 Namun berita sebenarnya adalah tentang fitur baru:
-https://golang.org/[Go Playground^].
+https://go.dev/[Go Playground^].
 
-image::https://blog.golang.org/introducing-go-playground_Untitled.png[Go Playground]
+image::https://go.dev/blog/introducing-go-playground_Untitled.png[Go Playground]
 
 Playground membolehkan siapa pun dengan peramban menulis kode Go yang kemudian
 kami kompilasi dan jalankan di server kami.
@@ -38,5 +38,5 @@ untuk dapat merasakannya secara penuh Anda harus
 link:/doc/install/[memasangnya sendiri di lokal].
 Jika Anda pernah ingin mencoba Go namun belum sempat, kenapa tidak coba
 kunjungi
-https://golang.org[golang.org^]
+https://go.dev[golang.org^]
 untuk mencobanya sekarang?

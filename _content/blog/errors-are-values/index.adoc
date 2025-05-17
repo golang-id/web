@@ -1,7 +1,7 @@
 =  Error adalah nilai
 Rob Pike
 12 Januari 2015
-:original: https://blog.golang.org/errors-are-values
+:original: https://go.dev/blog/errors-are-values
 
 Poin diskusi paling sering di antara para pemrogram Go, khususnya yang baru,
 yaitu bagaimana cara menangani error.

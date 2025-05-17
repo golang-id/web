@@ -11,7 +11,7 @@ menampilkan keluarannya.
 
 Jika Anda adalah pemrogram Go maka kemungkinan Anda sudah pernah menggunakan
 playground lewat
-https://play.golang.org[Go Playground^]
+https://go.dev/play[Go Playground^]
 secara langsung, melakukan
 https://tour.golang-id.org[Tur Go^],
 atau menjalankan
@@ -33,7 +33,7 @@ menggunakan Go.
 
 ==  Ikhtisar
 
-image:https://blog.golang.org/playground/overview.png[]
+image:https://go.dev/blog/playground/overview.png[]
 
 Layanan playground memiliki tiga bagian:
 
@@ -71,7 +71,7 @@ NaCl yang dapat dieksekusi.
 
 (Perkakas khusus ini telah digabungkan ke Go 1.3.
 Untuk belajar lebih lanjut, bacalah
-https://golang.org/s/go13nacl[dokumentasi rancangan^]
+https://go.dev/s/go13nacl[dokumentasi rancangan^]
 .)
 
 NaCl membatasi jumlah CPU dan RAM yang dikonsumsi program, dan mencegah
@@ -152,9 +152,9 @@ Eksekusi terus berjalan dan program percaya bahwa waktu telah lewat, pada
 kenyataannya waktu tidur berjalan secara instan.
 
 Perubahan dalam _scheduler_ ini dapat ditemukan dalam
-https://golang.org/cl/73110043[proc.c^]
+https://go.dev/cl/73110043[proc.c^]
 dan
-https://golang.org/cl/73110043[time.goc^].
+https://go.dev/cl/73110043[time.goc^].
 
 Pemalsuan waktu memperbaiki beberapa isu dari penggunaan sumber daya pada
 back-end, tetapi bagaimana dengan keluaran program?
@@ -391,7 +391,7 @@ Ia menerima permintaan HTTP dari klien, membuat permintaan RPC ke back-end,
 dan melakukan semacam penyimpanan sementara (_caching_).
 
 Front-end melayani HTTP dengan sebuah _handler_ di
-https://golang.org/compile[golang.org/compile^].
+https://go.dev/compile[golang.org/compile^].
 Handler tersebut menerima permintaan POST dengan bagian `body` (program Go
 yang akan dijalankan) dan kolom `version` opsional (untuk klien pada umumnya
 nilainya "2").
@@ -403,7 +403,7 @@ sebelumnya.
 Jika ditemukan, ia akan mengembalikan respons yang tersimpan tersebut.
 _Cache_ tersebut mencegah program yang umum seperti yang dapat kita temukan
 pada
-https://golang.org/[halaman depan Go^]
+https://go.dev/[halaman depan Go^]
 dari menghabiskan sumber daya pada back-end.
 Jika tidak ada respons yang tersimpan, front-end melakukan pemanggilan RPC ke
 back-end, menyimpan respons ke dalam memcache, membaca even-event, dan

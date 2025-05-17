@@ -11,7 +11,7 @@ link:/doc/install/[Unduh dan pasang^].
 ==  Pendahuluan
 
 Go adalah sebuah proyek sumber terbuka, didistribusikan di bawah
-https://golang.org/LICENSE[lisensi model-BSD^].
+https://go.dev/LICENSE[lisensi model-BSD^].
 Dokumen ini menjelaskan cara mengambil kode sumber, membangunnya dalam mesin
 Anda, dan menjalankannya.
 
@@ -56,7 +56,7 @@ Solaris, dan Windows (walaupun tidak semua sistem operasi mendukung semua
 arsitektur).
 
 Daftar dukungan yang dianggap "kelas pertama" tersedia pada halaman wiki
-https://golang.org/wiki/PortingPolicy#first-class-ports[dukungan kelas pertama^].
+https://go.dev/wiki/PortingPolicy#first-class-ports[dukungan kelas pertama^].
 
 Seluruh kombinasi yang didukung ada dalam daftar
 <<environment,variabel lingkungan>> di bawah.
@@ -84,7 +84,7 @@ digunakan untuk membangun perkakas dari awal.
 ===  Perkakas _bootstrap_ dari rilis biner
 
 Untuk menggunakan rilis biner sebagai perkakas _bootstrap_, lihat
-https://golang.org/dl/[halaman unduhan^]
+https://go.dev/dl/[halaman unduhan^]
 atau gunakan paket distribusi Go lainnya.
 
 ===  Perkakas _bootstrap_ dari sumber
@@ -112,7 +112,7 @@ diasumsikan berada pada direktori GOROOT_BOOTSTRAP.
 Untuk membuat perkakas _bootstrap_ dari hasil kompilasi-silang, untuk sistem
 yang Go 1.4 tidak punya targetnya (misalnya, `linux/ppc64le`), pasang Go di
 sistem yang berbeda kemudian jalankan
-https://golang.org/src/bootstrap.bash[bootstrap.bash^].
+https://go.dev/src/bootstrap.bash[bootstrap.bash^].
 
 Misalnya, saat dijalankan sebagai berikut
 ----
@@ -280,7 +280,7 @@ menyediakan *instruksi pengaturan yang penting* untuk menggunakan perkakas Go.
 Sumber kode untuk beberapa perkakas Go tambahan (termasuk
 link:/cmd/godoc/[godoc^])
 disimpan di
-https://golang.org/x/tools[repositori tools^].
+https://pkg.go.dev/golang.org/x/tools[repositori tools^].
 Untuk memasang salah satu perkakas tersebut (misalnya `godoc`):
 
 ----
@@ -305,17 +305,17 @@ https://groups.google.com/group/golang-nuts[Go Nuts^]
 memiliki beberapa orang yang aktif yang dapat membantu masalah Anda selama
 pemasangan.
 Bagi yang ingin selalu terbarui, ada milis lain yaitu
-http://groups.google.com/group/golang-checkins[golang-checkins]
+https://groups.google.com/group/golang-checkins[golang-checkins]
 yang berisi pesan tentang setiap commit yang masuk ke repositori Go.
 
 Isu-isu tentang Go dapat dilaporkan ke
-http://golang.org/issue/new[pelacak isu Go].
+https://go.dev/issue/new[pelacak isu Go].
 
 [#releases]
 == Mengikuti rilis
 
 Rilis terbaru diumumkan di milis
-http://groups.google.com/group/golang-announce[golang-announce].
+https://groups.google.com/group/golang-announce[golang-announce].
 Setiap pengumuman mencantumkan rilis tag, misalnya `go1.9`.
 
 Untuk memperbarui kode sumber ke rilis yang terbaru, Anda dapat menjalankan:
@@ -485,7 +485,7 @@ terdeteksi.
 
 Jika ragu, kosongkan variabel ini, dan set hanya saat menjalankan program Go.
 Halaman wiki
-http://golang.org/wiki/GoArm[GoArm]
+https://go.dev/wiki/GoArm[GoArm]
 berisi detail lebih lanjut tentang dukungan ARM pada Go.
 --
 

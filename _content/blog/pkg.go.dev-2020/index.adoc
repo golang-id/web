@@ -43,7 +43,7 @@ ingin mengetahui apa saja fitur-fitur tersebut dari Anda!
 
 Anda dapat membagikan masukan dengan kami lewat kanal berikut:
 
-* https://golang.org/s/discovery-feedback[Tulisan di pelacak isu Go^]
+* https://go.dev/s/discovery-feedback[Tulisan di pelacak isu Go^]
 * Surel ke
   mailto:go-discovery-feedback@google.com[go-discovery-feedback@google.com]
 * Klik "Share Feedback" atau "Report an Issue" pada bagian bawah go.dev
@@ -53,7 +53,7 @@ mengakses
 https://pkg.go.dev/[pkg.go.dev^]
 lewat API.
 Kami akan melaporkan pembaruan lewat
-https://golang.org/s/discovery-updates[Go isu 33654^].
+https://go.dev/s/discovery-updates[Go isu 33654^].
 
 
 ==  Pertanyaan yang sering diajukan
@@ -99,7 +99,7 @@ berikut:
 Polis lisensi kami ada di
 https://pkg.go.dev/license-policy[pkg.go.dev/license-policy^].
 Jika Anda menemukan masalah, silakan
-https://golang.org/x/discovery-feedback[buka isu di halaman pelacak isu Go^],
+https://go.dev/s/discovery-feedback[buka isu di halaman pelacak isu Go^],
 atau kirim surel ke
 mailto:go-discovery-feedback@google.com[go-discovery-feedback@google.com]
 supaya kami dapat bekerja langsung dengan Anda!

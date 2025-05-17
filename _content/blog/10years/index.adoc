@@ -12,10 +12,10 @@ dan ekosistem untuk membangun perangkat lunak jaringan yang modern.
 Untuk menandai peristiwa ini,
 https://twitter.com/reneefrench[Reene French^],
 pencipta logo
-https://blog.golang.org/gopher[Go gopher^],
+https://go.dev/blog/gopher[Go gopher^],
 melukiskan kejadian menggembirakan ini:
 
-image:https://blog.golang.org/10years/gopher10th-small.jpg[gopher 10th,500]
+image:https://go.dev/blog/10years/gopher10th-small.jpg[gopher 10th,500]
 
 Merayakan 10 tahun Go membuat saya membayangkan kembali pada awal November
 2009, saat kami bersiap membagikan Go dengan dunia.
@@ -78,9 +78,9 @@ Go hanya berjalan di Linux dan Mac, di 32 dan 64 bit x86, dan 32-bit ARM.
 Selama satu dekade terakhir, dengan bantuan pengembang Go di seluruh dunia,
 kita telah mengembangkan ide dan sketsa menjadi bahasa yang produktif dengan
 peralatan yang fantastis, implementasi dengan kualitas produksi,
-https://blog.golang.org/ismmkeynote[garbage collector yang terbaru^],
+https://go.dev/blog/ismmkeynote[garbage collector yang terbaru^],
 dan
-https://golang.org/doc/install/source#introduction[penggunaan ke 12 sistem operasi dan 10 arsitektur^].
+https://go.dev/doc/install/source#introduction[penggunaan ke 12 sistem operasi dan 10 arsitektur^].
 
 Setiap bahasa pemrograman membutuhkan bantuan dari ekosistem untuk tumbuh.
 Rilis sumber terbuka adalah benih dari ekosistem tersebut, namun sejak itu,
@@ -123,4 +123,4 @@ Sebagai wakil dari tim Go di Google, terima kasih kepada semua orang yang
 telah bergabung dengan kita selama satu dekade ini.
 Mari buat dekade berikutnya lebih luar biasa!
 
-image:https://blog.golang.org/10years/gopher10th-pin-small.jpg[GoTurns10,200]
+image:https://go.dev/blog/10years/gopher10th-pin-small.jpg[GoTurns10,200]

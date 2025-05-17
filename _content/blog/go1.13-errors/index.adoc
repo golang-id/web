@@ -1,5 +1,5 @@
 =  Menggunakan Errors pada Go 1.13
-:original: https://blog.golang.org/go1.13-errors
+:original: https://go.dev/blog/go1.13-errors
 :author: Damien Niel dan Jonathan Amsterdam
 :date: 17 Oktober 2019
 :toc:
@@ -33,7 +33,7 @@ menyediakan konteks tambahan.
 
 Pola-pola dari sebuah error yang berisi informasi tambahan begitu banyak
 digunakan dalam kode Go, setelah
-https://golang.org/issue/29934[diskusi yang mendalam^],
+https://go.dev/issue/29934[diskusi yang mendalam^],
 Go 1.13 menambahkan dukungan eksplisit untuk hal tersebut.
 Artikel ini menjelaskan penambahan-penambahan ke pustaka bawaan tersebut: tiga
 fungsi baru dalam paket `errors`, dan sebuah format baru pada `fmt.Errorf`.
@@ -437,7 +437,7 @@ hal yang umum, membantu program membuat keputusan yang lebih baik dan
 membantu pemrogram menemukan _bug_ lebih cepat.
 
 Seperti yang Russ Cox katakan dalam
-https://blog.golang.org/experiment[GopherCon 2019^],
+https://go.dev/blog/experiment[GopherCon 2019^],
 untuk mencapai Go 2 kita bereksperimen, menyederhanakan dan merilis (yang
 baru).
 Sekarang karena kita telah merilis perubahan ini, kita menantikan

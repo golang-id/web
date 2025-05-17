@@ -300,7 +300,7 @@ map yang sama secara simultan.
 Jika kita harus membaca dan menulis ke sebuah map dari goroutine yang berbeda,
 akses ke map tersebut harus di-mediasi oleh sebuah mekanisme sinkronisasi.
 Salah satu cara umum untuk melindungi map yaitu dengan
-https://golang.org/pkg/sync/#RWMutex[sync.RWMutex^].
+https://pkg.go.dev/sync/#RWMutex[sync.RWMutex^].
 
 Perintah berikut mendeklarasikan sebuah variabel `counter` bertipe struct
 anonim yang berisi sebuah map dan menanam `sync.RWMutex`.

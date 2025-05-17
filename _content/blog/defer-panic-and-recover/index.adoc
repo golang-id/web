@@ -228,7 +228,7 @@ Jika sebuah eror terjadi saat menapaki nilai yang akan di-encode, panic
 dipanggil untuk mengembalikan _stack_ ke pemanggilan fungsi yang paling atas,
 yang akan memulihkan panic dan mengembalikan nilai error yang sesuai (lihat
 method 'error' dan 'marshal' dari tipe encodeState dalam
-https://golang.org/src/pkg/encoding/json/encode.go[encode.go^]
+https://go.dev/src/encoding/json/encode.go[encode.go^]
 
 Konvensi dalam pustaka Go yaitu meskipun sebuah paket menggunakan panic di
 dalamnya, API di luarnya masih tetap mengembalikan nilai error.

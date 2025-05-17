@@ -1,9 +1,9 @@
 =  Memulai dari Awal
-:go-dl: https://golang.org/dl
+:go-dl: https://go.dev/dl
 :golang-doc-install-source: link:/doc/install/source/
 :golang-doc-install-gccgo: link:/doc/install/gccgo/
 :golang-id-list: https://groups.google.com/forum/#!forum/golang-id
-:golang-cmd: https://golang.org/cmd/cgo
+:golang-cmd: https://go.dev/cmd/cgo
 :golang-issue: https://github.com/golang-id/web/issues/new/choose
 :xcode-app: https://developer.apple.com/Xcode/
 

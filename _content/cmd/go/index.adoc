@@ -1936,7 +1936,7 @@ Variabel lingkungan untuk tujuan umum:
 `GO111MODULE`::
     Mengontrol apakah perintah go berjalan dengan mode GOPATH atau modul.
     Bisa "off", "on", atau "auto".
-    Lihat https://golang.org/ref/mod#mod-commands .
+    Lihat https://go.dev/ref/mod#mod-commands .
 
 `GCCGO`::
     Mengatur perintah gccgo untuk menjalankan 'go build -compiler=gccgo'.
@@ -1988,16 +1988,16 @@ Variabel lingkungan untuk tujuan umum:
 `GOPROXY`::
     URL untuk proksi modul Go.
     Lihat
-    https://golang.org/ref/mod#environment-variables
+    https://go.dev/ref/mod#environment-variables
     dan
-    https://golang.org/ref/mod#module-proxy
+    https://go.dev/ref/mod#module-proxy
     untuk lebih detail.
 
 `GOPRIVATE`, `GONOPROXY`, `GONOSUMDB`::
     Daftar prefiks path modul, dengan pola _glob_ dipisahkan oleh koma (sesuai
     dengan sintaks `path.Match`), yang harus diambil secara langsung atau yang
     tidak dibandingkan dengan basis data _checksum_.
-	Lihat https://golang.org/ref/mod#private-modules .
+	Lihat https://go.dev/ref/mod#private-modules .
 
 `GOROOT`::
     Lokasi utama dari perkakas go.
@@ -2005,7 +2005,7 @@ Variabel lingkungan untuk tujuan umum:
 `GOSUMDB`::
     Nama basis data _checksum_ yang digunakan, berikut pilihan kunci publik
     dan URL-nya.
-    Lihat https://golang.org/ref/mod#authenticating .
+    Lihat https://go.dev/ref/mod#authenticating .
 
 `GOTMPDIR`::
     Direktori tempat perintah go menulis berkas sumber, paket, dan program
@@ -2206,26 +2206,26 @@ sekarang dan di direktori di atas-nya untuk menentukan _root_ dari modul
 utama.
 
 Format berkas go.mod dijelaskan secara detail di
-https://golang.org/ref/mod#go-mod-file.
+https://go.dev/ref/mod#go-mod-file.
 
 Untuk membuat berkas go.mod yang baru, gunakan 'go mod init'.
 Untuk detail lihat 'go help mod init' atau
-https://golang.org/ref/mod#go-mod-init.
+https://go.dev/ref/mod#go-mod-init.
 
 Untuk menambahkan modul yang kurang atau menghapus modul yang tidak
 dibutuhkan, gunakan 'go mod tidy'.
 Untuk detail, lihat 'go help mod tidy' atau
-https://golang.org/ref/mod#go-mod-tidy.
+https://go.dev/ref/mod#go-mod-tidy.
 
 Untuk menambah, meningkatkan atau menurunkan versi modul, atau menghapus modul
 tertentu, gunakan 'go get'.
 Untuk detail-nya, lihat 'go help module-get' atau
-https://golang.org/ref/mod#go-get.
+https://go.dev/ref/mod#go-get.
 
 Untuk membuat perubahan lain atau membaca go.mod sebagai JSON untuk digunakan
 oleh perkakas lain, gunakan 'go mod edit'.
 Lihat 'go help mod edit' atau
-https://golang.org/ref/mod#go-mod-edit.
+https://go.dev/ref/mod#go-mod-edit.
 
 [#hdr-GOPATH_environment_variable]
 == Variabel lingkungan GOPATH
@@ -2241,7 +2241,7 @@ Windows), kecuali bila direktori tersebut telah berisi pemasangan distribusi
 Go.
 Jalankan "go env GOPATH" untuk melihat nilai `GOPATH`.
 
-Lihat https://golang.org/wiki/SettingGOPATH untuk menset nilai `GOPATH`.
+Lihat https://go.dev/wiki/SettingGOPATH untuk menset nilai `GOPATH`.
 
 Setiap direktori yang terdaftar dalam `GOPATH` haruslah memiliki struktur
 sebagai berikut:
@@ -2335,7 +2335,7 @@ dan turunannya.
 Berkas sumber `foo/f.go`, `foo/bar/x.go`, dan `foo/quux/y.go` dapat mengimpor
 "foo/internal/baz", namun berkas sumber `crash/bang/b.go` tidak bisa.
 
-Lihat https://golang.org/s/go14internal untuk lebih detailnya.
+Lihat https://go.dev/s/go14internal untuk lebih detailnya.
 
 [#hdr-Vendor_Directories]
 == Direktori vendor
@@ -2389,7 +2389,7 @@ Direktori vendor tidak memengaruhi penempatan dari repositori-repositori baru
 yang diunduh pertama kali oleh 'go get': repositori tersebut selalu disimpan
 dalam `GOPATH`, tidak dalam direktori vendor.
 
-Lihat https://golang.org/s/go15vendor untuk lebih detailnya.
+Lihat https://go.dev/s/go15vendor untuk lebih detailnya.
 
 
 [#hdr-Legacy_GOPATH_go_get]
@@ -2476,7 +2476,7 @@ melayani sistem berkas yang statik (termasuk sebuah URL `file:///`)
 bisa menjadi proksi modul.
 
 Untuk detail tentang protokol `GOPROXY`, lihat
-https://golang.org/ref/mod#goproxy-protocol.
+https://go.dev/ref/mod#goproxy-protocol.
 
 
 [#hdr-Import_path_syntax]
@@ -2627,7 +2627,7 @@ akan menghasilkan beberapa permintaan berikut:
 
 ----
 https://example.org/pkg/foo?go-get=1 (direkomendasikan)
-http://example.org/pkg/foo?go-get=1  (pilihan terakhir, hanya bila GOINSECURE diset)
+https://example.org/pkg/foo?go-get=1  (pilihan terakhir, hanya bila GOINSECURE diset)
 ----
 
 Jika halaman kembalian berisi tag `meta` berikut
@@ -2651,7 +2651,7 @@ direktori pertama yang terdaftar dalam variabel lingkungan `GOPATH`.
 
 Bila menggunakan mode modul, paket-paket yang diunduh disimpan dalam tembolok
 modul.
-Lihat https://golang.org/ref/mod#module-cache.
+Lihat https://go.dev/ref/mod#module-cache.
 
 Bila menggunakan mode modul, sebuah variasi tambahan dari tag meta `go-import`
 akan dikenali dan dipilih.
@@ -2663,7 +2663,7 @@ Variasi tersebut menggunakan "mod" sebagai nilai dalam `vcs`, seperti berikut:
 
 Tag tersebut berarti untuk mengunduh modul dengan path yang diawali dengan
 `example.org` dari proksi modul lewat URL https://code.org/moduleproxy.
-Lihat https://golang.org/ref/mod#goproxy-protocol untuk detail tentang
+Lihat https://go.dev/ref/mod#goproxy-protocol untuk detail tentang
 protokol proksi.
 
 
@@ -2697,7 +2697,7 @@ Pemeriksaan path impor juga dimatikan saat menggunakan modul.
 Komentar path impor sudah tidak berlaku lagi karena digantikan oleh berkas
 go.mod lewat baris perintah `module`.
 
-Lihat https://golang.org/s/go14customimport untuk detailnya.
+Lihat https://go.dev/s/go14customimport untuk detailnya.
 
 
 [#hdr-Modules__module_versions__and_more]
@@ -2711,10 +2711,10 @@ Modul bisa diunduh langsung lewat repositori VCS atau lewat peladen proksi
 modul.
 
 Untuk seri tutorial tentang modul, lihat
-https://golang.org/doc/tutorial/create-module.
+https://go.dev/doc/tutorial/create-module.
 
 Untuk referensi detail tentang modul, lihat
-https://golang.org/ref/mod.
+https://go.dev/ref/mod.
 
 Secara bawaan, perintah go bisa mengunduh modul lewat
 https://proxy.golang.org.
@@ -2729,7 +2729,7 @@ https://sum.golang.org/privacy.
 Perilaku pengunduhan dari perintah Go bisa diatur lewat variabel lingkungan
 `GOPROXY`, `GOSUMDB`, `GOPRIVATE`, dan lainnya.
 Lihat 'go help environment' dan
-https://golang.org/ref/mod#private-module-privacy
+https://go.dev/ref/mod#private-module-privacy
 untuk informasi lebih lanjut.
 
 [#hdr-Module_authentication_using_go_sum]
@@ -2745,7 +2745,7 @@ Daftar _hash_ tersebut juga bisa diunduh lewat basis data _checksum_
 bergantung pada nilai dari `GOSUMDB`, `GOPRIVATE`, dan `GONOSUMDB`.
 
 Untuk detailnya, lihat
-https://golang.org/ref/mod#authenticating.
+https://go.dev/ref/mod#authenticating.
 
 [#hdr-Package_lists_and_patterns]
 == Daftar dan pola paket
@@ -2803,7 +2803,7 @@ _wildcard_ tidak diikutkan dalam pencocokan dengan elemen "vendor", sehingga
 Ingatlah, bahwa sebuah direktori bernama "vendor" yang berisi kode bukanlah
 paket yang di-vendor-kan: `cmd/vendor` berarti sebuah program bernama
 `vendor`, dan pola `+./cmd/...+` akan mengikutkannya.
-Lihat https://golang.org/s/go15vendor untuk informasi tentang _vendoring_.
+Lihat https://go.dev/s/go15vendor untuk informasi tentang _vendoring_.
 
 Sebuah path impor bisa mengikutkan sebuah paket yang akan diunduh dari
 repositori _remote_.
@@ -2879,7 +2879,7 @@ Perintah 'go env -w' (lihat 'go help env') dapat digunakan untuk menset
 variabel-variabel lingkungan tersebut untuk diaplikasikan pada perintah go
 selanjutnya.
 
-Untuk lebih rinci, lihat https://golang.org/ref/mod#private-modules.
+Untuk lebih rinci, lihat https://go.dev/ref/mod#private-modules.
 
 [#hdr-Testing_flags]
 == Opsi-opsi pengujian

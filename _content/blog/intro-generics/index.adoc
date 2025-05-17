@@ -62,7 +62,7 @@ berbeda dengan menambahkan sebuah parameter tipe.
 Pada contoh ini kita tambahkan parameter tipe `T`, dan mengganti
 penggunaan `float64` dengan `T`.
 ----
-import "golang.org/x/exp/constraints"
+import "pkg.go.dev/golang.org/x/exp/constraints"
 
 func GMin[T constraints.Ordered](x, y T) T {
 	if x < y {

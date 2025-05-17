@@ -1,10 +1,10 @@
 =  Efektif Go
 :sectanchors:
 :toc:
-:en-ref-spec: https://golang.org/ref/spec
-:en-cmd-go: https://golang.org/cmd/go/
-:en-cmd-go-show: https://golang.org/cmd/go/#hdr-Show_documentation_for_package_or_symbol
-:en-blog-concurrency: https://blog.golang.org/2013/01/concurrency-is-not-parallelism.html
+:en-ref-spec: https://go.dev/ref/spec
+:en-cmd-go: https://go.dev/cmd/go/
+:en-cmd-go-show: https://go.dev/cmd/go/#hdr-Show_documentation_for_package_or_symbol
+:en-blog-concurrency: https://go.dev/blog/2013/01/concurrency-is-not-parallelism.html
 :id-tour: https://tour.golang-id.org
 :id-doc-code: link:/doc/code.html
 
@@ -38,7 +38,7 @@ yang mana sebaiknya harus dibaca terlebih dahulu.
 [#examples]
 ===  Contoh
 
-https://golang.org/src/[Sumber paket Go^]
+https://go.dev/src/[Sumber paket Go^]
 bertujuan untuk menyediakan tidak
 hanya pustaka inti tapi juga sebagai contoh bagaimana menggunakan bahasa ini.
 Lebih lanjut lagi, banyak dari paket-paket tersebut memiliki contoh-contoh
@@ -3507,7 +3507,7 @@ const templateStr = `
 &lt;/head&gt;
 &lt;body&gt;
 {{if .}}
-&lt;img src="http://chart.apis.google.com/chart?chs=300x300&cht=qr&choe=UTF-8&chl={{.}}" /&gt;
+&lt;img src="https://chart.apis.google.com/chart?chs=300x300&cht=qr&choe=UTF-8&chl={{.}}" /&gt;
 &lt;br&gt;
 {{.}}
 &lt;br&gt;

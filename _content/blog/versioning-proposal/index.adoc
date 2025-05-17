@@ -37,7 +37,7 @@ yang berbeda, terutama yang memperhatikan kompatibilitas.
 ==  Impak dari Kompatibilitas
 
 Fitur baru paling penting dari
-https://blog.golang.org/preview-of-go-version-1[Go 1^]
+https://go.dev/blog/preview-of-go-version-1[Go 1^]
 bukanlah sebuah fitur bahasa.
 Melainkan penekanan pada kompatibilitas.
 Sampai pada titik tersebut kami telah melakukan rilis stabil setiap bulan,
@@ -45,7 +45,7 @@ setiap rilis dengan perubahan yang tidak kompatibel.
 Kami melihat adanya akselerasi yang signifikan dalam ketertarikan dan adopsi
 secara langsung setelah rilis dari Go 1.
 Kami percaya bahwa dengan
-https://golang.org/doc/go1compat.html[menjamin kompatibilitas^]
+https://go.dev/doc/go1compat.html[menjamin kompatibilitas^]
 membuat pengembang merasa lebih nyaman bergantung pada Go untuk penggunaan di
 tingkat produksi dan salah satu alasan kunci bahwa Go sekarang menjadi
 terkenal.
@@ -58,7 +58,7 @@ dan sebuah paket baru memiliki path impor yang sama, maka paket yang baru
 haruslah kompatibel dengan paket lama."
 
 Secara independen,
-http://semver.org/[versi semantik]
+https://semver.org/[versi semantik]
 telah menjadi standar _de facto_ untuk menentukan versi pada perangkat lunak
 di dalam banyak komunitas bahasa pemrograman, termasuk komunitas Go.
 Dengan menggunakan versi semantik, versi selanjutnya diharapkan supaya
@@ -230,12 +230,12 @@ membolehkan bekerja di luar $GOPATH dan menghilangkan (kebanyakan) direktori
 vendor.
 
 Hasil dari semua itu adalah sebuah
-https://golang.org/design/24301-versioned-go[proposal Go yang resmi^],
+https://go.dev/design/24301-versioned-go[proposal Go yang resmi^],
 yang saya kirim akhir minggu lalu.
 Walaupun tampak seperti implementasi yang penuh, ia masih prototipe, sebuah
 karya yang harus kita selesaikan bersama.
 Anda bisa mengunduh dan mencoba prototipe vgo lewat
-https://golang.org/x/vgo[golang.org/x/vgo^],
+https://pkg.go.dev/golang.org/x/vgo[golang.org/x/vgo^],
 dan Anda bisa membaca
 https://research.swtch.com/vgo-tour[Tur dari Go berversi^]
 untuk merasakan seperti apa vgo.
@@ -252,11 +252,11 @@ sekarang, untuk memastikan bahwa implementasi yang final yang diikutkan pada
 rilis Go selanjutnya bekerja dengan benar untuk semua pengembang sebisa
 mungkin.
 Silahkan ajukan permasalahan di
-https://golang.org/issue/24301[isu diskusi proposal^].
+https://go.dev/issue/24301[isu diskusi proposal^].
 Saya akan mencatat
-https://golang.org/issue/24301#issuecomment-371228742[kesimpulan diskusi^]
+https://go.dev/issue/24301#issuecomment-371228742[kesimpulan diskusi^]
 dan memperbarui
-https://golang.org/issue/24301#issuecomment-371228664[FAQ^]
+https://go.dev/issue/24301#issuecomment-371228664[FAQ^]
 saat saran-saran bermunculan.
 
 Agar proposal ini sukses, ekosistem Go secara keseluruhan--dan khususnya

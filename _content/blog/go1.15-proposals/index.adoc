@@ -20,7 +20,7 @@ hari, dan kita juga punya progres dengan implementasi generik (lebih lanjut
 lagi nanti tahun ini).
 Usaha kita selama tujuh bulan lalu dalam menyediakan mekanisme penanganan
 error yang lebih baik,
-https://golang.org/issue/32437[proposal `try`^],
+https://go.dev/issue/32437[proposal `try`^],
 menemui dukungan yang baik namun juga penolakan yang kuat dan kami memutuskan
 untuk meninggalkannya.
 Setelah kejadian itu ada banyak proposal yang memperbaikinya, namun tidak ada
@@ -47,7 +47,7 @@ Kami konsentrasi pada beberapa pemeriksaan `vet` yang baru dan sedikit
 perbaikan pada bahasa Go.
 Kami telah memilih tiga proposal berikut:
 
-https://golang.org/issue/32479[#32479^].
+https://go.dev/issue/32479[#32479^].
 Diagnosis konversi `string(int)` dalam `go vet`.
 
 Kami berencana menyelesaikan hal ini untuk rilis Go 1.14 namun ternyata tidak
@@ -57,11 +57,11 @@ membingungkan bagi pendatang baru (`string(10)` adalah "\n" bukan "10") dan
 tidak dibolehkan lagi sekarang sejak konversi tersebut telah tersedia dalam
 paket `unicode/utf8`.
 Secara
-https://golang.org/issue/3939[dihapusnya konversi ini^]
+https://go.dev/issue/3939[dihapusnya konversi ini^]
 bukanlah perubahan yang menjaga kompatibilitas, kami mengajukan untuk
 memulainya sebagai sebuah error dalam `vet`.
 
-https://golang.org/issue/4483[#4483^].
+https://go.dev/issue/4483[#4483^].
 Diagnosis asersi tipe interface-ke-interface yang tidak memungkinkan dalam
 `go vet`.
 
@@ -77,7 +77,7 @@ sebagai error.
 Melaporkan error dari sisi _compiler_ pada kasus ini tidak menjaga
 kompatibilitas, maka dari itu kami memulai dengan sebuah error dalam `vet`.
 
-https://golang.org/issue/28591[#28951^].
+https://go.dev/issue/28591[#28951^].
 Evaluasi konstanta indeks dan ekspresi slice dengan indeks dan string
 konstanta.
 

@@ -184,7 +184,7 @@ Timer `t` dan kanal `reset` yang baru mengkomunikasikan kebutuhan untuk
 mereset _timer_ dengan cara yang aman.
 
 Pendekatan lain yang lebih sederhana dan kurang efisien yaitu dengan
-https://play.golang.org/p/kuWTrY0pS4[menghindari menggunakan timer yang sama^].
+https://go.dev/play/p/kuWTrY0pS4[menghindari menggunakan timer yang sama^].
 
 
 === Contoh 2: `ioutil.Discard`
@@ -228,7 +228,7 @@ writer.ReadFrom(reader)
 ----
 
 Kita
-https://golang.org/cl/4817041[menambahkan method `ReadFrom`^]
+https://go.dev/cl/4817041[menambahkan method `ReadFrom`^]
 ke tipe `Discard`, yang memiliki penyangga internal yang dibagi dengan semua
 penggunanya.
 Kita tahu bahwa secara teori ini adalah kondisi berpacu, namun secara semua
@@ -236,19 +236,19 @@ penulisan ke penyangga seharusnya langsung dibuang kami berpikir masalah
 kondisi berpacu di sini tidak begitu penting.
 
 Saat pendeteksi _data race_ diimplementasikan ia langsung
-https://golang.org/issue/3970[menandakan kode tersebut^]
+https://go.dev/issue/3970[menandakan kode tersebut^]
 sebagai "berpacu".
 Sekali lagi, kita menyadari bahwa kode tersebut bermasalah, namun memutuskan
 bahwa kondisi berpacu tersebut tidak "nyata".
 Untuk menghindari kondisi "positif salah" ini pada saat pembangunan, kita
 mengimplementasikan
-https://golang.org/cl/6624059[versi yang tidak "berpacu"^]
+https://go.dev/cl/6624059[versi yang tidak "berpacu"^]
 yang dinyalakan hanya saat pendeteksi _data race_ berjalan.
 
 Akan tetapi beberapa bulan kemudian
 https://bradfitz.com/[Brad^]
 menemui sebuah _bug_ yang
-https://golang.org/issue/4589[janggal dan menyebalkan^].
+https://go.dev/issue/4589[janggal dan menyebalkan^].
 Setelah beberapa hari melakukan _debug_, dia menemukan kondisi berpacu yang
 nyata yang disebabkan oleh `ioutil.Discard`.
 
@@ -327,7 +327,7 @@ func (t trackDigestReader) Read(p []byte) (n int, err error) {
 ----
 
 Bug ini akhirnya
-https://golang.org/cl/7011047[diperbaiki^]
+https://go.dev/cl/7011047[diperbaiki^]
 dengan memberikan penyangga yang unik untuk setiap penggunaan
 `ioutil.Discard`, mengeliminasi kondisi berpacu pada penyangga yang berbagi.
 

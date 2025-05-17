@@ -13,7 +13,7 @@ https://pkg.go.dev/github.com/iwanbk/rimcu[github.com/iwanbk/rimcu^]::
     Pustaka yang menggabungkan Redis dan _cache_ dalam memori.
 
 https://pkg.go.dev/github.com/iwanbk/gobeanstalk[github.com/iwanbk/gobeanstalk^]::
-    Klien untuk http://kr.github.io/beanstalkd/[beanstalkd^].
+    Klien untuk https://kr.github.io/beanstalkd/[beanstalkd^].
 
 https://pkg.go.dev/git.sr.ht/~shulhan/asciidoctor-go[git.sr.ht/~shulhan/asciidoctor-go^]::
     Pustaka untuk mengurai bahasa _markup_ asciidoc dan mengonversinya ke

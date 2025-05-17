@@ -8,7 +8,7 @@ Di GopherCon 2017, Russ Cox secara resmi mulai membayangkan versi besar
 selanjutnya dari Go dengan wicara tentang
 https://www.youtube.com/watch?v=0Zbh_vmAKvk[Masa depan Go^]
 (
-https://blog.golang.org/toward-go2[blog^]).
+https://go.dev/blog/toward-go2[blog^]).
 Kita menyebut masa depan bahasa secara informal dengan Go 2, walaupun sekarang
 kita paham bahwa ia akan datang secara inkremental bukan dengan tiba-tiba
 dalam sebuah rilis mayor.
@@ -25,7 +25,7 @@ pustaka-pustaka yang tidak kita ketahui sejak awal, dan hal ini bisa terjadi
 lewat umpan balik dari komunitas Go.
 
 Pada tahun 2015 kami memperkenalkan
-https://golang.org/s/proposal[proses proposal^]
+https://go.dev/s/proposal[proses proposal^]
 untuk mengumpulkan umpan balik: proposal untuk perubahan bahasa dan pustaka.
 Sebuah komite yang terdiri dari anggota tim Go secara berkala telah mengulas,
 kategorisasi, dan menentukan proposal-proposal yang masuk.
@@ -46,7 +46,7 @@ Saat artikel ini ditulis, ada sebanyak 120
 https://github.com/golang/go/issues?page=1&q=is%3Aissue+is%3Aopen+label%3Aproposal+label%3AGo2&utf8=%E2%9C%93[isu terbuka berlabel Go 2 proposal^].
 Setiap proposal mengajukan perubahan bahasa atau pustaka yang signifikan,
 sering kali ada yang tidak memenuhi
-https://golang.org/doc/go1compat[jaminan kompatibilitas Go 1^].
+https://go.dev/doc/go1compat[jaminan kompatibilitas Go 1^].
 Ian Lance Taylor dan Saya telah melihat proposal-proposal tersebut dan
 mengategorikan mereka
 (
@@ -62,13 +62,13 @@ Ide-ide dari proposal yang tersisa bisa jadi memengaruhi bahasa dan pustaka
 dari Go 2.
 Dua tema utama muncul: dukungan untuk penanganan error yang lebih baik, dan
 generik.
-https://blog.golang.org/go2draft[Rancangan draf^]
+https://go.dev/blog/go2draft[Rancangan draf^]
 untuk kedua area ini telah diterbitkan pada GopherCon tahun ini, dan lebih
 banyak eksplorasi dibutuhkan.
 
 Lalu bagaimana dengan sisanya?
 Kami
-https://blog.golang.org/toward-go2[dibatasi^]
+https://go.dev/blog/toward-go2[dibatasi^]
 oleh fakta bahwa kita sekarang punya jutaan pemrogram Go dan sejumlah besar
 kode Go, dan kita harus membawa semuanya secara bersamaan, mengurangi risiko
 terpecahnya ekosistem.

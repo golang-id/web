@@ -26,7 +26,7 @@ dependensi yang mungkin suatu saat nanti berguna.
 
 *  Perintah go untuk mengatur dependensi mengubah berkas `go.mod`.
    Untuk informasi lebih lanjut tentang format berkas ini, lihat
-   https://golang.org/doc/modules/gomod-ref[Referensi berkas go.mod^].
+   https://go.dev/doc/modules/gomod-ref[Referensi berkas go.mod^].
 
 *  Membuat program penyunting atau _Integrated Development Environment_ (IDE)
    Anda supaya mendukung Go modul untuk mempermudah pekerjaan manajemen
@@ -37,7 +37,7 @@ dependensi yang mungkin suatu saat nanti berguna.
 *  Topik ini tidak menjelaskan bagaimana mengembangkan, menerbitkan, dan
    memberi versi pada modul supaya dapat digunakan oleh orang lain.
    Untuk informasi tentang hal tersebut, lihat
-   https://golang.org/doc/modules/developing[Mengembangkan dan menerbitkan modul^].
+   https://go.dev/doc/modules/developing[Mengembangkan dan menerbitkan modul^].
 
 
 [#workflow]
@@ -87,7 +87,7 @@ Proses pengaturan dependensi ini didukung oleh:
 *  Sebuah **konvensi penomoran versi** modul yang membantu Anda memahami
    stabilitas dan jaminan kompatibilitas modul.
    lihat
-   https:/golang.org/doc/modules/version-numbers[Penomoran versi modul^].
+   https://go.dev/doc/modules/version-numbers[Penomoran versi modul^].
 *  **Perkakas go** yang mempermudah Anda mengatur dependensi, termasuk
    mendapatkan sumber kode, memperbarui, dan lainnya.
    Lihat topik ini lebih lanjut pada bagian selanjutnya.
@@ -128,7 +128,7 @@ repositori Anda.
 Dependensi yang Anda tambahkan akan tercatat dalam berkas tersebut.
 
 Untuk memasukkan kode Anda ke dalam sebuah modul, gunakan
-https://golang.org/ref/mod#go-mod-init[perintah `go mod init`^].
+https://go.dev/ref/mod#go-mod-init[perintah `go mod init`^].
 Misalnya, lewat baris perintah, pindah lah ke direktori sumber kode Anda,
 kemudian jalankan perintah berikut:
 
@@ -191,7 +191,7 @@ Misalnya, ia bisa berbentuk `github.com/<nama-proyek>/`.
 +
 Gunakan praktik ini jika Anda akan menerbitkan modul untuk orang lain.
 Untuk informasi lebih lanjut tentang penerbitan modul, lihat
-https://golang.org/doc/modules/developing[Pengembangan dan penerbitan modul^].
+https://go.dev/doc/modules/developing[Pengembangan dan penerbitan modul^].
 
 ** Sebuah nama yang dapat Anda atur.
 +
@@ -242,7 +242,7 @@ Perintah tersebut melakukan hal-hal berikut:
    Sebuah direktif `require` melacak versi minimum dari sebuah modul yang
    dibutuhkan oleh modul Anda.
    Lihat
-   https://golang.org/doc/modules/gomod-ref[referensi go.mod^]
+   https://go.dev/doc/modules/gomod-ref[referensi go.mod^]
    untuk lebih lanjut.
 *  Jika diperlukan, ia akan mengunduh sumber kode modul supaya dapat
    mengompilasi paket-paket yang bergantung pada modul tersebut.
@@ -293,7 +293,7 @@ Anda melakukan hal ini jika:
    butuhkan.
 
 Berikut contoh-contoh untuk menggunakan
-https://golang.org/ref/mod#go-get[perintah `go get`^]:
+https://go.dev/ref/mod#go-get[perintah `go get`^]:
 
 *  Untuk mendapatkan nomor versi tertentu, tambahkan _path_ modul dengan tanda
    @ diikuti dengan versi yang Anda inginkan:
@@ -305,7 +305,7 @@ https://golang.org/ref/mod#go-get[perintah `go get`^]:
    $ go get example.com/theirmodule@latest
 
 Berkas go.mod berikut mengilustrasikan contoh direktif `require` (lihat
-https://golang.org/doc/modules/gomod-ref[referensi go.mod^]
+https://go.dev/doc/modules/gomod-ref[referensi go.mod^]
 untuk lebih lanjut)
 yang membutuhkan nomor versi tertentu:
 
@@ -325,7 +325,7 @@ Saat Anda menemukan pembaruan, Anda bisa mencobanya pada kode Anda untuk
 menentukan apakah bisa ditingkatkan ke versi yang baru atau tidak.
 
 Untuk lebih lanjut tentang perintah `go list`, lihat
-https://golang.org/ref/mod#go-list-m[`go list -m`^].
+https://go.dev/ref/mod#go-list-m[`go list -m`^].
 
 Berikut beberapa contoh.
 
@@ -420,7 +420,7 @@ Untuk memberitahu perintah Go menggunakan salinan lokal dari kode modul,
 gunakan direktif `replace` dalam berkas go.mod untuk mengganti _path_ modul
 pada direktif `require`.
 Lihat
-https://golang.org/doc/modules/gomod-ref[referensi go.mod^]
+https://go.dev/doc/modules/gomod-ref[referensi go.mod^]
 untuk informasi lebih lanjut tentang direktif tersebut.
 
 Dalam contoh berkas go.mod berikut, modul yang sekarang membutuhkan modul
@@ -442,9 +442,9 @@ replace example.com/theirmodule v0.0.0-unpublished => ../theirmodule
 ----
 
 Saat menyiapkan pasangan `require`/`replace`, gunakan perintah
-https://golang.org/ref/mod#go-mod-edit[`go mod edit`^]
+https://go.dev/ref/mod#go-mod-edit[`go mod edit`^]
 dan
-https://golang.org/ref/mod#go-get[`go get`^]
+https://go.dev/ref/mod#go-get[`go get`^]
 untuk memastikan kebutuhan-kebutuhan yang ada di dalam berkas tetap konsisten:
 
 ----
@@ -457,7 +457,7 @@ eksternal modul seperti yang dijelaskan dalam
 link:#adding_dependency[Menambahkan sebuah dependensi]
 
 Untuk informasi lebih lanjut tentang nomor versi, lihat
-https://golang.org/doc/modules/version-numbers[Penomoran versi modul^].
+https://go.dev/doc/modules/version-numbers[Penomoran versi modul^].
 
 
 [#external_fork]
@@ -481,7 +481,7 @@ Direktif tersebut mengarahkan perkakas Go supaya menggunakan _path_ pengganti
 `import` yang sama, tidak berubah dari _path_ modul yang asli.
 
 Untuk lebih lanjut tentang direktif `replace`, lihat
-https://golang.org/doc/modules/gomod-ref[referensi berkas go.mod^].
+https://go.dev/doc/modules/gomod-ref[referensi berkas go.mod^].
 
 Dalam contoh berkas go.mod berikut, modul yang sekarang membutuhkan modul
 eksternal `example.com/theirmodule`.
@@ -501,10 +501,10 @@ replace example.com/theirmodule v1.2.3 => example.com/myfork/theirmodule v1.2.3-
 Saat menyiapkan pasangan `require`/`replace`, gunakan perkakas Go untuk
 memastikan bahwa kebutuhan-kebutuhan yang ada di dalam berkas tetap konsisten.
 Gunakan perintah
-https://golang.org/ref/mod#go-list-m[`go list`^]
+https://go.dev/ref/mod#go-list-m[`go list`^]
 untuk melihat versi yang digunakan pada modul yang sekarang.
 Kemudian gunakan perintah
-https://golang.org/ref/mod#go-mod-edit[`go mod edit`^]
+https://go.dev/ref/mod#go-mod-edit[`go mod edit`^]
 untuk mengganti modul yang dibutuhkan dengan _fork_-nya:
 
 ----
@@ -518,7 +518,7 @@ mengautentikasi modul eksternal seperti yang dijelaskan dalam
 link:#adding_dependency[Menambahkan sebuah dependensi].
 
 Untuk lebih lanjut tentang nomor versi, lihat
-https://golang.org/doc/modules/version-numbers[Penomoran versi modul^].
+https://go.dev/doc/modules/version-numbers[Penomoran versi modul^].
 
 
 [#repo_identifier]
@@ -557,7 +557,7 @@ Anda dapat berhenti melacak modul tersebut sebagai dependensi.
 
 Untuk menghapus semua modul yang sudah tidak digunakan lagi,
 jalankan perintah
-https://golang.org/ref/mod#go-mod-tidy[`go mod tidy`^].
+https://go.dev/ref/mod#go-mod-tidy[`go mod tidy`^].
 Perintah ini secara otomatis akan menghapus semua modul dalam berkas go.mod
 yang sudah tidak digunakan lagi.
 
@@ -566,7 +566,7 @@ $ go mod tidy
 ----
 
 Untuk menghapus sebuah dependensi tertentu gunakan perintah
-https://golang.org/ref/mod#go-get[`go get`^],
+https://go.dev/ref/mod#go-get[`go get`^],
 dengan memberikan _path_ modul dan menambahkan `@none`, seperti pada contoh
 berikut:
 

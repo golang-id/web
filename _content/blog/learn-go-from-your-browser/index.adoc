@@ -10,7 +10,7 @@ peramban Anda.
 Tur tersebut mendemonstrasikan bahasa lewat contoh-contoh kode yang dapat Anda
 ubah, kompilasi, dan jalankan lewat situs tur itu sendiri.
 (Teknologi
-https://golang.org/doc/play/[Go Playground^]
+https://go.dev/doc/play/[Go Playground^]
 yang bekerja di belakangnya.)
 
 Tur tersebut memiliki tiga bagian.

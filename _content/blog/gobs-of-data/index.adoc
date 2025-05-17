@@ -23,7 +23,7 @@ Pertama, Go punya semuanya!
 Go memiliki
 https://pkg.go.dev/std[paket-paket^]
 yang mendukung semua _encoding_ yang disebutkan di atas
-(paket http://github.com/golang/protobuf[_protocol buffer_] ada pada
+(paket https://github.com/golang/protobuf[_protocol buffer_] ada pada
 repositori terpisah namun yang paling sering diunduh).
 Dan untuk tujuan secara umumnya, termasuk berkomunikasi dengan perkakas dan
 sistem yang ditulis dengan bahasa yang berbeda, mereka adalah format yang
@@ -341,7 +341,7 @@ func main() {
 ----
 
 Anda bisa meng-_compile_ dan menjalankan contoh kode ini dalam
-https://play.golang.org/p/_-OJV-rwMq[Playground Go^].
+https://go.dev/play/p/_-OJV-rwMq[Playground Go^].
 
 https://pkg.go.dev/net/rpc[Paket rpc^] dibangun dari gob untuk mengubah
 otomatisasi tulis/baca seperti di atas ke dalam sebuah transpor pemanggilan
@@ -351,7 +351,7 @@ _method_ dalam jaringan.
 ==  Rinci
 
 https://pkg.go.dev/encoding/gob[Dokumentasi paket gob^], terutama berkas
-https://golang.org/src/pkg/encoding/gob/doc.go[doc.go^],
+https://go.dev/src/encoding/gob/doc.go[doc.go^],
 menjelaskan lebih rinci dari apa yang dibahas di sini dan mengikutkan contoh
 lengkap yang memperlihatkan bagaimana _encoding_ merepresentasikan data.
 Jika tertarik dengan dalaman dari implementasi gob, berkas tersebut

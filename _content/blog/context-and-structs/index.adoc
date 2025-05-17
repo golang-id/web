@@ -9,14 +9,14 @@ Jean de Klerk, Matt T. Proud
 ==  Pendahuluan
 
 Pada kebanyakan Go API, terutama yang baru, argumen pertama dari fungsi dan method biasanya
-https://golang.org/pkg/context/[`context.Context`^].
+https://pkg.go.dev/context/[`context.Context`^].
 Context menyediakan cara untuk mengirim tenggat (_deadline_), pembatalan, dan
 nilai-nilai dengan skop-permintaan melewati batas-batas API dan antar proses.
 Context juga sering digunakan pada pustaka yang berinteraksi --langsung atau
 tidak langsung-- dengan peladen _remote_ lainnya, seperti basis-data, HTTP API,
 dan lainnya.
 
-https://golang.org/pkg/context/[Dokumentasi dari `context`^] menyatakan:
+https://pkg.go.dev/context/[Dokumentasi dari `context`^] menyatakan:
 
 [quote]
 Context sebaiknya tidak disimpan di dalam sebuah tipe struct, namun kirimlah
@@ -125,11 +125,11 @@ dan menghabiskan sumber daya (seperti memori)!
 ==  Pengecualian dari aturan: menjaga kompatibilitas
 
 Saat Go 1.7 dirilis --yang
-https://golang.org/doc/go1.7[memperkenalkan `context.Context`^]--
+https://go.dev/doc/go1.7[memperkenalkan `context.Context`^]--
 sejumlah besar API harus menambahkan dukungan `context` namun tetap menjaga
 kompatibilitas.
 Misalnya,
-https://golang.org/pkg/net/http/[method-method `Client` pada `net/http`^],
+https://pkg.go.dev/net/http/[method-method `Client` pada `net/http`^],
 seperti `Get` dan `Do`, adalah kandidat yang bagus untuk `context`.
 Setiap pemanggilan pada method ini akan diuntungkan dengan memiliki dukungan
 tenggat, pembatalan, dan metadata yang ada pada `context.Context`.
@@ -165,7 +165,7 @@ func (c *Client) Do(ctx context.Context, req *Request) (*Response, error)
 ----
 
 Namun, demi menjaga kompatibilitas dan memenuhi
-https://golang.org/doc/go1compat[jaminan kompatibilitas Go 1^]
+https://go.dev/doc/go1compat[jaminan kompatibilitas Go 1^]
 sangat penting untuk pustaka standar, pengembang memilih untuk menambahkan
 `context.Context` pada struct `http.Request` supaya dapat mendukung
 `context.Context` tanpa memutus jaminan kompatibilitas:

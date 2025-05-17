@@ -18,7 +18,7 @@ Paralelisme tentang _melakukan_ banyak hal dalam satu waktu.
 
 Untuk menjernihkan pencampuran istilah tersebut, Rob Pike memberikan
 wicara pada konferensi Waza di
-http://heroku.com/[Heroku]
+https://heroku.com/[Heroku]
 yang berjudul
 https://blog.heroku.com/concurrency_is_not_parallelism[_Konkurensi
 bukalah paralelisme_^],
@@ -31,5 +31,5 @@ https://go.dev/talks/2012/waza.slide[go.dev/talks^]
 (gunakan panah kiri dan kanan untuk navigasi).
 
 Untuk belajar tentang primitif konkurensi pada Go, lihatlah
-http://www.youtube.com/watch?v=f6kdp27TYZs[Pola konkurensi pada Go^]
+https://www.youtube.com/watch?v=f6kdp27TYZs[Pola konkurensi pada Go^]
 (https://go.dev/talks/2012/concurrency.slide[salindia^]).

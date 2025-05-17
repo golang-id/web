@@ -786,7 +786,7 @@ benar.
 
 Ada banyak contoh lain dari `append`, `copy`, dan cara lain untuk menggunakan
 slice dalam
-https://golang.org/wiki/SliceTricks[halaman wiki "Slice Tricks"^]
+https://go.dev/wiki/SliceTricks[halaman wiki "Slice Tricks"^]
 yang dibangun oleh komunitas.
 
 
@@ -917,7 +917,7 @@ fungsi bawaan `copy` dan `append`.
 
 Ada banyak informasi yang dapat ditemukan di Internet tentang slice dalam Go.
 Seperti yang disebutkan sebelumnya,
-https://golang.org/wiki/SliceTricks[halaman Wiki "Slice Tricks"^]
+https://go.dev/wiki/SliceTricks[halaman Wiki "Slice Tricks"^]
 memiliki banyak contoh dari penggunaan slice.
 Blog tentang
 link:/blog/go-slices-usage-and-internals/[Slice pada Go^]

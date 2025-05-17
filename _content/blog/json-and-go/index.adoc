@@ -118,7 +118,7 @@ Untuk JSON dengan key "Foo", `Unmarshal` akan mencari field dalam struct
 tujuan (dengan urutan berikut):
 
 *  Field yang diekspor dengan tag "Foo" (lihat
-   https://golang.org/ref/spec#Struct_types[spesifikasi Go^]
+   https://go.dev/ref/spec#Struct_types[spesifikasi Go^]
    untuk informasi lebih lanjut tentang tag pada struct),
 
 *  Field yang diekspor bernama "Foo", atau

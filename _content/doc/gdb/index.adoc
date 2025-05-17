@@ -154,12 +154,12 @@ Misalnya:
 --
 
 Jika Anda ingin melihat bagaimana ia bekerja, atau ingin mengubahnya, lihatlah
-https://golang.org/src/runtime/runtime-gdb.py[src/runtime/runtime-gdb.py^]
+https://go.dev/src/runtime/runtime-gdb.py[src/runtime/runtime-gdb.py^]
 di dalam distribusi sumber Go.
 Skrip ekstensi tersebut bergantung pada tipe-tipe khusus (`hash<T,U>`) dan
 variabel (`runtime.m` dan `runtime.g`) yang _linker_
 (
-https://golang.org/src/cmd/link/internal/ld/dwarf.go[src/cmd/link/internal/ld/dwarf.go^])
+https://go.dev/src/cmd/link/internal/ld/dwarf.go[src/cmd/link/internal/ld/dwarf.go^])
 pastikan didescripsikan dalam format DWARF.
 
 Jika Anda tertarik pada bentuk informasi _debug_, jalankan `objdump -W a.out`
@@ -203,7 +203,7 @@ Jalankan GDB untuk men-_debug_ `regexp.test`:
 $ gdb regexp.test
 GNU gdb (GDB) 7.2-gg8
 Copyright (C) 2010 Free Software Foundation, Inc.
-License GPLv  3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+License GPLv  3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>
 Type "show copying" and "show warranty" for licensing/warranty details.
 This GDB was configured as "x86_64-linux".
 

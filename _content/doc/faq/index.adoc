@@ -90,7 +90,7 @@ https://reneefrench.blogspot.com/[Renée French^],
 yang juga merancang
 https://9p.io/plan9/glenda.html[Glenda^],
 kelincinya Plan 9.
-https://blog.golang.org/gopher[Sebuah blog^]
+https://go.dev/blog/gopher[Sebuah blog^]
 tentang gopher menjelaskan bagaimana ia diturunkan dari rancangan bajunya
 https://wfmu.org/[WFMU^]
 yang ia buat beberapa tahun lalu.
@@ -98,7 +98,7 @@ Logo dan maskot berlisensikan
 https://creativecommons.org/licenses/by/3.0/[Creative Commons Attribution 3.0^].
 
 Gopher memiliki
-https://golang.org/doc/gopher/modelsheet.jpg[lembar model^]
+https://go.dev/doc/gopher/modelsheet.jpg[lembar model^]
 yang mengilustrasikan karakteristiknya dan bagaimana merepresentasikannya
 dengan benar.
 Lembar model tersebut pertama kali diperlihatkan dalam sebuah
@@ -121,7 +121,7 @@ Misalnya, tag pada Twitter untuk bahasa Go adalah "#golang".
 Nama dari bahasa itu sendiri adalah Go saja.
 
 Sebagai catatan: Walaupun
-https://blog.golang.org/go-brand[logo resmi^]
+https://go.dev/blog/go-brand[logo resmi^]
 menggunakan dua huruf besar, nama bahasa tetap ditulis Go, bukan GO.
 
 //}}}
@@ -231,9 +231,9 @@ beberapa hal digabungkan.
 Ya.
 Go digunakan secara luas dalam _production_ di Google.
 Salah satu contoh sederhana yaitu _server_ dibalik
-https://golang.org/[golang.org^].
+https://go.dev/[golang.org^].
 Ia adalah _server_ dokumentasi dari
-https://golang.org/cmd/godoc[godoc^]
+https://go.dev/cmd/godoc[godoc^]
 yang berjalan dalam sebuah konfigurasi _production_ di
 https://developers.google.com/appengine/[Google App Engine^].
 
@@ -341,7 +341,7 @@ Kami mendorong pengembang untuk membuat situs Bahasa Go dengan bahasanya
 sendiri.
 Namun, bila anda ingin menambahkan logo atau _brand_ Google ke situs anda
 (yang mana tidak ada dalam situs
-https://golang.org/[golang.org^]),
+https://go.dev/[golang.org^]),
 anda harus patuh pada aturan di
 https://www.google.com/permissions/guidelines.html.
 
@@ -463,7 +463,7 @@ generik, walau sedikit kurang mulus.
 Topik generik ini tetap dibuka.
 Untuk melihat percobaan yang gagal merancang solusi generik yang bagus pada
 Go, lihat
-https://golang.org/issue/15292[proposal ini^].
+https://go.dev/issue/15292[proposal ini^].
 
 //}}}
 
@@ -624,7 +624,7 @@ tersebut yang diterima.
 
 Walaupun Go adalah proyek sumber terbuka, bahasa dan pustakanya dilindungi
 oleh
-https://golang.org/doc/go1compat.html[perjanjian kompatibilitas^]
+https://go.dev/doc/go1compat.html[perjanjian kompatibilitas^]
 yang mencegah perubahan yang dapat membuat program tidak dapat di- _compile_,
 setidaknya pada tingkat sumber kode (program mungkin harus di _compile_ ulang
 sewaktu-waktu).
@@ -1114,7 +1114,7 @@ tanpa ada keluhan dari _compiler_ karena angka `2` bisa dikonversi secara aman
 dan akurat ke `float64` untuk pemanggilan `math.Sqrt`.
 
 Sebuah blog berjudul
-https://blog.golang.org/constants[Konstanta (Inggris)^]
+https://go.dev/blog/constants[Konstanta (Inggris)^]
 mengeksplorasi topik ini lebih rinci.
 
 //}}}
@@ -1190,12 +1190,12 @@ tautan ke deklarasi, berkas, dan lainnya.
 Salah satu instansinya berjalan di
 https://pkg.go.dev/[pkg.go.dev^].
 Pada kenyataannya, `godoc` mengimplementasikan keseluruhan situs
-https://golang.org/[golang.org^].
+https://go.dev/[golang.org^].
 
 Instansi dari `godoc` bisa di-konfigurasi untuk menyediakan analisis
 interaktif yang kaya dari simbol dalam program;
 detail-nya ada dalam daftar
-https://golang.org/lib/godoc/analysis/help.html[berikut^].
+https://go.dev/lib/godoc/analysis/help.html[berikut^].
 
 Untuk mengakses dokumentasi dari baris perintah, perkakas
 link:/cmd/go/[go^]
@@ -1224,7 +1224,7 @@ Semua kode Go dalam repositori, dan hampir mayoritas dalam dunia _open
 source_, telah dijalankan lewat `gofmt`.
 
 Dokumen berjudul
-https://golang.org/s/comments[Komentar Pemeriksaan Kode Go^]
+https://go.dev/s/comments[Komentar Pemeriksaan Kode Go^]
 berisi kumpulan esai ringkas tentang idiom dari Go yang terkadang luput oleh
 para pemprogram.
 Dokumen tersebut adalah referensi yang membantu bagi yang ingin memeriksa kode
@@ -1241,7 +1241,7 @@ Jika anda ingin membuat perubahan yang signifikan, mohon didiskusikan terlebih
 dahulu di milis sebelum memulai.
 
 Lihat dokumentasi
-https://golang.org/doc/contribute.html[Berkontribusi pada proyek Go^]
+https://go.dev/doc/contribute.html[Berkontribusi pada proyek Go^]
 untuk informasi lebih lanjut.
 
 //}}}
@@ -1295,7 +1295,7 @@ untuk beragam situasi yang cocok bagi semua pengguna Go.
 Rilis Go 1.11 menyediakan dukungan eksperimental untuk paket dengan versi
 terhadap perintah `go`, dalam bentuk modul.
 Untuk informasi lebih lanjut, lihat
-https://golang.org/doc/go1.11#modules[catatan rilis Go 1.11^]
+https://go.dev/doc/go1.11#modules[catatan rilis Go 1.11^]
 dan
 link:/cmd/go/#hdr-Modules__module_versions__and_more[dokumentasi perintah go^].
 
@@ -1307,7 +1307,7 @@ Hal ini mengarah pada beberapa anjuran untuk penulis paket dan pengguna paket.
 
 Paket yang ditujukan untuk digunakan secara umum sebaiknya mencoba untuk
 menjaga kompatibilitas selama berkembang.
-https://golang.org/doc/go1compat.html[pedoman kompatibilitas Go 1^]
+https://go.dev/doc/go1compat.html[pedoman kompatibilitas Go 1^]
 adalah
 sebuah referensi yang baik: jangan menghapus nama-nama yang diekspor,
 menganjurkan komposit dengan tag, dan lainnya.
@@ -1324,7 +1324,7 @@ perkakas `go` lewat sebuah teknik yang disebut "vendoring".
 Hal ini mengikutkan penyimpanan semua salinan dependensi dibawah path import
 yang mengidentifikasi mereka sebagai salinan lokal.
 Lihat
-https://golang.org/s/go15vendor[dokumen rancangan^]
+https://go.dev/s/go15vendor[dokumen rancangan^]
 untuk lebih rinci.
 
 //}}}
@@ -1581,9 +1581,9 @@ berkomunikasi"
 ____
 
 Lihat contoh kode
-https://golang.org/doc/codewalk/sharemem/[Berbagi Memory dengan Berkomunikasi^]
+https://go.dev/doc/codewalk/sharemem/[Berbagi Memory dengan Berkomunikasi^]
 dan
-https://blog.golang.org/2010/07/share-memory-by-communicating.html[artikel terkait^]
+https://go.dev/blog/2010/07/share-memory-by-communicating.html[artikel terkait^]
 untuk diskusi lebih rinci mengenai konsep ini.
 
 Program besar yang konkuren biasanya menggunakan kedua metode ini.
@@ -1618,7 +1618,7 @@ menambah jumlah _thread_ (CPU) akan lebih memungkinkan memperlambatnya
 daripada mempercepatnya.
 
 Untuk rincian lanjut tentang topik ini lihatlah wicara yang berjudul
-https://blog.golang.org/2013/01/concurrency-is-not-parallelism.html[Konkurensi bukanlah Paralelisme (Inggris)^].
+https://go.dev/blog/2013/01/concurrency-is-not-parallelism.html[Konkurensi bukanlah Paralelisme (Inggris)^].
 
 //}}}
 
@@ -1916,7 +1916,7 @@ struktur data (Go mendukung struktur data anonim).
 Penulisan tes dan pesan eror yang baik nantinya akan diamortisasi oleh
 banyaknya kasus-kasus pengujian.
 Pustaka standar Go mengandung banyak contoh unit tes, seperti
-https://golang.org/src/fmt/fmt_test.go[pengujian pemformatan pada paket `fmt`^].
+https://go.dev/src/fmt/fmt_test.go[pengujian pemformatan pada paket `fmt`^].
 
 ///}}}
 
@@ -1939,9 +1939,9 @@ Penambahkan pada pustaka standar biasanya sangat jarang dan syarat supaya
 dapat ditambah biasanya cukup tinggi.
 Kode yang dimasukan ke dalam pustaka standar membutuhkan biaya pemeliharaan
 (bahkan ditanggung oleh selain penulis awalnya), subjek terhadap
-https://golang.org/doc/go1compat.html[perjanjian kompatibilitas Go 1^]
+https://go.dev/doc/go1compat.html[perjanjian kompatibilitas Go 1^]
 (menahan perbaikan dari kesalahan dalam API), dan juga subjek terhadap
-https://golang.org/s/releasesched[jadwal rilis^]
+https://go.dev/s/releasesched[jadwal rilis^]
 Go,
 yang mencegah perbaikan _bug_ tersedia secara langsung terhadap pengguna
 dengan cepat.
@@ -1982,7 +1982,7 @@ Namun beberapa hal telah berkembang dan sejak rilis Go 1.5, _compiler_
 tersebut sudah dalam bentuk program Go.
 _Compiler_ tersebut dikonversi dari C ke Go menggunakan perangkat translasi
 otomatis, seperti yang dijelaskan dalam
-https://golang.org/s/go13compiler[dokumen rancangan^]
+https://go.dev/s/go13compiler[dokumen rancangan^]
 dan
 https://talks.golang.org/2015/gogo.slide#1[wicara^]
 berikut.
@@ -1992,7 +1992,7 @@ Solusinya yaitu dengan memiliki lingkungan Go yang telah terpasang, seperti
 halnya seperti pada lingkungan C yang siap digunakan.
 Sejarah dan dokumentasi untuk cara membangun lingkungan Go yang baru dari
 sumber dijelaskan di
-https://golang.org/s/go15bootstrap[sini^]
+https://go.dev/s/go15bootstrap[sini^]
 dan di
 link:/doc/install/source/[sini^].
 
@@ -2136,7 +2136,7 @@ Jika anda baru saja memasang distribusi Go dan sistem melaporkan bahwa ia
 terinfeksi, itu adalah kesalahan.
 Untuk lebih teliti, kita bisa memverifikasi berkas yang diunduh dengan
 membandingkan _checksum_ yang ada pada
-https://golang.org/dl/[halaman unduhan^].
+https://go.dev/dl/[halaman unduhan^].
 
 Jika anda percaya bahwa laporan tersebut salah, silahkan laporkan sebagai
 _bug_ ke pembuat anti-virus.
@@ -2260,7 +2260,7 @@ tipe-tipe bukan saja pada tata-bahasa ekspresi;
 kata kunci seperti `func` dan `chan` membuat hal-hal tertentu lebih jelas.
 
 Lihat artikel tentang
-https://golang.org/doc/articles/gos_declaration_syntax.html[Sintaks Deklarasi Go (Inggris)^]
+https://go.dev/doc/articles/gos_declaration_syntax.html[Sintaks Deklarasi Go (Inggris)^]
 untuk lebih rinci.
 
 //}}}
@@ -2376,7 +2376,7 @@ mengurangi waktu _pause_ bahkan sampai ke sub-milidetik, bahkan untuk
 _heap_ yang besar.
 Pekerjaan masih terus dilanjutkan untuk memperbagus algoritma, mengurangi
 biaya dan latensi lebih rendah lagi, dan mengeksplorasi pendekatan baru.
-https://blog.golang.org/ismmkeynote[Intisari ISSM^]
+https://go.dev/blog/ismmkeynote[Intisari ISSM^]
 oleh Rick Hudson dari tim Go menjelaskan progres sejauh ini dan menyarankan
 beberapa pendekatan di masa depan.
 
