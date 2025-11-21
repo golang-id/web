@@ -7,6 +7,7 @@
   --dark-border: #035064;
   --dark-fg-gray: #76888a;
   --dark-fg: #b4c5c7;
+  --dark-adminition-note-bg: #333333;
 }
 
 body {
@@ -238,7 +239,7 @@ td p {
 }
 
 .admonitionblock {
-  margin: 0 auto;
+  margin: 0 auto 1em auto;
 }
 .admonitionblock.note {
   background-color: #e0ebf5;
@@ -284,6 +285,12 @@ td p {
   textarea {
     background-color: var(--dark-bg-mono);
     color: var(--dark-fg);
+  }
+  .admonitionblock.note {
+    background-color: var(--dark-adminition-note-bg);
+  }
+  .admonitionblock .icon {
+    border-right: 1px solid #555555;
   }
   .page > .container,
   .page > .playground,
