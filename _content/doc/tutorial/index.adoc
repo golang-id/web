@@ -2,16 +2,37 @@
 
 Jika Anda baru belajar tentang Go, bacalah tautan tutorial di bawah ini.
 
-Jika Anda belum pernah memasang Go sebelumnya, lihat
-link:/doc/install/[Unduh dan pasang^].
+link:/doc/install/[Memasang Go^]::
+Instruksi untuk mengunduh dan memasang Go.
 
-link:/doc/tutorial/getting-started/[Go dari awal^]::
-  Membuat program "Hello, World!" dengan Go.
+link:/doc/tutorial/getting-started/[Tutorial: Memulai dari awal^]::
+Tutorial singkat "Hello, world" untuk mulai dari awal.
+Mempelajari secara singkat tentang kode, perkakas, paket, dan modul pada Go.
 
-link:/doc/tutorial/create-module/[Membuat sebuah modul Go^]::
-  Tutorial dengan beberapa langkah yang memperkenalkan fitur bahasa
-  pemrograman umum dari perspektif Go.
+link:/doc/tutorial/create-module/[Tutorial: Membuat sebuah modul^]::
++
+--
+Sebuah tutorial tentang topik-topik singkat yang memperkenalkan fungsi,
+penanganan eror, array, map, unit tes, dan mengompilasi.
 
-https://tour.golang-id.org/welcome/1[Tur Go^]::
-  Pengenalan interaktif untuk Go: sintaksis dan struktur data dasar; method
-  dan interface; dan primitif konkurensi pada Go.
+Seri tutorial ini mengikutkan tujuh topik yang tiap-tiapnya memaparkan bagian
+berbeda dari bahasa Go.
+
+* link:/doc/tutorial/call-module-code/[Memanggil kode dari modul lain^] --
+  Impor dan gunakan modul yang baru.
+* link:/doc/tutorial/handle-errors/[Mengembalikan dan menangani eror^] --
+  Menambahkan penanganan eror sederhana.
+* link:/doc/tutorial/random-greeting/[Mengembalikan salam acak^] -- Penanganan
+  data dalam slice (array dengan ukuran dinamis pada Go).
+* link:/doc/tutorial/greetings-multiple-people/[Mengembalikan salam untuk
+  beberapa orang^] -- Menyimpan pasangan kunci-nilai dalam sebuah `map`.
+* link:/doc/tutorial/add-a-test/[Membuat sebuah tes^] -- Penggunaan fitur
+  unit tes Go untuk menguji kode kita.
+* link:/doc/tutorial/compile-install/[Mengompilasi dan memasang aplikasi^] --
+  Mengompilasi dan memasang kode kita secara lokal.
+--
+
+link:/doc/tutorial/workspaces/[Tutorial: Bekerja dengan banyak modul^]::
+Pengenalan tentang konsep dasar membuat dan menggunakan ruang kerja
+(_workspace_) dengan banyak modul.
+_Workspace_ berguna untuk melakukan perubahan di antara beberapa modul.

@@ -34,6 +34,23 @@ Mempelajari secara singkat tentang kode, perkakas, paket, dan modul pada Go.
 Sebuah tutorial tentang topik-topik singkat yang memperkenalkan fungsi,
 penanganan eror, array, map, unit tes, dan mengompilasi.
 
+Seri tutorial ini mengikutkan tujuh topik yang tiap-tiapnya memaparkan bagian
+berbeda dari bahasa Go.
+
+* link:/doc/tutorial/call-module-code/[Memanggil kode dari modul lain^] --
+  Impor dan gunakan modul yang baru.
+* link:/doc/tutorial/handle-errors/[Mengembalikan dan menangani eror^] --
+  Menambahkan penanganan eror sederhana.
+* link:/doc/tutorial/random-greeting/[Mengembalikan salam acak^] -- Penanganan
+  data dalam slice (array dengan ukuran dinamis pada Go).
+* link:/doc/tutorial/greetings-multiple-people/[Mengembalikan salam untuk
+  beberapa orang^] -- Menyimpan pasangan kunci-nilai dalam sebuah `map`.
+* link:/doc/tutorial/add-a-test/[Membuat sebuah tes^] -- Penggunaan fitur
+  unit tes Go untuk menguji kode kita.
+* link:/doc/tutorial/compile-install/[Mengompilasi dan memasang aplikasi^] --
+  Mengompilasi dan memasang kode kita secara lokal.
+
+
 [#workspaces]
 ===  link:/doc/tutorial/workspaces/[Tutorial: Bekerja dengan banyak modul^]
 
