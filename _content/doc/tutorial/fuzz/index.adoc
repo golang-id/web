@@ -1,0 +1,910 @@
+= Tutorial: Memulai pengujian _fuzzing_
+:toc:
+:sectanchors:
+
+Tutorial ini memperkenalkan dasar-dasar dari _fuzzing_ pada Go.
+Dengan _fuzzing_, data acak dijalankan pada tes dengan tujuan menemukan
+celah keamanan atau input yang menyebabkan program berhenti.
+Beberapa contoh celah keamanan yang dapat ditemukan oleh _fuzzing_
+yaitu serangan injeksi SQL, _buffer overflow_, _denial of service_,
+dan _cross-site scripting_.
+
+Dalam tutorial ini, kita akan menulis sebuah pengujian _fuzz_ untuk sebuah
+fungsi sederhana, mempelajari perintah-perintah go test untuk _fuzzing_, dan
+mencari dan memperbaiki isu-isu yang ditemukan fuzz tes.
+
+Untuk informasi lebih lanjut tentang terminologi dalam tutorial ini, lihatlah
+https://go.dev/security/fuzz/[glosarium Go _Fuzzing_^].
+
+Kita akan mempelajari beberapa bagian-bagian berikut,
+
+. link:#create_folder[Membuat direktori penyimpanan kode]
+. link:#code_to_test[Menambahkan kode yang akan dites]
+. link:#unit_test[Menambahkan unit tes]
+. link:#fuzz_test[Menambahkan _fuzz_ tes]
+. link:#fix_invalid_string_error[Memperbaiki dua kecacatan]
+. link:#conclusion[Eksplorasi sumber tambahan]
+
+NOTE: Untuk tutorial lainnya, lihat link:/doc/tutorial/[Tutorial].
+
+NOTE: Saat ini _fuzzing_ pada Go hanya mendukung sebagian dari tipe-tipe
+bawaan, yang terdaftar di
+https://go.dev/security/fuzz/#requirements[dokumentasi Go Fuzzing^],
+dukungan tipe bawaan lainnya akan ditambahkan di masa depan.
+
+
+== Kebutuhan
+
+* *Pemasangan Go 1.18 atau versi terbaru*.
+  Untuk instruksi pemasangan, lihat
+  link:/doc/install/[Memasang Go].
+
+* *Perkakas untuk menyunting kode*.
+
+* *Terminal perintah*.
+  Go bekerja pada terminal apa pun di Linux dan Mac, dan PowerShell atau cmd
+  pada Windows.
+
+* *Sistem yang mendukung _fuzzing_.*
+  _Fuzzing_ pada Go dengan instrumentasi cakupan saat ini hanya tersedia pada
+  arsitektur AMD64 dan ARM64.
+
+
+[#create_folder]
+== Membuat direktori penyimpanan kode
+
+Untuk memulai, buatlah sebuah direktori tempat berkas kode akan disimpan,
+
+. Buka terminal dan pindah ke direktori pengguna Anda,
++
+--
+Pada Linux atau Mac:
+----
+$ cd
+----
+Pada Windows:
+----
+C:\> cd %HOMEPATH%
+----
+Selanjutnya pada tutorial ini, penulisan `$` ditandai sebagai _prompt_ pada
+terminal.
+Perintah yang digunakan pada _prompt_ tersebut bisa berjalan di Windows.
+--
+
+. Dari terminal, buat sebuah direktori untuk kode Anda yang diberi nama
+  `fuzz`.
++
+--
+----
+$ mkdir fuzz
+$ cd fuzz
+----
+--
+
+. Buatlah sebuah Go modul untuk menyimpan kode Anda.
++
+--
+Jalankan perintah `go mod init`, dengan menambahkan path ke modul kode Anda.
+
+----
+$ go mod init example/fuzz
+go: creating new go.mod: module example/fuzz
+----
+
+NOTE: Untuk kode tingkat lanjut, Anda sebaiknya menamakan path modul yang
+lebih spesifik sesuai kebutuhan Anda.
+Untuk informasi lebih lanjut lihat
+link:/doc/modules/managing-dependencies/[Manajemen dependensi].
+--
+
+Selanjutnya, kita akan menambahkan fungsi sederhana untuk membalikan sebuah
+_string_, yang akan kita fuzz tes nantinya.
+
+
+[#code_to_test]
+== Menambahkan kode yang akan dites
+
+Pada langkah ini, kita akan membuat sebuah fungsi untuk membalikan sebuah
+_string_.
+
+
+=== Menulis kode
+
+. Menggunakan perkakas sunting, buat sebuah berkas bernama `main.go` di dalam
+  direktori fuzz.
+
+. Di dalam `main.go`, salin lah deklarasi paket berikut
++
+--
+----
+package main
+----
+Sebuah program (bukan sebuah pustaka) selalu dibuat dengan paket `main`.
+--
+
+. Di bawah deklarasi paket, salin deklarasi fungsi berikut.
++
+--
+----
+func Reverse(s string) string {
+	b := []byte(s)
+	for i, j := 0, len(b)-1; i < len(b)/2; i, j = i+1, j-1 {
+		b[i], b[j] = b[j], b[i]
+	}
+	return string(b)
+}
+----
+Fungsi ini menerima sebuah string `s`, melakukan pengulangan per tiap `byte`
+dari string `s`, dan mengembalikan sebuah string yang terbalik.
+
+NOTE: Kode ini berdasarkan fungsi `stringutil.Reverse` yang ada di dalam
+golang.org/x/example.
+--
+
+. Pada bagian selanjutnya, salin fungsi `main` berikut yang menginisialisasi
+  sebuah string `input`, membalikkan isinya, mencetaknya, dan membalikkan
+  isinya lagi.
++
+--
+----
+func main() {
+	input := "The quick brown fox jumped over the lazy dog"
+	rev := Reverse(input)
+	doubleRev := Reverse(rev)
+	fmt.Printf("original: %q\n", input)
+	fmt.Printf("reversed: %q\n", rev)
+	fmt.Printf("reversed again: %q\n", doubleRev)
+}
+----
+Fungsi ini akan menjalankan operasi `Reverse`, mencetak hasilnya ke
+terminal.
+Hal ini berguna untuk melihat operasi dari kode dan juga untuk memeriksa
+hasilnya.
+--
+
+. Fungsi `main` menggunakan paket `fmt`, jadi kita harus mengimpornya.
++
+--
+Baris-baris awal pada `main.go` menjadi seperti berikut,
+----
+package main
+
+import "fmt"
+----
+--
+
+=== Jalankan kode
+
+Dari terminal, masih di dalam direktori yang berisi `main.go`, jalankan kode
+dengan cara berikut
+
+----
+$ go run .
+original: "The quick brown fox jumped over the lazy dog"
+reversed: "god yzal eht revo depmuj xof nworb kciuq ehT"
+reversed again: "The quick brown fox jumped over the lazy dog"
+----
+
+Kita dapat melihat string asli, hasil dari pembalikan, dan hasil dari
+pembalikan kedua kalinya, yang seharusnya sama dengan yang asli.
+
+Setelah kode berjalan, saatnya untuk membuat unit tes.
+
+
+[#unit_test]
+==  Menambahkan unit tes
+
+Pada langkah ini, kita akan menulis sebuah unit tes sederhana untuk fungsi
+`Reverse`.
+
+
+=== Menulis kode
+
+. Menggunakan perkakas sunting, buat sebuah berkas bernama `reverse_test.go`
+  di dalam direktori `fuzz`.
+. Salin kode berikut ke dalam berkas `reverse_test.go`.
++
+--
+----
+package main
+
+import (
+	"testing"
+)
+
+func TestReverse(t *testing.T) {
+	testcases := []struct {
+		in, want string
+	}{
+		{"Hello, world", "dlrow ,olleH"},
+		{" ", " "},
+		{"!12345", "54321!"},
+	}
+	for _, tc := range testcases {
+		rev := Reverse(tc.in)
+		if rev != tc.want {
+			t.Errorf("Reverse: %q, want %q", rev, tc.want)
+		}
+	}
+}
+----
+Kode tes tersebut akan memeriksa bahwa daftar string input akan secara benar
+terbalik.
+--
+
+=== Jalankan tes
+
+Jalankan unit tes menggunakan `go test`
+
+----
+$ go test
+PASS
+ok      example/fuzz  0.013s
+----
+
+Selanjutnya, kita akan mengubah unit tes menjadi sebuah fuzz tes.
+
+
+[#fuzz_test]
+== Menambahkan fuzz tes
+
+Unit tes memiliki batasan, setiap input harus ditambahkan secara manual ke
+dalam tes kode.
+Salah satu kelebihan dari _fuzzing_ yaitu ia menemukan dan menambahkan input
+ke dalam tes kode secara otomatis, dan bisa menemukan kasus-kasus khusus
+yang mana tidak terpikirkan pada unit tes biasa.
+
+Pada bagian ini kita akan mengonversi unit tes menjadi fuzz tes supaya kita
+dapat memiliki input pengujian lebih banyak dengan sedikit bekerja!
+
+Ingatlah bahwa kita bisa menyimpan kode unit tes, _benchmark_, dan fuzz tes
+di dalam berkas `*_test.go` yang sama, namun untuk contoh ini kita akan
+mengonversi unit tes menjadi fuzz tes.
+
+=== Menulis kode fuzz tes
+
+Pada perkakas sunting Anda, timpa unit tes di dalam `reverse_test.go` dengan
+fuzz tes berikut.
+
+----
+func FuzzReverse(f *testing.F) {
+	testcases := []string{"Hello, world", " ", "!12345"}
+	for _, tc := range testcases {
+		f.Add(tc)  // Penambahan input ke bibit corpus.
+	}
+	f.Fuzz(func(t *testing.T, orig string) {
+		rev := Reverse(orig)
+		doubleRev := Reverse(rev)
+		if orig != doubleRev {
+			t.Errorf("Before: %q, after: %q", orig, doubleRev)
+		}
+		if utf8.ValidString(orig) && !utf8.ValidString(rev) {
+			t.Errorf("Reverse produced invalid UTF-8 string %q", rev)
+		}
+	})
+}
+----
+
+_Fuzzing_ juga memiliki beberapa batasan.
+Pada unit tes, kita bisa memprediksi ekspektasi keluaran dari fungsi
+`Reverse`, dan memverifikasi bahwa keluaran sama dengan ekspektasi.
+
+Contohnya, pada kasus `Reverse("Hello, world")`, kita dapat menentukan
+ekspektasi keluaran sebagai `"dlrow ,olleH"`.
+
+Pada _fuzzing_, kita tidak dapat memprediksi ekspektasi keluaran, secara kita
+tidak punya kontrol terhadap input.
+
+Namun, ada beberapa properti dari fungsi `Reverse` yang dapat kita verifikasi
+dalam fuzz tes.
+Dua properti yang kita cek dalam fuzz tes adalah:
+
+. Membalikan sebuah string dua kali akan mengeluarkan string aslinya.
+. String yang terbalik adalah UTF-8 yang valid.
+
+Perhatikan perbedaan sintaksis antara unit tes dan fuzz tes:
+
+* Fungsi dimulai dengan `FuzzXxx` bukan `TestXxx`, dan menerima `*testing.F`
+  bukan `*testing.T`.
+
+* Di unit tes kita menggunakan `t.Run`, di fuzz tes kita menggunakan `f.Fuzz`
+  yang menerima sebuah fungsi target dengan parameter `*testing.T` dan
+  tipe-tipe yang akan di-_fuzz_.
+  Input-input dari unit tes diberikan sebagai bibit _corpus_ menggunakan
+  `f.Add`.
+
+
+Selanjutnya, pastikan paket `unicode/utf8` telah diimpor.
+
+----
+package main
+
+import (
+	"testing"
+	"unicode/utf8"
+)
+----
+
+Dengan unit tes yang telah dikonversi menjadi fuzz tes, saatnya kita jalankan
+kembali pengujian.
+
+=== Menjalankan tes
+
+. Jalankan fuzz tes tanpa opsi _fuzzing_ untuk memastikan bibit input benar.
++
+--
+----
+$ go test
+PASS
+ok      example/fuzz  0.013s
+----
+Kita juga dapat menjalankan dengan cara `go test -run=Fuzz` jika ada
+unit tes lain di dalam berkas namun kita ingin hanya menjalankan fuzz tes.
+--
+
+. Jalankan `FuzzReverse` dengan _fuzzing_, untuk melihat apakah string input
+  yang dihasilkan secara acak akan menyebabkan kegagalan.
++
+--
+Caranya yaitu dengan mengeksekusi `go test` dengan opsi `-fuzz` dan
+parameter `Fuzz`.
+Salin perintah berikut ke terminal,
+----
+$ go test -fuzz=Fuzz
+----
+
+Opsi _fuzzing_ lain yang berguna yaitu `-fuzztime`, yang membatasi waktu
+berjalannya sebuah fuzz tes.
+Contohnya, menggunakan opsi `-fuzztime 10s` berarti selama tidak ada kesalahan
+terjadi, fuzz tes akan berhenti setelah 10 detik.
+Lihat
+https://pkg.go.dev/cmd/go#hdr-Testing_flags[bagian opsi testing^]
+dari dokumentasi "cmd/go" untuk mengetahui lebih lanjut tentang opsi-opsi
+pengujian.
+
+Sekarang jalankan perintah tersebut,
+----
+$ go test -fuzz=Fuzz
+fuzz: elapsed: 0s, gathering baseline coverage: 0/3 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 3/3 completed, now fuzzing with 8 workers
+fuzz: minimizing 38-byte failing input file...
+--- FAIL: FuzzReverse (0.01s)
+    --- FAIL: FuzzReverse (0.00s)
+        reverse_test.go:20: Reverse produced invalid UTF-8 string "\x9c\xdd"
+
+    Failing input written to testdata/fuzz/FuzzReverse/af69258a12129d6c
+    To re-run:
+    go test -run=FuzzReverse/af69258a12129d6c
+FAIL
+exit status 1
+FAIL    example/fuzz  0.030s
+----
+
+Sebuah kegagalan terjadi selama _fuzzing_, dan input yang menyebabkan
+kegagalan tersebut ditulis ke dalam berkas bibit _corpus_ yang akan
+dijalankan kembali saat `go test` dieksekusi, walaupun tanpa opsi `-fuzz`.
+Untuk melihat input yang menyebabkan kegagalan, bukalah berkas yang ada di
+dalam direktori "testdata/fuzz/FuzzReverse/".
+Berkas bibit _corpus_ Anda bisa jadi berbeda, namun formatnya akan sama.
+
+----
+go test fuzz v1
+string("泃")
+----
+
+Baris pertama dari berkas _corpus_ mengindikasikan versi fuzz tes.
+Baris selanjutnya merepresentasikan nilai dari setiap tipe yang digunakan
+sebagai parameter saat mem-_fuzzing_ fungsi target `FuzzReverse`.
+Secara fungsi target hanya menerima 1 input, maka hanya ada 1 nilai.
+--
+
+. Jalankan lagi `go test` tanpa opsi `-fuzz`; maka isi di dalam bibit
+  _corpus_ akan secara otomatis digunakan:
++
+--
+----
+$ go test
+--- FAIL: FuzzReverse (0.00s)
+    --- FAIL: FuzzReverse/af69258a12129d6c (0.00s)
+        reverse_test.go:20: Reverse produced invalid UTF-8 string "\x9c\xdd"
+FAIL
+exit status 1
+FAIL    example/fuzz  0.016s
+----
+Secara tes kita sudah gagal, saatnya melakukan pemeriksaan dan memperbaiki
+kode.
+--
+
+
+[#fix_invalid_string_error]
+== Memperbaiki kesalahan karena string tidak valid
+
+Pada bagian ini, kita akan memeriksa penyebab dari kesalahan string tidak
+valid dan memperbaikinya.
+
+Anda bisa mencoba memeriksa dan memperbaikinya sendiri terlebih dahulu
+sebelum lanjut ke bagian selanjutnya.
+
+
+=== Diagnosis kesalahan
+
+Ada beberapa cara untuk mendiagnosis kesalahan pada kode.
+Jika Anda menggunakan perkakas VS Code, Anda dapat
+https://github.com/golang/vscode-go/blob/master/docs/debugging.md[mengatur _debugger_^]
+untuk menginvestigasinya.
+
+Pada tutorial ini, kita akan memeriksa kode dengan menulis hasil ke terminal.
+
+Pertama, perhatikan dokumentasi dari
+https://pkg.go.dev/unicode/utf8[`utf8.ValidString`^].
+
+[quote]
+ValidString reports whether s consists entirely of valid UTF-8-encoded
+runes.
+
+Fungsi `Reverse` yang sekarang membalikan string secara per-byte, dan
+disanalah letak kesalahan kita.
+Untuk menjaga string tetap valid pada UTF-8, kita harus membalikan string
+per-rune.
+
+Untuk memeriksa kenapa input (pada kasus ini, karakter China `泃`) menyebabkan
+fungsi `Reverse` menghasilkan string tidak valid saat dibalik, kita dapat
+memeriksa jumlah rune di dalam string yang telah dibalik.
+
+==== Menulis kode
+
+Dalam perkakas sunting Anda, timpa target fuzz `FuzzReverse` dengan kode
+berikut.
+
+----
+f.Fuzz(func(t *testing.T, orig string) {
+	rev := Reverse(orig)
+	doubleRev := Reverse(rev)
+	t.Logf("Number of runes: orig=%d, rev=%d, doubleRev=%d",
+		utf8.RuneCountInString(orig), utf8.RuneCountInString(rev),
+		utf8.RuneCountInString(doubleRev))
+	if orig != doubleRev {
+		t.Errorf("Before: %q, after: %q", orig, doubleRev)
+	}
+	if utf8.ValidString(orig) && !utf8.ValidString(rev) {
+		t.Errorf("Reverse produced invalid UTF-8 string %q", rev)
+	}
+})
+----
+
+Baris `t.Logf` akan mencetak ke terminal bila kesalahan terjadi, atau bila
+menjalankan tes dengan opsi `-v`, yang dapat membantu mendiagnosis kesalahan.
+
+==== Menjalankan tes
+
+Jalankan tes dengan `go test`
+
+----
+$ go test
+--- FAIL: FuzzReverse (0.00s)
+    --- FAIL: FuzzReverse/af69258a12129d6c (0.00s)
+        reverse_test.go:16: Number of runes: orig=1, rev=3, doubleRev=1
+        reverse_test.go:21: Reverse produced invalid UTF-8 string "\x83\xb3\xe6"
+FAIL
+exit status 1
+FAIL    example/fuzz    0.598s
+----
+
+Seluruh bibit _corpus_ berisi string yang mana setiap karakter adalah
+sebuah `byte`, sehingga apabila dibalik hasilnya sesuai dengan yang kita
+bayangkan.
+Namun, karakter `泃` membutuhkan beberapa `byte`.
+Maka, membalikannya satu per satu per-byte akan menyebabkan string tidak
+valid.
+
+NOTE: Jika Anda penasaran bagaimana Go memperlakukan string, bacalah blog
+link:/blog/strings/["String, byte, rune, dan karakter dalam Go"^]
+untuk memahami lebih lanjut.
+
+Dengan lebih memahami kesalahan yang terjadi, mari kita dapat memperbaiki
+fungsi `Reverse`.
+
+=== Memperbaiki kesalahan
+
+Untuk memperbaiki fungsi `Reverse`, kita lakukan pengulangan pada string
+dengan cara per-rune bukan per-byte.
+
+==== Menulis kode
+
+Pada perkakas sunting, timpa fungsi `Reverse` dengan kode berikut.
+
+----
+func Reverse(s string) string {
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
+}
+----
+
+Kunci perbedaannya yaitu fungsi `Reverse` yang baru diiterasi untuk setiap
+`rune` pada string, bukan setiap `byte`.
+Ingatlah bahwa ini hanyalah contoh saja, fungsi ini tidak menangani kasus
+https://en.wikipedia.org/wiki/Combining_character[karakter kombinasi^]
+secara benar.
+
+==== Jalankan kode
+
+. Jalankan tes menggunakan `go test`
++
+--
+----
+$ go test
+PASS
+ok      example/fuzz  0.016s
+----
+Tes sekarang berjalan dengan benar!
+--
+
+. Jalankan fuzz tes kembali dengan `go test -fuzz`, untuk melihat apakah ada
+  kecacatan baru.
++
+--
+----
+$ go test -fuzz=Fuzz
+fuzz: elapsed: 0s, gathering baseline coverage: 0/10 completed
+fuzz: minimizing 49-byte failing input file
+fuzz: elapsed: 0s, gathering baseline coverage: 6/10 completed
+--- FAIL: FuzzReverse (0.00s)
+    --- FAIL: FuzzReverse (0.00s)
+        reverse_test.go:16: Number of runes: orig=1, rev=1, doubleRev=1
+        reverse_test.go:20: Before: "\x8d", after: "�"
+
+    Failing input written to testdata/fuzz/FuzzReverse/4e4e4dc480dc461c
+    To re-run:
+    go test -run=FuzzReverse/4e4e4dc480dc461c
+FAIL
+exit status 1
+FAIL    example/fuzz    0.005s
+----
+
+Kita dapat lihat bahwa hasil string terakhir berbeda dari yang aslinya
+setelah dibalikkan dua kali.
+Kecacatan ini disebabkan oleh input dengan unicode tidak valid.
+Bagaimana ini bisa terjadi?
+
+Mari kita periksa kembali.
+--
+
+[#fix_double_reverse_error]
+== Memperbaiki kesalahan pada pembalikan dua kali
+
+Pada bagian ini, kita akan memerikan kesalahan karena pembalikan dua kali dan
+memperbaikinya.
+
+Anda bisa memeriksa dan memperbaikinya sendiri terlebih dahulu sebelum lanjut
+ke bagian selanjutnya.
+
+
+=== Diagnosis kesalahan
+
+Seperti sebelumnya, ada beberapa cara untuk mendiagnosis kesalahan ini.
+Pada kasus ini, menggunakan
+https://github.com/golang/vscode-go/blob/master/docs/debugging.md[_debugger_^]
+adalah pendekatan yang lebih baik.
+
+Dalam tutorial ini, kita akan mendiagnosis dengan menulis informasi yang
+diperlukan ke terminal.
+
+Perhatikan secara seksama pada hasil string terbalik yang pertama untuk
+menemukan kesalahan yang terjadi.
+Pada Go,
+link:/blog/strings/[sebuah string adalah rangkaian byte-byte _read-only_^]
+dan dapat berisi byte yang tidak valid dalam UTF-8.
+String input berisi satu byte, "\\x8d".
+Saat input string dikonversi menjadi `[]rune`, Go mengubah rangkaian byte
+menjadi UTF-8, dan menimpa byte "\\8d" menjadi karakter "�".
+Saat kita membandingkan karakter UTF-8 yang telah dibalikan lagi dengan
+rangkaian input byte, mereka tidak akan sama.
+
+==== Menulis kode
+
+Pada perkakas sunting Anda, timpa fungsi `Reverse` dengan kode berikut,
+----
+func Reverse(s string) string {
+	fmt.Printf("input: %q\n", s)
+	r := []rune(s)
+	fmt.Printf("runes: %q\n", r)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r)
+}
+----
+
+Hal ini akan membantu kita memahami apa yang menyebabkan kesalahan saat
+mengonversi string ke slice rune.
+
+==== Menjalankan kode
+
+Kali ini, kita hanya ingin menjalankan tes yang gagal untuk memeriksa log.
+Untuk itu, kita akan menggunakan `go test -run`.
+
+Untuk menjalankan isi dari _corpus_ tertentu dalam `testdata/FuzzXxx`, kita
+dapat mengirim opsi `{FuzzTestName}/{nama berkas}` pada opsi `-run`.
+Hal ini sangat berguna saat melakukan diagnosis.
+Salin nilai _hash_ dari terminal pada hasil tes sebelumnya pada opsi `-run`
+(nilai _hash_ bisa berbeda dengan yang tertulis di bawah),
+
+----
+$ go test -run=FuzzReverse/4e4e4dc480dc461c
+input: "\x8d"
+runes: ['�']
+input: "�"
+runes: ['�']
+--- FAIL: FuzzReverse (0.00s)
+    --- FAIL: FuzzReverse/4e4e4dc480dc461c (0.00s)
+        reverse_test.go:16: Number of runes: orig=1, rev=1, doubleRev=1
+        reverse_test.go:20: Before: "\x8d", after: "�"
+FAIL
+exit status 1
+FAIL    example/fuzz    0.001s
+----
+
+Setelah mengetahui bahwa input adalah unicode yang tidak valid, mari kita
+perbaiki kesalahan pada fungsi `Reverse` kita.
+
+
+=== Memperbaiki kesalahan
+
+Untuk memperbaiki kesalahan, kita kembalikan sebuah `error` bila input dari
+fungsi `Reverse` bukanlah UTF-8 yang valid.
+
+==== Menulis kode
+
+. Pada perkakas sunting, timpa fungsi `Reverse` dengan kode berikut.
++
+--
+----
+func Reverse(s string) (string, error) {
+	if !utf8.ValidString(s) {
+		return s, errors.New("input is not valid UTF-8")
+	}
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r), nil
+}
+----
+Perubahan ini akan mengembalikan sebuah `error` bila string input berisi
+karakter UTF-8 yang tidak valid.
+--
+
+. Secara fungsi `Reverse` sekarang mengembalikan sebuah `error`, ubah fungsi
+  `main` untuk mengabaikan nilai `error`.
+  Timpa fungsi `main` dengan kode berikut.
++
+--
+----
+func main() {
+	input := "The quick brown fox jumped over the lazy dog"
+	rev, revErr := Reverse(input)
+	doubleRev, doubleRevErr := Reverse(rev)
+	fmt.Printf("original: %q\n", input)
+	fmt.Printf("reversed: %q, err: %v\n", rev, revErr)
+	fmt.Printf("reversed again: %q, err: %v\n", doubleRev, doubleRevErr)
+}
+----
+Pemanggilan `Reverse` seharusnya mengembalikan nilai `error` nil, secara
+string input adalah UTF-8 yang valid.
+--
+
+. Kita impor paket `errors` dan `unicode/utf8`.
++
+--
+Perintah impor pada `main.go` berbentuk seperti berikut.
+----
+import (
+	"errors"
+	"fmt"
+	"unicode/utf8"
+)
+----
+--
+
+. Ubah berkas `reverse_test.go` untuk memeriksa error dan mengabaikan tes bila
+  `error` dikembalikan tidak nil.
++
+--
+----
+func FuzzReverse(f *testing.F) {
+	testcases := []string {"Hello, world", " ", "!12345"}
+	for _, tc := range testcases {
+		f.Add(tc)  // Use f.Add to provide a seed corpus
+	}
+	f.Fuzz(func(t *testing.T, orig string) {
+		rev, err1 := Reverse(orig)
+		if err1 != nil {
+			return
+		}
+		doubleRev, err2 := Reverse(rev)
+		if err2 != nil {
+			return
+		}
+		if orig != doubleRev {
+			t.Errorf("Before: %q, after: %q", orig, doubleRev)
+		}
+		if utf8.ValidString(orig) && !utf8.ValidString(rev) {
+			t.Errorf("Reverse produced invalid UTF-8 string %q", rev)
+		}
+	})
+}
+----
+Selain dengan menggunakan `return`, kita juga dapat memanggil `t.Skip()`
+untuk menghentikan eksekusi dari input fuzz.
+--
+
+==== Menjalankan kode
+
+. Jalankan tes dengan `go test`
++
+--
+----
+$ go test
+PASS
+ok      example/fuzz  0.019s
+----
+--
+
+. Jalankan fuzz tes dengan `go test -fuzz=Fuzz`, kemudian setelah beberapa
+  detik, hentikan _fuzzing_ dengan menekan `CTRL-C`.
++
+--
+Fuzz tes akan terus berjalan sampai ia menemukan input yang menyebabkan
+kegagalan kecuali kita menambahkan opsi `-fuzztime`.
+Secara bawaan ia akan berjalan terus jika tidak ada kesalahan ditemukan, namun
+proses tersebut dapat dihentikan paksa dengan `CTRL-C`.
+
+----
+$ go test -fuzz=Fuzz
+fuzz: elapsed: 0s, gathering baseline coverage: 0/38 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 38/38 completed, now fuzzing with 4 workers
+fuzz: elapsed: 3s, execs: 86342 (28778/sec), new interesting: 2 (total: 35)
+fuzz: elapsed: 6s, execs: 193490 (35714/sec), new interesting: 4 (total: 37)
+fuzz: elapsed: 9s, execs: 304390 (36961/sec), new interesting: 4 (total: 37)
+...
+fuzz: elapsed: 3m45s, execs: 7246222 (32357/sec), new interesting: 8 (total: 41)
+^Cfuzz: elapsed: 3m48s, execs: 7335316 (31648/sec), new interesting: 8 (total: 41)
+PASS
+ok      example/fuzz  228.000s
+----
+--
+
+. Jalankan fuzz dengan `go test -fuzz=Fuzz -fuzztime 30s` yang akan berhenti
+  setelah 30 detik bila tidak ditemukan kesalahan.
++
+--
+----
+$ go test -fuzz=Fuzz -fuzztime 30s
+fuzz: elapsed: 0s, gathering baseline coverage: 0/5 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 5/5 completed, now fuzzing with 4 workers
+fuzz: elapsed: 3s, execs: 80290 (26763/sec), new interesting: 12 (total: 12)
+fuzz: elapsed: 6s, execs: 210803 (43501/sec), new interesting: 14 (total: 14)
+fuzz: elapsed: 9s, execs: 292882 (27360/sec), new interesting: 14 (total: 14)
+fuzz: elapsed: 12s, execs: 371872 (26329/sec), new interesting: 14 (total: 14)
+fuzz: elapsed: 15s, execs: 517169 (48433/sec), new interesting: 15 (total: 15)
+fuzz: elapsed: 18s, execs: 663276 (48699/sec), new interesting: 15 (total: 15)
+fuzz: elapsed: 21s, execs: 771698 (36143/sec), new interesting: 15 (total: 15)
+fuzz: elapsed: 24s, execs: 924768 (50990/sec), new interesting: 16 (total: 16)
+fuzz: elapsed: 27s, execs: 1082025 (52427/sec), new interesting: 17 (total: 17)
+fuzz: elapsed: 30s, execs: 1172817 (30281/sec), new interesting: 17 (total: 17)
+fuzz: elapsed: 31s, execs: 1172817 (0/sec), new interesting: 17 (total: 17)
+PASS
+ok      example/fuzz  31.025s
+----
+Pengujian _fuzz_ sukses!
+
+Sebagai tambahan dari opsi `-fuzz`, ada beberapa opsi baru yang telah
+ditambahkan ke `go test` yang dapat dilihat di
+https://go.dev/security/fuzz/#custom-settings[dokumentasi^].
+
+Lihat
+https://go.dev/security/fuzz/#command-line-output[Go Fuzzing^]
+untuk informasi lebih lanjut tentang istilah-istilah pada keluaran _fuzzing_.
+Misalnya, istilah "new interesting" mengacu pada input-input baru yang telah
+ditambahkan sesuai cakupan kode dari _corpus_ fuzz tes yang telah ada.
+Jumlah input dari "new interesting" bisa meningkat saat _fuzzing_ dimulai,
+terus naik beberapa kali saat menjelajahi baris kode yang baru, kemudian
+berkurang seiring waktu.
+--
+
+
+[#conclusion]
+== Kesimpulan
+
+Selamat!
+Anda baru saja berkenalan dengan _fuzzing_ pada Go.
+
+Langkah selanjutnya yaitu memilih sebuah fungsi pada kode Anda yang dapat
+dites dengan _fuzzing_, dan mencobanya!
+Jika _fuzzing_ menemukan kecacatan dalam kode Anda, tambahkan proyek Anda ke
+https://go.dev/wiki/Fuzzing-trophy-case[lemari piala^]
+pada wiki Go.
+
+Jika Anda mengalami kendala atau memiliki sebuah ide untuk fitur baru,
+silahkan
+https://go.dev//issue/new/?&labels=fuzz[buat isu baru^].
+
+Untuk diskusi dan umpan balik tentang fitur, Anda dapat berpartisipasi dalam
+https://gophers.slack.com/archives/CH5KV1AKE["kanal #fuzzing"^]
+di Slack Gophers.
+
+Lihatlah dokumentasi tentang
+https://go.dev/security/fuzz/[Go Fuzzing^]
+untuk bacaan lebih lanjut.
+
+
+== Seluruh kode
+
+Berkas `main.go`,
+
+----
+package main
+
+import (
+	"errors"
+	"fmt"
+	"unicode/utf8"
+)
+
+func Reverse(s string) (string, error) {
+	if !utf8.ValidString(s) {
+		return s, errors.New("input is not valid UTF-8")
+	}
+	r := []rune(s)
+	for i, j := 0, len(r)-1; i < len(r)/2; i, j = i+1, j-1 {
+		r[i], r[j] = r[j], r[i]
+	}
+	return string(r), nil
+}
+
+func main() {
+	input := "The quick brown fox jumped over the lazy dog"
+	rev, revErr := Reverse(input)
+	doubleRev, doubleRevErr := Reverse(rev)
+	fmt.Printf("original: %q\n", input)
+	fmt.Printf("reversed: %q, err: %v\n", rev, revErr)
+	fmt.Printf("reversed again: %q, err: %v\n", doubleRev, doubleRevErr)
+}
+----
+
+Berkas `reverse_test.go`,
+
+----
+package main
+
+import (
+	"testing"
+	"unicode/utf8"
+)
+
+func FuzzReverse(f *testing.F) {
+	testcases := []string{"Hello, world", " ", "!12345"}
+	for _, tc := range testcases {
+		f.Add(tc) // Use f.Add to provide a seed corpus
+	}
+	f.Fuzz(func(t *testing.T, orig string) {
+		rev, err1 := Reverse(orig)
+		if err1 != nil {
+			return
+		}
+		doubleRev, err2 := Reverse(rev)
+		if err2 != nil {
+			return
+		}
+		if orig != doubleRev {
+			t.Errorf("Before: %q, after: %q", orig, doubleRev)
+		}
+		if utf8.ValidString(orig) && !utf8.ValidString(rev) {
+			t.Errorf("Reverse produced invalid UTF-8 string %q", rev)
+		}
+	})
+}
+----

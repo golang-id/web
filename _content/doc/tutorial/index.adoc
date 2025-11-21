@@ -2,12 +2,15 @@
 
 Jika Anda baru belajar tentang Go, bacalah tautan tutorial di bawah ini.
 
+
 link:/doc/install/[Memasang Go^]::
 Instruksi untuk mengunduh dan memasang Go.
+
 
 link:/doc/tutorial/getting-started/[Tutorial: Memulai dari awal^]::
 Tutorial singkat "Hello, world" untuk mulai dari awal.
 Mempelajari secara singkat tentang kode, perkakas, paket, dan modul pada Go.
+
 
 link:/doc/tutorial/create-module/[Tutorial: Membuat sebuah modul^]::
 +
@@ -32,7 +35,15 @@ berbeda dari bahasa Go.
   Mengompilasi dan memasang kode kita secara lokal.
 --
 
+
 link:/doc/tutorial/workspaces/[Tutorial: Bekerja dengan banyak modul^]::
 Pengenalan tentang konsep dasar membuat dan menggunakan ruang kerja
 (_workspace_) dengan banyak modul.
 _Workspace_ berguna untuk melakukan perubahan di antara beberapa modul.
+
+
+link:/doc/tutorial/fuzz/[Tutorial: Memulai pengujian _fuzzing_^]
+
+_Fuzzing_ dapat menghasilkan input-input baru pada pengujian Anda yang dapat
+menemukan kasus-kasus khusus dan masalah keamanan yang mungkin tidak
+terpikirkan oleh Anda.
