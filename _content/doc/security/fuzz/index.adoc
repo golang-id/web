@@ -1,0 +1,402 @@
+= Go _Fuzzing_
+:toc:
+:sectanchors:
+
+Go mendukung _fuzzing_ pada perkakas baku sejak Go version 1.18.
+Pengujian fuzz pada Go
+https://google.github.io/oss-fuzz/getting-started/new-project-guide/go-lang/#native-go-fuzzing-support[didukung oleh OSS-Fuzz^].
+
+*Cobalah link:/doc/tutorial/fuzz/[tutorial untuk _fuzzing_ pada Go^].*
+
+== Pendahuluan
+
+_Fuzzing_ adalah tipe pengujian otomatis yang secara terus menerus
+memanipulasi input-input pada program untuk menemukan kecacatan.
+_Fuzzing_ pada Go menggunakan panduan cakupan (_coverage guidance_) untuk
+secara pintar menelusuri kode yang tengah di-_fuzz_ and melaporkan kegagalan
+pada pengguna.
+Secara ia dapat menemukan kasus-kasus yang terkadang tidak terpikirkan oleh
+manusia, pengujian _fuzz_ dapat berguna untuk menemukan celah keamanan yang
+dapat di-eksploitasi. 
+
+Contoh berikut adalah sebuah
+link:#glos-fuzz-test[fuzz tes],
+menyoroti komponen-komponen utamanya.
+
+image::example.png["Contoh kode memperlihatkan fuzz tes, dengan target yang di fuzz. Sebelum target fuzz adalah penambahan sebuah corpus dengan f.Add, dan parameter-parameter dari target fuzz ditandai sebagai argumen-argumen dari fuzzing.", width=600, height=auto]
+
+
+== Membuat fuzz tes
+
+[#requirements]
+=== Kebutuhan
+
+Berikut aturan-aturan yang harus diikuti oleh fuzz tes.
+
+* Sebuah fuzz tes haruslah sebuah fungsi dengan nama seperti `FuzzXxx`, yang
+  menerima hanya `*testing.F`, dan tidak memiliki kembalian.
+* Fuzz tes haruslah berada dalam berkas `\_test.go` supaya dapat dijalankan.
+* Sebuah
+  link:#gloss-fuzz-target[target fuzz]
+  haruslah berupa pemanggilan method
+  https://pkg.go.dev/testing#F.Fuzz[`*testing.F`^]
+  yang menerima sebuah argumen `*testing.T` sebagai parameter pertama,
+  diikuti oleh argumen-argumen _fuzzing_.
+  Tidak ada nilai kembalian.
+* Harus ada satu target fuzz per satu fuzz tes.
+* Semua isi
+  link:#glos-seed-corpus[bibit _corpus_]
+  haruslah memiliki tipe yang identik dengan
+  link:#glos-fuzzing-arguments[argumen fuzzing],
+  dengan urutan yang sama.
+  Hal ini juga berlaku untuk pemanggilan
+  https://pkg.go.dev/testing#F.Add[`(*testing.F).Add`]
+  dan semua berkas _corpus_ dalam direktori `testdata/fuzz` dari fuzz tes.
+* Argumen _fuzzing_ hanya dapat memiliki tipe-tipe berikut:
+** `string`, `[]byte`
+** `int`, `int8`, `int16`, `int32`/`rune`, `int64`
+** `uint`, `uint8`/`byte`, `uint16`, `uint32`, `uint64`
+** `float32`, `float64`
+** `bool`
+
+
+[#suggestions]
+=== Saran-saran
+
+Berikut beberapa saran yang membantu Anda dalam fuzzing.
+
+* Target dari _fuzz_ haruslah cepat dan deterministik sehingga mesin
+  _fuzzing_ dapat bekerja secara efisien, sehingga kegagalan yang ditemukan
+  berikut cakupan kode dapat dengan mudah diulang.
+
+* Secara target _fuzz_ dipanggil dengan paralel antara beberapa _worker_ dan
+  dengan urutan yang tidak deterministik, kondisi dari target _fuzz_
+  sebaiknya tidak disimpan sampai pemanggilan berakhir, dan perilaku dari
+  target _fuzz_ sebaiknya tidak bergantung pada kondisi global.
+
+
+== Menjalankan fuzz tes
+
+Ada dua mode untuk menjalankan fuzz tes: sebagai unit tes (dengan `go
+test`), atau dengan _fuzzing_ (`go test -fuzz=FuzzTestName`).
+
+Fuzz tes berjalan seperti unit tes.
+Setiap
+link:#glos-seed-corpus[isi bibit _corpus_]
+akan diuji terhadap target fuzz, dan akan melaporkan bila ada kegagalan
+sebelum tes selesai.
+
+Untuk mengaktifkan _fuzzing_, jalankan `go test` dengan opsi `-fuzz`, dengan
+mengirim sebuah _regex_ dengan nama fuzz tes yang diinginkan.
+Secara bawaan, semua tes di dalam paket tersebut akan dijalankan sebelum
+fuzz tes berjalan.
+Hal ini untuk memastikan fuzz tes tidak melaporkan isu-isu yang mungkin
+ditemukan oleh unit tes yang telah ada.
+
+Ingatlah bahwa lamanya fuzz tes berjalan dapat ditentukan sendiri.
+Fuzz tes dapat berjalan selamanya jika tidak menemukan kesalahan.
+Nantinya akan ada dukungan untuk menjalankan fuzz tes menggunakan perkakas
+seperti OSS-Fuzz, lihat
+https://go.dev/issue/50192["isu #50192"^].
+
+NOTE: _Fuzzing_ harus berjalan pada sistem yang mendukung instrumentasi
+cakupan (saat ini AMD64 dan ARM64) supaya _corpus_ dapat terus berkembang
+saat fuzz tes berjalan, dan lebih banyak kode yang tercakup saat _fuzzing_.
+
+
+=== Keluaran perintah _fuzzing_
+
+Saat _fuzzing_ berjalan,
+link:#glos-fuzzing-engine[mesin _fuzzing_]
+menghasilkan input-input yang baru dan mengirimnya ke target fuzz.
+Secara bawaan, fuzz tes akan terus berjalan sampai menemukan
+link:#glos-failing-input[input yang gagal],
+atau bila user membatalkan tes (misalnya dengan CTRL^C).
+
+Keluaran dari perintah fuzz tes seperti berikut:
+
+----
+$ go test -fuzz FuzzFoo
+fuzz: elapsed: 0s, gathering baseline coverage: 0/192 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 192/192 completed, now fuzzing with 8 workers
+fuzz: elapsed: 3s, execs: 325017 (108336/sec), new interesting: 11 (total: 202)
+fuzz: elapsed: 6s, execs: 680218 (118402/sec), new interesting: 12 (total: 203)
+fuzz: elapsed: 9s, execs: 1039901 (119895/sec), new interesting: 19 (total: 210)
+fuzz: elapsed: 12s, execs: 1386684 (115594/sec), new interesting: 21 (total: 212)
+PASS
+ok      foo 12.692s
+----
+
+Baris pertama mengindikasikan bahwa "baseline coverage" (dasar cakupan)
+dikumpulkan sebelum _fuzzing_ dimulai.
+
+Untuk mengumpulkan dasar cakupan, mesin _fuzzing_ mengeksekusi
+link:#glos-seed-corpus[bibit _corpus_]
+dan
+link:#glos-generated-corpus[bangkitan _corpus_],
+untuk memastikan bahwa tidak ada kesalahan yang terjadi dan untuk
+mempelajari cakupan kode yang telah ditangani oleh _corpus_ yang sudah ada.
+
+Baris-baris selanjutnya menjelaskan eksekusi _fuzzing_:
+
+* _elapsed_: jumlah waktu yang telah berjalan sejak proses dimulai.
+* _execs_: jumlah input yang telah dikirim ke target fuzz (dengan
+  rata-rata eksekusi/detik sejak baris sebelumnya)
+* _new interesting_: jumlah input yang "menarik" yang telah ditambahkan ke
+  dalam bangkitan _corpus_ selama eksekusi _fuzzing_ (dengan total jumlah
+  _corpus_).
+
+Untuk sebuah input disebut "menarik", ia harus menambah cakupan kode
+melewati jumlah yang dihasilkan oleh _corpus_ sebelumnya.
+Sangat wajar bila jumlah input "menarik" tersebut meningkat dengan cepat
+pada saat awal dan kemudian melambat, dengan sekali-kali meningkat saat
+cabang kode yang baru ditemukan.
+
+Anda akan melihat jumlah "new interesting" semakin lama semakin naik saat
+input-input di dalam _corpus_ menemukan baris-baris kode yang baru, yang
+terkadang-kadang melonjak saat mesin _fuzzing_ menemukan jalur kode yang
+baru.
+
+=== Input yang gagal
+
+Sebuah kegagalan bisa terjadi saat _fuzzing_ berjalan karena beberapa
+hal:
+
+* _panic_ terjadi pada kode atau tes.
+* Target fuzz memanggil `t.Fail`, baik secara langsung atau lewat method
+  seperti `t.Error` atau `t.Fatal`.
+* Kegagalan yang tidak diharapkan terjadi, seperti `os.Exit` atau
+  _stack overflow_.
+* Target fuzz butuh waktu lama untuk selesai.
+  Saat ini, tenggat waktu untuk sebuah eksekusi target fuzz yaitu 1 detik.
+  Target fuzz bisa gagal disebabkan karena _deadlock_ atau pengulangan tanpa
+  henti, atau dari kondisi yang tidak diharapkan dalam kode.
+  Karena inilah kenapa
+  link:#suggestions[target fuzz disarankan harus cepat].
+
+Bila sebuah kegagalan terjadi, mesin _fuzzing_ akan mencoba me-minimalisasi
+ukuran input dengan nilai yang masih bisa dibaca oleh manusia, namun masih
+tetap menimbulkan kegagalan.
+Untuk mengatur hal ini, lihat bagian
+link:#custom-settings[pengaturan khusus].
+
+Setelah minimalisasi selesai, pesan kegagalan akan ditulis, dan menampilkan
+keluaran seperti berikut:
+
+----
+    Failing input written to testdata/fuzz/FuzzFoo/a878c3134fe0404d44eb1e662e5d8d4a24beb05c3d68354903670ff65513ff49
+    To re-run:
+    go test -run=FuzzFoo/a878c3134fe0404d44eb1e662e5d8d4a24beb05c3d68354903670ff65513ff49
+FAIL
+exit status 1
+FAIL    foo 0.839s
+----
+
+Mesin _fuzzing_ menulis
+link:#glos-failing-input[input yang gagal]
+ke bibit _corpus_ dari fuzz tes tersebut, dan nanti akan dijalankan secara
+otomatis lewat `go test`, yang dipakai sebagai regresi tes saat kecacatan
+tersebut telah diperbaiki.
+
+Langkah selanjutnya yaitu mendiagnosis permasalahan, memperbaiki kecacatan,
+memverifikasi perbaikan dengan menjalankan `go test` kembali.
+
+
+[#custom-settings]
+=== Pengaturan khusus
+
+Pengaturan bawaan dari perintah `go` berjalan untuk kebanyakan kasus
+dari _fuzzing_.
+Pada umumnya, eksekusi _fuzzing_ berbentuk seperti berikut:
+
+----
+$ go test -fuzz={FuzzTestName}
+----
+
+Namun, perintah `go` menyediakan beberapa pengaturan untuk menjalankan
+_fuzzing_.
+Ini didokumentasikan dalam
+https://pkg.go.dev/cmd/go[dokumentasi paket `cmd/go`^].
+
+Beberapa pengaturan tersebut antara lain:
+
+* `-fuzztime`: jumlah waktu atau jumlah iterasi yang akan dieksekusi oleh
+  target fuzz sebelum keluar, nilai bakunya adalah selamanya.
+* `-fuzzminimizetime`: waktu atau jumlah iterasi yang akan dieksekusi target
+  fuzz selama minimalisasi, nilai bakunya 60 detik.
+  Minimalisasi dapat dimatikan dengan `-fuzzminimizetime 0`.
+* `-parallel`: jumlah proses _fuzzing_ yang berjalan, nilai bakunya yaitu
+  sama dengan nilai `$GOMAXPROCS`.
+  Saat ini, opsi `-cpu` saat _fuzzing_ tidak berpengaruh.
+
+
+== Format berkas _corpus_
+
+Berkas-berkas _corpus_ disimpan dengan format khusus.
+Format ini sama untuk
+link:#glos-seed-corpus[bibit _corpus_],
+dan
+link:#glos-generated-corpus[bangkitan _corpus_].
+
+Berikut contoh berkas _corpus_:
+
+----
+go test fuzz v1
+[]byte("hello\\xbd\\xb2=\\xbc ⌘")
+int64(572293)
+----
+
+Baris pertama memberi tahu mesin _fuzzing_ versi berkas _corpus_.
+Walaupun belum ada rencana ke depan untuk versi berkas terbaru, mesin
+_fuzzing_ telah dirancang untuk mendukung hal tersebut.
+
+Baris-baris selanjutnya adalah nilai-nilai dari _corpus_, yang dapat
+langsung disalin ke kode Go bila diinginkan.
+
+Pada contoh di atas, nilai _corpus_ adalah sebuah `[]byte` diikuti oleh
+sebuah `int64`.
+Tipe-tipe ini harus sesuai dengan argumen _fuzzing_, secara berurutan.
+Bentuk target fuzz dari tipe-tipe tersebut akan seperti berikut:
+
+----
+f.Fuzz(func(*testing.T, []byte, int64) {})
+----
+
+Cara termudah untuk menambahkan nilai bibit _corpus_ secara manual yaitu
+dengan menggunakan method `(*testing.F).Add`.
+Pada contoh di atas, caranya seperti berikut:
+
+----
+f.Add([]byte("hello\\xbd\\xb2=\\xbc ⌘"), int64(572293))
+----
+
+Bila Anda memiliki berkas binari yang berukuran besar yang tidak
+ingin disalin sebagai kode ke dalam tes, namun ingin digunakan sebagai isi
+bibit _corpus_ dalam direktori `testdata/fuzz/{FuzzTestName}`.
+Perkakas
+https://pkg.go.dev/golang.org/x/tools/cmd/file2fuzz[file2fuzz^]
+yang ada di dalam
+`golang.org/x/tools/cmd/file2fuzz`
+dapat digunakan untuk mengonversi berkas binari tersebut menjadi berkas
+_corpus_ yang disimpan menjadi `[]byte`.
+
+Untuk menggunakan perkakas ini:
+
+----
+$ go install golang.org/x/tools/cmd/file2fuzz@latest
+$ file2fuzz -h
+----
+
+== Sumber terkait
+
+* *Tutorial*
+** Cobalah
+   link:/doc/tutorial/fuzz/[tutorial Go _fuzzing_^] untuk mendalami konsep
+   _fuzzing_.
+** Untuk yang lebih singkat, tutorial perkenalan _fuzzing_ pada Go, silahkan
+   lihat
+   https://go.dev/blog/fuzz-beta/[blog^].
+* *Dokumentasi*
+** Dokumentasi paket
+   https://pkg.go.dev/testing#hdr-Fuzzing[`testing`^]
+   menjelaskan tipe `testing.F` yang digunakan saat menulis fuzz tes.
+** Dokumentasi paket
+   https://pkg.go.dev/cmd/go[`cmd/go`^]
+   menjelaskan opsi-opsi yang berkaitan dengan _fuzzing_.
+* *Detil teknis*
+** https://go.dev/s/draft-fuzzing-design[Draf rancangan _fuzzing_^]
+** https://go.dev/issue/44551[Proposal^]
+
+
+[#glossary]
+== Glosarium
+
+[#glos-fuzzing-arguments]
+*argumen _fuzzing_*: Tipe-tipe yang akan dikirim ke target fuzz, dan
+dimutasi oleh
+link:#glos-mutator[mutator].
+
+[#glos-generated-corpus]
+*bangkitan _corpus_*: Sebuah _corpus_ yang diatur oleh mesin _fuzzing_ saat
+_fuzzing_ berjalan untuk mencatat progres.
+Ia disimpan dalam `$GOCACHE/fuzz`.
+Isi dari bangkitan _corpus_ ini hanya digunakan saat _fuzzing_.
+
+[#glos-test-file]
+*berkas tes*: Sebuah berkas dengan format `xxx_test.go` yang bisa berisi
+tes-test, _benchmark_, contoh-contoh kode dan fuzz tes.
+
+[#glos-seed-corpus]
+*bibit _corpus_*: _Corpus_ yang disediakan oleh pengembang untuk sebuah
+fuzz tes yang dapat digunakan sebagai panduan bagi mesin _fuzzing_.
+Isi _corpus_ dibentuk dari pemanggilan
+`f.add` di dalam fuzz tes, dan dari berkas-berkas di dalam direktori
+`testdata/fuzz/{FuzzTestName}` dari paket yang diuji.
+Isi-isi bibit _corpus_ ini dijalankan oleh `go test` baik bila dijalankan
+dengan opsi _fuzzing_ atau tidak.
+
+[#glos-vulnerability]
+*celah keamanan*: Kelemahan keamanan dalam kode yang dapat di-eksploitasi
+oleh peretas.
+
+[#glos-fuzz-test]
+*fuzz tes*: Sebuah fungsi dalam berkas tes dengan bentuk `func
+FuzzXxx(*testing.F)` yang dapat digunakan untuk _fuzzing_.
+
+[#glos-fuzzing]
+*fuzzing*: Sebuah tipe dari pengujian otomatis yang secara terus menerus
+memanipulasi input pada sebuah program untuk menemukan kesalahan seperti
+_bug_ atau
+link:#glos-vulnerability[celah keamanan]
+pada kode.
+
+[#glos-failing-input]
+*input gagal*: Sebuah input yang gagal yaitu isi _corpus_ yang akan
+menyebabkan sebuah kegagalan atau _panic_ saat dijalankan terhadap
+link:#glos-fuzz-target[target fuzz].
+
+[#glos-corpus-entry]
+*isi _corpus_*: Sebuah input dalam _corpus_ yang dapat digunakan saat
+_fuzzing_.
+Isi _corpus_ bisa berupa berkas dengan format khusus, atau pemanggilan
+ke
+https://pkg.go.dev/testing#F.Add[`(*testing.F).Add`^]
+
+[#glos-fuzzing-engine]
+*mesin _fuzzing_*: Sebuah perkakas yang mengatur _fuzzing_, termasuk
+menjaga _corpus_, memanggil mutator, meng-identifikasi cakupan yang baru,
+dan melaporkan kegagalan.
+
+[#glos-mutator]
+*mutator*: Sebuah perkakas yang digunakan saat _fuzzing_ yang secara acak
+memanipulasi isi _corpus_ sebelum mengirimnya ke target fuzz.
+
+[#glos-package]
+*paket*: Kumpulan berkas sumber kode dalam direktori yang sama yang
+dikompilasi bersamaan.
+Lihat
+link:/ref/spec#Packages[bab Paket^]
+dalam Spesifikasi Bahasa Go.
+
+[#glos-coverage-guidance]
+*panduan cakupan*: Sebuah metoda _fuzzing_ yang menggunakan ekspansi dalam
+cakupan kode untuk menentukan isi _corpus_ mana yang pantas disimpan untuk
+penggunaan dimasa depan.
+
+[#glos-fuzz-target]
+*target fuzz*: Fungsi dari fuzz tes yang dieksekusi dengan isi _corpus_ dan
+menghasilkan nilai saat _fuzzing_ berjalan.
+Sebuah target fuzz diberikan pada fuzz tes dengan mengirim fungsi tersebut
+ke
+https://pkg.go.dev/testing#F.Fuzz[`(*testing.F).Fuzz`^].
+
+
+== Umpan balik
+
+Jika Anda mengalami masalah atau memiliki ide untuk sebuah fitur, silahkan
+https://go.dev/issue/new?&labels=fuzz[kirim isu^].
+
+Untuk diskusi dan umpan balik umum tentang fitur, Anda juga dapat
+berpartisipasi dalam
+https://gophers.slack.com/archives/CH5KV1AKE["kanal #fuzzing"^]
+di Gophers Slack.

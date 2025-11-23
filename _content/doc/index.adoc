@@ -109,6 +109,11 @@ Sebuah tulisan yang harus dibaca bagi yang baru memprogram Go.
 Dokumen ini menggabungkan spesifikasi bahasa dan tur, yang mana keduanya
 sebaiknya dibaca terlebih dahulu.
 
+[#faq]
+===  link:/doc/faq/index.html[Tanya jawab^]
+
+Dokumen ini berisi jawaban dari pertanyaan yang sering diajukan tentang Go.
+
 [#editors]
 ===  link:/doc/editors.html[Plugin untuk editor dan IDE^]
 
@@ -127,10 +132,10 @@ permasalahan dalam program.
 Bila kode Anda menggunakan paket-paket eksternal, paket tersebut (yang
 didistribusikan sebagai module) menjadi dependensi.
 
-[#faq]
-===  link:/doc/faq/index.html[Tanya jawab^]
+=== link:/doc/security/fuzz/[_Fuzzing_^]
 
-Dokumen ini berisi jawaban dari pertanyaan yang sering diajukan tentang Go.
+Dokumentasi untuk _fuzzing_ pada Go.
+
 
 [#references]
 ==  Referensi

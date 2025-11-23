@@ -14,7 +14,7 @@ fungsi sederhana, mempelajari perintah-perintah go test untuk _fuzzing_, dan
 mencari dan memperbaiki isu-isu yang ditemukan fuzz tes.
 
 Untuk informasi lebih lanjut tentang terminologi dalam tutorial ini, lihatlah
-https://go.dev/security/fuzz/[glosarium Go _Fuzzing_^].
+link:/doc/security/fuzz/#glossary[glosarium Go _Fuzzing_^].
 
 Kita akan mempelajari beberapa bagian-bagian berikut,
 
@@ -29,7 +29,7 @@ NOTE: Untuk tutorial lainnya, lihat link:/doc/tutorial/[Tutorial].
 
 NOTE: Saat ini _fuzzing_ pada Go hanya mendukung sebagian dari tipe-tipe
 bawaan, yang terdaftar di
-https://go.dev/security/fuzz/#requirements[dokumentasi Go Fuzzing^],
+link:/doc/security/fuzz/#requirements[dokumentasi Go Fuzzing^],
 dukungan tipe bawaan lainnya akan ditambahkan di masa depan.
 
 
@@ -803,10 +803,10 @@ Pengujian _fuzz_ sukses!
 
 Sebagai tambahan dari opsi `-fuzz`, ada beberapa opsi baru yang telah
 ditambahkan ke `go test` yang dapat dilihat di
-https://go.dev/security/fuzz/#custom-settings[dokumentasi^].
+link:/doc/security/fuzz/#custom-settings[dokumentasi^].
 
 Lihat
-https://go.dev/security/fuzz/#command-line-output[Go Fuzzing^]
+link:/doc/security/fuzz/#command-line-output[Go Fuzzing^]
 untuk informasi lebih lanjut tentang istilah-istilah pada keluaran _fuzzing_.
 Misalnya, istilah "new interesting" mengacu pada input-input baru yang telah
 ditambahkan sesuai cakupan kode dari _corpus_ fuzz tes yang telah ada.
@@ -837,7 +837,7 @@ https://gophers.slack.com/archives/CH5KV1AKE["kanal #fuzzing"^]
 di Slack Gophers.
 
 Lihatlah dokumentasi tentang
-https://go.dev/security/fuzz/[Go Fuzzing^]
+link:/doc/security/fuzz/[Go Fuzzing^]
 untuk bacaan lebih lanjut.
 
 
