@@ -1,0 +1,735 @@
+= Tutorial: Mengakses basis-data relasional
+
+Tutorial ini memperkenalkan dasar-dasar mengakses basis-data relasional
+dengan Go menggunakan paket `database/sql` dari pustaka baku.
+
+Anda akan lebih mudah mengikuti tutorial ini bila telah terbiasa dengan
+perkakas Go.
+Bila ini adalah pengalaman pertama Anda dengan Go, silahkan lihat
+link:/doc/tutorial/getting-started/[Memulai dengan Go]
+untuk pengenalan singkat.
+
+Paket
+https://pkg.go.dev/database/sql[`database/sql`^]
+memiliki beragam tipe dan fungsi untuk terhubung ke basis-data, mengeksekusi
+transaksi, membatalkan operasi yang sedang berjalan, dan banyak lagi.
+Untuk rincian tentang penggunaan paket, lihat
+link:/doc/database/[Mengakses basis-data].
+
+Pada tutorial ini, kita akan membuat sebuah basis-data, dan menulis kode
+untuk mengakses basis-data.
+Data yang akan kita gunakan pada proyek contoh ini yaitu album-album musik
+jazz lama.
+
+Dalam tutorial ini, kita akan melewati tahap-tahap berikut:
+
+. Membuat direktori untuk penyimpanan kode.
+. Menyiapkan sebuah basis-data.
+. Mengimpor _driver_ untuk basis-data.
+. Terhubung ke basis-data.
+. Mengambil banyak baris dari basis-data.
+. Mengambil sebuah baris dari basis-data.
+. Menambahkan data.
+
+NOTE: Untuk tutorial lainnya, lihat
+link:/doc/tutorial/[halaman Tutorial].
+
+[#prerequisites]
+== Kebutuhan
+
+* Pemasangan sistem manajemen basis-data (_database management system_ atau
+  DBMS)
+  https://www.postgresql.org/download/[PostgreSQL^].
+* Pemasangan Go.
+  Untuk instruksi pemasangan lihat
+  link:/doc/install/[Memasang Go].
+* Perkakas untuk menyunting kode.
+* Terminal untuk mengeksekusi perintah.
+  Go bekerja di terminal mana pun di sistem Linux dan Mac dan di
+  `PowerShell` atau `cmd` di Windows.
+
+[#create_folder]
+== Buat direktori untuk penyimpanan kode
+
+Untuk memulai, buatlah sebuah direktori untuk kode yang akan kita tulis.
+
+. Buka terminal dan pindah ke direktori pengguna Anda.
++
+--
+Pada Linux atau Mac:
+----
+$ cd
+----
+Pada Windows:
+----
+C:\> cd %HOMEPATH%
+----
+Selanjutnya pada tutorial ini kita akan menggunakan `$` sebagai tanda
+perintah terminal.
+Perintah yang akan tertera bisa berjalan pada Windows juga.
+--
+
+. Dari terminal, buatlah sebuah direktori bernama `data-access`.
++
+--
+----
+$ mkdir data-access
+$ cd data-access
+----
+--
+
+. Buat sebuah modul untuk menyimpan dependensi yang nanti kita tambahkan
+  selama tutorial.
++
+--
+Jalankan perintah `go mod init`, dengan parameter nama modul.
+----
+$ go mod init example/data-access
+go: creating new go.mod: module example/data-access
+----
+Perintah ini membuat berkas `go.mod` tempat dependensi yang nanti kita
+tambahkan akan tersimpan.
+Untuk informasi lanjut, lihat
+link:/doc/modules/managing-dependencies/[Manajemen dependensi].
+
+NOTE: Pada pengembangan sebenarnya, Anda sebaiknya membuat nama modul yang
+sesuai dengan lingkungan kerja Anda.
+Lebih lanjut, lihat
+link:/doc/modules/managing-dependencies#naming_module[Manajemen dependensi].
+--
+
+Selanjutnya kita akan membuat sebuah basis-data.
+
+[#set_up_database]
+== Menyiapkan sebuah basis-data
+
+Pada langkah ini, kita akan membuat basis-data yang akan kita gunakan selama
+tutorial ini.
+Kita akan menggunakan antar-muka perintah (_command-line interface_ atau
+CLI) yang disediakan oleh DBMS untuk membuat basis-data dan tabel, dan juga
+untuk menambahkan data.
+
+Kita akan membuat sebuah basis-data tentang album-album jazz lama.
+
+Perintah-perintah dalam bagian ini meggunakan
+https://www.postgresql.org/docs/18/app-psql.html[PostgreSQL psql],
+namun kebanyakan DBMS memiliki CLI mereka sendiri dengan fitur-fitur yang
+mirip.
+
+. Buka terminal yang baru.
+. Masuk ke DBMS, berikut contoh pada PostgreSQL.
++
+--
+----
+$ psql -U postgres
+postgres=#
+----
+--
+. Pada baris perintah `postgres=#`, buat lah sebuah basis-data.
++
+--
+----
+postgres=# create database recordings;
+----
+--
+
+. Pindah lah ke basis-data yang baru kita buat untuk membuat tabel.
++
+--
+----
+postgres=# \c recordings
+You are now connected to database "recordings" as user "postgres".
+recordings=#
+----
+--
+
+. Dalam direktori `data-access`, buatlah sebuah berkas bernama
+  `create-tables.sql` yang akan menyimpan skrip SQL untuk membuat
+  tabel-tabel.
+
+. Di dalam berkas tersebut, tempel kode SQL berikut, kemudian simpan berkas.
++
+--
+----
+DROP TABLE IF EXISTS album;
+CREATE TABLE album (
+  id         SERIAL,
+  title      VARCHAR(128) NOT NULL,
+  artist     VARCHAR(255) NOT NULL,
+  price      DECIMAL(5,2) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+
+INSERT INTO album
+  (title, artist, price)
+VALUES
+  ('Blue Train', 'John Coltrane', 56.99),
+  ('Giant Steps', 'John Coltrane', 63.99),
+  ('Jeru', 'Gerry Mulligan', 17.99),
+  ('Sarah Vaughan', 'Sarah Vaughan', 34.98);
+----
+Dalam kode SQL ini, kita:
+
+* Menghapus (_drop_) sebuah tabel bernama `album`.
+  Mengeksekusi perintah ini terlebih dahulu membuat kita lebih mudah
+  menjalankan ulang skrip nantinya, seandainya kita akan ulang lagi dari awal.
+* Membuat sebuah tabel `album` dengan empat kolom: `id`, `title`, `artist`,
+  dan `price`.
+  Setiap nilai kolom `id` diisi oleh DBMS secara otomatis.
+* Menambahkan empat baris data ke dalam tabel `album`.
+--
+
+. Dari terminal `psql`, jalankan skrip yang baru kita buat tersebut.
++
+--
+Kita gunakan perintah `\\i` dengan cara berikut:
+----
+recordings=# \i create-tables.sql
+----
+--
+
+. Lewat terminal psql, gunakan perintah `SELECT` untuk memeriksa bahwa tabel
+  telah terbuat dan berisi data.
++
+--
+----
+recordings=# select * from album;
+ id |     title     |     artist     | price 
+----+---------------+----------------+-------
+  1 | Blue Train    | John Coltrane  | 56.99
+  2 | Giant Steps   | John Coltrane  | 63.99
+  3 | Jeru          | Gerry Mulligan | 17.99
+  4 | Sarah Vaughan | Sarah Vaughan  | 34.98
+(4 rows)
+----
+--
+
+Selanjutnya, kita akan menulis kode Go untuk terhubung ke basis-data dan
+membaca data dari dalam tabel.
+
+[#import_driver]
+== Mengimpor _driver_ untuk basis-data
+
+Setelah kita memiliki sebuah basis-data yang berisi sebuah tabel dan data,
+saatnya mulai menulis kode Go.
+
+Untuk itu kita membutuhkan sebuah _driver_ basis-data yang akan
+menerjemahkan permintaan yang kita buat lewat fungsi-fungsi dalam paket
+`database/sql` menjadi permintaan yang dapat dipahami oleh basis-data.
+
+. Lewat peramban, kunjungi halaman wiki
+  https://go.dev/wiki/SQLDrivers[SQLDrivers^]
+  untuk menentukan _driver_ yang akan kita gunakan.
++
+--
+Gunakan daftar di halaman tersebut untuk menentukan _driver_ yang akan kita
+gunakan.
+Untuk mengakses PostgreSQL dalam tutorial ini, kita akan menggunakan modul
+https://github.com/lib/pq[github.com/lib/pq]
+--
+
+. Catat nama modul dari _driver_ -- yaitu, `github.com/lib/pq`.
+
+. Buat sebuah berkas `main.go` untuk menulis kode Go yang disimpan dalam
+  direktori `data-access`.
+
+. Dalam `main.go`, tempel kode berikut untuk mengimpor _driver_.
++
+--
+----
+package main
+
+import "github.com/lib/pq"
+----
+Dalam kode ini, kita:
+
+* Menambahkan berkas kode tersebut ke dalam paket `main` sehingga kita dapat
+  mengeksekusi-nya nanti.
+* Mengimpor _driver_ PostgreSQL `github.com/lib/pq`.
+--
+
+Setelah mengimpor _driver_, kita akan memulai menulis kode untuk mengakses
+basis-data.
+
+[#get_handle]
+== Terhubung ke basis-data
+
+Sekarang tulis kode Go yang menghubungkan Anda ke basis-data.
+
+Kita akan menggunakan _pointer_ ke struct `sql.DB`, yang merepresentasikan
+akses ke basis-data.
+
+=== Menulis kode
+
+. Dalam `main.go` di bawah kode `import` yang kita tambahkan sebelumnya,
+  tempel kode Go berikut untuk membuat koneksi ke basis-data.
++
+--
+----
+func main() {
+	// Contoh DATABASE_URL = "postgres://username:password@localhost:5432/database_name"
+	databaseUrl := os.Getenv("DATABASE_URL")
+	var connector *pq.Connector
+	var err error
+	connector, err = pq.NewConnector(databaseUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var db *sql.DB
+	db = sql.OpenDB(connector)
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Terhubung!")
+    }
+----
+Dalam kode tersebut, kita:
+
+* Menggunakan
+  https://pkg.go.dev/github.com/lib/pq#NewConnector[`pq.NewConnector`] untuk
+  membuat penghubung yang menerima alamat basis-data.
+
+* Memeriksa kegagalan dari `pq.NewConnector`.
+  Fungsi ini bisa gagal bila alamat koneksi salah.
+  Untuk mempermudah kode, kita gunakan `log.Fatal` untuk mengakhiri
+  eksekusi dan mencetak galat ke layar.
+
+* Memanggil
+  https://pkg.go.dev/database/sql#OpenDB[`sql.OpenDB`]
+  untuk menginisialiasi variabel `db` dengan mengirim nilai kembalian dari
+  `NewConnector`.
+
+* Memanggil
+  https://pkg.go.dev/database/sql#DB.Ping[`DB.Ping`]
+  untuk memastikan bahwa koneksi ke basis-data bekerja.
+  Pada saat program dijalankan, pemanggilan `sql.OpenDB` bisa jadi tidak
+  langsung terhubung ke basis-data, bergantung kepada _driver_ yang
+  digunakan.
+
+* Memeriksa galat dari `Ping`, bila koneksi gagal.
+
+* Mencetak pesan bila `Ping` terhubung dengan sukses.
+--
+
+. Di bagian atas berkas `main.go`, di bawah deklarasi paket, impor
+  paket-paket yang kita butuhkan untuk mendukung kode yang telah kita tulis.
++
+--
+Bagian atas dari berkas seharusnya seperti berikut:
+----
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/lib/pq"
+)
+----
+--
+
+. Simpan berkas `main.go`
+
+=== Jalankan kode
+
+.  Tambahkan modul _driver_ PostgreSQL sebagai dependensi.
++
+--
+Gunakan perintah
+https://go.dev/cmd/go/#hdr-Add_dependencies_to_current_module_and_install_them["`go get`"]
+untuk menambahkan modul "github.com/lib/pq" sebagai dependensi ke dalam
+modul kita.
+Gunakan argumen titik yang artinya "ambil semua dependensi kode dalam
+direktori ini".
+----
+$ go get .
+go: added github.com/lib/pq v1.10.9
+----
+Go mengunduh dependensi tersebut karena kita menambahkannya ke dalam
+deklarasi `import` pada langkah sebelumnya.
+Untuk informasi lanjut tentang pelacakan dependensi, lihat
+link:/doc/modules/managing-dependencies#adding_dependency[Menambahkan sebuah
+dependensi].
+--
+
+. Dari terminal, set variabel lingkungan `DATABASE_URL` untuk digunakan pada
+  program.
++
+--
+Pada Linux atau Mac:
+----
+$ export DATABASE_URL=postgresql://postgres@127.0.0.1/recordings?sslmode=disable
+----
+Pada Windows:
+----
+C:\> set DATABASE_URL=postgresql://postgres@127.0.0.1/recordings?sslmode=disable
+----
+--
+
+. Dari dalam direktori yang berisi `main.go`, jalankan kode dengan perintah
+  `go run` dengan argumen titik yang artinya "jalankan paket main di dalam
+  direktori ini".
++
+--
+----
+$ go run .
+Terhubung!
+----
+--
+
+Kita telah terhubung!
+Selanjutnya, kita akan mengambil beberapa baris dari basis-data.
+
+
+[#multiple_rows]
+== Mengambil banyak baris
+
+Pada bab ini, kita akan gunakan Go untuk mengeksekusi kueri SQL untuk
+mengembalikan banyak baris.
+
+Untuk perintah SQL yang mengembalikan banyak baris, kita gunakan method
+`Query` dari paket `database/sql`, kemudian mengiterasi baris-baris yang
+dikembalikan.
+(Kita akan belajar mengambil sebuah baris nantinya, dalam bab
+link:#single_row[Mengambil sebuah baris]).
+
+=== Menulis kode
+
+. Dalam `main.go`, sebelum `func main`, tempel definisi struct `Album`
+  berikut.
+  Kita akan menggunakan struct ini untuk menyimpan data yang dikembalikan
+  dari kueri.
++
+--
+----
+type Album struct {
+	ID     int64
+	Title  string
+	Artist string
+	Price  float32
+}
+----
+--
+
+. Sebelum `func main`, tempel fungsi `albumsByArtist` untuk kueri ke
+  basis-data.
++
+--
+----
+// albumsByArtist mengambil album-album berdasarkan nama artis.
+func albumsByArtist(db *sql.DB, name string) ([]Album, error) {
+	// albums adalah slice yang menyimpan data dari hasil kueri.
+	var albums []Album
+
+	rows, err := db.Query(`
+		SELECT id, title, artist, price
+		FROM album
+		WHERE artist = $1`, name)
+	if err != nil {
+		return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
+	}
+	defer rows.Close()
+
+	// Iterasi pada rows, menggunakan Scan untuk menyimpan data ke dalam
+	// struct Album.
+	for rows.Next() {
+		var alb Album
+		err := rows.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price)
+		if err != nil {
+			return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
+		}
+		albums = append(albums, alb)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("albumsByArtist %q: %v", name, err)
+	}
+	return albums, nil
+}
+----
+Dalam kode tersebut, kita:
+
+* Mendeklarasikan sebuah slice `albums` bertipe `Album`.
+  Slice ini akan menyimpan baris-baris data kembalian dari basis-data.
+  Field-field pada struct berkorespondensi dengan nama dan tipe kolum pada
+  basis-data.
+* Menggunakan
+  https://pkg.go.dev/database/sql#DB.Query[`DB.Query`]
+  yang mengeksekusi perintah `SELECT` untuk mengueri album berdasarkan
+  nama artis.
++
+--
+Parameter pertama dari `Query` yaitu perintah SQL.
+Setelah perintah SQL, kita bisa mengirim nol atau lebih parameter dengan
+tipe apa pun, sebagai nilai dari parameter dalam perintah SQL.
+Dengan memisahkan perintah SQL dari nilai parameter (bukan dengan
+menggabungkannya dengan, katakan lah, `fmt.Sprintf`), kita membuat paket
+`database/sql` mengirim nilai terpisah dari teks SQL, menghindari resiko
+injeksi SQL.
+--
+
+* Menunda penutupan `rows` sampai fungsi keluar, supaya sumber yang
+  terpakai dapat dirilis kembali ke sistem.
+
+* Iterasi kembalian `rows`, menggunakan
+  https://pkg.go.dev/database/sql#Rows.Scan[`Rows.Scan`]
+  untuk mengisi setiap nilai baris kolom ke dalam field struct `Album`.
++
+--
+`Scan` menerima pointer ke variabel, tempat nilai kolom akan ditulis.
+Di sini kita mengirim pointer ke variabel `alb`, dibuat menggunakan operator
+`&`.
+`Scan` menulis lewat pointer untuk mengisi field pada struct.
+--
+
+* Di dalam iterasi, periksa kesalahan saat mengonversi nilai kolom ke dalam
+  field-field struct.
+
+* Di dalam iterasi, tambahkan nilai `alb` yang baru ke dalam slice `album`.
+
+* Setelah iterasi, periksa galat dari semua kueri, menggunakan
+  `rows.Err`.
+  Jika kueri gagal, satu-satunya cara memeriksa galat untuk mengetahui
+  apakah berhasil atau tidak hanyalah di sini.
+--
+
+. Perbarui fungsi `main` supaya memanggil `albumsByArtist`.
++
+--
+Di akhir `func main`, tambahkan kode berikut.
+----
+albums, err := albumsByArtist("John Coltrane")
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Printf("Albums ditemukan: %v\n", albums)
+----
+Dalam kode di atas, kita:
+
+* Memanggil fungsi `albumsByArtist` yang ditambahkan sebelumnya, menyimpan
+  nilai kembalian ke variabel `albums`.
+
+* Mencetak hasil.
+--
+
+=== Menjalankan kode
+
+Dari terminal, dalam direktori yang berisi `main.go`, jalankan kode.
+
+----
+$ go run .
+Terhubung!
+Albums ditemukan: [{1 Blue Train John Coltrane 56.99} {2 Giant Steps John Coltrane 63.99}]
+----
+
+Selanjutnya, kita akan mengueri satu baris data.
+
+[#single_row]
+== Kueri satu baris data
+
+Pada bab ini, kita akan mengueri sebuah baris dalam basis-data.
+
+Untuk perintah SQL yang mengembalikan sebuah baris, kita
+dapat menggunakan `QueryRow`, yang lebih mudah daripada `Query`.
+
+
+=== Menulis kode
+
+. Di bawah `albumsByArtist`, tempel fungsi `albumByID` berikut,
++
+--
+----
+// albumByID kueri album berdasarkan ID.
+func albumByID(db *sql.DB, id int64) (Album, error) {
+	// Variabel yang menyimpan baris kembalian dari basis-data.
+	var alb Album
+
+	row := db.QueryRow(`
+		SELECT id, title, artist, price
+		FROM album WHERE id = $1", id)
+	err := row.Scan(&alb.ID, &alb.Title, &alb.Artist, &alb.Price)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return alb, fmt.Errorf("albumsById %d: album tidak ditemukan", id)
+		}
+		return alb, fmt.Errorf("albumsById %d: %v", id, err)
+	}
+	return alb, nil
+}
+----
+Dalam kode tersebut, kita:
+
+* Menggunakan
+  https://pkg.go.dev/database/sql#DB.QueryRow[`DB.QueryRow`]
+  untuk mengeksekusi perintah `SELECT` untuk mengueri sebuah album dengan ID
+  tertentu.
++
+--
+Fungsi `QueryRow` mengembalikan `sql.Row`.
+Fungsi `QueryRow` tidak mengembalikan sebuah `error`.
+Namun, ia akan mengembalikan sebuah `error` nanti saat `Row.Scan` dipanggil.
+--
+
+* Menggunakan 
+  https://pkg.go.dev/database/sql#Row.Scan[`Row.Scan`]
+  untuk menyalin nilai kolom ke dalam field-field pada struct.
+
+* Memeriksa galat dari `Scan`.
++
+--
+Galat `sql.ErrNoRows` mengindikasikan bahwa kueri tidak mengembalikan baris.
+Biasanya, galat tersebut diganti dengan teks yang lebih berarti, seperti
+"album tidak ditemukan".
+--
+--
+
+. Perbarui `main` supaya memanggil `albumByID`.
++
+--
+Pada akhir `func main`, tambahkan kode berikut.
+----
+// Tulis langsung ID 2 untuk menguji kueri.
+alb, err := albumByID(2)
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Printf("Album ditemukan: %v\n", alb)
+----
+Pada kode di atas, kita:
+
+* Memanggil fungsi `albumByID` yang baru ditambahkan.
+* Mencetak album yang dikembalikan.
+--
+
+=== Menjalankan kode
+
+Dari terminal, dalam direktori yang berisikan `main.go`, jalankan kode.
+
+----
+$ go run .
+Terhubung!
+Albums ditemukan: [{1 Blue Train John Coltrane 56.99} {2 Giant Steps John Coltrane 63.99}]
+Album ditemukan: {2 Giant Steps John Coltrane 63.99}
+----
+
+Selanjutnya, kita akan menambahkan sebuah album ke dalam basis-data.
+
+
+[#add_data]
+== Menambahkan data
+
+Pada bab ini, kita akan mengeksekusi perintah SQL `INSERT` untuk menambahkan
+sebuah baris baru pada basis-data.
+
+Kita telah melihat cara menggunakan perintah SQL `Query` dan `QueryRow`
+untuk mengambil data.
+Untuk mengeksekusi perintah SQL yang _tidak_ mengembalikan data, kita
+gunakan `Exec`.
+Khusus pada PostgreSQL, bila kita ingin mengambil ID yang baru dari hasil
+`INSERT` kita tetap harus menggunakan `QueryRow` diikuti dengan `Scan`.
+
+=== Menulis kode
+
+. Di bawah `albumByID`, tempel fungsi `addAlbum` berikut untuk mengisi
+  sebuah album baru ke basis-data, kemudian simpan `main.go`.
++
+--
+----
+// addAlbum menambahkan sebuah album baru ke dalam basis-data dan
+// mengembalikan ID album yang baru.
+func addAlbum(db *sql.DB, alb Album) (int64, error) {
+	var id int64
+	err := db.QueryRow(`
+		INSERT INTO album (title, artist, price)
+		VALUES ($1, $2, $3)
+		RETURNING id`,
+		alb.Title, alb.Artist, alb.Price).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("addAlbum: %v", err)
+	}
+	return id, nil
+}
+----
+Dalam kode ini, kita:
+
+* Menggunakan
+https://pkg.go.dev/database/sql#DB.QueryRow[`DB.QueryRow`]
+untuk mengeksekusi perintah `INSERT`.
+
+* Menerima ID dari baris yang baru diisi ke basis-data menggunakan
+  https://pkg.go.dev/database/sql#Row.Scan[`Row.Scan`]
+
+* Memeriksa galat dari pengambilan ID
+--
+
+. Perbarui `main` supaya memanggil fungsi `addAlbum`.
++
+--
+Pada akhir `func main`, tambah kode berikut.
+----
+albID, err := addAlbum(db, Album{
+	Title:  "The Modern Sound of Betty Carter",
+	Artist: "Betty Carter",
+	Price:  49.99,
+})
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Printf("ID dari album baru: %v\n", albID)
+----
+Pada kode yang baru ini, kita:
+
+* Memanggil `addAlbum` dengan sebuah album baru, dan menerima ID dari album
+  yang baru ke variabel `albID`.
+--
+
+=== Jalankan kode
+
+Dari terminal, di dalam direktori yang berisi `main.go`, jalankan kode.
+
+----
+$ go run .
+Terhubung!
+Albums ditemukan: [{1 Blue Train John Coltrane 56.99} {2 Giant Steps John Coltrane 63.99}]
+Album ditemukan: {2 Giant Steps John Coltrane 63.99}
+ID dari album baru: 5
+----
+
+
+[#conclusion]
+== Kesimpulan
+
+Selamat!
+Kita baru saja menggunakan Go untuk melakukan aksi-aksi sederhana dengan
+basis-data relasional.
+
+Rekomendasi topik-topik selanjutnya:
+
+* Lihatlah panduan
+  link:/doc/database/[data akses], yang mengikutkan informasi lanjut tentang
+  subjek-subjek yang kita pelajari di sini.
+
+* Jika Anda baru belajar Go, Anda akan menemukan praktik terbaik dijelaskan
+  dalam
+  link:/doc/effective_go/[Efektif Go]
+  dan
+  link:/doc/code/[Menulis kode Go].
+
+* https://tur.golang-id.org/welcome/1[Tur Go]
+  adalah pengenalan langkah demi langkah dari fundamental Go.
+
+
+[#completed_code]
+== Kode lengkap
+
+Bab ini berisi kode lengkap untuk aplikasi yang telah kita buat selama
+tutorial ini.
+
+----
+include::data-access/main.go[]
+----

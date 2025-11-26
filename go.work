@@ -1,0 +1,6 @@
+go 1.24.0
+
+use (
+	.
+	./_content/doc/tutorial/database-access/data-access
+)

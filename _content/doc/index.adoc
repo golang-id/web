@@ -161,3 +161,11 @@ dihasilkan oleh penulisan ke variabel yang sama dalam goroutine yang berbeda.
 ===  link:/proposal/[Proposal^]
 
 Dokumentasi proposal perubahan pada bahasa Go dalam Bahasa Inggris.
+
+
+== Mengakses basis-data
+
+=== link:/doc/tutorial/database-access/[Tutorial: Mengakses basis-data relasional^]
+
+Tutorial ini memperkenalkan dasar-dasar mengakses basis-data relasional
+dengan Go menggunakan paket `database/sql` dari pustaka baku.
