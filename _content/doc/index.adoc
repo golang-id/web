@@ -163,7 +163,12 @@ dihasilkan oleh penulisan ke variabel yang sama dalam goroutine yang berbeda.
 Dokumentasi proposal perubahan pada bahasa Go dalam Bahasa Inggris.
 
 
+[#database]
 == Mengakses basis-data
+
+=== link:/doc/database/[Mengakses basis-data relasional]
+
+Ringkasan tentang fitur-fitur akses data pada Go.
 
 === link:/doc/tutorial/database-access/[Tutorial: Mengakses basis-data relasional^]
 

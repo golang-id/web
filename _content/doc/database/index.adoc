@@ -1,0 +1,129 @@
+= Mengakses basis-data relasional
+
+Dengan Go, kita dapat menggunakan beragam basis-data ke dalam aplikasi kita.
+Topik-topik dalam bab ini menjelaskan bagaimana menggunakan paket
+https://pkg.go.dev/database/sql[`database/sql`]
+dari pustaka baku untuk mengakses basis-data relasional.
+
+Sebagai tutorial pengenalan untuk akses data dengan Go, silahkan lihat
+link:/doc/tutorial/database-access/[Tutorial: Mengakses basis-data relasional].
+
+Go mendukung teknologi-teknologi akses data lain juga, termasuk
+pustaka-pustaka _Object Relational-Mapping_ (ORM) untuk akses tingkat-tinggi
+terhadap basis-data relasional, dan juga penyimpanan data non-relasional
+NoSQL.
+
+* *Pustaka-pustaka ORM*.
+  Bila paket `database/sql` mengikutkan fungsi-fungsi akses data
+  tingkat-rendah, Anda juga dapat memakai Go untuk mengakses penyimpanan
+  data dengan abstraksi tingkat-tinggi.
+  Untuk info lebih lanjut tentang pustaka ORM yang terkenal pada Go,
+  lihat
+  https://gorm.io/index.html[GORM^]
+  (https://pkg.go.dev/gorm.io/gorm[referensi paket^]).
+  dan
+  https://entgo.io/[ent^]
+  (https://pkg.go.dev/entgo.io/ent[referensi paket^]).
+
+* *Penyimpanan data NoSQL*.
+  Komunitas Go telah mengembangkan _driver_ untuk mayoritas basis-data
+  NoSQL, termasuk
+  https://docs.mongodb.com/drivers/go/[MongoDB^]
+  dan
+  https://docs.couchbase.com/go-sdk/current/hello-world/overview.html[Couchbase^].
+  Anda bisa mencari di
+  https://pkg.go.dev/[pkg.go.dev^]
+  untuk _driver-driver_ NoSQL lainnya.
+
+
+[#supported_dbms]
+=== Sistem manajemen basis-data yang didukung
+
+Go mendukung hampir semua sistem manajemen basis-data relasional yang umum,
+termasuk MySQL, Oracle, PostgreSQL, SQL Server, SQLite, dan banyak lagi.
+
+Anda bisa menemukan daftar lengkap dari _driver_ tersebut di halaman
+https://go.dev/wiki/SQLDrivers[SQLDrivers].
+
+
+[#functions]
+=== Fungsi untuk eksekusi kueri dan mengubah data
+
+Paket `database/sql` berisi fungsi-fungsi yang dirancang secara khusus untuk
+operasi basis-data.
+Misalnya, fungsi `Query` dan `QueryRow` dapat digunakan untuk mengesekusi
+kueri, `QueryRow` dirancang untuk kasus dimana Anda mengharapkan kembalian
+satu baris saja.
+Anda dapat menggunakan fungsi `Exec` untuk membuat perubahan data dengan
+perintah SQL seperti `INSERT`, `UPDATE`, atau `DELETE`.
+
+Lebih lanjut, lihat bagian berikut:
+
+* link:/doc/database/change-data/[Mengeksekusi perintah SQL yang tidak
+  mengembalikan data]
+* link:/doc/database/querying/[Mengueri data]
+
+[#transactions]
+=== Transaksi
+
+Lewat `sql.Tx`, kita dapat menulis kode untuk mengeksekusi operasi
+basis-data dalam sebuah transaksi.
+Di dalam sebuah transaksi, banyak operasi dapat dilakukan bersamaan dan
+diakhiri dengan sebuah _commit_, untuk menyimpan semua perubahan secara
+_atomic_, atau sebuah _rollback_, untuk mengabaikan semua.
+
+Lebih lanjut tentang transaksi, lihat
+link:/doc/database/execute-transactions/[Mengeksekusi transaksi].
+
+[#query_cancellation]
+=== Pembatalan kueri
+
+Kita dapat menggunakan `context.Context` jika kita menginginkan supaya
+operasi basis-data dapat dibatalkan, seperti saat koneksi dari klien
+terputus atau operasi berjalan terlalu lama dari yang kita inginkan.
+
+Untuk setiap operasi basis-data, kita dapat gunakan fungsi dari paket
+`database/sql` yang menerima `Context` sebagai argumen.
+Dengan `Context`, kita dapat menentukan tenggat waktu operasi.
+Kita juga dapat menggunakan `Context` untuk menyebarkan permintaan
+pembatalan dari aplikasi ke fungsi yang mengeksekusi perintah SQL,
+memastikan bahwa sumber yang terpakai dibebaskan bila tidak dibutuhkan lagi.
+
+Lebih lanjut, lihat
+link:/doc/database/cancel-operations/[Pembatalan operasi]
+
+[#connection_pool]
+=== Mengatur _pool_ koneksi
+
+Saat menggunakan `sql.DB`, kita terhubung dengan _pool_ koneksi bawaan yang
+membuat dan menutup koneksi berdasarkan kebutuhan kode.
+Penggunaan `sql.DB` adalah cara paling umum untuk mengakses basis-data pada
+Go.
+Lebih lanjut, lihat
+link:/doc/database/open-handle/[Membuat koneksi basis-data].
+
+Paket `database/sql` mengatur _pool_ koneksi untuk Anda.
+Namun, untuk kebutuhan tingkat lanjut, Anda dapat mengatur _pool_ koneksi
+seperti yang dijelaskan dalam
+link:/doc/database/manage-connections#connection_pool_properties[Mengatur
+properti _pool_ koneksi].
+
+Untuk operasi-operasi yang mana Anda membutuhkan satu koneksi,
+paket `database/sql` menyediakan
+https://pkg.go.dev/database/sql#Conn[`sql.Conn`^]
+`Conn` sangat berguna bila sebuah transaksi dengan `sql.Tx` bukan pilihan
+yang tepat.
+
+Sebagai contoh, kode Anda bisa saja butuh:
+
+* Membuat perubahan skema lewat _Data-Definition Language_ (DDL),
+  mengikutkan logika yang berisi semantik transaksi sendiri.
+  Mencampurkan fungsi transaksi paket `sql` dengan perintah transaksi SQL
+  adalah praktik yang tidak bagus, seperti yang dijelaskan dalam
+  link:/doc/database/execute-transaction/[Mengeksekusi transaksi].
+
+* Melakukan operasi yang mengunci kueri yang membuat tabel-tabel sementara.
+
+Lebih lanjut, lihat
+link:/doc/database/manage-connections#dedicated_connections[Menggunakan
+koneksi tunggal].
