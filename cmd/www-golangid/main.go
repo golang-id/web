@@ -11,6 +11,7 @@ import (
 
 	"git.sr.ht/~shulhan/ciigo"
 	"git.sr.ht/~shulhan/pakakeh.go/lib/memfs"
+	"git.sr.ht/~shulhan/pakakeh.go/lib/systemd"
 )
 
 var memFS *memfs.MemFS
@@ -56,6 +57,21 @@ func main() {
 	case cmdEmbed:
 		err = ciigo.GoEmbed(embedOpts)
 	default:
+		listeners, err := systemd.Listeners(true)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if len(listeners) > 1 {
+			log.Fatal(`too many listeners received for activation`)
+		}
+		if len(listeners) == 1 {
+			serveOpts.Listener = listeners[0]
+			gotAddr := serveOpts.Listener.Addr().String()
+			if gotAddr != serveOpts.Address {
+				log.Fatalf(`invalid Listener address, got %s, want %s`,
+					gotAddr, serveOpts.Address)
+			}
+		}
 		err = ciigo.Serve(serveOpts)
 	}
 	if err != nil {
