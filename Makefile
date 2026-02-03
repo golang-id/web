@@ -38,6 +38,13 @@ deploy-build: embed
 deploy-remote: deploy-build
 	rsync --progress ./$(PROGRAM_NAME) golang-id.org:/data/app/bin/
 
+.PHONY: on-webhook
+on-webhook: CGO_ENABLED=0
+on-webhook: GOOS=linux
+on-webhook: GOARCH=amd64
+on-webhook: build
+	sudo rsync --progress ./$(PROGRAM_NAME) /data/app/bin/$(PROGRAM_NAME)
+
 
 ##---- Local installation.
 
