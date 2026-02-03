@@ -24,14 +24,14 @@ dan terjemahannya dapat diakses lewat tautan
 https://golang-id.org/blog/using-go-modules.
 
 
-==  link:/doc/[Dokumentasi^]
+==  Dokumentasi
 
 Untuk mengetahui cara memasang bahasa Go di sistem operasi anda dan belajar
 lebih lanjut, silakan buka halaman
 link:/doc/[dokumentasi^].
 
 
-==  link:/blog/[Blog^]
+==  Blog
 
 Halaman ini berisi daftar terjemahan blog dari proyek Go resmi dan blog dari
 komunitas Go Indonesia.
@@ -100,7 +100,7 @@ Indonesia.
 Grup untuk berdiskusi dan tanya jawab dengan cepat mengenai apa pun.
 
 
-==  link:/berkontribusi.html[Berkontribusi^]
+==  Berkontribusi
 
 Siapa pun dapat berkontribusi dalam situs ini.
 Untuk melihat daftar kontribusi yang dapat dilakukan, silakan kunjungi

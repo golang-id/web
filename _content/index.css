@@ -1,0 +1,38 @@
+:root {
+  --light-anchor: #007d9c !important;
+  --light-bg-topbar: #007d9c !important;
+  --dark-anchor: #50b7e0 !important;
+  --dark-bg-mono: #2d2d2d !important;
+  --dark-bg-topbar: #007d9c !important;
+  --dark-bg: #202224 !important;
+  --dark-fg: #f0f1f2 !important;
+}
+a {
+  text-decoration: none;
+}
+a:hover {
+  text-decoration-line: underline;
+}
+.topbar .item {
+  padding: 0 1.5rem;
+}
+.topbar > a {
+  color: var(--dark-fg) !important;
+  font-weight: bold;
+  text-decoration-line: underline !important;
+}
+.header-logo {
+  background-color: transparent;
+}
+.header-logo {
+  width: 80px;
+  margin: 0;
+}
+.footer {
+  color: var(--dark-fg);
+}
+.footer a {
+  color: var(--dark-fg) !important;
+  font-weight: bold;
+  text-decoration: underline;
+}

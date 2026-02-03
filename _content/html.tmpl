@@ -1,22 +1,23 @@
 <!DOCTYPE html lang="id">
 <html>
-
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#375EAB" />
-    <meta name="description" content="Situs komunitas Go Indonesia" />
-    <meta keywords="komunitas Go indonesia" />
+    <meta name="description" content="Situs komunitas Bahasa Go Indonesia" />
+    <meta keywords="Bahasa Go Indonesia" />
     <meta name="robots" content="index,follow" />
 
     <title>{{.Title}}</title>
-    <link rel="stylesheet" href="/assets/style.css" />
     <link rel="stylesheet" href="//storage.googleapis.com/umum.kilabit.info/assets/fonts/go/stylesheet.css" />
-
+{{- if ne .EmbeddedCSS ""}}
+    <style>
+{{.EmbeddedCSS}}
+    </style>
+{{- end }}
+    <link rel="stylesheet" href="/index.css" />
     {{- range .Styles}}
     <link rel="stylesheet" href="{{.}}" />
     {{- end}}
-
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-0RXEYS3MQ0"></script>
     <script>
@@ -32,22 +33,16 @@
 
 <body>
     <div class="topbar">
-        <div class="container">
-            <div class="top-heading">
-                <a href="/">
-                    <img class="header-logo" src="/assets/go-logo-blue.svg" />
-                </a>
-            </div>
-            <div class="menu">
-                <a href="https://tour.golang-id.org" target="_blank">Tur</a>
-                <a href="/doc">Dokumentasi</a>
-                <a href="/blog">Blog</a>
-                <a href="https://play.golang.org" target="_blank">Coba</a>
-                <form class="item" action="/_internal/search">
-                    <input type="text" name="q" placeholder="Cari" />
-                </form>
-            </div>
-        </div>
+        <a class="item title" href="/">
+            <img class="item header-logo" src="/assets/go-logo-white.svg" />
+        </a>
+        <a class="item" href="https://tour.golang-id.org" target="_blank">Tur</a>
+        <a class="item" href="/doc/">Dokumentasi</a>
+        <a class="item" href="/blog/">Blog</a>
+        <a class="item" href="https://go.dev/play/" target="_blank">Coba</a>
+        <form class="item" action="/_internal/search">
+            <input type="text" name="q" placeholder="Cari" />
+        </form>
     </div>
 
     <div class="page">
