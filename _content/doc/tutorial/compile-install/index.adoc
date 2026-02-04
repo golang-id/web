@@ -10,7 +10,7 @@ Topik ini memperkenalkan dua perintah tambahan untuk membangun kode:
 * link:/cmd/go/#hdr-Compile_packages_and_dependencies[Perintah `go build`^]
   mengompilasi paket-paket, bersama dengan dependensi-nya, tetapi tidak
   memasang hasil kompilasi.
-* link:/ref/mod#go-install[Perintah `go install`^] mengompilasi dan memasang
+* https://go.dev/ref/mod#go-install[Perintah `go install`^] mengompilasi dan memasang
   paket-paket.
 
 NOTE: Topik ini adalah bagian dari seri tutorial yang dimulai dengan

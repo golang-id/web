@@ -78,7 +78,7 @@ repositori sumber kode.
 
 Untuk mengaktifkan pelacakan dependensi pada kode, dengan membuat sebuah
 berkas `go.mod`, jalankan
-link:/ref/mod#go-mod-init[perintah `go mod init`]
+https://go.dev/ref/mod#go-mod-init[perintah `go mod init`]
 dengan memberikan parameter nama dari modul untuk contoh kode kita sekarang.
 Nama tersebut berupa path dari modul.
 Umumnya, ia berupa lokasi repositori di mana sumber kode disimpan,
@@ -202,7 +202,7 @@ func main() {
 Go akan menambahkan modul "quote" sebagai dependensi, berikut dengan berkas
 "go.sum" untuk digunakan dalam autentikasi modul.
 Untuk informasi lebih lanjut, lihat
-link:/ref/mod#authenticating[Autentikasi modul]
+https://go.dev/ref/mod#authenticating[Autentikasi modul]
 dalam Referensi Modul Go.
 
 ----
