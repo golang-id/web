@@ -3,8 +3,8 @@ module github.com/golang-id/web
 go 1.24.0
 
 require (
-	git.sr.ht/~shulhan/ciigo v0.15.4-0.20260203211706-b447e8991270
-	git.sr.ht/~shulhan/pakakeh.go v0.60.3-0.20260202092811-1e3bb9be8444
+	git.sr.ht/~shulhan/ciigo v0.15.4-0.20260204204034-aba22ce712d1
+	git.sr.ht/~shulhan/pakakeh.go v0.60.3-0.20260205122905-fad13afac8b5
 )
 
 require (
