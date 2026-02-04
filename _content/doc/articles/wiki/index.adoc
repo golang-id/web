@@ -318,7 +318,7 @@ $ ./wiki
 menjalakan program.)
 
 Saat peladen web telah berjalan, membuka
-http://localhost:8080/view/test[localhost:8080/view/test^]
+\http://localhost:8080/view/test
 akan menampilkan sebuah halaman berjudul "test" berisi kata "Hello world".
 
 
@@ -484,7 +484,7 @@ link:/doc/articles/wiki/part3.go[Klik di sini untuk melihat kode yang telah kita
 == Menangani halaman yang tidak ada
 
 Apa yang terjadi bila kita mengunjungi
-http://localhost:8080/view/HalamanYangTidakAda[`/view/HalamanYangTidakAda`^]?
+\http://localhost:8080/view/HalamanYangTidakAda ?
 Kita akan melihat sebuah halaman yang berisi HTML.
 Hal ini karena kita mengindahkan error dari `loadPage` dan melanjutkan mencoba
 mengisi templat dengan data yang tidak ada.
@@ -833,7 +833,7 @@ $ ./wiki
 ----
 
 Membuka halaman berikut
-http://localhost:8080/view/ANewPage[localhost:8080/view/ANewPage^]
+\http://localhost:8080/view/ANewPage
 seharusnya memperlihatkan halaman penyuntingan.
 Anda seharusnya bisa menginput teks, klik 'Save', dan dialihkan ke halaman
 yang baru dibuat.

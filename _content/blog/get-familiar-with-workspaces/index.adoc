@@ -294,7 +294,7 @@ gopls^]
 * Unduh dan pasang
 https://go.dev/dl/[Go yang terbaru^]
 * Coba menggunakan
-link:/ref/mod#workspaces[ruang kerja^]
+https://go.dev/ref/mod#workspaces[ruang kerja^]
 lewat
 link:/doc/tutorial/workspaces[Tutorial ruang kerja Go^]
 * Baca

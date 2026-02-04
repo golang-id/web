@@ -274,7 +274,7 @@ yang ditentukan oleh berkas `go.work`, dan dengan cara yang sama menemukan
 impor `golang.org/x/example` lewat berkas `go.work`.
 
 Berkas `go.work` dapat digunakan sebagai pengganti direktif
-link:/ref/mod#go-mod-file-replace[`replace`^]
+https://go.dev/ref/mod#go-mod-file-replace[`replace`^]
 untuk bekerja dengan banyak modul.
 
 Secara dua modul tersebut berada dalam ruang kerja yang sama, akan mudah untuk
@@ -287,7 +287,7 @@ Sekarang, untuk merilis modul `hello` kita harus merilis module
 Hal ini biasanya dilakukan dengan membuat tag pada komit tertentu pada
 modul repositori.
 Lihat
-link:/doc/modules/release-workflow/[dokumentasi alur kerja rilis modul^].
+https://go.dev/doc/modules/release-workflow[dokumentasi alur kerja rilis modul^].
 Saat modul telah dirilis, kita dapat meningkatkan versi yang dibutuhkan pada
 dalam `hello/go.mod`:
 
@@ -328,6 +328,6 @@ modul dalam _workspace_.
 --
 
 Lihat
-link:/ref/mod#workspaces[Workspace^]
+https://go.dev/ref/mod#workspaces[Workspace^]
 dalam Referensi Go Modul untuk lebih rinci tentang ruang kerja dan berkas
 `go.work`.

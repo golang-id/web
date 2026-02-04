@@ -18,7 +18,7 @@ konkuren.
 (Konsep ini memiliki
 https://swtch.com/~rsc/thread/[sejarah yang menarik^]
 yang dimulai dari tulisan C. A. R. Hoare tentang
-https://www.usingcsp.com/[_Communicating Sequential Processes_^].)
+https://en.wikipedia.org/wiki/Communicating_sequential_processes[_Communicating Sequential Processes_^].)
 Alih-alih secara eksplisit menggunakan kunci untuk menengahi akses
 terhadap data yang dibagi, Go mendorong penggunaan _channel_ untuk
 mengirim referensi data antara _goroutine_.

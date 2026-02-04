@@ -59,9 +59,9 @@ perintah SQL seperti `INSERT`, `UPDATE`, atau `DELETE`.
 
 Lebih lanjut, lihat bagian berikut:
 
-* link:/doc/database/change-data/[Mengeksekusi perintah SQL yang tidak
+* https://go.dev/doc/database/change-data/[Mengeksekusi perintah SQL yang tidak
   mengembalikan data]
-* link:/doc/database/querying/[Mengueri data]
+* https://go.dev/doc/database/querying/[Mengueri data]
 
 [#transactions]
 === Transaksi
@@ -73,7 +73,7 @@ diakhiri dengan sebuah _commit_, untuk menyimpan semua perubahan secara
 _atomic_, atau sebuah _rollback_, untuk mengabaikan semua.
 
 Lebih lanjut tentang transaksi, lihat
-link:/doc/database/execute-transactions/[Mengeksekusi transaksi].
+https://go.dev/doc/database/execute-transactions/[Mengeksekusi transaksi].
 
 [#query_cancellation]
 === Pembatalan kueri
@@ -90,7 +90,7 @@ pembatalan dari aplikasi ke fungsi yang mengeksekusi perintah SQL,
 memastikan bahwa sumber yang terpakai dibebaskan bila tidak dibutuhkan lagi.
 
 Lebih lanjut, lihat
-link:/doc/database/cancel-operations/[Pembatalan operasi]
+https://go.dev/doc/database/cancel-operations/[Pembatalan operasi]
 
 [#connection_pool]
 === Mengatur _pool_ koneksi
@@ -100,12 +100,12 @@ membuat dan menutup koneksi berdasarkan kebutuhan kode.
 Penggunaan `sql.DB` adalah cara paling umum untuk mengakses basis-data pada
 Go.
 Lebih lanjut, lihat
-link:/doc/database/open-handle/[Membuat koneksi basis-data].
+https://go.dev/doc/database/open-handle/[Membuat koneksi basis-data].
 
 Paket `database/sql` mengatur _pool_ koneksi untuk Anda.
 Namun, untuk kebutuhan tingkat lanjut, Anda dapat mengatur _pool_ koneksi
 seperti yang dijelaskan dalam
-link:/doc/database/manage-connections#connection_pool_properties[Mengatur
+https://go.dev/doc/database/manage-connections#connection_pool_properties[Mengatur
 properti _pool_ koneksi].
 
 Untuk operasi-operasi yang mana Anda membutuhkan satu koneksi,
@@ -120,10 +120,10 @@ Sebagai contoh, kode Anda bisa saja butuh:
   mengikutkan logika yang berisi semantik transaksi sendiri.
   Mencampurkan fungsi transaksi paket `sql` dengan perintah transaksi SQL
   adalah praktik yang tidak bagus, seperti yang dijelaskan dalam
-  link:/doc/database/execute-transaction/[Mengeksekusi transaksi].
+  https://go.dev/doc/database/execute-transactions[Mengeksekusi transaksi].
 
 * Melakukan operasi yang mengunci kueri yang membuat tabel-tabel sementara.
 
 Lebih lanjut, lihat
-link:/doc/database/manage-connections#dedicated_connections[Menggunakan
+https://go.dev/doc/database/manage-connections#dedicated_connections[Menggunakan
 koneksi tunggal].

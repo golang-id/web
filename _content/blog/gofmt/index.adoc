@@ -68,7 +68,7 @@ https://github.com/golang/go/blob/release-branch.go1.1/misc/git/pre-commit[misc/
 adalah pembantu pra-__commit__ yang menjaga supaya kode Go yang salah format
 tidak ter-__commit__.
 Jika Anda pengguna Mercurial,
-https://bitbucket.org/fhs/hgstyle/overview[pembantu hgstyle^]
+https://github.com/fhs/hgstyle[perkakas hgstyle^]
 menyediakan pembantu pra-__commit__ untuk gofmt.
 
 

@@ -6,7 +6,7 @@
 :en-cmd-go-show: https://go.dev/cmd/go/#hdr-Show_documentation_for_package_or_symbol
 :en-blog-concurrency: https://go.dev/blog/2013/01/concurrency-is-not-parallelism.html
 :id-tour: https://tour.golang-id.org
-:id-doc-code: link:/doc/code.html
+:id-doc-code: link:/doc/code/
 
 [#introduction]
 ==  Pendahuluan
@@ -3563,13 +3563,13 @@ untuk paket `template` untuk penjelasan yang lebih lengkap.
 
 Untuk mencoba kode di atas, simpanlah ke dalam sebuah berkas berekstensi `.go`
 dalam sebuah
-link:/doc/code.html#Workspaces[ruang kerja^] dan jalankan,
+link:/doc/code/[ruang kerja^] dan jalankan,
 
 ----
 	$ go run .
 ----
 
-kemudian buka peramban web pada halaman `http://127.0.0.1:1718`.
+kemudian buka peramban web pada halaman `\http://127.0.0.1:1718`.
 
 Dan dengan ini kita memiliki sebuah web server yang berguna, dengan sejumlah
 baris kode ditambah teks HTML.

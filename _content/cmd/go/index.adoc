@@ -2293,7 +2293,7 @@ kode, namun paket-paket yang baru selalu diunduh ke direktori pertama dalam
 daftar tersebut.
 
 Lihat
-link:/doc/code.html
+link:/doc/code/[Cara Menulis Kode Go]
 sebagai contohnya.
 
 [#hdr-GOPATH_and_Modules]
@@ -2636,8 +2636,8 @@ Jika halaman kembalian berisi tag `meta` berikut
 <meta name="go-import" content="example.org git https://code.org/r/p/exproj">
 ----
 
-perkakas go akan memverifikasi bahwa https://example.og/?go-get=1 berisi tag
-`meta` yang sama dan kemudian mengeksekusi
+perkakas go akan memverifikasi bahwa "\https://example.org/?go-get=1" berisi
+tag `meta` yang sama dan kemudian mengeksekusi
 
     git clone https://code.org/r/p/exproj
 
@@ -2662,7 +2662,7 @@ Variasi tersebut menggunakan "mod" sebagai nilai dalam `vcs`, seperti berikut:
 ----
 
 Tag tersebut berarti untuk mengunduh modul dengan path yang diawali dengan
-`example.org` dari proksi modul lewat URL https://code.org/moduleproxy.
+`example.org` dari proksi modul lewat URL \https://code.org/moduleproxy .
 Lihat https://go.dev/ref/mod#goproxy-protocol untuk detail tentang
 protokol proksi.
 

@@ -8,7 +8,7 @@ Sejak tahun 2016, ribuan Gopher di seluruh dunia telah membantu proyek Go
 dengan membagikan pemikiran mereka lewat Survei Pengembang Go.
 Umpan balik Anda telah berperan penting dalam mengarahkan bahasa,
 ekosistem, dan komunitas kita ini; termasuk
-https://about.sourcegraph.com/go/gophercon-2019-go-pls-stop-breaking-my-editor[server bahasa `gopls`^],
+https://www.youtube.com/watch?v=EFJfdWzBHwE[server bahasa `gopls`^],
 https://go.dev/blog/go1.13-errors[mekanisme penanganan eror^] yang baru,
 https://go.dev/blog/module-mirror-launch[modul _mirror_^],
 dan banyak hal lainnya sejak

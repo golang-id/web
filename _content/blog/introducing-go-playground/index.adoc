@@ -12,7 +12,7 @@ perkakas dokumentasi Go.
 Namun berita sebenarnya adalah tentang fitur baru:
 https://go.dev/[Go Playground^].
 
-image::https://go.dev/blog/introducing-go-playground_Untitled.png[Go Playground]
+image::https://go.dev/blog/playground-intro/screenshot.png[Go Playground]
 
 Playground membolehkan siapa pun dengan peramban menulis kode Go yang kemudian
 kami kompilasi dan jalankan di server kami.

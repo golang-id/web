@@ -189,7 +189,7 @@ Lihat bagian tentang <<gopath,GOPATH>> di bawah.
 ==  Pindah ke cabang master (opsional)
 
 Jika Anda berniat untuk mengubah kode sumber Go, dan
-link:/doc/contribute.html[berkontribusi^]
+https://go.dev/doc/contribute[berkontribusi^]
 ke proyek ini, maka pindahlah dari cabang rilis ke cabang `master` (cabang
 pengembangan).
 Jika bukan demikian, lewati langkah ini.
@@ -278,7 +278,7 @@ menyediakan *instruksi pengaturan yang penting* untuk menggunakan perkakas Go.
 ==  Pasang perkakas tambahan
 
 Sumber kode untuk beberapa perkakas Go tambahan (termasuk
-link:/cmd/godoc/[godoc^])
+https://pkg.go.dev/golang.org/x/tools/cmd/godoc[godoc^])
 disimpan di
 https://pkg.go.dev/golang.org/x/tools[repositori tools^].
 Untuk memasang salah satu perkakas tersebut (misalnya `godoc`):

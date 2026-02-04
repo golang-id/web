@@ -180,9 +180,10 @@ if err := dec.Decode(&val); err != nil {
 ----
 
 (Contoh kode ini merupakan versi sederhana dari
-https://github.com/camlistore/go4/blob/03efcb870d84809319ea509714dd6d19a1498483/jsonconfig/eval.go#L123-L135[kode sebenarnya^]
+https://github.com/go4org/go4/blob/03efcb870d84809319ea509714dd6d19a1498483/jsonconfig/eval.go#L123-L135[kode
+sebenarnya^]
 dari proyek
-https://camlistore.org/[Camlistore^]
+https://perkeep.org/[perkeep (previously known as Camlistore)^]
 .)
 
 Interface `error` hanya membutuhkan sebuah method `Error`;
@@ -401,7 +402,7 @@ Berikut beberapa ide:
    Hal-hal tersebut adalah cara yang bagus untuk menghindari menampilkan
    kesalahan yang disebabkan oleh pemrograman kepada _user_.
    Lihat artikel
-   link:/blog/defer_panic_recover/[Defer Panic dan Recover^]
+   link:/blog/defer-panic-and-recover/["Defer, Panic, dan Recover"^]
    untuk lebih jelas.
 
 

@@ -20,7 +20,7 @@ Artikel ini menggunakan
 https://git-scm.com/[Git^]
 sebagai contoh.
 https://www.mercurial-scm.org/[Mercurial^],
-https://wiki.bazaar.canonical.com/[Bazaar^],
+https://launchpad.net/bzr[Bazaar^],
 dan perkakas sistem kontrol versi lainnya juga didukung.
 
 

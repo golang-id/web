@@ -236,4 +236,4 @@ Secara bawaan, Go akan mengunduh versi yang paling terbaru -- v1.5.2.
 Lewat pengenalan singkat ini, kita telah memasang Go dan mempelajari beberapa
 dasar-dasarnya.
 Untuk melanjutkan menulis kode dengan tutorial lain, lihatlah
-link:/doc/tutorial/create-module.html[Membuat modul Go].
+link:/doc/tutorial/create-module/[Membuat modul Go].

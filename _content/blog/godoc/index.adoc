@@ -98,8 +98,6 @@ kompatibilitas dengan program yang ada.
 Untuk menginformasikan bahwa sebuah pengidentifikasi sebaiknya tidak digunakan
 lagi, tambahkan sebuah paragraf pada komentar yang dimulai dengan
 "Deprecated:" diikuti dengan informasi tentang kenapa ia tidak digunakan lagi.
-Ada beberapa contoh
-https://golang.org/search?q=Deprecated:[pada pustaka standar^].
 
 Ada beberapa aturan format yang Godoc gunakan saat mengonversi komentar ke
 HTML:

@@ -55,8 +55,7 @@ build -gcflags=all="-N -l"`.
 Jika Anda ingin menggunakan gdb untuk menginspeksi sebuah _core dump_, Anda
 dapat memicu _dump_ pada saat program _crash_, pada sistem yang membolehkan,
 dengan menset `GOTRACEBACK=crash` di lingkungan sistem (lihat
-http://127.0.0.1:6061/pkg/runtime/#hdr-Environment_Variables[dokumentasi paket
-`runtime`]
+https://pkg.go.dev/runtime/#hdr-Environment_Variables[dokumentasi paket `runtime`]
 untuk informasi lebih lanjut).
 
 [#Common_Operations]

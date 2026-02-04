@@ -2,7 +2,7 @@
 
 Ada sekumpulan program untuk membangun dan memproses sumber kode Go.
 Program-program tersebut tidak dijalankan secara langsung, namun dipanggil
-oleh program link:/doc/cmd/go/[go].
+oleh program link:/cmd/go/[go].
 
 Cara paling umum untuk menjalankan program tersebut yaitu sebagai sub-perintah
 dari program go, misalnya `go fmt`.

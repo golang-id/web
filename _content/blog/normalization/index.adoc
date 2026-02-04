@@ -74,7 +74,7 @@ Seperti yang telah dijelaskan juga dalam artikel tentang string, Go tidak
 menjamin bahwa karakter-karakter dalam sebuah string telah dinormalisasi.
 Namun, paket go.text dapat mengompensasi hal tersebut.
 Misalnya, paket
-https://pkg.go.dev/code.google.com/p/go.text/collate[collate^],
+https://pkg.go.dev/golang.org/x/text/collate[collate^],
 yang dapat mengurutkan string menurut bahasa tertentu, bekerja secara tepat
 dengan string yang tidak dinormalisasi.
 Paket-paket dalam go.text tidak selalu membutuhkan input yang telah
@@ -85,7 +85,7 @@ Normalisasi ada biayanya namun ia cepat, terutama untuk pemeriksaan dan
 pencarian atau jika sebuah string bukanlah NFD atau NFC dan bisa dikonversi ke
 NFD dengan melakukan dekomposisi tanpa mengubah urutan byte-byte.
 Secara praktik,
-https://www.macchiato.com/unicode/nfc-faq#TOC-How-much-text-is-already-NFC-[99.98%^]
+https://www.macchiato.com/unicode-intl-sw/nfc-faq#h.h8uqckv6osay[99.98%^]
 isi halaman HTML di web dalam bentuk NFC (bila mengikutkan _markup_,
 nilai persentase akan lebih besar).
 Sejauh ini umumnya NFC dapat di-dekomposisi ke NFD tanpa perlu mengubah urutan
@@ -178,7 +178,7 @@ Atau Anda bisa mengeluarkan teks sebagai NFC seperti yang kebanyakan orang
 lakukan.
 
 Untuk menulis teks sebagai NFC, gunakan paket
-https://pkg.go.dev/code.google.com/p/go.text/unicode/norm[unicode/norm^]
+https://pkg.go.dev/golang.org/x/text/unicode/norm[unicode/norm^]
 untuk membungkus `io.Writer`:
 
 ----
@@ -370,4 +370,4 @@ waktu.
 
 == Artikel terkait
 
-* link:/blogs/strings/[String, byte, rune, dan karakter dalam Go^]
+* link:/blog/strings/[String, byte, rune, dan karakter dalam Go^]

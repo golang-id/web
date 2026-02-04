@@ -1195,7 +1195,7 @@ https://go.dev/[golang.org^].
 Instansi dari `godoc` bisa di-konfigurasi untuk menyediakan analisis
 interaktif yang kaya dari simbol dalam program;
 detail-nya ada dalam daftar
-https://go.dev/lib/godoc/analysis/help.html[berikut^].
+https://htmlpreview.github.io/?https://github.com/golang/tools/blob/v0.36.0/godoc/static/analysis/help.html[berikut^]
 
 Untuk mengakses dokumentasi dari baris perintah, perkakas
 link:/cmd/go/[go^]
@@ -1241,7 +1241,7 @@ Jika anda ingin membuat perubahan yang signifikan, mohon didiskusikan terlebih
 dahulu di milis sebelum memulai.
 
 Lihat dokumentasi
-https://go.dev/doc/contribute.html[Berkontribusi pada proyek Go^]
+https://go.dev/doc/contribute[Berkontribusi pada proyek Go^]
 untuk informasi lebih lanjut.
 
 //}}}
@@ -1869,7 +1869,7 @@ Program tersebut akan mencari fungsi yang berawalan `Test`, membuat binari
 tes, dan menjalankannya.
 
 Lihat dokumentasi
-link:/doc/code.html[Cara Menulis Kode Go^],
+link:/doc/code/[Cara Menulis Kode Go^],
 paket
 https://pkg.go.dev/testing[testing^]
 dan perintah

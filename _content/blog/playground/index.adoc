@@ -37,7 +37,7 @@ image:https://go.dev/blog/playground/overview.png[]
 
 Layanan playground memiliki tiga bagian:
 
-*  Sebuah _back-end_ yang berjalan di server Google.
+*  Sebuah _backend_ yang berjalan di server Google.
    Ia menerima permintaan RPC, mengompilasi program menggunakan perkakas go,
    mengeksekusi program, dan mengembalikan keluaran program
    (atau kesalahan kompilasi) sebagai respons RPC.
@@ -45,24 +45,24 @@ Layanan playground memiliki tiga bagian:
 *  Sebuah _front-end_ yang berjalan di
    https://cloud.google.com/appengine/docs/go/[Google App Engine^].
    Ia menerima permintaan HTTP dari klien dan membuat permintaan RPC ke
-   _back-end_.
+   _backend_.
    Ia juga melakukan beberapa _caching_.
 
 *  Sebuah klien JavaScript yang mengimplementasikan antar muka dan membuat
    permintaan HTTP ke _front-end_.
 
 
-==  Back-end
+==  _Backend_
 
-Program back-end itu sendiri cukup biasa, jadi kita tidak akan mendiskusikan
+Program _backend_ itu sendiri cukup biasa, jadi kita tidak akan mendiskusikan
 implementasinya di sini.
 Bagian yang menarik yaitu bagaimana kita mengeksekusi kode secara aman dalam
 sebuah lingkungan terjaga dengan tetap menyediakan fungsionalitas inti seperti
 waktu, jaringan, dan sistem berkas.
 
-Untuk mengisolasi program pengguna dari infrastruktur Google, back-end
+Untuk mengisolasi program pengguna dari infrastruktur Google, _backend_
 menjalankan program dengan
-https://developers.google.com/native-client/[Native Client^]
+https://developer.chrome.com/docs/native-client/[Native Client^]
 (atau "NaCl"),
 sebuah teknologi yang dikembangkan oleh Google untuk membolehkan eksekusi
 program x86 dengan aman di dalam peramban.
@@ -105,8 +105,8 @@ Fasilitas-fasilitas tersebut dijelaskan dalam bagian-bagian di bawah ini.
 Program-program yang berjalan di playground dibatasi jumlah waktu CPU dan
 memori yang dapat mereka gunakan, tetapi mereka juga dibatasi dalam berapa
 banyak waktu yang dapat mereka gunakan.
-Hal ini karena setiap program yang berjalan mengonsumsi sumber pada back-end
-dan pada infrastruktur antara klien dan back-end.
+Hal ini karena setiap program yang berjalan mengonsumsi sumber pada _backend_
+dan pada infrastruktur antara klien dan _backend_.
 Membatasi _run-time_ dari setiap program di playground membuat layanan kita
 lebih dapat diprediksi dan menjaga kita dari serangan _denial of service_.
 
@@ -157,7 +157,7 @@ dan
 https://go.dev/cl/73110043[time.goc^].
 
 Pemalsuan waktu memperbaiki beberapa isu dari penggunaan sumber daya pada
-back-end, tetapi bagaimana dengan keluaran program?
+_backend_, tetapi bagaimana dengan keluaran program?
 Akan aneh melihat sebuah program yang tertidur berjalan sampai selesai dengan
 benar tanpa menghabiskan waktu sama sekali.
 
@@ -182,7 +182,7 @@ func main() {
 ----
 
 Bagaimana ia bekerja?
-Ia bekerja dengan kolaborasi antara back-end, front-end, dan klien.
+Ia bekerja dengan kolaborasi antara _backend_, front-end, dan klien.
 
 Kita menangkap tempo pada setiap penulisan ke standar keluaran dan eror dan
 mengirimnya ke klien.
@@ -285,18 +285,18 @@ berkas yang dapat digunakan dalam contoh-contoh dokumentasi, artikel blog, dan
 tur Go.
 
 Implementasinya dapat ditemukan dalam berkas
-https://github.com/golang/go/blob/master/src/syscall/fs_nacl.go[fs_nacl.go^]
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fs_nacl.go[fs_nacl.go^]
 dan
-https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go[fd_nacl.go^]
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fd_nacl.go[fd_nacl.go^]
 (yang dibangun ke paket `syscall` hanya bila `GOOS` di set ke `nacl`).
 
 Sistem berkas itu sendiri direpresentasikan oleh
-https://github.com/golang/go/blob/master/src/syscall/fs_nacl.go#L26[struct fsys^],
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fs_nacl.go#L26[struct fsys^],
 yang mana sebuah instansi global (bernama `fs`) dibuat saat inisiasi.
 Beragam fungsi-fungsi berkas beroperasi terhadap `fs` bukan melakukan
 pemanggilan sistem secara langsung.
 Misalnya, berikut fungsi
-https://github.com/golang/go/blob/master/src/syscall/fs_nacl.go#L473[syscall.Open^]:
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fs_nacl.go#L473[syscall.Open^]:
 
 ----
 func Open(path string, openmode int, perm uint32) (fd int, err error) {
@@ -311,17 +311,17 @@ func Open(path string, openmode int, perm uint32) (fd int, err error) {
 ----
 
 Penanda berkas (_file descriptor_) dilacak oleh sebuah slice global bernama
-https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go#L17[`files`^].
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fd_nacl.go#L17[`files`^]
 Setiap penanda berkas berkorespondensi dengan sebuah
-https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go#L23[`file`^]
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fd_nacl.go#L23[`file`^]
 dan setiap `file` menyediakan nilai yang mengimplementasikan interface
-https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go#L30[`fileImpl`^].
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fd_nacl.go#L30[`fileImpl`^].
 Ada beberapa implementasi dari interface tersebut:
 
 *  Berkas dan perangkat biasa (seperti `/dev/random`) direpresentasikan oleh
-https://github.com/golang/go/blob/master/src/syscall/fs_nacl.go#L58[`fsysFile`^],
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fs_nacl.go#L58[`fsysFile`^],
 *  Standar masukan, keluaran, dan eror adalah instansi dari
-https://github.com/golang/go/blob/master/src/syscall/fd_nacl.go#L216[`naclFile`^],
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/fd_nacl.go#L216[`naclFile`^],
 yang menggunakan pemanggilan sistem untuk berinteraksi dengan berkas yang
 sebenarnya (hal ini adalah satu-satunya cara program berinteraksi dengan dunia
 luar),
@@ -378,20 +378,20 @@ Pemalsuan jaringan harus dapat menyimulasikan _timeout_ baca dan tulis,
 tipe-tipe alamat dan protokol yang berbeda, dan seterusnya.
 
 Implementasi tersebut dapat ditemukan dalam
-https://github.com/golang/go/blob/master/src/syscall/net_nacl.go[net_nacl.go^].
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/net_nacl.go[net_nacl.go^].
 Bagian awal yang bagus untuk dibaca yaitu
-https://github.com/golang/go/blob/master/src/syscall/net_nacl.go#L461[netFile^],
+https://github.com/golang/go/blob/release-branch.go1.13/src/syscall/net_nacl.go#L461[netFile^],
 implementasi dari jaringan socket dari interface `fileImpl`.
 
 
 ==  Front-end
 
 Front-end dari playground adalah program sederhana (kurang dari 100 baris).
-Ia menerima permintaan HTTP dari klien, membuat permintaan RPC ke back-end,
+Ia menerima permintaan HTTP dari klien, membuat permintaan RPC ke _backend_,
 dan melakukan semacam penyimpanan sementara (_caching_).
 
 Front-end melayani HTTP dengan sebuah _handler_ di
-https://go.dev/compile[golang.org/compile^].
+https://go.dev/_/compile[go.dev/_/compile^].
 Handler tersebut menerima permintaan POST dengan bagian `body` (program Go
 yang akan dijalankan) dan kolom `version` opsional (untuk klien pada umumnya
 nilainya "2").
@@ -404,9 +404,9 @@ Jika ditemukan, ia akan mengembalikan respons yang tersimpan tersebut.
 _Cache_ tersebut mencegah program yang umum seperti yang dapat kita temukan
 pada
 https://go.dev/[halaman depan Go^]
-dari menghabiskan sumber daya pada back-end.
+dari menghabiskan sumber daya pada _backend_.
 Jika tidak ada respons yang tersimpan, front-end melakukan pemanggilan RPC ke
-back-end, menyimpan respons ke dalam memcache, membaca even-event, dan
+_backend_, menyimpan respons ke dalam memcache, membaca even-event, dan
 mengembalikan sebuah objek JSON ke klien sebagai respons HTTP (seperti yang
 dijelaskan di atas).
 
@@ -418,33 +418,33 @@ untuk menyiapkan antarmuka pengguna (kotak kode dan keluaran, tombol "Run",
 dan lainnya) dan berkomunikasi dengan front-end playground.
 
 Implementasinya ada dalam berkas
-https://github.com/golang/tools/blob/master/godoc/static/playground.js[playground.js^]
+https://github.com/golang/tools/blob/release-branch.go1.13/godoc/static/playground.js[playground.js^]
 dalam repositori `go.tools`, yang dapat diimpor dari paket
 https://pkg.go.dev/golang.org/x/tools/godoc/static[`golang.org/x/tools/godoc/static`^].
 Beberapa kodenya cukup bersih dan beberapa cukup kasar karena ia adalah hasil
 gabungan dari beberapa implementasi dari kode klien.
 
 Fungsi
-https://github.com/golang/tools/blob/master/godoc/static/playground.js#L227[playground^]
+https://github.com/golang/tools/blob/release-branch.go1.13/godoc/static/playground.js#L316[playground^]
 membaca beberapa elemen HTML dan mengubahnya menjadi _widget_ playground yang
 interaktif.
 Anda sebaiknya menggunakan fungsi ini jika Anda ingin menempatkan playground
 pada situs Anda (lihat `Klien lain` di bawah).
 
 Interface
-https://github.com/golang/tools/blob/master/godoc/static/playground.js#L6[`Transport`^]
+https://github.com/golang/tools/blob/release-branch.go1.13/godoc/static/playground.js#L6[`Transport`^]
 (tidak secara formal terdefinisi)
 mengabstraksi antarmuka pengguna untuk berkomunikasi ke front-end web.
-https://github.com/golang/tools/blob/master/godoc/static/playground.js#L43[HTTPTransport^]
+https://github.com/golang/tools/blob/release-branch.go1.13/godoc/static/playground.js#L46[HTTPTransport^]
 adalah sebuah implementasi dari `Transport` menggunakan protokol HTTP seperti
 yang dijelaskan di atas.
-https://github.com/golang/tools/blob/master/godoc/static/playground.js#L115[SocketTransport^]
+https://github.com/golang/tools/blob/release-branch.go1.13/godoc/static/playground.js#L185[SocketTransport^]
 adalah implementasi menggunakan WebSocket (lihat "Eksekusi luring" di bawah).
 
 Untuk memenuhi
 https://en.wikipedia.org/wiki/Same-origin_policy[aturan same-origin^],
 beberapa server web (godoc, misalnya) mengirim permintaan ke `/compile` lewat
-layanan proxy playground di https://golang.org/compile.
+layanan proxy playground di https://go.dev/_/compile .
 Paket 
 https://pkg.go.dev/golang.org/x/tools/playground[golang.org/x/tools^]
 membantu melakukan hal ini.
@@ -461,12 +461,12 @@ Hal ini bagus untuk yang memiliki koneksi internet yang terbatas atau untuk
 presentasi yang tidak dapat (dan _sebaiknya_ tidak) bergantung pada koneksi
 internet yang selalu bekerja baik.
 
-Untuk eksekusi secara luring, perkakas menjalankan versi back-end
+Untuk eksekusi secara luring, perkakas menjalankan versi _backend_
 playground-nya sendiri di mesin lokal.
 Back-end menggunakan perkakas Go biasa tanpa ada modifikasi yang disebutkan di
 atas dan menggunakan WebSocket untuk berkomunikasi dengan klien.
 
-Implementasi WebSocket untuk back-end dapat ditemukan dalam paket
+Implementasi WebSocket untuk _backend_ dapat ditemukan dalam paket
 https://pkg.go.dev/golang.org/x/tools/playground/socket[golang.org/x/tools/playground/socket^].
 Wicara
 https://talks.golang.org/2012/insidepresent.slide#1[Inside Present^]

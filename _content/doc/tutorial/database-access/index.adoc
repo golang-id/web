@@ -720,7 +720,7 @@ Rekomendasi topik-topik selanjutnya:
   dan
   link:/doc/code/[Menulis kode Go].
 
-* https://tur.golang-id.org/welcome/1[Tur Go]
+* https://tour.golang-id.org/welcome/1[Tur Go]
   adalah pengenalan langkah demi langkah dari fundamental Go.
 
 

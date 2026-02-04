@@ -219,7 +219,7 @@ https://www.graphviz.org/[graphviz^]
 ----
 
 Potongan kecil dari
-https://rawgit.com/rsc/benchgraffiti/master/havlak/havlak1.svg[grafik^]
+https://htmlpreview.github.io/?https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak1.svg[grafik^]
 berbentuk seperti ini:
 
 image:/blog/profiling-go-programs/profiling-go-programs_havlak1a-75.png[,650]
@@ -285,7 +285,7 @@ _assembly_ bukan menampilkan daftar sumber kode;
 bila jumlah sampel cukup perintah tersebut dapat membantu Anda melihat
 instruksi mana yang memakan biaya.
 Perintah `weblist` menggabungkan kedua mode tersebut: ia memperlihatkan
-https://rawgit.com/rsc/benchgraffiti/master/havlak/havlak1.html[daftar sumber kode^]
+https://htmlpreview.github.io/?https://github.com/rsc/benchgraffiti/blob/master/havlak/havlak1.html[daftar sumber kode^]
 dan pada saat sebuah baris di klik ia akan menampilkan _assembly_ dari
 baris tersebut.
 

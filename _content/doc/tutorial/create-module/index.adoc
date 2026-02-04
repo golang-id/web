@@ -61,7 +61,7 @@ Contohnya, kita bisa membuat sebuah modul untuk paket-paket yang memiliki
 fungsi-fungsi yang melakukan analisis finansial sehingga orang lain yang
 membuat aplikasi finansial dapat menggunakan karya kita.
 Untuk informasi lebih lanjut tentang pengembangan dengan modul, lihat
-link:/doc/modules/developing/[Membangun dan menerbitkan modul^].
+https://go.dev/doc/modules/developing[Membangun dan menerbitkan modul^].
 
 Kode Go dikelompokkan ke dalam paket-paket, dan paket-paket dikelompokkan ke
 dalam modul.
@@ -103,7 +103,7 @@ cd greetings
 --
 
 . Buatlah Go modul menggunakan perintah
-  link:/ref/mod/#go-mod-init[`go mod init`^]
+  https://go.dev/ref/mod#go-mod-init[`go mod init`^]
 +
 --
 Jalankan perintah "`go mod init`", dengan memberikan parameter path modul --

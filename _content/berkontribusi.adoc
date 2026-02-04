@@ -80,7 +80,7 @@ https://sr.ht/~shulhan/ciigo[kerangkanya^]:
 Berikut langkah-langkah untuk memulai pengembangan di komputer anda,
 
 Salin repositori ini ke dalam
-link:/link/doc/code.html#Workspaces[ruang-kerja^]
+link:/doc/code/[ruang-kerja^]
 Go anda
 
 ----
@@ -117,7 +117,7 @@ ciigo: starting HTTP server at ":5080" for "./_content"
 ----
 
 Buka peramban pada alamat
-http://127.0.0.1:5080
+\http://127.0.0.1:5080
 (atau sesuai dengan port yang Anda berikan).
 Situs lokal dari golang-id.org akan muncul di halaman tersebut.
 

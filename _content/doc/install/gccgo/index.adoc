@@ -73,7 +73,7 @@ Perlu diketahui, walaupun gcc.gnu.org adalah salah satu cara umum untuk
 mendapatkan kode sumber untuk antar-muka Go, repositori itu bukanlah sumber
 utama sebenarnya.
 Jika Anda ingin berkontribusi pada antar-muka _compiler_ Go, lihatlah halaman
-link:/doc/gccgo_contribute.html[Berkontribusi pada gccgo^].
+https://go.dev/doc/gccgo_contribute[Berkontribusi pada gccgo^].
 
 
 [#Building]

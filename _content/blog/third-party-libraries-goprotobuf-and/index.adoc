@@ -1,9 +1,9 @@
 =  Pustaka pihak-ketiga: goprotobuf dan lainnya
 :author: Andrew Gerrand
-:date: 20 April 2010
+:revdate: 20 April 2010
 
 
-Pada tanggal 24 Maret, Rob Pike mengumumkan
+Pada tanggal 24 Maret 2010, Rob Pike mengumumkan
 https://code.google.com/p/goprotobuf/[goprotobuf^],
 pustaka Go untuk format pertukaran data menggunakan
 https://code.google.com/apis/protocolbuffers/docs/overview.html[Protocol Buffers^]
@@ -40,7 +40,7 @@ https://code.google.com/p/goprotobuf/source/browse/README[README^]
 dari proyek tersebut.
 
 Ini adalah salah satu dari daftar pustaka pihak-ketiga dari
-https://godashboard.appspot.com/package[proyek-proyek Go^]
+https://pkg.go.dev/[proyek-proyek Go^]
 yang terus berkembang.
 Sejak diluncurkannya goprotobuf, Go _binding_ untuk X telah dipindahkan ke
 proyek

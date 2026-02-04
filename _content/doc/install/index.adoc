@@ -187,7 +187,7 @@ Jika Anda melihat pesan "hello, world" maka instalasi Go Anda berjalan dengan
 benar.
 
 Sebelum bergegas menulis kode Go, mohon baca dokumen tentang
-link:/doc/code.html[Cara Menulis Kode Go],
+link:/doc/code/[Cara Menulis Kode Go],
 yang menjelaskan beberapa konsep utama tentang menggunakan perkakas Go.
 
 

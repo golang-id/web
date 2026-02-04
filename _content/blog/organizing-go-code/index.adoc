@@ -136,5 +136,5 @@ https://go.dev/src/cmd/go/[34 berkas^].
 Dokumentasi yang bagus adalah kualitas yang penting untuk kode yang berguna
 dan mudah dipelihara.
 Bacalah artikel
-link:/blog/godoc_documenting_go_code/[Godoc: mendokumentasikan kode Go^]
+link:/blog/godoc/[Godoc: mendokumentasikan kode Go^]
 untuk belajar bagaimana menulis dokumentasi kode yang bagus.

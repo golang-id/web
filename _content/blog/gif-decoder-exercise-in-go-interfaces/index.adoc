@@ -11,7 +11,7 @@ mesin, yang membuatnya menjadi pilihan yang bagus untuk pekerjaan-pekerjaan
 yang membutuhkan CPU seperti manipulasi gambar.
 
 Dengan semangat, kami mendemokan sebuah program bernama
-https://moustach-io.appspot.com/[Moustachio]
+https://web.archive.org/web/20190913143133/https://moustach-io.appspot.com/[Moustachio^]
 yang mempermudah mengubah sebuah gambar seperti berikut:
 
 image:/blog/gif-decoder-exercise-in-go-interfaces/gif-decoder-exercise-in-go-interfaces_image00.jpg[]

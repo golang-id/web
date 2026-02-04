@@ -11,7 +11,7 @@ Ia umumnya digunakan untuk komunikasi antara web back-end dan program
 JavaScript yang berjalan di peramban, namun ia digunakan diberbagai tempat
 lainnya juga.
 Situsnya,
-https://json.org[json.org^],
+https://www.json.org/json-en.html[json.org^],
 menyediakan definisi standar yang jelas dan ringkas.
 
 {package-json}[Paket json^]
