@@ -8,8 +8,10 @@ import (
 	"flag"
 	"log"
 	"strings"
+	"time"
 
 	"git.sr.ht/~shulhan/ciigo"
+	"git.sr.ht/~shulhan/pakakeh.go/lib/http"
 	"git.sr.ht/~shulhan/pakakeh.go/lib/memfs"
 	"git.sr.ht/~shulhan/pakakeh.go/lib/systemd"
 )
@@ -39,8 +41,9 @@ func main() {
 			},
 		}
 		serveOpts = ciigo.ServeOptions{
-			ConvertOptions: convertOpts,
-			Mfs:            memFS,
+			ServerOptions: http.ServerOptions{
+				Memfs: memFS,
+			},
 		}
 	)
 
@@ -48,11 +51,22 @@ func main() {
 		`Jalankan mode pengembangan.`)
 	flag.StringVar(&serveOpts.Address, `http`, defListenAddr,
 		`Alamat peladen HTTP.`)
+
+	var shutdownIdleDuration string
+	flag.StringVar(&shutdownIdleDuration, `shutdown-idle`, ``,
+		`Set the duration when server will shutting down after idle.`)
+
 	flag.Parse()
 
-	var cmd = strings.ToLower(flag.Arg(0))
-
 	var err error
+	if shutdownIdleDuration != `` {
+		serveOpts.ShutdownIdleDuration, err = time.ParseDuration(shutdownIdleDuration)
+		if err != nil {
+			log.Fatalf(`invalid shutdown-idle %s: %s`, shutdownIdleDuration, err)
+		}
+	}
+
+	var cmd = strings.ToLower(flag.Arg(0))
 	switch cmd {
 	case cmdEmbed:
 		err = ciigo.GoEmbed(embedOpts)
@@ -72,7 +86,7 @@ func main() {
 					gotAddr, serveOpts.Address)
 			}
 		}
-		err = ciigo.Serve(serveOpts)
+		err = ciigo.Serve(serveOpts, convertOpts)
 	}
 	if err != nil {
 		log.Fatal(err)
